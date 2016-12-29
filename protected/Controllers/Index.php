@@ -10,6 +10,7 @@ class Index
 
     public function actionDefault()
     {
+        (true)? 1 : 2;
 
     }
 
