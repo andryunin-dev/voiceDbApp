@@ -1,0 +1,8 @@
+{
+  "require": {
+    "pr-of-it/t4": "dev-master",
+    "league/oauth2-client": "*",
+    "league/oauth2-google": "*",
+    "phpunit/phpunit": "*"
+  }
+}
