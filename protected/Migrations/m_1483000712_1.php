@@ -24,7 +24,10 @@ class m_1483000712_1
                 echo 'schema ' . $schema . ' created' . "\n";
             }
         }
-
+        
+        if ($this->existsTable('geolocation.regions')) {
+            $this->dropTable('geolocation.regions');
+        }
         $this->createTable('geolocation.regions',
             [
                 'region' => ['type' => 'string']
