@@ -55,13 +55,13 @@ class m_1484050074_initialMigrate
          */
         $sql['geolocation.regions'] = 'CREATE TABLE geolocation."regions" (
                   __id   SERIAL,
-                  region VARCHAR(50),
+                  title VARCHAR(50),
                   PRIMARY KEY (__id)
                 )';
 
         $sql['geolocation.cities'] = 'CREATE TABLE geolocation."cities" (
                   __id   SERIAL,
-                  city VARCHAR(50),
+                  title VARCHAR(50),
                   PRIMARY KEY (__id)
                 )';
 
@@ -80,10 +80,10 @@ class m_1484050074_initialMigrate
         $sql['company.offices'] = 'CREATE TABLE company."offices" (
                   __id         SERIAL,
                   title       VARCHAR(200),
-                  __region_id    BIGINT NOT NULL,
-                  __city_id    BIGINT NOT NULL,
-                  __address_id BIGINT NOT NULL,
-                  __status_id  BIGINT NOT NULL,
+                  __region_id    BIGINT,
+                  __city_id    BIGINT,
+                  __address_id BIGINT,
+                  __status_id  BIGINT,
                   details JSONB,
                   comment TEXT,
                   PRIMARY KEY (__id),
