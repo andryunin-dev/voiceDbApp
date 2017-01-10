@@ -18,16 +18,37 @@ class m_1483000712_1
             'provider'
         ];
 
+        /**
+         * Удаляем все схемы каскадно с таблицами
+         */
+        foreach ($schemas as $schema) {
+            $sqlCreateSchema = 'DROP SCHEMA IF EXISTS ' . $schema . ' CASCADE';
+            if (true === $this->db->execute($sqlCreateSchema)) {
+                echo 'schema ' . $schema . ' deleted' . "\n";
+            }
+        }
+
+        /**
+         *Создание схем
+         */
+        $schemas = [
+            'geolocation',
+            'company',
+            'telephony',
+            'equipment',
+            'provider'
+        ];
+
         foreach ($schemas as $schema) {
             $sqlCreateSchema = 'CREATE SCHEMA IF NOT EXISTS ' . $schema;
             if (true === $this->db->execute($sqlCreateSchema)) {
-                echo 'schema ' . $schema . ' created' . "\n";
+                echo 'Schema ' . $schema . ' created' . "\n";
             }
         }
-        
-        if ($this->existsTable('geolocation.regions')) {
-            $this->dropTable('geolocation.regions');
-        }
+
+        /**
+         * Create tables in geolocation and company schemas
+         */
         $this->createTable('geolocation.regions',
             [
                 'region' => ['type' => 'string']
@@ -40,7 +61,12 @@ class m_1483000712_1
 
         $this->createTable('geolocation.addresses',
             [
-                'address' => ['type' => 'string']
+                'address' => ['type' => 'text']
+            ]);
+
+        $this->createTable('company.officeStatuses',
+            [
+                'status' => ['type' => 'string']
             ]);
 
         $this->createTable('company.offices',
@@ -49,25 +75,62 @@ class m_1483000712_1
                 '__region_id' => ['type' => 'link'],
                 '__city_id' => ['type' => 'link'],
                 '__address_id' => ['type' => 'link'],
+                '__status_id' => ['type' => 'link'],
                 'details' => ['type' => 'jsonb'],
                 'comment' => ['type' => 'text']
             ]);
+        $sql_fk_region_id = '
+        ALTER TABLE company."offices" ADD 
+        CONSTRAINT fk_region_id FOREIGN KEY (__region_id)
+              REFERENCES geolocation."regions" (__id)
+              ON UPDATE CASCADE
+              ON DELETE RESTRICT';
+        $sql_fk_city_id = '
+        ALTER TABLE company."offices" ADD 
+        CONSTRAINT fk_city_id FOREIGN KEY (__city_id)
+              REFERENCES geolocation."cities" (__id)
+              ON UPDATE CASCADE
+              ON DELETE RESTRICT';
+        $sql_fk_address_id = '
+        ALTER TABLE company."offices" ADD
+        CONSTRAINT fk_address_id FOREIGN KEY (__address_id)
+          REFERENCES geolocation."addresses" (__id)
+            ON UPDATE CASCADE
+            ON DELETE RESTRICT';
+        $sql_fk_status_id = '
+        ALTER TABLE company."offices" ADD
+        CONSTRAINT fk_status_id FOREIGN KEY (__status_id)
+          REFERENCES company."officeStatuses" (__id)
+            ON UPDATE CASCADE
+            ON DELETE RESTRICT';
+        $this->db->execute($sql_fk_region_id);
+        $this->db->execute($sql_fk_city_id);
+        $this->db->execute($sql_fk_address_id);
+        $this->db->execute($sql_fk_status_id);
 
-        $sqlAddColumnStatus = 'ALTER TABLE company.offices ADD COLUMN status  office_status';
-        if (true === $this->db->execute($sqlAddColumnStatus)) {
-            echo 'Column \'status\' added to table \"company.offices\"';
-        }
+        /**
+         * Create tables in equipment schema
+         */
+        $this->createTable('equipment.dataPortTypes',
+            [
+                'type' => ['type' => 'string'],
 
+            ]);
+        $this->createTable('equipment.dataPorts',
+            [
+                '__appliance_id' => ['type' => 'link'],
+                '__typePort_id' => ['type' => 'link'],
+                'ipAddress' => ['type' => 'inet'],
+                'details' => ['type' => 'jsonb'],
+                'comment' => ['type' => 'text']
+            ]);
+        $sql_alter_ipAddress_type = '
+          ALTER TABLE equipment."dataPorts" ALTER COLUMN "ipAddress" TYPE INET USING "ipAddress"::inet';
+        $this->db->execute($sql_alter_ipAddress_type);
     }
 
     public function down()
     {
-        $this->dropTable('company.offices');
-
-        $this->dropTable('geolocation.regions');
-        $this->dropTable('geolocation.cities');
-        $this->dropTable('geolocation.addresses');
-
         $schemas = [
             'geolocation',
             'company',
@@ -76,8 +139,11 @@ class m_1483000712_1
             'provider'
         ];
 
+        /**
+         * Удаляем все схемы каскадно с таблицами
+         */
         foreach ($schemas as $schema) {
-            $sqlCreateSchema = 'DROP SCHEMA ' . $schema;
+            $sqlCreateSchema = 'DROP SCHEMA IF EXISTS ' . $schema . ' CASCADE';
             if (true === $this->db->execute($sqlCreateSchema)) {
                 echo 'schema ' . $schema . ' deleted' . "\n";
             }
