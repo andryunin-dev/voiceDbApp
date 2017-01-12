@@ -11,9 +11,8 @@ use T4\Orm\Model;
  * @property string $title Office title
  * @property string $details Any additional info about office in JSONB format
  * @property string $comment
- * @property Region $region
- * @property City $city
  * @property Address $address
+ * @property OfficeStatus $status
  */
 class Office extends Model
 {
@@ -25,9 +24,8 @@ class Office extends Model
             'comment' => ['type' => 'string']
         ],
         'relations' => [
-            'region' => ['type' => self::BELONGS_TO, 'model' => Region::class],
-            'city' => ['type' => self::BELONGS_TO, 'model' => City::class],
-            'address' => ['type' => self::BELONGS_TO, 'model' => Address::class]
+            'address' => ['type' => self::BELONGS_TO, 'model' => Address::class],
+            'status' => ['type' => self::BELONGS_TO, 'model' => OfficeStatus::class],
         ]
     ];
 

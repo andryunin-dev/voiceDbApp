@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use T4\Core\Collection;
 use T4\Orm\Model;
 
 /**
@@ -9,6 +10,7 @@ use T4\Orm\Model;
  * @package App\Models
  *
  * @property string $title Region's title
+ * @property Collection|City[] $cities
  */
 class Region extends Model
 {
@@ -16,6 +18,9 @@ class Region extends Model
         'table' => 'geolocation.regions',
         'columns' => [
             'title' => ['type' => 'string']
+        ],
+        'relations' => [
+            'cities' => ['type' => self::HAS_MANY, 'model' => City::class]
         ]
     ];
 }

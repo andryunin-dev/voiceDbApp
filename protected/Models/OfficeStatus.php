@@ -9,6 +9,7 @@
 namespace App\Models;
 
 
+use T4\Core\Collection;
 use T4\Orm\Model;
 
 /**
@@ -16,6 +17,7 @@ use T4\Orm\Model;
  * @package App\Models
  *
  * @property string $status Office status(opened, closed e.g.)
+ * @property Collection|Office[] $offices
  */
 class OfficeStatus extends Model
 {
@@ -23,6 +25,9 @@ class OfficeStatus extends Model
         'table' => 'company.officeStatuses',
         'columns' => [
             'status' => ['type' => 'string']
+        ],
+        'relations' => [
+            'offices' => ['type' => self::HAS_MANY, 'model' => Office::class]
         ]
     ];
 }

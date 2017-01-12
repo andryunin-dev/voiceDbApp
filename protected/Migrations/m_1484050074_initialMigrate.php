@@ -62,14 +62,24 @@ class m_1484050074_initialMigrate
         $sql['geolocation.cities'] = 'CREATE TABLE geolocation."cities" (
                   __id   SERIAL,
                   title VARCHAR(50),
-                  PRIMARY KEY (__id)
-                )';
+                  __region_id    BIGINT,
+                  PRIMARY KEY (__id),
+                  CONSTRAINT fk_region_id FOREIGN KEY (__region_id)
+                    REFERENCES geolocation."regions" (__id)
+                    ON UPDATE CASCADE
+                    ON DELETE RESTRICT
+                  )';
 
         $sql['geolocation.addresses'] = 'CREATE TABLE geolocation."addresses" (
                   __id      SERIAL,
+                  __city_id    BIGINT,
                   address TEXT, --{"street": ,"building"} пока сделал text
-                  PRIMARY KEY (__id)
-                )';
+                  PRIMARY KEY (__id),
+                  CONSTRAINT fk_city_id FOREIGN KEY (__city_id)
+                    REFERENCES geolocation."cities" (__id)
+                    ON UPDATE CASCADE
+                    ON DELETE RESTRICT
+                  )';
 
         $sql['company.officeStatuses'] = 'CREATE TABLE company."officeStatuses" (
                   __id SERIAL,
@@ -80,21 +90,11 @@ class m_1484050074_initialMigrate
         $sql['company.offices'] = 'CREATE TABLE company."offices" (
                   __id         SERIAL,
                   title       VARCHAR(200),
-                  __region_id    BIGINT,
-                  __city_id    BIGINT,
                   __address_id BIGINT,
                   __status_id  BIGINT,
                   details JSONB,
                   comment TEXT,
                   PRIMARY KEY (__id),
-                  CONSTRAINT fk_region_id FOREIGN KEY (__region_id)
-                    REFERENCES geolocation."regions" (__id)
-                    ON UPDATE CASCADE
-                    ON DELETE RESTRICT,
-                  CONSTRAINT fk_city_id FOREIGN KEY (__city_id)
-                    REFERENCES geolocation."cities" (__id)
-                    ON UPDATE CASCADE
-                    ON DELETE RESTRICT,
                   CONSTRAINT fk_address_id FOREIGN KEY (__address_id)
                     REFERENCES geolocation."addresses" (__id)
                     ON UPDATE CASCADE
