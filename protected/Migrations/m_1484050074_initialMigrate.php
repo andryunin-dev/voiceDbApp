@@ -112,7 +112,7 @@ class m_1484050074_initialMigrate
                   __id SERIAL,
                   title VARCHAR(200),
                   details JSONB,
-                  comments TEXT,
+                  comment TEXT,
                   PRIMARY KEY (__id)
                 )';
 

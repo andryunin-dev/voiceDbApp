@@ -9,7 +9,7 @@ use T4\Orm\Model;
  * Class City
  * @package App\Models
  *
- * @property string $title City's title
+ * @property string $title
  * @property Region $region
  * @property Collection|Address[] $addresses
  */

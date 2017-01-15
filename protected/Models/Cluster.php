@@ -1,0 +1,28 @@
+<?php
+
+namespace App\Models;
+
+use T4\Orm\Model;
+
+/**
+ * Class Cluster
+ * @package App\Models
+ *
+ * @property string $title
+ * @property jsonb $details
+ * @property string $comment
+ */
+class Cluster extends Model
+{
+    protected static $schema = [
+        'table' => 'equipment.clusters',
+        'columns' => [
+            'title' => ['type' => 'string'],
+            'details' => ['type' => 'jsonb'],
+            'comment' => ['type' => 'string']
+        ],
+        'relations' => [
+            'appliances' => ['type' => self::HAS_MANY]
+        ]
+    ];
+}
