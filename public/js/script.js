@@ -2,6 +2,22 @@ $(function () {
     $( "#date" ).datepicker();
     $("#accordion").accordion();
     $( "#menu" ).menu();
+
+// Добавление статуса
+    var addStatus = $("#addStatus-modal").dialog({
+        autoOpen: false,
+        height:400,
+        width: 350,
+        modal: true
+    });
+
+    $("#addStatus-btnOpen").on("click", function () {
+        addStatus.dialog("open");
+    })
+    $("#addStatus-btnClose").on("click", function () {
+        addStatus.dialog("close");
+    })
+
 // Добавление региона
     var addReg = $("#addReg-modal").dialog({
         autoOpen: false,

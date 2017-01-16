@@ -24,10 +24,10 @@ class OfficeStatus extends Model
     protected static $schema = [
         'table' => 'company.officeStatuses',
         'columns' => [
-            'status' => ['type' => 'string']
+            'title' => ['type' => 'string']
         ],
         'relations' => [
-            'offices' => ['type' => self::HAS_MANY, 'model' => Office::class]
+            'offices' => ['type' => self::HAS_MANY, 'model' => Office::class,  'on' => '__officeStatus_id']
         ]
     ];
 }

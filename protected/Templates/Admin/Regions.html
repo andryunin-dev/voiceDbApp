@@ -12,6 +12,7 @@
                         <a class="btn btn-default active" href="#">Регионы</a>
                         <a class="btn btn-default" href="/admin/cities">Города</a>
                         <a class="btn btn-default" href="#">Оборудование</a>
+                        <a class="btn btn-default" href="/admin/officeStatuses">Статусы офисов</a>
                     </div>
                 </div>
             </aside>
@@ -56,7 +57,7 @@
 {% endblock %}
 {% block modal %}
 <div id="addReg-modal" class="modal-window" title="Новый регион">
-    <form action="/admin/addReg" method="post" role="form">
+    <form action="/admin/addRegion" method="post" role="form">
         <div class="form-group">
             <label for="id-region"></label>
             <input type="text" class="form-control" name="region[one]" id="id-region" placeholder="Новый регион">

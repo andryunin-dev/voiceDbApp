@@ -8,6 +8,7 @@ use App\Models\City;
 use App\Models\Office;
 use App\Models\OfficeStatus;
 use App\Models\Region;
+use phpDocumentor\Reflection\Types\This;
 use T4\Mvc\Controller;
 
 class Admin extends Controller
@@ -18,26 +19,72 @@ class Admin extends Controller
 //        $this->app->assets->publishJsFile('/Templates/js/script.js');
 //        $this->app->assets->publishCssFile('/Templates/css/style.css');
     }
+
+    public function actionOfficeStatuses()
+    {
+        $this->data->statuses = OfficeStatus::findAll();
+    }
+
+    public function actionAddStatus($status = null)
+    {
+        if (!empty($status)) {
+            if (!empty(trim($status['many']))) {
+                $pattern = '~[\n\r]~';
+                $statsInString = preg_replace($pattern, '', $status['many']);
+                $statsInArray = explode(',', $statsInString);
+
+                foreach ($statsInArray as $status) {
+                    (new OfficeStatus())
+                        ->fill(['title' => trim($status)])
+                        ->save();
+                }
+            } elseif (!empty(trim($status['one']))) {
+                (new OfficeStatus())
+                    ->fill(['title' => trim($status['one'])])
+                    ->save();
+            }
+        }
+        header('Location: /admin/OfficeStatuses');
+    }
+
+    public function actionDelStatus($id = null)
+    {
+        OfficeStatus::findByPK($id)->delete();
+        header('Location: /admin/officeStatuses');
+    }
+
+    /**
+     * @var Region[] $regions
+     */
     public function actionOffices()
     {
-        $this->data->regions = Region::findAll(['order' => 'title']);
+        $regions = Region::findAll();
+        foreach ($regions as $region) {
+            foreach ($region->cities as $city) {
+                foreach ($city->addresses as $address) {
+                        var_dump($address->office);
+                }
+            }
+        }
+        var_dump($regions);
+        die;
+        $this->data->statuses = OfficeStatus::findAll(['order' => 'title']);
     }
 
     public function actionAddOffice($data)
     {
         $region = Region::findByPK($data->regId);
         $city = City::findByPK($data->cityId);
+        $status = OfficeStatus::findByPK($data->statId);
         $address = (new Address())
             ->fill(['address' => $data->address, 'city' => $city])
             ->save();
-//        $status = new OfficeStatus(['status' => 'open']);
         $office = (new Office())
             ->fill(['title' =>$data->title, 'address' => $address, 'status' => $status])
             ->save();
-        var_dump($office);die;
-
         $office->save();
-        var_dump($office);die;
+
+        header('Location: /admin/offices');
     }
 
     public function actionCities()
@@ -67,12 +114,12 @@ class Admin extends Controller
         header('Location: /admin/cities');
     }
 
-    public function actionRegs()
+    public function actionRegions()
     {
         $this->data->regions = Region::findAll(['order' => 'title']);
     }
 
-    public function actionAddReg($region = null)
+    public function actionAddRegion($region = null)
     {
         if (!empty($region)) {
             if (!empty(trim($region['many']))) {
@@ -92,13 +139,13 @@ class Admin extends Controller
                     ->save();
             }
         }
-        header('Location: /admin/Regs');
+        header('Location: /admin/Regions');
     }
 
     public function actionDelRegion($id)
     {
         Region::findByPK($id)->delete();
-        header('Location: /admin/regs');
+        header('Location: /admin/regions');
     }
 
 }

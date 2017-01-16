@@ -9,9 +9,10 @@
                         <a class="btn btn-default active" href="#">Офисы</a>
                     </div>
                     <div class="section">
-                        <a class="btn btn-default" href="/admin/regs">Регионы</a>
+                        <a class="btn btn-default" href="/admin/regions">Регионы</a>
                         <a class="btn btn-default" href="/admin/cities">Города</a>
                         <a class="btn btn-default" href="#">Оборудование</a>
+                        <a class="btn btn-default" href="/admin/officeStatuses">Статусы офисов</a>
                     </div>
                 </div>
             </aside>
@@ -122,6 +123,13 @@
                 </select>
             </div>
 
+            <div class="form-group">
+                <select name="data[statId]" id="id-status" class="form-control">
+                    {% for status in statuses %}
+                        <option value="{{ status.getPK }}">{{ status.title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
             <div class="form-group">
                 <label for="id-office"></label>
                 <input type="text" class="form-control" name="data[title]" id="id-office" placeholder="Название офиса">

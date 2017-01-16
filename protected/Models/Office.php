@@ -9,8 +9,6 @@ use T4\Orm\Model;
  * @package App\Models
  *
  * @property string $title Office title
- * @property Region $region
- * @property City $city
  * @property Address $address
  * @property OfficeStatus $status
  * @property string $details Any additional info about office in JSONB format
@@ -27,7 +25,7 @@ class Office extends Model
         ],
         'relations' => [
             'address' => ['type' => self::BELONGS_TO, 'model' => Address::class],
-            'status' => ['type' => self::BELONGS_TO, 'model' => OfficeStatus::class]
+            'status' => ['type' => self::BELONGS_TO, 'model' => OfficeStatus::class, 'on' => '__officeStatus_id']
         ]
     ];
 

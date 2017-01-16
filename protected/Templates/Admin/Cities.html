@@ -9,9 +9,10 @@
                         <a class="btn btn-default" href="/admin/offices">Офисы</a>
                     </div>
                     <div class="section">
-                        <a class="btn btn-default" href="/admin/regs">Регионы</a>
+                        <a class="btn btn-default" href="/admin/regions">Регионы</a>
                         <a class="btn btn-default active" href="#">Города</a>
                         <a class="btn btn-default" href="#">Оборудование</a>
+                        <a class="btn btn-default" href="/admin/officeStatuses">Статусы офисов</a>
                     </div>
                 </div>
             </aside>
@@ -60,6 +61,7 @@
         </div>
     </div>
 {% endblock %}
+
 {% block modal %}
 <div id="addCity-modal" class="modal-window" title="Новый офис">
     <form action="/admin/addCity" method="post" role="form">

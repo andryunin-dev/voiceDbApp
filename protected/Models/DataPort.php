@@ -25,7 +25,7 @@ class DataPort extends Model
         ],
         'relations' => [
             'appliance' => ['type' => self::BELONGS_TO, 'model' => Appliance::class],
-            'portType' => ['type' => self::BELONGS_TO, 'model' => DPortType::class]
+            'portType' => ['type' => self::BELONGS_TO, 'model' => DPortType::class, 'on' => '__typePort_id']
         ]
     ];
 }

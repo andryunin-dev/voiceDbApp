@@ -83,7 +83,7 @@ class m_1484050074_initialMigrate
 
         $sql['company.officeStatuses'] = 'CREATE TABLE company."officeStatuses" (
                   __id SERIAL,
-                  status varchar(50),
+                  title varchar(50),
                   PRIMARY KEY (__id)
                 )';
 
@@ -91,7 +91,7 @@ class m_1484050074_initialMigrate
                   __id         SERIAL,
                   title       VARCHAR(200),
                   __address_id BIGINT,
-                  "__officestatus_id"  BIGINT,
+                  "__officeStatus_id"  BIGINT,
                   details JSONB,
                   comment TEXT,
                   PRIMARY KEY (__id),
@@ -99,7 +99,7 @@ class m_1484050074_initialMigrate
                     REFERENCES geolocation."addresses" (__id)
                     ON UPDATE CASCADE
                     ON DELETE RESTRICT,
-                  CONSTRAINT fk_status_id FOREIGN KEY ("__officestatus_id")
+                  CONSTRAINT fk_status_id FOREIGN KEY ("__officeStatus_id")
                     REFERENCES company."officeStatuses" (__id)
                     ON UPDATE CASCADE
                     ON DELETE RESTRICT
