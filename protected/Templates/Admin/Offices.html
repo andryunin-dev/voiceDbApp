@@ -9,7 +9,8 @@
                         <a class="btn btn-default active" href="#">Офисы</a>
                     </div>
                     <div class="section">
-                        <a class="btn btn-default" href="/admin/allCities">Регионы/города</a>
+                        <a class="btn btn-default" href="/admin/regs">Регионы</a>
+                        <a class="btn btn-default" href="/admin/cities">Города</a>
                         <a class="btn btn-default" href="#">Оборудование</a>
                     </div>
                 </div>
@@ -28,7 +29,6 @@
                             <th class="bg-primary col-city">
                                 <span class="th-divider-left">Город</span>
                                 <span class="th-divider-right">
-                                    <a href="#" class="btn btn-success btn-xs">Добавить</a>
                                 </span>
                             </th>
                             <th class="bg-primary col-address">
@@ -37,7 +37,7 @@
                             <th class="bg-primary col-office">
                                 <span class="th-divider-left">Офис</span>
                                 <span class="th-divider-right">
-                                    <a href="#" class="btn btn-success btn-xs">Добавить</a>
+                                    <button type="button" id="addOffice-btnOpen" class="btn btn-success btn-xs">Добавить</button>
                                 </span>
                             </th>
                             <th class="bg-primary col-actions">
@@ -46,19 +46,25 @@
                         </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td class="col-region cut-string">Свердловский регион</td>
-                                <td class="col-city cut-string">Екатеринбург</td>
-                                <td class="col-address cut-string">Lorem ipsum Lorem ipsum dolor sit amet, consectetur
-                                    adipisicing
-                                    elit. Ad commodi dignissimos eveniet fugiat iste laboriosam maxime nulla recusandae sit vitae.</td>
-                                <td class="col-office cut-string">cell-4</td>
-                                <td class="col-actions">
-                                    <a href="" class="btn btn-info btn-xs">Детально</a>
-                                    <a href="" class="btn btn-warning btn-xs">Изменить</a>
-                                    <a href="" class="btn btn-danger btn-xs">Удалить</a>
-                                </td>
-                            </tr>
+                        {% for region in regions %}
+                            {% for city in region.cities %}
+                                {% for office in offices %}
+                                    <tr>
+                                        <td class="col-region cut-string">{{ region.title }}</td>
+                                        <td class="col-city cut-string">{{ city.title }}</td>
+                                        <td class="col-address cut-string">Lorem ipsum Lorem ipsum dolor sit amet, consectetur
+                                            adipisicing
+                                            elit. Ad commodi dignissimos eveniet fugiat iste laboriosam maxime nulla recusandae sit vitae.</td>
+                                        <td class="col-office cut-string">{{ office.title }}</td>
+                                        <td class="col-actions">
+                                            <a href="" class="btn btn-info btn-xs">Детально</a>
+                                            <a href="" class="btn btn-warning btn-xs">Изменить</a>
+                                            <a href="/admin/delOffice?id={{ office.getPK }}" class="btn btn-danger btn-xs">Удалить</a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            {% endfor %}
+                        {% endfor %}
                             <tr>
                                 <td class="col-region cut-string">Свердловский регион</td>
                                 <td class="col-city cut-string">Екатеринбург</td>
@@ -91,5 +97,43 @@
             </main>
 
         </div>
+    </div>
+{% endblock %}
+
+{% block modal %}
+    <div id="addOffice-modal" class="modal-window" title="Новый город">
+        <form action="/admin/addOffice" method="post" role="form">
+
+            <div class="form-group">
+                <select name="data[regId]" id="id-region" class="form-control">
+                    {% for region in regions %}
+                        <option value="{{ region.getPK }}">{{ region.title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <select name="data[cityId]" id="id-city" class="form-control">
+                    {% for region in regions %}
+                        {% for city in region.cities %}
+                            <option value="{{ city.getPK }}">{{ city.title }}</option>
+                        {% endfor %}
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="id-office"></label>
+                <input type="text" class="form-control" name="data[title]" id="id-office" placeholder="Название офиса">
+            </div>
+
+            <div class="form-group">
+                <label for="id-address"></label>
+                <input type="text" class="form-control" name="data[address]" id="id-address" placeholder="Адрес офиса">
+            </div>
+
+            <button type="submit" class="btn btn-success">Создать</button>
+            <button type="button" id="addOffice-btnClose" class="btn btn-danger">Отмена</button>
+        </form>
     </div>
 {% endblock %}

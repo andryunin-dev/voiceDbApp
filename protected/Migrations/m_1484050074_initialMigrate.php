@@ -91,7 +91,7 @@ class m_1484050074_initialMigrate
                   __id         SERIAL,
                   title       VARCHAR(200),
                   __address_id BIGINT,
-                  __status_id  BIGINT,
+                  "__officestatus_id"  BIGINT,
                   details JSONB,
                   comment TEXT,
                   PRIMARY KEY (__id),
@@ -99,7 +99,7 @@ class m_1484050074_initialMigrate
                     REFERENCES geolocation."addresses" (__id)
                     ON UPDATE CASCADE
                     ON DELETE RESTRICT,
-                  CONSTRAINT fk_status_id FOREIGN KEY (__status_id)
+                  CONSTRAINT fk_status_id FOREIGN KEY ("__officestatus_id")
                     REFERENCES company."officeStatuses" (__id)
                     ON UPDATE CASCADE
                     ON DELETE RESTRICT
@@ -180,8 +180,8 @@ class m_1484050074_initialMigrate
         $sql['equipment.dataPorts'] = 'CREATE TABLE equipment."dataPorts" (
 		  __id SERIAL,
 		  __appliance_id BIGINT NOT NULL,
-		  __typePort_id BIGINT NOT NULL,
-		  ipAddress INET,
+		  "__typePort_id" BIGINT NOT NULL,
+		  "ipAddress" INET,
 		  details JSONB,
 		  comment TEXT,
 		  PRIMARY KEY (__id),
@@ -189,7 +189,7 @@ class m_1484050074_initialMigrate
 		    REFERENCES equipment."appliances" (__id)
 		    ON UPDATE CASCADE
 		    ON DELETE RESTRICT, -- можно попробовать CASCADE(надо тестить)
-		  CONSTRAINT fk_typePort_id FOREIGN KEY (__typePort_id)
+		  CONSTRAINT fk_typePort_id FOREIGN KEY ("__typePort_id")
 		    REFERENCES equipment."dataPortTypes" (__id)
 		    ON UPDATE CASCADE
 		    ON DELETE RESTRICT
@@ -204,7 +204,7 @@ class m_1484050074_initialMigrate
         $sql['equipment.voicePorts'] = 'CREATE TABLE equipment."voicePorts" (
 		  __id SERIAL,
 		  __appliance_id BIGINT NOT NULL,
-		  __typePort_id BIGINT NOT NULL,
+		  "__typePort_id" BIGINT NOT NULL,
 		  details JSONB,
 		  comment TEXT,
 		  PRIMARY KEY (__id),
@@ -213,7 +213,7 @@ class m_1484050074_initialMigrate
 		    ON UPDATE CASCADE
 		    ON DELETE RESTRICT,-- можно попробовать CASCADE(надо тестить)
 		
-		  CONSTRAINT fk_typePort_id FOREIGN KEY (__typePort_id)
+		  CONSTRAINT fk_typePort_id FOREIGN KEY ("__typePort_id")
 		    REFERENCES equipment."voicePortTypes" (__id)
 		    ON UPDATE CASCADE
 		    ON DELETE RESTRICT
@@ -225,11 +225,11 @@ class m_1484050074_initialMigrate
         $sql['telephony.pstnNumbers'] = 'CREATE TABLE telephony."pstnNumbers" (
               __id SERIAL,
               number CHAR(15) UNIQUE,
-              transferedTo  CHAR(15) DEFAULT NULL,
-              __voicePort_id BIGINT NOT NULL, -- что ставить если номер переадресован? Как вариант создать девайс FreePool.
+              "transferedTo"  CHAR(15) DEFAULT NULL,
+              "__voicePort_id" BIGINT NOT NULL, -- что ставить если номер переадресован? Как вариант создать девайс FreePool.
               comment TEXT,
               PRIMARY KEY (__id),
-              CONSTRAINT fk_voicePort_id FOREIGN KEY (__voicePort_id)
+              CONSTRAINT fk_voicePort_id FOREIGN KEY ("__voicePort_id")
                 REFERENCES equipment."voicePorts" (__id)
                 ON UPDATE CASCADE
                 ON DELETE RESTRICT

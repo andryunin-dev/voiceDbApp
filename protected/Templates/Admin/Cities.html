@@ -9,26 +9,26 @@
                         <a class="btn btn-default" href="/admin/offices">Офисы</a>
                     </div>
                     <div class="section">
-                        <a class="btn btn-default active" href="#">Регионы/города</a>
+                        <a class="btn btn-default" href="/admin/regs">Регионы</a>
+                        <a class="btn btn-default active" href="#">Города</a>
                         <a class="btn btn-default" href="#">Оборудование</a>
                     </div>
                 </div>
             </aside>
             <main class="cities">
-                <div class="col-xs-4">
+                <div class="col-xs-5">
                     <table class="table table-bordered table-hover table-striped">
                         <thead>
                             <tr>
                             <th class="bg-primary col-region">
                                 <span class="th-divider-left">Регион</span>
                                 <span class="th-divider-right">
-                                    <button type="button" id="add-reg" class="btn btn-success btn-xs">Добавить</button>
                                 </span>
                             </th>
                             <th class="bg-primary col-city">
                                 <span class="th-divider-left">Город</span>
                                 <span class="th-divider-right">
-                                    <button type="button" id="add-city" class="btn btn-success btn-xs">Добавить</button>
+                                    <button type="button" id="addCity-btnOpen" class="btn btn-success btn-xs">Добавить</button>
                                 </span>
                             </th>
 
@@ -40,16 +40,17 @@
                         <!--Данные-->
                         <tbody>
                         {% for region in regions %}
+                            {% for city in region.cities %}
+                                <tr>
+                                    <td class="col-region cut-string">{{ region.title }}</td>
+                                    <td class="col-city cut-string">{{ city.title }}</td>
 
-                            <tr>
-                                <td class="col-region cut-string">{{ region.title }}</td>
-                                <td class="col-city cut-string">Екатеринбург</td>
-
-                                <td class="col-actions">
-                                    <a href="" class="btn btn-warning btn-xs">Изменить</a>
-                                    <a href="" class="btn btn-danger btn-xs">Удалить</a>
-                                </td>
-                            </tr>
+                                    <td class="col-actions">
+                                        <a href="" class="btn btn-warning btn-xs">Изменить</a>
+                                        <a href="/admin/delCity?id={{ city.getPK }}" class="btn btn-danger btn-xs">Удалить</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
                         {% endfor %}
                         </tbody>
                     </table>
@@ -60,15 +61,23 @@
     </div>
 {% endblock %}
 {% block modal %}
-<div id="modal-1-form" class="modal-window" title="Новый регион">
-    <form action="/admin/newRegion" method="post" role="form">
+<div id="addCity-modal" class="modal-window" title="Новый офис">
+    <form action="/admin/addCity" method="post" role="form">
+        <div class="form-group">
+            <select name="city[regId]" id="id-region" class="form-control">
+                {% for region in regions %}
+                    <option value="{{ region.getPK }}">{{ region.title }}</option>
+                {% endfor %}
+
+            </select>
+        </div>
         <div class="form-group">
             <label for="id-region"></label>
-            <input type="text" class="form-control" name="region" id="id-region" placeholder="Новый регион">
+            <input type="text" class="form-control" name="city[title]" id="id-region" placeholder="Новый город">
         </div>
 
         <button type="submit" class="btn btn-success">Создать</button>
-        <button type="button" id="close" class="btn btn-danger">Отмена</button>
+        <button type="button" id="addCity-btnClose" class="btn btn-danger">Отмена</button>
     </form>
 </div>
 {% endblock %}

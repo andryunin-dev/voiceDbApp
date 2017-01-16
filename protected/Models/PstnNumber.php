@@ -14,7 +14,7 @@ class PstnNumber extends Model
             'comment' => ['type' => 'text']
         ],
         'relations' => [
-            'voicePort' => ['type' => self::BELONGS_TO, 'model' => VoicePort::class]
+//            'voicePort' => ['type' => self::BELONGS_TO, 'model' => VoicePort::class]
         ]
     ];
 }
