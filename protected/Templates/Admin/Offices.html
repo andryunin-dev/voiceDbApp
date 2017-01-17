@@ -41,6 +41,9 @@
                                     <button type="button" id="addOffice-btnOpen" class="btn btn-success btn-xs">Добавить</button>
                                 </span>
                             </th>
+                                <th class="bg-primary col-status">
+                                    <span class="th-divider-left">Статус</span>
+                                </th>
                             <th class="bg-primary col-actions">
                                 <span class="th-divider-left">Действия</span>
                             </th>
@@ -49,49 +52,22 @@
                         <tbody>
                         {% for region in regions %}
                             {% for city in region.cities %}
-                                {% for office in offices %}
+                                {% for address in city.addresses %}
                                     <tr>
                                         <td class="col-region cut-string">{{ region.title }}</td>
                                         <td class="col-city cut-string">{{ city.title }}</td>
-                                        <td class="col-address cut-string">Lorem ipsum Lorem ipsum dolor sit amet, consectetur
-                                            adipisicing
-                                            elit. Ad commodi dignissimos eveniet fugiat iste laboriosam maxime nulla recusandae sit vitae.</td>
-                                        <td class="col-office cut-string">{{ office.title }}</td>
+                                        <td class="col-address cut-string">{{ address.address }}</td>
+                                        <td class="col-office cut-string">{{ address.office.title }}</td>
+                                        <td class="col-status cut-string">{{ address.office.status.title }}</td>
                                         <td class="col-actions">
                                             <a href="" class="btn btn-info btn-xs">Детально</a>
                                             <a href="" class="btn btn-warning btn-xs">Изменить</a>
-                                            <a href="/admin/delOffice?id={{ office.getPK }}" class="btn btn-danger btn-xs">Удалить</a>
+                                            <a href="/admin/delOffice?id={{ address.office.getPK }}" class="btn btn-danger btn-xs">Удалить</a>
                                         </td>
                                     </tr>
                                 {% endfor %}
                             {% endfor %}
                         {% endfor %}
-                            <tr>
-                                <td class="col-region cut-string">Свердловский регион</td>
-                                <td class="col-city cut-string">Екатеринбург</td>
-                                <td class="col-address cut-string">Lorem ipsum Lorem ipsum dolor sit amet, consectetur
-                                    adipisicing
-                                    elit. Ad commodi dignissimos eveniet fugiat iste laboriosam maxime nulla recusandae sit vitae.</td>
-                                <td class="col-office cut-string">cell-4</td>
-                                <td class="col-actions">
-                                    <a href="#" class="btn btn-info btn-xs">Детально</a>
-                                    <a href="#" class="btn btn-warning btn-xs">Изменить</a>
-                                    <a href="#" class="btn btn-danger btn-xs">Удалить</a>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="col-region cut-string">Свердловский регион</td>
-                                <td class="col-city cut-string">Екатеринбург</td>
-                                <td class="col-address cut-string">Lorem ipsum Lorem ipsum dolor sit amet, consectetur
-                                    adipisicing
-                                    elit. Ad commodi dignissimos eveniet fugiat iste laboriosam maxime nulla recusandae sit vitae.</td>
-                                <td class="col-office cut-string">cell-4</td>
-                                <td class="col-actions">
-                                    <a href="" class="btn btn-info btn-xs">Детально</a>
-                                    <a href="" class="btn btn-warning btn-xs">Изменить</a>
-                                    <a href="" class="btn btn-danger btn-xs">Удалить</a>
-                                </td>
-                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -102,10 +78,12 @@
 {% endblock %}
 
 {% block modal %}
-    <div id="addOffice-modal" class="modal-window" title="Новый город">
+    <div id="addOffice-modal" class="modal-window" title="Новый офис">
         <form action="/admin/addOffice" method="post" role="form">
 
+            <!-- выпадающий список регионов-->
             <div class="form-group">
+                <label for="id-region">Регион</label>
                 <select name="data[regId]" id="id-region" class="form-control">
                     {% for region in regions %}
                         <option value="{{ region.getPK }}">{{ region.title }}</option>
@@ -113,7 +91,9 @@
                 </select>
             </div>
 
+            <!-- выпадающий список городов-->
             <div class="form-group">
+                <label for="id-city">Город</label>
                 <select name="data[cityId]" id="id-city" class="form-control">
                     {% for region in regions %}
                         {% for city in region.cities %}
@@ -123,22 +103,63 @@
                 </select>
             </div>
 
+            <!-- выпадающий список статусов-->
             <div class="form-group">
+                <label for="id-status">Статус офиса</label>
                 <select name="data[statId]" id="id-status" class="form-control">
                     {% for status in statuses %}
                         <option value="{{ status.getPK }}">{{ status.title }}</option>
                     {% endfor %}
                 </select>
             </div>
+
+            <!-- поле ввода названия офиса -->
             <div class="form-group">
-                <label for="id-office"></label>
+                <label for="id-office">Название офиса</label>
                 <input type="text" class="form-control" name="data[title]" id="id-office" placeholder="Название офиса">
             </div>
 
+            <!-- поле ввода адреса-->
             <div class="form-group">
-                <label for="id-address"></label>
+                <label for="id-address">Адрес офиса</label>
                 <input type="text" class="form-control" name="data[address]" id="id-address" placeholder="Адрес офиса">
             </div>
+
+            <div class="form-group">
+                <label for="">Пакетный ввод</label>
+                <textarea name="data[many]"
+                          id="id-offices"
+                          cols="40" rows="4"
+                          placeholder="Регион, город, адрес, офис">
+                </textarea>
+            </div>
+
+            <!--Checkboxes-->
+            <div class="form-group">
+                <div class="checkbox">
+                    <label>
+                        <input name="data[addNewRegion]" type="checkbox">
+                        <span>Создавать отсутствующие регионы</span>
+                    </label>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="checkbox">
+                    <label>
+                        <input name="data[addNewCity]" type="checkbox">
+                        <span>Создавать отсутствующие города</span>
+                    </label>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="checkbox">
+                    <label>
+                        <input name="data[addNewStatus]" type="checkbox">
+                        <span>Создавать отсутствующие статусы</span>
+                    </label>
+                </div>
+            </div>
+
 
             <button type="submit" class="btn btn-success">Создать</button>
             <button type="button" id="addOffice-btnClose" class="btn btn-danger">Отмена</button>

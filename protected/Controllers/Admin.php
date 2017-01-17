@@ -2,12 +2,14 @@
 
 namespace App\Controllers;
 
+use App\Components\Parser;
 use App\Components\Publisher;
 use App\Models\Address;
 use App\Models\City;
 use App\Models\Office;
 use App\Models\OfficeStatus;
 use App\Models\Region;
+use T4\Core\Std;
 use phpDocumentor\Reflection\Types\This;
 use T4\Mvc\Controller;
 
@@ -15,16 +17,24 @@ class Admin extends Controller
 {
     public function actionDefault()
     {
-//        Publisher::publishFrameworks();
-//        $this->app->assets->publishJsFile('/Templates/js/script.js');
-//        $this->app->assets->publishCssFile('/Templates/css/style.css');
+        $regions = Region::findAll();
+        $this->data->regions = $regions;
     }
 
+    /**
+     * action вывода всех имеющихся статусов
+     */
     public function actionOfficeStatuses()
     {
         $this->data->statuses = OfficeStatus::findAll();
     }
 
+    /**
+     * action добавления нового статуса.
+     *
+     * @param array $status новые статусы ['many'] с ',' в качестве разделителя
+     * или один новый статус ['one']
+     */
     public function actionAddStatus($status = null)
     {
         if (!empty($status)) {
@@ -54,35 +64,117 @@ class Admin extends Controller
     }
 
     /**
-     * @var Region[] $regions
+     * action вывода всех офисов
      */
     public function actionOffices()
     {
         $regions = Region::findAll();
-        foreach ($regions as $region) {
-            foreach ($region->cities as $city) {
-                foreach ($city->addresses as $address) {
-                        var_dump($address->office);
-                }
-            }
-        }
-        var_dump($regions);
-        die;
-        $this->data->statuses = OfficeStatus::findAll(['order' => 'title']);
+        $this->data->regions = $regions;
+        $this->data->statuses = OfficeStatus::findAll();
     }
 
+    /**
+     * @param Std $data POST array в виде объекта Std класса
+     * В случае $data->many формат записи для офиса: регион; город; адрес; офис; статус
+     *
+     * @var OfficeStatus $status
+     */
     public function actionAddOffice($data)
     {
-        $region = Region::findByPK($data->regId);
-        $city = City::findByPK($data->cityId);
-        $status = OfficeStatus::findByPK($data->statId);
-        $address = (new Address())
-            ->fill(['address' => $data->address, 'city' => $city])
-            ->save();
-        $office = (new Office())
-            ->fill(['title' =>$data->title, 'address' => $address, 'status' => $status])
-            ->save();
-        $office->save();
+        if (!empty(trim($data->many))) {
+            $officeCollection = Parser::lotusTerritory(trim($data->many));
+            var_dump($officeCollection);
+            if (false !== $officeCollection) {
+                foreach ($officeCollection as $item) {
+                    //Region
+                    $region = Region::findByTitle($item->region);
+                    if (false ===$region) {
+                        if (isset($data->addNewRegion)) {
+                            $region = (new Region())
+                                ->fill(['title' => $item->region])
+                                ->save();
+                        } else {
+                            echo 'continue reg';die;
+
+                            continue; //Ошибка. невозможно установить регион, переход к след записи
+                        }
+                    }
+                    var_dump($region);
+
+                    //City
+                    $city = City::findByTitle($item->city);
+                    //если город не найден и разрешено создание нового региона
+                    if (false ===$city) {
+                        if (isset($data->addNewCity)) {
+                            $city = (new City())
+                                ->fill(['title' => $item->city, 'region' => $region])
+                                ->save();
+                        } else {
+                            echo 'continue city';die;
+                            continue; //Ошибка. невозможно установить город, переход к след записи
+                        }
+                    }
+
+                    var_dump($city);
+                    //Address
+                    $address = (new Address())
+                        ->fill(['address' => $item->address, 'city' => $city])
+                        ->save();
+
+                    //Office status
+                    //если парсинг откинул поле статуса или оно пустое - берем из формы
+                    if (empty($item->status)) {
+                        $status = OfficeStatus::findByPK($data->statId);
+                        if (false ===$status) {
+                            continue; //Ошибка. невозможно установить статус, переход к след записи
+                        }
+                    } else {
+                        $status = OfficeStatus::findByTitle($item->status);
+                        if (false === $status) {
+                            if (isset($data->addNewStatus)) {
+                                $status = (new OfficeStatus())
+                                    ->fill(['title' => $item->status])
+                                    ->save();
+                            } else {
+                                echo 'continue status';
+                                continue; //Ошибка. невозможно установить статус, переход к след записи
+                            }
+                        }
+                    }
+
+                    //Office
+                    $office = (new Office())
+                        ->fill([
+                            'title' => $item->office,
+                            'lotusId' => $item->lotusId,
+                            'address' => $address,
+                            'status' => $status
+                        ])
+                        ->save();
+                    var_dump($office);die;
+                }
+            } else {
+                //ошибка импорта данных, надо бы выкинуть сообщение об ошибке
+            }
+        } else {
+            $city = City::findByPK($data->cityId);
+            $status = OfficeStatus::findByPK($data->statId);
+            $address = (new Address())
+                ->fill(['address' => $data->address, 'city' => $city])
+                ->save();
+            $office = (new Office())
+                ->fill(['title' =>$data->title, 'lotusId' => $data->lotusId, 'address' => $address, 'status' => $status])
+                ->save();
+            $office->save();
+        }
+        header('Location: /admin/offices');
+    }
+
+    public function actionDelOffice($id = null)
+    {
+        $office = Office::findByPK($id);
+        $office->delete();
+        $office->address->delete();
 
         header('Location: /admin/offices');
     }
@@ -124,7 +216,7 @@ class Admin extends Controller
         if (!empty($region)) {
             if (!empty(trim($region['many']))) {
                 $pattern = '~[\n\r]~';
-                $regsInString = preg_replace($pattern, '', $region['many']);
+                $regsInString = preg_replace($pattern, '', trim($region['many']));
                 $regInArray = explode(',', $regsInString);
 
                 foreach ($regInArray as $region) {

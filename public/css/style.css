@@ -78,6 +78,10 @@ table tbody tr {
 .offices .col-office {
     width: 15%;
 }
+
+.offices .col-status {
+    width: 5%;
+}
 .offices .col-actions {
     width: 270px;
     white-space: nowrap;

@@ -57,7 +57,7 @@ $(function () {
 // Добавление города
     var addCity = $("#addCity-modal").dialog({
         autoOpen: false,
-        height:400,
+        height:220,
         width: 350,
         modal: true
     });
@@ -72,7 +72,7 @@ $(function () {
 // Добавление офиса
     var addOffice = $("#addOffice-modal").dialog({
         autoOpen: false,
-        height:400,
+        height:680,
         width: 350,
         modal: true
     });
