@@ -10,15 +10,13 @@ use App\Models\Office;
 use App\Models\OfficeStatus;
 use App\Models\Region;
 use T4\Core\Std;
-use phpDocumentor\Reflection\Types\This;
 use T4\Mvc\Controller;
 
 class Admin extends Controller
 {
     public function actionDefault()
     {
-        $regions = Region::findAll();
-        $this->data->regions = $regions;
+
     }
 
     /**
@@ -157,13 +155,19 @@ class Admin extends Controller
                 //ошибка импорта данных, надо бы выкинуть сообщение об ошибке
             }
         } else {
-            if (!empty($data->lotusId) && false !== Office::findByLotusId($data->lotusId)) {
+            if (empty(trim($data->lotusId))) {
+                header('Location: /admin/offices');//LotusId обязательное поле
+            } elseif (false !== Office::findByLotusId(trim($data->lotusId))) {
                 header('Location: /admin/offices'); //есть офис с таким Lotus ID
+            } elseif (empty(trim($data->title))) {
+                header('Location: /admin/offices'); //Пустое название офиса
+            } elseif (false !== Office::findByTitle($data->title)) {
+                header('Location: /admin/offices'); //Офис с таким названием уже есть
             } else {
                 $city = City::findByPK($data->cityId);
                 $status = OfficeStatus::findByPK($data->statId);
                 $address = (new Address())
-                    ->fill(['address' => $data->address, 'city' => $city])
+                    ->fill(['address' => trim($data->address), 'city' => $city])
                     ->save();
                 $office = (new Office())
                     ->fill(['title' =>$data->title, 'lotusId' => $data->lotusId, 'address' => $address, 'status' => $status])

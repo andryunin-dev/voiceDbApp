@@ -8,11 +8,15 @@
                     <div class="section">
                         <a class="btn btn-default active" href="#">Офисы</a>
                     </div>
+                    <div class="section-title">
+                        <h4 class="text-center">Справочники</h4>
+                    </div>
                     <div class="section">
+                        <a class="btn btn-default" href="/admin/offices">Офисы</a>
                         <a class="btn btn-default" href="/admin/regions">Регионы</a>
                         <a class="btn btn-default" href="/admin/cities">Города</a>
-                        <a class="btn btn-default" href="#">Оборудование</a>
                         <a class="btn btn-default" href="/admin/officeStatuses">Статусы офисов</a>
+                        <a class="btn btn-default" href="#">Оборудование</a>
                     </div>
                 </div>
             </aside>
@@ -78,97 +82,119 @@
 {% endblock %}
 
 {% block modal %}
-    <div id="addOffice-modal" class="modal-window" title="Новый офис">
-        <form action="/admin/addOffice" method="post" role="form">
+    <div class="container-fluid">
+        <div class="row">
+            <div id="addOffice-modal" class="modal-window" title="Новый офис">
+                <form class="form-horizontal" action="/admin/addOffice" method="post" role="form">
+                    <!-- выпадающий список регионов-->
+                    <div class="form-group">
+                        <label for="id-region" class="col-sm-4 control-label">Регион</label>
+                        <div class="col-sm-8"><select name="data[regId]" id="id-region" class="form-control">
+                                {% for region in regions %}
+                                    <option value="{{ region.getPK }}">{{ region.title }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
 
-            <!-- выпадающий список регионов-->
-            <div class="form-group">
-                <label for="id-region">Регион</label>
-                <select name="data[regId]" id="id-region" class="form-control">
-                    {% for region in regions %}
-                        <option value="{{ region.getPK }}">{{ region.title }}</option>
-                    {% endfor %}
-                </select>
-            </div>
+                    <!-- выпадающий список городов-->
+                    <div class="form-group">
+                        <label for="id-city" class="col-sm-4 control-label">Город</label>
+                        <div class="col-sm-8">
+                            <select name="data[cityId]" id="id-city" class="form-control">
+                                {% for region in regions %}
+                                    {% for city in region.cities %}
+                                        <option value="{{ city.getPK }}">{{ city.title }}</option>
+                                    {% endfor %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
 
-            <!-- выпадающий список городов-->
-            <div class="form-group">
-                <label for="id-city">Город</label>
-                <select name="data[cityId]" id="id-city" class="form-control">
-                    {% for region in regions %}
-                        {% for city in region.cities %}
-                            <option value="{{ city.getPK }}">{{ city.title }}</option>
-                        {% endfor %}
-                    {% endfor %}
-                </select>
-            </div>
+                    <!-- выпадающий список статусов-->
+                    <div class="form-group">
+                        <label for="id-status" class="col-sm-4 control-label">Статус офиса</label>
+                        <div class="col-sm-8">
+                            <select name="data[statId]" id="id-status" class="form-control">
+                                {% for status in statuses %}
+                                    <option value="{{ status.getPK }}">{{ status.title }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
 
-            <!-- выпадающий список статусов-->
-            <div class="form-group">
-                <label for="id-status">Статус офиса</label>
-                <select name="data[statId]" id="id-status" class="form-control">
-                    {% for status in statuses %}
-                        <option value="{{ status.getPK }}">{{ status.title }}</option>
-                    {% endfor %}
-                </select>
-            </div>
+                    <!-- поле ввода Lotus ID офиса -->
+                    <div class="form-group">
+                        <label for="id-office" class="col-sm-4 control-label">Lotus ID</label>
+                        <div class="col-sm-8">
+                            <input type="number" class="form-control" name="data[lotusId]" id="id-office"
+                                   placeholder="Lotus ID">
+                        </div>
+                    </div>
 
-            <!-- поле ввода Lotus ID офиса -->
-            <div class="form-group">
-                <label for="id-office">Lotus ID</label>
-                <input type="number" class="form-control" name="data[lotusId]" id="id-office" placeholder="Lotus ID">
-            </div>
+                    <!-- поле ввода названия офиса -->
+                    <div class="form-group">
+                        <label for="id-office" class="col-sm-4 control-label">Название офиса</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" name="data[title]" id="id-office"
+                                   placeholder="Название офиса">
+                        </div>
+                    </div>
 
-            <!-- поле ввода названия офиса -->
-            <div class="form-group">
-                <label for="id-office">Название офиса</label>
-                <input type="text" class="form-control" name="data[title]" id="id-office" placeholder="Название офиса">
-            </div>
+                    <!-- поле ввода адреса-->
+                    <div class="form-group">
+                        <label for="id-address" class="col-sm-4 control-label">Адрес офиса</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" name="data[address]" id="id-address"
+                                   placeholder="Адрес офиса">
+                        </div>
+                    </div>
 
-            <!-- поле ввода адреса-->
-            <div class="form-group">
-                <label for="id-address">Адрес офиса</label>
-                <input type="text" class="form-control" name="data[address]" id="id-address" placeholder="Адрес офиса">
-            </div>
+                    <div class="form-group">
+                        <label for="id-offices" class="col-sm-4 control-label">Пакетный ввод</label>
+                        <div class="col-sm-8">
+                    <textarea name="data[many]"
+                              id="id-offices"
+                              cols="40" rows="4"
+                              placeholder="Регион, город, адрес, офис">
+                    </textarea>
+                        </div>
+                    </div>
 
-            <div class="form-group">
-                <label for="">Пакетный ввод</label>
-                <textarea name="data[many]"
-                          id="id-offices"
-                          cols="40" rows="4"
-                          placeholder="Регион, город, адрес, офис">
-                </textarea>
-            </div>
-
-            <!--Checkboxes-->
-            <div class="form-group">
-                <div class="checkbox">
-                    <label>
-                        <input name="data[addNewRegion]" type="checkbox">
-                        <span>Создавать отсутствующие регионы</span>
-                    </label>
-                </div>
-            </div>
-            <div class="form-group">
-                <div class="checkbox">
-                    <label>
-                        <input name="data[addNewCity]" type="checkbox">
-                        <span>Создавать отсутствующие города</span>
-                    </label>
-                </div>
-            </div>
-            <div class="form-group">
-                <div class="checkbox">
-                    <label>
-                        <input name="data[addNewStatus]" type="checkbox">
-                        <span>Создавать отсутствующие статусы</span>
-                    </label>
-                </div>
-            </div>
+                    <!--Checkboxes-->
+                    <div class="form-group">
+                        <div class="checkbox col-sm-offset-4 col-sm-8">
+                            <label>
+                                <input name="data[addNewRegion]" type="checkbox">
+                                <span>Создавать отсутствующие регионы</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="checkbox col-sm-offset-4 col-sm-8">
+                            <label>
+                                <input name="data[addNewCity]" type="checkbox">
+                                <span>Создавать отсутствующие города</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="checkbox col-sm-offset-4 col-sm-8">
+                            <label>
+                                <input name="data[addNewStatus]" type="checkbox">
+                                <span>Создавать отсутствующие статусы</span>
+                            </label>
+                        </div>
+                    </div>
 
 
-            <button type="submit" class="btn btn-success">Создать</button>
-            <button type="button" id="addOffice-btnClose" class="btn btn-danger">Отмена</button>
-        </form>
+                    <div class="col-sm-offset-3 col-sm-8">
+                        <button type="submit" class="btn btn-success">Создать</button>
+                        <button type="button" id="addOffice-btnClose" class="btn btn-danger">Отмена</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
+
 {% endblock %}

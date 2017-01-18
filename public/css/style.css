@@ -35,6 +35,10 @@ Sidebar styles
     margin-bottom: 30px;
 }
 
+.section-title {
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
 /*=====================================
 Table styles
 =======================================*/
@@ -71,7 +75,8 @@ table tbody tr {
 .offices .col-city {
     width: 15%;
 }
-.offices .col-address {
+.offices .col-address,
+.offices .col-office {
     max-width: 250px;
 }
 

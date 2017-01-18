@@ -1,9 +1,5 @@
 {% extends 'Index.html' %}
 
 {% block main %}
-    {% for region in regions %}
-        {% for city in region.cities %}
-            {{ city.title }} {{ region.title }}
-        {% endfor %}
-    {% endfor %}
+
 {% endblock %}
