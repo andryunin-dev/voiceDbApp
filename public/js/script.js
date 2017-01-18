@@ -72,7 +72,7 @@ $(function () {
 // Добавление офиса
     var addOffice = $("#addOffice-modal").dialog({
         autoOpen: false,
-        height:680,
+        height:700,
         width: 350,
         modal: true
     });

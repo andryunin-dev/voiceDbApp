@@ -83,7 +83,6 @@ class Admin extends Controller
     {
         if (!empty(trim($data->many))) {
             $officeCollection = Parser::lotusTerritory(trim($data->many));
-            var_dump($officeCollection);
             if (false !== $officeCollection) {
                 foreach ($officeCollection as $item) {
                     //Region
@@ -99,7 +98,6 @@ class Admin extends Controller
                             continue; //Ошибка. невозможно установить регион, переход к след записи
                         }
                     }
-                    var_dump($region);
 
                     //City
                     $city = City::findByTitle($item->city);
@@ -115,7 +113,6 @@ class Admin extends Controller
                         }
                     }
 
-                    var_dump($city);
                     //Address
                     $address = (new Address())
                         ->fill(['address' => $item->address, 'city' => $city])
@@ -143,6 +140,10 @@ class Admin extends Controller
                     }
 
                     //Office
+                    //проверка существования оффиса по lotusId
+                    if (false !== Office::findByLotusId($item->lotusId)) {
+                        continue; //если есть с таким lotusId - к следующей записи
+                    }
                     $office = (new Office())
                         ->fill([
                             'title' => $item->office,
@@ -151,21 +152,24 @@ class Admin extends Controller
                             'status' => $status
                         ])
                         ->save();
-                    var_dump($office);die;
                 }
             } else {
                 //ошибка импорта данных, надо бы выкинуть сообщение об ошибке
             }
         } else {
-            $city = City::findByPK($data->cityId);
-            $status = OfficeStatus::findByPK($data->statId);
-            $address = (new Address())
-                ->fill(['address' => $data->address, 'city' => $city])
-                ->save();
-            $office = (new Office())
-                ->fill(['title' =>$data->title, 'lotusId' => $data->lotusId, 'address' => $address, 'status' => $status])
-                ->save();
-            $office->save();
+            if (!empty($data->lotusId) && false !== Office::findByLotusId($data->lotusId)) {
+                header('Location: /admin/offices'); //есть офис с таким Lotus ID
+            } else {
+                $city = City::findByPK($data->cityId);
+                $status = OfficeStatus::findByPK($data->statId);
+                $address = (new Address())
+                    ->fill(['address' => $data->address, 'city' => $city])
+                    ->save();
+                $office = (new Office())
+                    ->fill(['title' =>$data->title, 'lotusId' => $data->lotusId, 'address' => $address, 'status' => $status])
+                    ->save();
+                $office->save();
+            }
         }
         header('Location: /admin/offices');
     }

@@ -17,8 +17,12 @@ class Parser extends Std
      */
     public static function lotusTerritory(string $data) : Collection
     {
+        //Убираем "" (две двойных кавычки подряд)
+        $pattern = '~"{2}~';
+        $data = preg_replace($pattern, '', $data);
+        //задаем имена полей
         $fieldNames = ['region', 'city', 'address', 'lotusId', 'office', 'status'];
-        $pattern = '~([^,]+)\s*,\s*([^,]+)\s*,\s*("[^"]+")\s*,\s*([^,]+)\s*,\s*("[^"]+")~';
+        $pattern = '~"?([^,"]+)"?\s*,\s*"?([^,"]+)"?\s*,\s*"?([^"]+)"?\s*,\s*([^,]+)\s*,\s*"([^"]+)"~';
         $resultCount = preg_match_all($pattern, $data, $resultArray, PREG_SET_ORDER);
         if (false === $resultCount) {
             return false;

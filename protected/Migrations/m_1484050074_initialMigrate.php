@@ -90,7 +90,7 @@ class m_1484050074_initialMigrate
         $sql['company.offices'] = 'CREATE TABLE company."offices" (
                   __id         SERIAL,
                   title       VARCHAR(200),
-                  "lotusId"     INTEGER,
+                  "lotusId"     INTEGER UNIQUE ,
                   __address_id BIGINT,
                   "__officeStatus_id"  BIGINT,
                   details JSONB,
