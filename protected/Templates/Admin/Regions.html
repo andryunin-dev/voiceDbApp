@@ -6,7 +6,7 @@
             <aside>
                 <div class="col-xs-2 aside-menu">
                     <div class="section">
-                        <a class="btn btn-default" href="#">Офисы</a>
+                        <a class="btn btn-default" href="/admin/offices">Офисы</a>
                     </div>
                     <div class="section-title">
                         <h4 class="text-center">Справочники</h4>
@@ -45,7 +45,6 @@
                                 <td class="col-region cut-string">{{ region.title }}</td>
 
                                 <td class="col-actions">
-                                    {#<a href="/admin/editRegion?id={{ region.getPK }}" class="btn btn-warning btn-xs">Изменить</a>#}
                                     <button type="button" id="editReg-btnOpen" class="btn btn-success btn-xs">Изменить</button>
                                     <a href="/admin/delRegion?id={{ region.getPK }}" class="btn btn-danger btn-xs">Удалить</a>
                                 </td>

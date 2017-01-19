@@ -248,4 +248,9 @@ class Admin extends Controller
         header('Location: /admin/regions');
     }
 
+    public function actionDevices()
+    {
+
+    }
+
 }

@@ -83,6 +83,74 @@ $(function () {
     $("#addOffice-btnClose").on("click", function () {
         addOffice.dialog("close");
     })
+
+//оборудование
+//bootstrap
+//     $('.hw-sw-dict-tabs a[href="#vendors"]' ).on("click", function (e) {
+//         e.preventDefault();
+//         $(this).tab('show')
+//     });
+//     $('.hw-sw-dict-tabs a[href="#platforms"]' ).on("click", function (e) {
+//         e.preventDefault();
+//         $(this).tab('show')
+//     });
+//     $('.hw-sw-dict-tabs a[href="#software"]' ).on("click", function (e) {
+//         e.preventDefault();
+//         $(this).tab('show')
+//     });
+//     $('.hw-sw-dict-tabs a[href="#clusters"]' ).on("click", function (e) {
+//         e.preventDefault();
+//         $(this).tab('show')
+//     });
+//JQuery
+    var deviceTab = $('#hw-sw-dict-tabs');
+    var vendorTab = $('#hw-sw-dict-tabs #tab-vendors');
+    var platformTab = $('#hw-sw-dict-tabs #tab-platforms');
+    deviceTab.tabs();
+    vendorTab.click(function() {
+        deviceTab.removeClass(function (index, className) {
+            var clName = className.match(/(^|\s)col-(xs|sm|md|lg)-\d+/g).join(' ');
+            console.log(clName);
+            return clName;
+        }).addClass('col-xs-5');
+    });
+    platformTab.click(function() {
+        deviceTab.removeClass(function (index, className) {
+            var clName = className.match(/(^|\s)col-(xs|sm|md|lg)-\d+/g).join(' ');
+            console.log(clName);
+            return clName;
+        }).addClass('col-xs-6');
+    });
+
+// Добавление вендора
+    var addVendor = $("#addVendor-modal").dialog({
+        autoOpen: false,
+        height:400,
+        width: 350,
+        modal: true
+    });
+
+    $("#addVendor-btnOpen").on("click", function () {
+        addVendor.dialog("open");
+    })
+    $("#addVendor-btnClose").on("click", function () {
+        addVendor.dialog("close");
+    })
+// Редактирование вендора
+    var editVendor = $("#editVendor-modal").dialog({
+        autoOpen: false,
+        height:400,
+        width: 350,
+        modal: true
+    });
+
+    $("#editVendor-btnOpen").on("click", function () {
+        editVendor.dialog("open");
+    })
+    $("#editVendor-btnClose").on("click", function () {
+        editVendor.dialog("close");
+    })
+
 })
 
 
