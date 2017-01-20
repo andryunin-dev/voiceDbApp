@@ -8,8 +8,8 @@
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <title>voiceDB</title>
 
-    <link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="/jquery-ui-min/jquery-ui.min.css">
+    <link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="/css/style.css">
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
@@ -31,7 +31,10 @@
         {% block header %}{% endblock %}
     </header>
     <main>
-        {% block main %}{% endblock %}
+
+            {% block main %}{% endblock %}
+
+
     </main>
     <footer>
         {% block footer %}{% endblock %}

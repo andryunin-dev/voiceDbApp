@@ -24,6 +24,7 @@ class Platform extends Model
             'comment' => ['type' => 'string']
         ],
         'relations' => [
+            'vendor' => ['type' => self::BELONGS_TO, 'model' => Vendor::class],
             'appliances' => ['type' => self::HAS_MANY, 'model' => Appliance::class]
         ]
     ];

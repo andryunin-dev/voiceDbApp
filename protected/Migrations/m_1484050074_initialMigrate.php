@@ -61,8 +61,8 @@ class m_1484050074_initialMigrate
 
         $sql['geolocation.cities'] = 'CREATE TABLE geolocation."cities" (
                   __id   SERIAL,
-                  title VARCHAR(50),
                   __region_id    BIGINT,
+                  title VARCHAR(50),
                   PRIMARY KEY (__id),
                   CONSTRAINT fk_region_id FOREIGN KEY (__region_id)
                     REFERENCES geolocation."regions" (__id)
@@ -119,25 +119,35 @@ class m_1484050074_initialMigrate
 
         $sql['equipment.vendors'] = 'CREATE TABLE equipment."vendors" (
 		  __id SERIAL,
-		  name VARCHAR(200),
+		  title VARCHAR(200),
 		  PRIMARY KEY (__id)
 		)';
 
         $sql['equipment.platforms'] = 'CREATE TABLE equipment."platforms" (
-		  __id SERIAL,
 		  title VARCHAR(200),
+		  __vendor_id BIGINT NOT NULL,
+		  __id SERIAL,
 		  details JSONB, -- some details about platform(i.e. memory size, CPU etc.)
 		  comment TEXT,
-		  PRIMARY KEY (__id)
+		  PRIMARY KEY (__id),
+		    CONSTRAINT fk_vendor_id FOREIGN KEY (__vendor_id)
+            REFERENCES equipment."vendors" (__id)
+            ON UPDATE CASCADE
+            ON DELETE RESTRICT
 		)';
 
         $sql['equipment.software'] = 'CREATE TABLE equipment."software" (
-		  __id SERIAL,
-		  title VARCHAR(200),
-		  version VARCHAR(200),
-		  details JSONB,
-		  comment TEXT,
-		  PRIMARY KEY (__id)
+          __id SERIAL,
+          __vendor_id BIGINT NOT NULL,
+          title VARCHAR(200),
+          version VARCHAR(200),
+          details JSONB,
+          comment TEXT,
+          PRIMARY KEY (__id),
+          CONSTRAINT fk_vendor_id FOREIGN KEY (__vendor_id)
+          REFERENCES equipment."vendors" (__id)
+          ON UPDATE CASCADE
+          ON DELETE RESTRICT
 		)';
 
         $sql['equipment.appliances'] = 'CREATE TABLE equipment."appliances" (
@@ -241,13 +251,18 @@ class m_1484050074_initialMigrate
                 echo 'Table ' . $key . ' is created' . "\n";
             }
         }
+
+        $query = 'INSERT INTO company."officeStatuses" (title) VALUES (\'open\')';
+        if (true === $this->db->execute($query)) {
+            echo 'In table company."officeStatuses" inserted 1 record' . "\n";
+        }
     }
 
     public function down()
     {
         $schemas = [
-            'geolocation',
             'company',
+            'geolocation',
             'telephony',
             'equipment',
             'provider'
@@ -257,8 +272,8 @@ class m_1484050074_initialMigrate
          * Удаляем все схемы каскадно с таблицами
          */
         foreach ($schemas as $schema) {
-            $sqlCreateSchema = 'DROP SCHEMA IF EXISTS ' . $schema . ' CASCADE';
-            if (true === $this->db->execute($sqlCreateSchema)) {
+            $sqlDropSchema = 'DROP SCHEMA IF EXISTS ' . $schema . ' CASCADE';
+            if (true === $this->db->execute($sqlDropSchema)) {
                 echo 'schema ' . $schema . ' with all tables is deleted' . "\n";
             }
         }

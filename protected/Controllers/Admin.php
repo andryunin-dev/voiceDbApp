@@ -9,6 +9,7 @@ use App\Models\City;
 use App\Models\Office;
 use App\Models\OfficeStatus;
 use App\Models\Region;
+use App\Models\Vendor;
 use T4\Core\Std;
 use T4\Mvc\Controller;
 
@@ -250,6 +251,30 @@ class Admin extends Controller
 
     public function actionDevices()
     {
+        $this->data->vendors = Vendor::findAll();
+    }
+
+    public function actionAddVendor($vendor)
+    {
+        if (!empty($vendor)) {
+            if (!empty(trim($vendor['many']))) {
+                $pattern = '~[\n\r]~';
+                $vendorListStr = preg_replace($pattern, '', trim($vendor['many']));
+                $vendorListArray = explode(',', $vendorListStr);
+
+                foreach ($vendorListArray as $vendor) {
+                    (new Vendor())
+                        ->fill(['title' => trim($vendor)])
+                        ->save();
+                }
+
+            } elseif (!empty(trim($vendor['one']))) {
+                (new Vendor())
+                    ->fill(['title' => $vendor['one']])
+                    ->save();
+            }
+        }
+        header('Location: /admin/devices');
 
     }
 
