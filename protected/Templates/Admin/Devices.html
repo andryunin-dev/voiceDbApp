@@ -27,13 +27,15 @@
                    		    <h3 class="panel-title">Vendors, Hardware, Software, Clusters</h3>
                     	</div>
                     	<div class="panel-body">
-                            <div id="hw-sw-dict-tabs" class="col-xs-5">
+                            <div id="hw-sw-dict-tabs" class="hw-sw-dict-tabs col-xs-7">
                                 <!-- Nav tabs -->
                                 <ul class="hw-tabs" role="tablist">
-                                    <li id="tab-vendors" class="active" role="presentation"><a href="#vendors" aria-controls="vendors" role="tab">Vendors</a></li>
-                                    <li id="tab-platforms" class="" role="presentation"><a href="#platforms" aria-controls="platforms" role="tab">Hardware</a></li>
-                                    <li id="tab-software" class="" role="presentation"><a href="#software" aria-controls="software" role="tab">Software</a></li>
-                                    <li id="tab-clusters" class="" role="presentation"><a href="#clusters" aria-controls="clusters" role="tab">Clusters</a></li>
+                                    <li id="tab-platforms" class="" role="presentation"><a href="#platforms" aria-controls="platforms" role="tab">Платформы</a></li>
+                                    <li id="tab-software" class="" role="presentation"><a href="#software" aria-controls="software" role="tab">ПО</a></li>
+                                    <li id="tab-vendors" class="active" role="presentation"><a href="#vendors" aria-controls="vendors" role="tab">Производители</a></li>
+                                    <!-- кластеры доделать потом
+                                    <li id="tab-clusters" class="" role="presentation"><a href="#clusters" aria-controls="clusters" role="tab">Кластеры</a></li>
+                                    -->
                                 </ul>
 
                                 <!-- Tab panes -->
@@ -43,8 +45,8 @@
                                         <table id="vendorsTable" class="table table-bordered table-hover table-striped">
                                             <thead>
                                             <tr>
-                                                <th class="bg-primary col-vendors">
-                                                    <span class="th-divider-left">Vendor</span>
+                                                <th class="bg-primary col-vendor">
+                                                    <span class="th-divider-left">Производитель</span>
                                                     <span class="th-divider-right">
                                                         <button type="button" id="addVendor-btnOpen" class="btn btn-success btn-xs">Добавить</button>
                                                     </span>
@@ -73,11 +75,81 @@
                                     </div>
                                     <!-- Platforms -->
                                     <div class="tab-pane" id="platforms" role="tabpanel" area-labeledby="tab-platforms">
-                                        Lorem ipsum dolor.
+                                        <table class="table table-bordered table-hover table-striped">
+                                            <thead>
+                                            <tr>
+                                                <th class="bg-primary col-vendor">
+                                                    <span class="th-divider-left">Производитель</span>
+                                                    <span class="th-divider-right"></span>
+                                                </th>
+                                                <th class="bg-primary col-platform">
+                                                    <span class="th-divider-left">Платформа</span>
+                                                    <span class="th-divider-right">
+                                                        <button type="button" id="addPlatform-btnOpen" class="btn btn-success btn-xs">Добавить</button>
+                                                    </span>
+                                                </th>
+
+                                                <th class="bg-primary col-actions">
+                                                    <span class="th-divider-left">Действия</span>
+                                                </th>
+                                            </tr>
+                                            </thead>
+                                            <!--Данные-->
+                                            <tbody>
+                                            {% for vendor in vendors %}
+                                                {% for platform in vendor.platforms %}
+                                                    <tr>
+                                                        <td class="col-region cut-string">{{ vendor.title }}</td>
+                                                        <td class="col-city cut-string">{{ platform.title }}</td>
+
+                                                        <td class="col-actions">
+                                                            <a href="" class="btn btn-warning btn-xs">Изменить</a>
+                                                            <a href="/admin/delPlatform?id={{ platform.getPK }}" class="btn btn-danger btn-xs">Удалить</a>
+                                                        </td>
+                                                    </tr>
+                                                {% endfor %}
+                                            {% endfor %}
+                                            </tbody>
+                                        </table>
                                     </div>
                                     <!-- Software -->
                                     <div class="tab-pane" id="software" role="tabpanel" area-labeledby="tab-software">
-                                        Lorem ipsum dolor sit amet, consectetur adipisicing.
+                                        <table class="table table-bordered table-hover table-striped">
+                                            <thead>
+                                            <tr>
+                                                <th class="bg-primary col-vendor">
+                                                    <span class="th-divider-left">Производитель</span>
+                                                    <span class="th-divider-right"></span>
+                                                </th>
+                                                <th class="bg-primary col-software">
+                                                    <span class="th-divider-left">Тип ПО</span>
+                                                    <span class="th-divider-right">
+                                                        <button type="button" id="addSoftware-btnOpen" class="btn btn-success btn-xs">Добавить</button>
+                                                    </span>
+                                                </th>
+
+                                                <th class="bg-primary col-actions">
+                                                    <span class="th-divider-left">Действия</span>
+                                                </th>
+                                            </tr>
+                                            </thead>
+                                            <!--Данные-->
+                                            <tbody>
+                                            {% for vendor in vendors %}
+                                                {% for software in vendor.software %}
+                                                    <tr>
+                                                        <td class="col-region cut-string">{{ vendor.title }}</td>
+                                                        <td class="col-city cut-string">{{ software.title }}</td>
+
+                                                        <td class="col-actions">
+                                                            <a href="" class="btn btn-warning btn-xs">Изменить</a>
+                                                            <a href="/admin/delSoftware?id={{ software.getPK }}" class="btn btn-danger btn-xs">Удалить</a>
+                                                        </td>
+                                                    </tr>
+                                                {% endfor %}
+                                            {% endfor %}
+                                            </tbody>
+                                        </table>
                                     </div>
                                     <!-- Clusters -->
                                     <div class="tab-pane" id="clusters" role="tabpanel" area-labeledby="tab-clusters">
@@ -93,6 +165,7 @@
     </div>
 {% endblock %}
 {% block modal %}
+    <!-- Модальные окна добавления, изменения вендора -->
     <div id="addVendor-modal" class="modal-window" title="Новый вендор">
         <form action="/admin/addVendor" method="post" role="form">
             <div class="form-group">
@@ -110,14 +183,59 @@
     </div>
 
     <div id="editVendor-modal" class="modal-window" title="Редактировать вендора">
-    <form action="/admin/editVendor" method="post" role="form">
-        <div class="form-group">
-            <label for="id-edit-vendor"></label>
-            <input type="text" class="form-control" name="vendor[one]" id="id-edit-vendor" placeholder="Новый вендор">
-        </div>
+        <form action="/admin/editVendor" method="post" role="form">
+            <div class="form-group">
+                <label for="id-edit-vendor"></label>
+                <input type="text" class="form-control" name="vendor[one]" id="id-edit-vendor" placeholder="Новый вендор">
+            </div>
 
-        <button type="submit" class="btn btn-success">Сохранить</button>
-        <button type="button" id="editVendor-btnClose" class="btn btn-danger">Отмена</button>
-    </form>
-</div>
+            <button type="submit" class="btn btn-success">Сохранить</button>
+            <button type="button" id="editVendor-btnClose" class="btn btn-danger">Отмена</button>
+        </form>
+    </div>
+
+    <!-- Модальные окна добавления, изменения HW платформы -->
+    <div id="addPlatform-modal" class="modal-window" title="Новая платформа">
+        <form action="/admin/addPlatform" method="post" role="form">
+            <div class="form-group">
+                <label for="id-vendor">Vendor</label>
+                <select name="platform[vendorId]" id="id-vendor" class="form-control">
+                    {% for vendor in vendors %}
+                        <option value="{{ vendor.getPK }}">{{ vendor.title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="id-platform">HW platform</label>
+                <input type="text" class="form-control" name="platform[title]" id="id-platform" placeholder="Новая платформа">
+            </div>
+
+            <button type="submit" class="btn btn-success">Создать</button>
+            <button type="button" id="addPlatform-btnClose" class="btn btn-danger">Отмена</button>
+        </form>
+    </div>
+
+    <!-- Модальные окна добавления, изменения SW платформы -->
+    <div id="addSoftware-modal" class="modal-window" title="Новый тип ПО">
+        <form action="/admin/addSoftware" method="post" role="form">
+            <div class="form-group">
+                <label for="id-vendor">Производитель</label>
+                <select name="software[vendorId]" id="id-vendor" class="form-control">
+                    {% for vendor in vendors %}
+                        <option value="{{ vendor.getPK }}">{{ vendor.title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="id-software">Тип ПО</label>
+                <input type="text" class="form-control" name="software[title]" id="id-software" placeholder="Новый тип ПО">
+            </div>
+
+            <button type="submit" class="btn btn-success">Создать</button>
+            <button type="button" id="addSoftware-btnClose" class="btn btn-danger">Отмена</button>
+        </form>
+    </div>
+
+
+
 {% endblock %}

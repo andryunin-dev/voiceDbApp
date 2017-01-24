@@ -57,7 +57,7 @@
                         {% for region in regions %}
                             {% for city in region.cities %}
                                 {% for address in city.addresses %}
-                                    <tr>
+                                    <tr class="office-row" data-id="{{ address.office.getPK }}">
                                         <td class="col-region cut-string">{{ region.title }}</td>
                                         <td class="col-city cut-string">{{ city.title }}</td>
                                         <td class="col-address cut-string">{{ address.address }}</td>
@@ -82,9 +82,9 @@
 {% endblock %}
 
 {% block modal %}
-    <div class="container-fluid">
-        <div class="row">
-            <div id="addOffice-modal" class="modal-window" title="Новый офис">
+    <div id="addOffice-modal" class="modal-window" title="Новый офис">
+        <div class="container-fluid">
+            <div class="row">
                 <form class="form-horizontal" action="/admin/addOffice" method="post" role="form">
                     <!-- выпадающий список регионов-->
                     <div class="form-group">
@@ -197,4 +197,11 @@
         </div>
     </div>
 
+    <div id="officeDetails-modal" class="modal-window" title="Информация по офису">
+        <div class="container-fluid">
+            <div class="row">
+                <h2>Пока в разработке...</h2>
+            </div>
+        </div>
+    </div>
 {% endblock %}

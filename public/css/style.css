@@ -69,6 +69,11 @@ table th .th-divider-right {
 table tbody tr {
     cursor: pointer;
 }
+
+.no-wrap {
+    white-space: nowrap;
+}
+
 .offices .col-region {
     width: 15%;
 }
@@ -91,7 +96,13 @@ table tbody tr {
     width: 270px;
     white-space: nowrap;
 }
-.cities .col-actions {
+
+.devices .hw-sw-dict-tabs {
+    min-width: 610px;
+}
+
+.cities .col-actions,
+.devices .col-actions {
     width: 200px;
     white-space: nowrap;
 }
@@ -101,6 +112,10 @@ table tbody tr {
 }
 .cities .col-city {
     width: 40%;
+}
+.devices .col-platform,
+.devices .col-vendor {
+    min-width: 200px;;
 }
 
 .cut-string {
@@ -151,4 +166,20 @@ table tbody tr {
     color: #fff;
     background-color: #d9534f;
     border-color: #d43f3a;
+}
+.bs3-btn-style .btn-danger:hover {
+    color: #fff;
+    background-color: #c9302c;
+    border-color: #ac2925;
+}
+
+.bs3-btn-style .btn-warning {
+    color: #fff;
+    background-color: #f0ad4e;
+    border-color: #eea236;
+}
+.bs3-btn-style .btn-warning:hover {
+    color: #fff;
+    background-color: #ec971f;
+    border-color: #d58512;
 }

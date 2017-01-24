@@ -8,7 +8,9 @@ use App\Models\Address;
 use App\Models\City;
 use App\Models\Office;
 use App\Models\OfficeStatus;
+use App\Models\Platform;
 use App\Models\Region;
+use App\Models\Software;
 use App\Models\Vendor;
 use T4\Core\Std;
 use T4\Mvc\Controller;
@@ -245,7 +247,9 @@ class Admin extends Controller
 
     public function actionDelRegion($id)
     {
-        Region::findByPK($id)->delete();
+        if (false !== $region = Region::findByPK($id)->delete()) {
+            $region->delete();
+        }
         header('Location: /admin/regions');
     }
 
@@ -275,7 +279,56 @@ class Admin extends Controller
             }
         }
         header('Location: /admin/devices');
+    }
 
+    public function actionDelVendor($id)
+    {
+        if (false !== $vendor = Vendor::findByPK($id)) {
+            $vendor->delete();
+        }
+        header('Location: /admin/devices');
+    }
+
+    public function actionAddPlatform($platform)
+    {
+        if (!empty(trim($platform['title']))) {
+            (new Platform())
+                ->fill([
+                    'title' => $platform['title'],
+                    'vendor' => Vendor::findByPK($platform['vendorId'])
+                ])
+                ->save();
+        }
+        header('Location: /admin/devices');
+    }
+
+    public function actionDelPlatform($id)
+    {
+        if (false !== $platform = Platform::findByPK($id)) {
+            $platform->delete();
+        }
+        header('Location: /admin/devices');
+    }
+
+    public function actionAddSoftware($software)
+    {
+        if (!empty(trim($software['title']))) {
+            (new Software())
+                ->fill([
+                    'title' => $software['title'],
+                    'vendor' => Vendor::findByPK($software['vendorId'])
+                ])
+                ->save();
+        }
+        header('Location: /admin/devices');
+    }
+
+    public function actionDelSoftware($id)
+    {
+        if (false !== $software = Software::findByPK($id)) {
+            $software->delete();
+        }
+        header('Location: /admin/devices');
     }
 
 }

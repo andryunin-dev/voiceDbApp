@@ -1,88 +1,65 @@
 $(function () {
-    $( "#date" ).datepicker();
-    $("#accordion").accordion();
     $( "#menu" ).menu();
 
 // Добавление статуса
     var addStatus = $("#addStatus-modal").dialog({
         autoOpen: false,
-        height:400,
-        width: 350,
+        height: "auto",
+        width: "auto",
         modal: true
     });
 
     $("#addStatus-btnOpen").on("click", function () {
         addStatus.dialog("open");
-    })
+    });
     $("#addStatus-btnClose").on("click", function () {
         addStatus.dialog("close");
-    })
+    });
 
 // Добавление региона
-    var addReg = $("#addReg-modal").dialog({
+    var addRegion = $("#addRegion-modal").dialog({
         autoOpen: false,
-        height:400,
-        width: 350,
+        height: "auto",
+        width: "auto",
         modal: true
     });
 
-    $("#addReg-btnOpen").on("click", function () {
-        addReg.dialog("open");
-    })
-    $("#addReg-btnClose").on("click", function () {
-        addReg.dialog("close");
-    })
-//Редактирование региона
-    var editReg = $("#editReg-modal").dialog({
-        autoOpen: false,
-        height:400,
-        width: 350,
-        modal: true
+    $("#addRegion-btnOpen").on("click", function () {
+        addRegion.dialog("open");
+    });
+    $("#addRegion-btnClose").on("click", function () {
+        addRegion.dialog("close");
     });
 
-
-    var addCity = $("#addCity-modal").dialog({
-        autoOpen: false,
-        height:400,
-        width: 350,
-        modal: true
-    });
-
-    $("#regsTable").on("click", "#editReg-btnOpen", function (event) {
-        editReg.dialog("open");
-    })
-    $("#editReg-btnClose").on("click", function () {
-        editReg.dialog("close");
-    })
 // Добавление города
     var addCity = $("#addCity-modal").dialog({
         autoOpen: false,
-        height:220,
-        width: 350,
+        height: "auto",
+        width: "auto",
         modal: true
     });
 
     $("#addCity-btnOpen").on("click", function () {
         addCity.dialog("open");
-    })
+    });
     $("#addCity-btnClose").on("click", function () {
         addCity.dialog("close");
-    })
+    });
 
 // Добавление офиса
     var addOffice = $("#addOffice-modal").dialog({
         autoOpen: false,
-        height:670,
-        width: 600,
+        height: "auto",
+        width: "auto",
         modal: true
     });
 
     $("#addOffice-btnOpen").on("click", function () {
         addOffice.dialog("open");
-    })
+    });
     $("#addOffice-btnClose").on("click", function () {
         addOffice.dialog("close");
-    })
+    });
 
 //оборудование
 //bootstrap
@@ -112,21 +89,21 @@ $(function () {
             var clName = className.match(/(^|\s)col-(xs|sm|md|lg)-\d+/g).join(' ');
             console.log(clName);
             return clName;
-        }).addClass('col-xs-5');
+        }).addClass('col-xs-7');
     });
     platformTab.click(function() {
         deviceTab.removeClass(function (index, className) {
             var clName = className.match(/(^|\s)col-(xs|sm|md|lg)-\d+/g).join(' ');
             console.log(clName);
             return clName;
-        }).addClass('col-xs-6');
+        }).addClass('col-xs-7');
     });
 
 // Добавление вендора
     var addVendor = $("#addVendor-modal").dialog({
         autoOpen: false,
-        height:400,
-        width: 350,
+        height: "auto",
+        width: "auto",
         modal: true
     });
 
@@ -139,8 +116,8 @@ $(function () {
 // Редактирование вендора
     var editVendor = $("#editVendor-modal").dialog({
         autoOpen: false,
-        height:400,
-        width: 350,
+        height: "auto",
+        width: "auto",
         modal: true
     });
 
@@ -151,6 +128,47 @@ $(function () {
         editVendor.dialog("close");
     })
 
+
+// Добавление платформы
+    var addPlatform = $("#addPlatform-modal").dialog({
+        autoOpen: false,
+        height: "auto",
+        width: "auto",
+        modal: true
+    });
+
+    $("#addPlatform-btnOpen").on("click", function () {
+        addPlatform.dialog("open");
+    })
+    $("#addPlatform-btnClose").on("click", function () {
+        addPlatform.dialog("close");
+    })
+
+// Добавление ПО платформы
+    var addSoftware = $("#addSoftware-modal").dialog({
+        autoOpen: false,
+        height: "auto",
+        width: "auto",
+        modal: true
+    });
+
+    $("#addSoftware-btnOpen").on("click", function () {
+        addSoftware.dialog("open");
+    })
+    $("#addSoftware-btnClose").on("click", function () {
+        addSoftware.dialog("close");
+    })
+// Детальная инфа по офису
+    var officeDetail = $("#officeDetails-modal").dialog({
+        autoOpen: false,
+        height: "auto",
+        width: "auto",
+        modal: true
+    })
+    $(".office-row").on("click", function() {
+        console.log($(this).data("id"));
+        officeDetail.dialog("open");
+    })
 })
 
 
