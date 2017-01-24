@@ -48,7 +48,10 @@
                                                 <th class="bg-primary col-vendor">
                                                     <span class="th-divider-left">Производитель</span>
                                                     <span class="th-divider-right">
-                                                        <button type="button" id="addVendor-btnOpen" class="btn btn-success btn-xs">Добавить</button>
+                                                        <button class="btn btn-success btn-xs" type="button"
+                                                                role="button" aria-controls="add-vendor"
+                                                                value="open">Добавить
+                                                        </button>
                                                     </span>
                                                 </th>
                                                 <th class="bg-primary col-actions">
@@ -65,7 +68,11 @@
                                                     </td>
 
                                                     <td class="col-actions">
-                                                        <button type="button" id="editVendor-btnOpen" class="btn btn-success btn-xs">Изменить</button>
+                                                        <button class="btn btn-success btn-xs"
+                                                                role="button" aria-controls="edit-vendor"  value="open"
+                                                                data-id="{{ vendor.getPK }}">
+                                                            Изменить
+                                                        </button>
                                                         <a href="/admin/delVendor?id={{ vendor.getPK }}" class="btn btn-danger btn-xs">Удалить</a>
                                                     </td>
                                                 </tr>
@@ -85,7 +92,10 @@
                                                 <th class="bg-primary col-platform">
                                                     <span class="th-divider-left">Платформа</span>
                                                     <span class="th-divider-right">
-                                                        <button type="button" id="addPlatform-btnOpen" class="btn btn-success btn-xs">Добавить</button>
+                                                        <button class="btn btn-success btn-xs" type="button"
+                                                                role="button" aria-controls="add-platform"
+                                                                value="open">Добавить
+                                                        </button>
                                                     </span>
                                                 </th>
 
@@ -103,7 +113,12 @@
                                                         <td class="col-city cut-string">{{ platform.title }}</td>
 
                                                         <td class="col-actions">
-                                                            <a href="" class="btn btn-warning btn-xs">Изменить</a>
+                                                            <button class="btn btn-success btn-xs"
+                                                                    role="button" aria-controls="edit-platform"
+                                                                    value="open"
+                                                                    data-id="{{ platform.getPK }}">
+                                                                Изменить
+                                                            </button>
                                                             <a href="/admin/delPlatform?id={{ platform.getPK }}" class="btn btn-danger btn-xs">Удалить</a>
                                                         </td>
                                                     </tr>
@@ -124,7 +139,10 @@
                                                 <th class="bg-primary col-software">
                                                     <span class="th-divider-left">Тип ПО</span>
                                                     <span class="th-divider-right">
-                                                        <button type="button" id="addSoftware-btnOpen" class="btn btn-success btn-xs">Добавить</button>
+                                                        <button class="btn btn-success btn-xs" type="button"
+                                                                role="button" aria-controls="add-software"
+                                                                value="open">Добавить
+                                                        </button>
                                                     </span>
                                                 </th>
 
@@ -142,7 +160,12 @@
                                                         <td class="col-city cut-string">{{ software.title }}</td>
 
                                                         <td class="col-actions">
-                                                            <a href="" class="btn btn-warning btn-xs">Изменить</a>
+                                                            <button class="btn btn-success btn-xs"
+                                                                    role="button" aria-controls="edit-software"
+                                                                    value="open"
+                                                                    data-id="{{ vendor.getPK }}">
+                                                                Изменить
+                                                            </button>
                                                             <a href="/admin/delSoftware?id={{ software.getPK }}" class="btn btn-danger btn-xs">Удалить</a>
                                                         </td>
                                                     </tr>
@@ -166,7 +189,7 @@
 {% endblock %}
 {% block modal %}
     <!-- Модальные окна добавления, изменения вендора -->
-    <div id="addVendor-modal" class="modal-window" title="Новый вендор">
+    <div id="add-vendor" role="dialog" title="Новый вендор">
         <form action="/admin/addVendor" method="post" role="form">
             <div class="form-group">
                 <label for="id-vendor"></label>
@@ -177,25 +200,29 @@
                 <textarea name="vendor[many]" id="id-vendors" cols="41" rows="10" placeholder="Список вендоров через запятую"></textarea>
             </div>
 
-            <button type="submit" class="btn btn-success">Создать</button>
-            <button type="button" id="addVendor-btnClose" class="btn btn-danger">Отмена</button>
+            <button class="btn btn-success" type="submit">Создать</button>
+            <button class="btn btn-danger" type="button" role="button" aria-controls="add-vendor" value="close">
+                Отмена
+            </button>
         </form>
     </div>
 
-    <div id="editVendor-modal" class="modal-window" title="Редактировать вендора">
+    <div id="edit-vendor" role="dialog" title="Редактировать вендора">
         <form action="/admin/editVendor" method="post" role="form">
             <div class="form-group">
                 <label for="id-edit-vendor"></label>
                 <input type="text" class="form-control" name="vendor[one]" id="id-edit-vendor" placeholder="Новый вендор">
             </div>
 
-            <button type="submit" class="btn btn-success">Сохранить</button>
-            <button type="button" id="editVendor-btnClose" class="btn btn-danger">Отмена</button>
+            <button class="btn btn-success" type="submit">Создать</button>
+            <button class="btn btn-danger" type="button" role="button" aria-controls="edit-vendor" value="close">
+                Отмена
+            </button>
         </form>
     </div>
 
     <!-- Модальные окна добавления, изменения HW платформы -->
-    <div id="addPlatform-modal" class="modal-window" title="Новая платформа">
+    <div id="add-platform" role="dialog" title="Новая платформа">
         <form action="/admin/addPlatform" method="post" role="form">
             <div class="form-group">
                 <label for="id-vendor">Vendor</label>
@@ -210,13 +237,37 @@
                 <input type="text" class="form-control" name="platform[title]" id="id-platform" placeholder="Новая платформа">
             </div>
 
-            <button type="submit" class="btn btn-success">Создать</button>
-            <button type="button" id="addPlatform-btnClose" class="btn btn-danger">Отмена</button>
+            <button class="btn btn-success" type="submit">Создать</button>
+            <button class="btn btn-danger" type="button" role="button" aria-controls="add-platform" value="close">
+                Отмена
+            </button>
+        </form>
+    </div>
+
+    <div id="edit-platform" role="dialog" title="Редактирование платформы">
+        <form action="#" method="post" role="form">
+            <div class="form-group">
+                <label for="id-vendor">Vendor</label>
+                <select name="platform[vendorId]" id="id-vendor" class="form-control">
+                    {% for vendor in vendors %}
+                        <option value="{{ vendor.getPK }}">{{ vendor.title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="id-platform">HW platform</label>
+                <input type="text" class="form-control" name="platform[title]" id="id-platform" placeholder="Новая платформа">
+            </div>
+
+            <button class="btn btn-success" type="submit">Создать</button>
+            <button class="btn btn-danger" type="button" role="button" aria-controls="edit-platform" value="close">
+                Отмена
+            </button>
         </form>
     </div>
 
     <!-- Модальные окна добавления, изменения SW платформы -->
-    <div id="addSoftware-modal" class="modal-window" title="Новый тип ПО">
+    <div id="add-software" role="dialog" title="Новый тип ПО">
         <form action="/admin/addSoftware" method="post" role="form">
             <div class="form-group">
                 <label for="id-vendor">Производитель</label>
@@ -231,8 +282,32 @@
                 <input type="text" class="form-control" name="software[title]" id="id-software" placeholder="Новый тип ПО">
             </div>
 
-            <button type="submit" class="btn btn-success">Создать</button>
-            <button type="button" id="addSoftware-btnClose" class="btn btn-danger">Отмена</button>
+            <button class="btn btn-success" type="submit">Создать</button>
+            <button class="btn btn-danger" type="button" role="button" aria-controls="add-software" value="close">
+                Отмена
+            </button>
+        </form>
+    </div>
+
+    <div id="edit-software" role="dialog" title="Редактирование типа ПО">
+        <form action="#" method="post" role="form">
+            <div class="form-group">
+                <label for="id-vendor">Производитель</label>
+                <select name="software[vendorId]" id="id-vendor" class="form-control">
+                    {% for vendor in vendors %}
+                        <option value="{{ vendor.getPK }}">{{ vendor.title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="id-software">Тип ПО</label>
+                <input type="text" class="form-control" name="software[title]" id="id-software" placeholder="Новый тип ПО">
+            </div>
+
+            <button class="btn btn-success" type="submit">Создать</button>
+            <button class="btn btn-danger" type="button" role="button" aria-controls="edit-software" value="close">
+                Отмена
+            </button>
         </form>
     </div>
 

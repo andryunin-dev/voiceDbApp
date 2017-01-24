@@ -1,19 +1,15 @@
 jQuery(function ($) {
-    var allTestTabs = $("ul[data-panelName='test'].nav-tabs li[role='presentation']");
-    var allTestPanels = $("div[data-panelName='test'].tab-content div[role=tabpanel]");
+    var tabs = $(".nav-tabs li[role='tab']");
+    var panels = $(".tab-content div[role=tabpanel]");
 
-    function removeActiveClass(collection) {
-        collection.each(function() {
-                $(this).filter(".active").removeClass("active");
-        });
-    }
-
-    allTestTabs.each(function() {
+    tabs.each(function() {
         $(this).on( "click", function (event) {
-            removeActiveClass(allTestTabs);
+            tabs.filter(".active").removeClass("active");
             $(event.target).parent().addClass("active");
-            removeActiveClass(allTestPanels);
-            allTestPanels.filter($(event.target).attr("href")).addClass("active");
+            panels.filter(".active").removeClass("active");
+            var panelId = $(event.target).parent().attr("aria-controls");
+            console.log("[id=" + panelId + "]");
+            panels.filter("[id=" + panelId + "]").addClass("active");
         })
     })
 });

@@ -33,7 +33,8 @@
                             <th class="bg-primary col-city">
                                 <span class="th-divider-left">Город</span>
                                 <span class="th-divider-right">
-                                    <button type="button" id="addCity-btnOpen" class="btn btn-success btn-xs">Добавить</button>
+                                    <button class="btn btn-success btn-xs" type="button"
+                                            role="button" aria-controls="add-city" value="open">Добавить</button>
                                 </span>
                             </th>
 
@@ -49,9 +50,11 @@
                                 <tr>
                                     <td class="col-region cut-string">{{ region.title }}</td>
                                     <td class="col-city cut-string">{{ city.title }}</td>
-
                                     <td class="col-actions">
-                                        <a href="" class="btn btn-warning btn-xs">Изменить</a>
+                                        <button class="btn btn-success btn-xs"
+                                                role="button" aria-controls="edit-city"  value="open" data-id="{{ city.getPK }}">
+                                            Изменить
+                                        </button>
                                         <a href="/admin/delCity?id={{ city.getPK }}" class="btn btn-danger btn-xs">Удалить</a>
                                     </td>
                                 </tr>
@@ -67,14 +70,13 @@
 {% endblock %}
 
 {% block modal %}
-<div id="addCity-modal" class="modal-window" title="Новый офис">
+<div id="add-city" role="dialog" title="Новый город">
     <form action="/admin/addCity" method="post" role="form">
         <div class="form-group">
             <select name="city[regId]" id="id-region" class="form-control">
                 {% for region in regions %}
                     <option value="{{ region.getPK }}">{{ region.title }}</option>
                 {% endfor %}
-
             </select>
         </div>
         <div class="form-group">
@@ -82,8 +84,31 @@
             <input type="text" class="form-control" name="city[title]" id="id-region" placeholder="Новый город">
         </div>
 
-        <button type="submit" class="btn btn-success">Создать</button>
-        <button type="button" id="addCity-btnClose" class="btn btn-danger">Отмена</button>
+        <button class="btn btn-success" type="submit">Создать</button>
+        <button class="btn btn-danger" type="button" role="button" aria-controls="add-city" value="close">
+            Отмена
+        </button>
+    </form>
+</div>
+
+<div id="edit-city" role="dialog" title="Редактирование города">
+    <form action="#" method="post" role="form">
+        <div class="form-group">
+            <select name="city[regId]" id="id-region" class="form-control">
+                {% for region in regions %}
+                    <option value="{{ region.getPK }}">{{ region.title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="id-region"></label>
+            <input type="text" class="form-control" name="city[title]" id="id-region" placeholder="Новый город">
+        </div>
+
+        <button class="btn btn-success" type="submit">Создать</button>
+        <button class="btn btn-danger" type="button" role="button" aria-controls="edit-city" value="close">
+            Отмена
+        </button>
     </form>
 </div>
 {% endblock %}
