@@ -22,83 +22,45 @@
             </aside>
             <main class="devices bs3-btn-style" id="bs3-style">
                 <div class="col-xs-10">
-                    <div class="panel panel-default">
+                    <div class="panel panel-default col-xs-7">
                     	<div class="panel-heading">
                    		    <h3 class="panel-title">Vendors, Hardware, Software, Clusters</h3>
                     	</div>
                     	<div class="panel-body">
-                            <div id="hw-sw-dict-tabs" class="hw-sw-dict-tabs col-xs-7">
+                            <div>
                                 <!-- Nav tabs -->
-                                <ul class="hw-tabs" role="tablist">
-                                    <li id="tab-platforms" class="" role="presentation"><a href="#platforms" aria-controls="platforms" role="tab">Платформы</a></li>
-                                    <li id="tab-software" class="" role="presentation"><a href="#software" aria-controls="software" role="tab">ПО</a></li>
-                                    <li id="tab-vendors" class="active" role="presentation"><a href="#vendors" aria-controls="vendors" role="tab">Производители</a></li>
+                                <ul class="nav nav-tabs" role="tablist">
+                                    <li class="active" aria-controls="platforms" aria-selected="true" role="tab" data-toggle="tab">
+                                        <a href="#platforms">Платформы</a>
+                                    </li>
+                                    <li aria-controls="software" aria-selected="false" role="tab" data-toggle="tab">
+                                        <a href="#software">ПО</a>
+                                    </li>
+                                    <li aria-controls="vendors" aria-selected="false" role="tab" data-toggle="tab">
+                                        <a href="#vendors">Производители</a>
+                                    </li>
                                     <!-- кластеры доделать потом
                                     <li id="tab-clusters" class="" role="presentation"><a href="#clusters" aria-controls="clusters" role="tab">Кластеры</a></li>
                                     -->
                                 </ul>
 
-                                <!-- Tab panes -->
+                                <!-- Tab panels -->
                                 <div class="tab-content">
-                                    <!-- Vendors -->
-                                    <div class="tab-pane active" id="vendors" role="tabpanel"  area-labeled="tab-vendors">
-                                        <table id="vendorsTable" class="table table-bordered table-hover table-striped">
-                                            <thead>
-                                            <tr>
-                                                <th class="bg-primary col-vendor">
-                                                    <span class="th-divider-left">Производитель</span>
-                                                    <span class="th-divider-right">
-                                                        <button class="btn btn-success btn-xs" type="button"
-                                                                role="button" aria-controls="add-vendor"
-                                                                value="open">Добавить
-                                                        </button>
-                                                    </span>
-                                                </th>
-                                                <th class="bg-primary col-actions">
-                                                    <span class="th-divider-left">Действия</span>
-                                                </th>
-                                            </tr>
-                                            </thead>
-                                            <!--Данные-->
-                                            <tbody>
-                                            {% for vendor in vendors %}
-                                                <tr>
-                                                    <td class="col-vendor cut-string">
-                                                        {{ vendor.title }}
-                                                    </td>
-
-                                                    <td class="col-actions">
-                                                        <button class="btn btn-success btn-xs"
-                                                                role="button" aria-controls="edit-vendor"  value="open"
-                                                                data-id="{{ vendor.getPK }}">
-                                                            Изменить
-                                                        </button>
-                                                        <a href="/admin/delVendor?id={{ vendor.getPK }}" class="btn btn-danger btn-xs">Удалить</a>
-                                                    </td>
-                                                </tr>
-                                            {% endfor %}
-                                            </tbody>
-                                        </table>
-                                    </div>
                                     <!-- Platforms -->
-                                    <div class="tab-pane" id="platforms" role="tabpanel" area-labeledby="tab-platforms">
+                                    <div class="tab-pane active" role="tabpanel" id="platforms">
                                         <table class="table table-bordered table-hover table-striped">
                                             <thead>
                                             <tr>
+                                                <th class="bg-primary col-platform">
+                                                    <span class="th-divider-left">Платформа</span>
+                                                    <span class="th-divider-right">
+                                                        <button class="btn btn-success btn-xs" type="button" role="button" aria-controls="add-platform" value="open">Добавить</button>
+                                                    </span>
+                                                </th>
                                                 <th class="bg-primary col-vendor">
                                                     <span class="th-divider-left">Производитель</span>
                                                     <span class="th-divider-right"></span>
                                                 </th>
-                                                <th class="bg-primary col-platform">
-                                                    <span class="th-divider-left">Платформа</span>
-                                                    <span class="th-divider-right">
-                                                        <button class="btn btn-success btn-xs" type="button"
-                                                                role="button" aria-controls="add-platform"
-                                                                value="open">Добавить
-                                                        </button>
-                                                    </span>
-                                                </th>
-
                                                 <th class="bg-primary col-actions">
                                                     <span class="th-divider-left">Действия</span>
                                                 </th>
@@ -109,9 +71,8 @@
                                             {% for vendor in vendors %}
                                                 {% for platform in vendor.platforms %}
                                                     <tr>
-                                                        <td class="col-region cut-string">{{ vendor.title }}</td>
                                                         <td class="col-city cut-string">{{ platform.title }}</td>
-
+                                                        <td class="col-region cut-string">{{ vendor.title }}</td>
                                                         <td class="col-actions">
                                                             <button class="btn btn-success btn-xs"
                                                                     role="button" aria-controls="edit-platform"
@@ -128,24 +89,19 @@
                                         </table>
                                     </div>
                                     <!-- Software -->
-                                    <div class="tab-pane" id="software" role="tabpanel" area-labeledby="tab-software">
+                                    <div class="tab-pane" role="tabpanel" id="software">
                                         <table class="table table-bordered table-hover table-striped">
                                             <thead>
                                             <tr>
+                                                <th class="bg-primary col-software">
+                                                    <span class="th-divider-left">Тип ПО</span>
+                                                    <span class="th-divider-right"><button class="btn btn-success btn-xs" type="button" role="button" aria-controls="add-software" value="open">Добавить</button>
+                                                    </span>
+                                                </th>
                                                 <th class="bg-primary col-vendor">
                                                     <span class="th-divider-left">Производитель</span>
                                                     <span class="th-divider-right"></span>
                                                 </th>
-                                                <th class="bg-primary col-software">
-                                                    <span class="th-divider-left">Тип ПО</span>
-                                                    <span class="th-divider-right">
-                                                        <button class="btn btn-success btn-xs" type="button"
-                                                                role="button" aria-controls="add-software"
-                                                                value="open">Добавить
-                                                        </button>
-                                                    </span>
-                                                </th>
-
                                                 <th class="bg-primary col-actions">
                                                     <span class="th-divider-left">Действия</span>
                                                 </th>
@@ -156,9 +112,8 @@
                                             {% for vendor in vendors %}
                                                 {% for software in vendor.software %}
                                                     <tr>
-                                                        <td class="col-region cut-string">{{ vendor.title }}</td>
                                                         <td class="col-city cut-string">{{ software.title }}</td>
-
+                                                        <td class="col-region cut-string">{{ vendor.title }}</td>
                                                         <td class="col-actions">
                                                             <button class="btn btn-success btn-xs"
                                                                     role="button" aria-controls="edit-software"
@@ -175,8 +130,42 @@
                                         </table>
                                     </div>
                                     <!-- Clusters -->
-                                    <div class="tab-pane" id="clusters" role="tabpanel" area-labeledby="tab-clusters">
+                                    <div class="tab-pane" role="tabpanel" id="clusters">
                                         ...
+                                    </div>
+                                    <!-- Vendors -->
+                                    <div class="tab-pane" role="tabpanel" id="vendors">
+                                        <table class="table table-bordered table-hover table-striped">
+                                            <thead>
+                                            <tr>
+                                                <th class="bg-primary col-vendor">
+                                                    <span class="th-divider-left">Производитель</span>
+                                                    <span class="th-divider-right"><button class="btn btn-success btn-xs" type="button" role="button" aria-controls="add-vendor" value="open">Добавить</button></span>
+                                                </th>
+                                                <th class="bg-primary col-actions">
+                                                    <span class="th-divider-left">Действия</span>
+                                                </th>
+                                            </tr>
+                                            </thead>
+                                            <!--Данные-->
+                                            <tbody>
+                                            {% for vendor in vendors %}
+                                                <tr>
+                                                    <td class="col-vendor cut-string">
+                                                        {{ vendor.title }}
+                                                    </td>
+                                                    <td class="col-actions">
+                                                        <button class="btn btn-success btn-xs"
+                                                                role="button" aria-controls="edit-vendor"  value="open"
+                                                                data-id="{{ vendor.getPK }}">
+                                                            Изменить
+                                                        </button>
+                                                        <a href="/admin/delVendor?id={{ vendor.getPK }}" class="btn btn-danger btn-xs">Удалить</a>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             </div>

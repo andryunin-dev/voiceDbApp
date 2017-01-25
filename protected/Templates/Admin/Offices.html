@@ -58,7 +58,7 @@
                         {% for region in regions %}
                             {% for city in region.cities %}
                                 {% for address in city.addresses %}
-                                    <tr class="office-row" data-id="{{ address.office.getPK }}">
+                                    <tr class="office-row"  role="button" aria-controls="office-detail" data-id="{{ address.office.getPK }}">
                                         <td class="col-region cut-string">{{ region.title }}</td>
                                         <td class="col-city cut-string">{{ city.title }}</td>
                                         <td class="col-address cut-string">{{ address.address }}</td>
