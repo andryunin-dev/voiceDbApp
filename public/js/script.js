@@ -6,7 +6,7 @@ jQuery(function ($) {
     modalWindows.each(function () {
         var result = $(this).dialog(
             {
-                autoOpen: false,
+                autoOpen: true,
                 height: "auto",
                 width: "auto",
                 modal: true
@@ -45,8 +45,6 @@ jQuery(function ($) {
     //задаем обработчик событий на клики по строкам таблицы
     controlRows.each(function () {
         $(this).on("click", function (event) {
-            console.log(this);
-
             var window = {
                 id: $(this).attr("aria-controls"),
                 dataId: $(this).data("id")
@@ -54,17 +52,19 @@ jQuery(function ($) {
             modalWindows.filter("[id=" + window.id + "]").dialog("open");
             // console.log($(this).attr("value"));
             // console.log(window.dataId);
+            //переключаем фокус на элемент у которого [aria-selected='true']
+            tabs.filter("[aria-selected='true']").children().get(0).focus();
         })
     });
 
 //Tabs
     var tabs = $(".nav-tabs[role='tablist'] li[role='tab']");
     var panels = $(".tab-content div[role=tabpanel]");
-    console.log(tabs);
 
     //задаем обработчик событий на клики по табам
     tabs.each(function() {
-        $(this).on( "click", function () {
+        $(this).on( "click", function (event) {
+            event.preventDefault();
             tabs.filter("[aria-selected='true']").removeClass("active").attr('aria-selected','false');
             $(this).addClass("active").attr('aria-selected','true');
 

@@ -1,22 +1,84 @@
-{% extends 'TestIndex.html' %}
+{% extends 'Index.html' %}
 {% block main %}
-    <div>
+    <div id="office-detail" role="dialog" title="Информация по офису">
+        <div class="container">
+            <div class="row"><!-- Nav tabs -->
+                <div class="col-xs-12">
+                    <ul class="nav nav-tabs" data-panelName="test" role="tablist">
+                        <li class="active" aria-controls="general" aria-selected="true" role="tab" data-toggle="tab"><a
+                                    href="#general">Общая информация</a></li>
+                        <li aria-controls="devices" aria-selected="false" role="tab" data-toggle="tab"><a
+                                    href="#devices">Устройства</a>
+                        </li>
+                        <li aria-controls="pstn" aria-selected="false" role="tab" data-toggle="tab"><a href="#pstn">Номера
+                                PSTN</a></li>
+                        <li aria-controls="other" aria-selected="false" role="tab" data-toggle="tab"><a
+                                    href="#other">Прочее</a>
+                        </li>
+                    </ul>
 
-        <!-- Nav tabs -->
-        <ul class="nav nav-tabs" data-panelName="test" role="tablist">
-            <li class="active" aria-controls="home" aria-selected="true" role="tab" data-toggle="tab"><a href="#home">Home</a></li>
-            <li aria-controls="profile" aria-selected="false" role="tab" data-toggle="tab"><a href="#profile">Profile</a></li>
-            <li aria-controls="messages" aria-selected="false" role="tab" data-toggle="tab"><a href="#messages">Messages</a></li>
-            <li aria-controls="settings" aria-selected="false" role="tab" data-toggle="tab"><a href="#settings">Settings</a></li>
-        </ul>
-
-        <!-- Tab panes -->
-        <div class="tab-content" data-panelName="test">
-            <div class="tab-pane active" role="tabpanel" id="home">Home</div>
-            <div class="tab-pane" role="tabpanel" id="profile">Profile</div>
-            <div class="tab-pane" role="tabpanel" id="messages">Messages</div>
-            <div class="tab-pane" role="tabpanel" id="settings">Settings</div>
+                    <!-- Tab panes -->
+                    <!--Панель общей информации-->
+                    <div class="tab-content" data-panelName="test">
+                        <div class="tab-pane active" role="tabpanel" id="general">
+                            <form class="form-horizontal">
+                                <div class="form-group ">
+                                    <label class="col-sm-2 control-label" for="id-region">Название</label>
+                                    <div class="col-sm-10">
+                                        <input type="text" class="form-control" id="id-region"
+                                               value="Калининград, ККО Калининград - Черняховского" readonly>
+                                    </div>
+                                </div>
+                                <div class="form-group ">
+                                    <label class="col-sm-2 control-label" for="id-status">Статус</label>
+                                    <div class="col-sm-10">
+                                        <input type="text" class="form-control" id="id-status" value="Открыт" readonly>
+                                    </div>
+                                </div>
+                                <div class="form-group ">
+                                    <label class="col-sm-2 control-label" for="id-region">Регион</label>
+                                    <div class="col-sm-10">
+                                        <input type="text" class="form-control" id="id-region" value="Калининград"
+                                               readonly>
+                                    </div>
+                                </div>
+                                <div class="form-group ">
+                                    <label class="col-sm-2 control-label" for="id-city">Город</label>
+                                    <div class="col-sm-10">
+                                        <input type="text" class="form-control" id="id-city" value="Калининград"
+                                               readonly>
+                                    </div>
+                                </div>
+                                <div class="form-group ">
+                                    <label class="col-sm-2 control-label" for="id-address">Адрес</label>
+                                    <div class="col-sm-10">
+                                        <input type="text" class="form-control" id="id-address"
+                                               value="ул. Черняховского, дом №30-40, пом. IX, А3,а4 (Калининград №5) - ККО4"
+                                               readonly>
+                                    </div>
+                                </div>
+                                <div class="form-group ">
+                                    <label class="col-sm-2 control-label" for="id-status">Лотус ID</label>
+                                    <div class="col-sm-10">
+                                        <input type="text" class="form-control" id="id-status" value="79" readonly>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <!--Панель девайсов-->
+                        <div class="tab-pane" role="tabpanel" id="devices">
+                            Profile
+                        </div>
+                        <!--Панель PSTN номеров-->
+                        <div class="tab-pane" role="tabpanel" id="pstn">
+                            Messages
+                        </div>
+                        <!--Резерв-->
+                        <div class="tab-pane" role="tabpanel" id="other">
+                            Settings
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-
-    </div>
-{% endblock %}
+    </div>{% endblock %}
