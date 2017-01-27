@@ -4,10 +4,14 @@ jQuery(function ($) {
     var controlRows = $("tr.office-row");
     //задаем параметры модальных окон
     modalWindows.each(function () {
+        var winHeight = $(window).height();
+        var winWidth = $(window).width();
         var result = $(this).dialog(
             {
+                position: { my: "center top+10%", at: "top", of: window },
                 autoOpen: true,
                 height: "auto",
+                maxHeight: winHeight * 0.9,
                 width: "auto",
                 modal: true
             }
