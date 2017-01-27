@@ -1,4 +1,5 @@
 jQuery(function ($) {
+    var body = $('body');
     var modalWindows = $("div[role='dialog']"); //модальные окна
     var controlButtons = $("*[role='button'][aria-controls]"); //control-buttons управления модальными окнами
     var controlRows = $("tr.office-row");
@@ -8,8 +9,14 @@ jQuery(function ($) {
         var winWidth = $(window).width();
         var result = $(this).dialog(
             {
-                position: { my: "center top+10%", at: "top", of: window },
-                autoOpen: true,
+                open: function(){
+                    $("body").css("overflow", "hidden");
+                },
+                close: function(){
+                    $("body").css("overflow", "auto");
+                },
+                position: { my: "center top", at: "top+5%", of: window },
+                autoOpen: false,
                 height: "auto",
                 maxHeight: winHeight * 0.9,
                 width: "auto",
