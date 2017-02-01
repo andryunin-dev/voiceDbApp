@@ -9,7 +9,7 @@ use T4\Orm\Model;
  * @package App\Models
  *
  * @property string $ipAddress
- * @property json $details
+ * @property string $details
  * @property string $comment
  * @property Appliance $appliance
  * @property DPortType $portType
@@ -20,12 +20,13 @@ class DataPort extends Model
         'table' => 'equipment.dataPorts',
         'columns' => [
             'ipAddress' => ['type' => 'string'],
+            'macAddress' => ['type' => 'string'],
             'details' => ['type' => 'json'],
             'comment' => ['type' => 'text']
         ],
         'relations' => [
             'appliance' => ['type' => self::BELONGS_TO, 'model' => Appliance::class],
-            'portType' => ['type' => self::BELONGS_TO, 'model' => DPortType::class, 'on' => '__typePort_id']
+            'portType' => ['type' => self::BELONGS_TO, 'model' => DPortType::class, 'by' => '__type_port_id']
         ]
     ];
 }

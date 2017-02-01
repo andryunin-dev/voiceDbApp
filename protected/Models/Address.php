@@ -11,6 +11,7 @@ use T4\Orm\Model;
  * @property string $address Office's post address
  * @property City $city
  * @property Office $office
+ * @property PartnerOffice $partnerOffice
  */
 class Address extends Model
 {
@@ -21,7 +22,8 @@ class Address extends Model
         ],
         'relations' => [
             'city' => ['type' => self::BELONGS_TO, 'model' => City::class],
-            'office' => ['type' => self::HAS_ONE, 'model' => Office::class]
+            'office' => ['type' => self::HAS_ONE, 'model' => Office::class],
+            'partnerOffice' => ['type' => self::HAS_ONE, 'model' => PartnerOffice::class]
         ]
     ];
 }

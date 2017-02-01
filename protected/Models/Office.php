@@ -27,7 +27,7 @@ class Office extends Model
         ],
         'relations' => [
             'address' => ['type' => self::BELONGS_TO, 'model' => Address::class],
-            'status' => ['type' => self::BELONGS_TO, 'model' => OfficeStatus::class, 'on' => '__officeStatus_id']
+            'status' => ['type' => self::BELONGS_TO, 'model' => OfficeStatus::class, 'on' => '__office_status_id']
         ]
     ];
 

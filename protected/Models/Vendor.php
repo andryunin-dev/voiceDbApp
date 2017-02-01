@@ -25,6 +25,7 @@ class Vendor extends Model
             'appliances' => ['type' => self::HAS_MANY, 'model' => Appliance::class],
             'software' => ['type' => self::HAS_MANY, 'model' => Software::class],
             'platforms' => ['type' => self::HAS_MANY, 'model' => Platform::class],
+            'modules' => ['type' => self::HAS_MANY, 'model' => Module::class],
         ]
     ];
 }

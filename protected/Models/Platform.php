@@ -10,22 +10,19 @@ use T4\Orm\Model;
  * @package App\Models
  *
  * @property string $title
- * @property jsonb $detail
- * @property string $comment
- * @property Collection|Appliance[] $appliances
+ * @property Vendor $vendor
+ * @property Collection|PlatformItem[] $platformItems
  */
 class Platform extends Model
 {
     protected static $schema = [
         'table' => 'equipment.platforms',
         'columns' => [
-            'title' => ['type' => 'string'],
-            'details' => ['type' => 'jsonb'],
-            'comment' => ['type' => 'string']
+            'title' => ['type' => 'string']
         ],
         'relations' => [
             'vendor' => ['type' => self::BELONGS_TO, 'model' => Vendor::class],
-            'appliances' => ['type' => self::HAS_MANY, 'model' => Appliance::class]
+            'platformItems' => ['type' => self::HAS_MANY, 'model' => PlatformItem::class]
         ]
     ];
 }

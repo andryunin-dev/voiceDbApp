@@ -9,7 +9,7 @@ use T4\Orm\Model;
  * Class Appliance
  * @package App\Models
  *
- * @property jsonb $details
+ * @property string $details
  * @property string $comment
  * @property Software $software
  * @property Platform $platform

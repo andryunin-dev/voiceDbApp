@@ -9,7 +9,7 @@ use T4\Orm\Model;
  * @package App\Models
  *
  * @property string $title
- * @property jsonb $details
+ * @property string $details
  * @property string $comment
  */
 class Cluster extends Model
