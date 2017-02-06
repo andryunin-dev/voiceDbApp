@@ -10,7 +10,7 @@ use T4\Orm\Model;
  * @package App\Models
  *
  * @property string $title
- * @property string $areacode
+ * @property string $diallingCode
  * @property Region $region
  * @property Collection|Address[] $addresses
  */
@@ -20,7 +20,7 @@ class City extends Model
         'table' => 'geolocation.cities',
         'columns' => [
             'title' => ['type' => 'string'],
-            'arecode' => ['type' => 'string']
+            'diallingCode' => ['type' => 'string']
         ],
         'relations' => [
             'region' => ['type' => self::BELONGS_TO, 'model' => Region::class],

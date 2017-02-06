@@ -20,27 +20,6 @@ class m_1484050074_initialMigrate
         ];
 
         /**
-         * Удаляем все схемы каскадно с таблицами
-         */
-        foreach ($schemas as $schema) {
-            $sqlCreateSchema = 'DROP SCHEMA IF EXISTS ' . $schema . ' CASCADE';
-            if (true === $this->db->execute($sqlCreateSchema)) {
-                echo 'schema ' . $schema . ' deleted' . "\n";
-            }
-        }
-
-        /**
-         *Создание схем
-         */
-
-        foreach ($schemas as $schema) {
-            $sqlCreateSchema = 'CREATE SCHEMA IF NOT EXISTS ' . $schema;
-            if (true === $this->db->execute($sqlCreateSchema)) {
-                echo 'Schema ' . $schema . ' created' . "\n";
-            }
-        }
-
-        /**
          * @var array $sql массив запросов для миграции
          */
         $sql = [];
@@ -57,7 +36,7 @@ class m_1484050074_initialMigrate
             __id   SERIAL,
             __region_id    BIGINT,
             title VARCHAR(50),
-            diallingCode VARCHAR(10),
+            "diallingCode" VARCHAR(10),
             PRIMARY KEY (__id),
             CONSTRAINT fk_region_id FOREIGN KEY (__region_id)
                 REFERENCES geolocation."regions" (__id)
@@ -426,6 +405,28 @@ class m_1484050074_initialMigrate
             ON DELETE RESTRICT
         )';
 
+
+        /**
+         * Удаляем все схемы каскадно с таблицами
+         */
+        foreach ($schemas as $schema) {
+            $sqlCreateSchema = 'DROP SCHEMA IF EXISTS ' . $schema . ' CASCADE';
+            if (true === $this->db->execute($sqlCreateSchema)) {
+                echo 'schema ' . $schema . ' deleted' . "\n";
+            }
+        }
+
+        /**
+         *Создание схем
+         */
+
+        foreach ($schemas as $schema) {
+            $sqlCreateSchema = 'CREATE SCHEMA IF NOT EXISTS ' . $schema;
+            if (true === $this->db->execute($sqlCreateSchema)) {
+                echo 'Schema ' . $schema . ' created' . "\n";
+            }
+        }
+
         foreach ($sql as $key => $query) {
             if (true === $this->db->execute($query)) {
                 echo 'Table ' . $key . ' is created' . "\n";
@@ -436,10 +437,35 @@ class m_1484050074_initialMigrate
         if (true === $this->db->execute($query)) {
             echo 'In table company."officeStatuses" inserted 1 record' . "\n";
         }
+
+        /**
+         * Create DB for phpUnit tests
+         */
+        $this->setDb('phpUnitTests');
+        foreach ($schemas as $schema) {
+            $sqlCreateSchema = 'CREATE SCHEMA IF NOT EXISTS ' . $schema;
+            if (true === $this->db->execute($sqlCreateSchema)) {
+                echo 'Schema ' . $schema . ' created' . "\n";
+            }
+        }
+
+        foreach ($sql as $key => $query) {
+            if (true === $this->db->execute($query)) {
+                echo 'Table ' . $key . ' is created' . "\n";
+            }
+        }
+
+        $query = 'INSERT INTO company."officeStatuses" (title) VALUES (\'open\')';
+        if (true === $this->db->execute($query)) {
+            echo 'In table company."officeStatuses" inserted 1 record' . "\n";
+        }
+
     }
 
     public function down()
     {
+        $app = \T4\Console\Application::instance();
+        var_dump($app);die;
         $schemas = [
             'geolocation',
             'company',
@@ -458,6 +484,15 @@ class m_1484050074_initialMigrate
                 echo 'schema ' . $schema . ' with all tables is deleted' . "\n";
             }
         }
+
+        $this->setDb('phpUnitTest');
+        foreach ($schemas as $schema) {
+            $sqlDropSchema = 'DROP SCHEMA IF EXISTS ' . $schema . ' CASCADE';
+            if (true === $this->db->execute($sqlDropSchema)) {
+                echo 'schema ' . $schema . ' with all tables is deleted' . "\n";
+            }
+        }
+
     }
 
 }
