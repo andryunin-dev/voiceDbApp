@@ -66,7 +66,7 @@ class m_1484050074_initialMigrate
             __address_id BIGINT,
             __office_status_id  BIGINT,
             title       VARCHAR(200),
-            lotusId     INTEGER UNIQUE ,
+            "lotusId"     INTEGER UNIQUE ,
             details JSONB,
             comment TEXT,
             PRIMARY KEY (__id),
@@ -93,7 +93,7 @@ class m_1484050074_initialMigrate
 
         $sql['equipment.vendors'] = 'CREATE TABLE equipment."vendors" (
             __id SERIAL,
-            name VARCHAR(200),
+            title VARCHAR(200),
             PRIMARY KEY (__id)
         )';
 
@@ -111,8 +111,8 @@ class m_1484050074_initialMigrate
         $sql['equipment.platformItems'] = 'CREATE TABLE equipment."platformItems" (
             __id SERIAL,
             __platform_id BIGINT NOT NULL,
-            serialNumber VARCHAR(40),
-            inventoryNumber VARCHAR(40),
+            "serialNumber" VARCHAR(40),
+            "inventoryNumber" VARCHAR(40),
             version VARCHAR(200),
             details JSONB, -- some details about platform(i.e. memory size, CPU etc.)
             comment TEXT,
@@ -183,7 +183,7 @@ class m_1484050074_initialMigrate
         $sql['equipment.modules'] = 'CREATE TABLE equipment."modules" (
             __id SERIAL,
             __vendor_id BIGINT NOT NULL,
-            partNumber VARCHAR(200),
+            "partNumber" VARCHAR(200),
             comment TEXT,
             PRIMARY KEY (__id),
             CONSTRAINT fk_vendor_id FOREIGN KEY (__vendor_id)
@@ -222,8 +222,8 @@ class m_1484050074_initialMigrate
             __id SERIAL,
             __appliance_id BIGINT NOT NULL,
             __type_port_id BIGINT NOT NULL,
-            ipAddress INET,
-            macAddress MACADDR,
+            "ipAddress" INET,
+            "macAddress" MACADDR,
             details JSONB,
             comment TEXT,
             PRIMARY KEY (__id),
@@ -266,7 +266,7 @@ class m_1484050074_initialMigrate
         $sql['telephony.pstnNumbers'] = 'CREATE TABLE telephony."pstnNumbers" (
           __id SERIAL,
           number CHAR(15) UNIQUE,
-          transferedTo  CHAR(15) DEFAULT NULL,
+          "transferedTo"  CHAR(15) DEFAULT NULL,
           __voice_port_id BIGINT NOT NULL, -- что ставить если номер переадресован? Как вариант создать девайс FreePool.
           comment TEXT,
           PRIMARY KEY (__id),
@@ -306,7 +306,7 @@ class m_1484050074_initialMigrate
             __partner_id BIGINT NOT NULL,
             number VARCHAR(50),
             date DATE,
-            pathToScan VARCHAR(255),
+            "pathToScan" VARCHAR(255),
             PRIMARY KEY (__id),
             CONSTRAINT fk_partner_id FOREIGN KEY (__partner_id) --ссылка на конкретный офис партнера
               REFERENCES partners."offices" (__id)
@@ -441,7 +441,7 @@ class m_1484050074_initialMigrate
         /**
          * Create DB for phpUnit tests
          */
-        $this->setDb('phpUnitTests');
+        $this->setDb('phpUnitTest');
         foreach ($schemas as $schema) {
             $sqlCreateSchema = 'CREATE SCHEMA IF NOT EXISTS ' . $schema;
             if (true === $this->db->execute($sqlCreateSchema)) {
@@ -464,8 +464,6 @@ class m_1484050074_initialMigrate
 
     public function down()
     {
-        $app = \T4\Console\Application::instance();
-        var_dump($app);die;
         $schemas = [
             'geolocation',
             'company',

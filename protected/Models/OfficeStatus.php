@@ -27,7 +27,7 @@ class OfficeStatus extends Model
             'title' => ['type' => 'string']
         ],
         'relations' => [
-            'offices' => ['type' => self::HAS_MANY, 'model' => Office::class,  'by' => '__office_status_id']
+            'offices' => ['type' => self::HAS_MANY, 'model' => Office::class, 'by' => '__office_status_id']
         ]
     ];
 }

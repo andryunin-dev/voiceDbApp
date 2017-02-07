@@ -6,13 +6,13 @@ use T4\Core\Collection;
 use T4\Orm\Model;
 
 /**
- * Class Software
+ * Class City
  * @package App\Models
  *
  * @property string $title
- * @property Vendor $vendor
- * @property Collection|Appliance[] $appliances
- * @property Collection|SoftwareItem[] $softwareItems
+ * @property string $diallingCode
+ * @property Region $region
+ * @property Collection|Address[] $addresses
  */
 class Software extends Model
 {
@@ -23,8 +23,7 @@ class Software extends Model
         ],
         'relations' => [
             'vendor' => ['type' => self::BELONGS_TO, 'model' => Vendor::class],
-            'appliances' => ['type' => self::HAS_MANY, 'model' => Appliance::class],
-            'softwareItem' => ['type' => self::HAS_MANY, 'model' => SoftwareItem::class]
+            'softwareItems' => ['type' => self::HAS_MANY, 'model' => SoftwareItem::class, 'by' => '__software_id']
         ]
     ];
 }

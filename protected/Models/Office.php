@@ -22,7 +22,7 @@ class Office extends Model
         'columns' => [
             'title' => ['type' => 'string'],
             'lotusId' => ['type' => 'string'],
-            'details' => ['type' => 'jsonb'],
+            'details' => ['type' => 'json'],
             'comment' => ['type' => 'string']
         ],
         'relations' => [

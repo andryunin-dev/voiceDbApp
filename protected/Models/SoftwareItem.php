@@ -21,12 +21,12 @@ class SoftwareItem extends Model
         'table' => 'equipment.softwareItems',
         'columns' => [
             'version' => ['type' => 'string'],
-            'details' => ['type' => 'jsonb'],
+            'details' => ['type' => 'json'],
             'comment' => ['type' => 'string']
         ],
         'relations' => [
             'software' => ['type' => self::BELONGS_TO, 'model' => Software::class],
-            'appliances' => ['type' => self::HAS_MANY, 'model' => Appliance::class]
+            'appliances' => ['type' => self::HAS_MANY, 'model' => Appliance::class, 'by' => '__software_item_id']
         ]
     ];
 }

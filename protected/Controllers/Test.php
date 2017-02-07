@@ -2,39 +2,39 @@
 
 namespace App\Controllers;
 
+
 use App\Models\Address;
 use App\Models\City;
 use App\Models\Region;
+use T4\Core\IArrayable;
 use T4\Mvc\Controller;
 
 class Test extends Controller
 {
     public function actionDefault()
     {
-        $conn = $this->app->db->phpUnitTests;
-
-        $region = (new Region())
-            ->fill(['title' => 'region title'])
-            ->save();
-        $city = (new City())
+        $vendor = (new \App\Models\Vendor())
             ->fill([
-                'title' => 'city title',
-                'diallingCode' => '8452',
-                'region' => $region
-            ])
-            ->save();
-        $address = (new Address())
-            ->fill([
-                'title' => 'address string'
+                'title' => 'vendor name'
             ])
             ->save();
 
-        var_dump($address);
-        $city->delete();
-        $region->delete();
+        $software = (new \App\Models\Software())
+            ->fill([
+                'title' => 'soft title',
+                'vendor' => $vendor
+            ])
+            ->save();
+
+        $softwareItem = (new \App\Models\SoftwareItem())
+            ->fill([
+                'version' => 'soft ver',
+                'detail' => ['propName' => 'propValue'],
+                'comment' => 'soft comment',
+                'software' => $software
+            ])
+            ->save();
 
         die;
-
     }
-
 }

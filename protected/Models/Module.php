@@ -18,7 +18,8 @@ class Module extends Model
     protected static $schema = [
         'table' => 'equipment.modules',
         'columns' => [
-            'title' => ['type' => 'string']
+            'partNumber' => ['type' => 'string'],
+            'comment' => ['type' => 'string']
         ],
         'relations' => [
             'vendor' => ['type' => self::BELONGS_TO, 'model' => Vendor::class],

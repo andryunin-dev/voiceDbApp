@@ -25,8 +25,8 @@ class Appliance extends Model
             'comment' => ['type' => 'text']
         ],
         'relations' => [
-            'software' => ['type' => self::BELONGS_TO, 'model' => Software::class],
-            'platform' => ['type' => self::BELONGS_TO, 'model' => Platform::class],
+            'software' => ['type' => self::BELONGS_TO, 'model' => SoftwareItem::class, 'by' => '__software_item_id'],
+            'platform' => ['type' => self::BELONGS_TO, 'model' => PlatformItem::class, 'by' => '__platform_item_id'],
             'vendor' => ['type' => self::BELONGS_TO, 'model' => Vendor::class],
             'cluster' => ['type' => self::BELONGS_TO, 'model' => Cluster::class],
             'voicePorts' => ['type' => self::HAS_MANY, 'model' => VoicePort::class],
