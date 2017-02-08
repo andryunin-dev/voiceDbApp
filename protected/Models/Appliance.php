@@ -3,6 +3,7 @@
 namespace App\Models;
 
 
+use phpDocumentor\Reflection\Location;
 use T4\Orm\Model;
 
 /**
@@ -25,12 +26,14 @@ class Appliance extends Model
             'comment' => ['type' => 'text']
         ],
         'relations' => [
-            'software' => ['type' => self::BELONGS_TO, 'model' => SoftwareItem::class, 'by' => '__software_item_id'],
-            'platform' => ['type' => self::BELONGS_TO, 'model' => PlatformItem::class, 'by' => '__platform_item_id'],
-            'vendor' => ['type' => self::BELONGS_TO, 'model' => Vendor::class],
+            'location' => ['type' => self::BELONGS_TO, 'model' => Office::class, 'by' => '__location_id'],
             'cluster' => ['type' => self::BELONGS_TO, 'model' => Cluster::class],
+            'vendor' => ['type' => self::BELONGS_TO, 'model' => Vendor::class],
+            'platform' => ['type' => self::BELONGS_TO, 'model' => PlatformItem::class, 'by' => '__platform_item_id'],
+            'software' => ['type' => self::BELONGS_TO, 'model' => SoftwareItem::class, 'by' => '__software_item_id'],
             'voicePorts' => ['type' => self::HAS_MANY, 'model' => VoicePort::class],
-            'dataPorts' => ['type' => self::HAS_MANY, 'model' => DataPort::class]
+            'dataPorts' => ['type' => self::HAS_MANY, 'model' => DataPort::class],
+            'modules' => ['type' => self::HAS_MANY, 'model' => ModuleItem::class]
         ]
     ];
 }

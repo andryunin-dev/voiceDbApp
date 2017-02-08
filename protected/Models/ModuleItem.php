@@ -23,12 +23,12 @@ class ModuleItem extends Model
         'columns' => [
             'serialNumber' => ['type' => 'string'],
             'inventoryNumber' => ['type' => 'string'],
-            'details' => ['type' => 'jsonb'],
+            'details' => ['type' => 'json'],
             'comment' => ['type' => 'string']
         ],
         'relations' => [
             'module' => ['type' => self::BELONGS_TO, 'model' => Module::class],
-            'appliance' => ['type' => self::HAS_ONE, 'model' => Appliance::class]
+            'appliance' => ['type' => self::BELONGS_TO, 'model' => Appliance::class]
         ]
     ];
 }

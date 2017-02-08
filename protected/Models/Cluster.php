@@ -18,11 +18,11 @@ class Cluster extends Model
         'table' => 'equipment.clusters',
         'columns' => [
             'title' => ['type' => 'string'],
-            'details' => ['type' => 'jsonb'],
+            'details' => ['type' => 'json'],
             'comment' => ['type' => 'string']
         ],
         'relations' => [
-            'appliances' => ['type' => self::HAS_MANY]
+            'appliances' => ['type' => self::HAS_MANY, 'model' => Appliance::class]
         ]
     ];
 }

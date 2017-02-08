@@ -26,7 +26,7 @@ class VoicePort extends Model
         'relations' => [
             'appliance' => ['type' => self::BELONGS_TO, 'model' => Appliance::class],
             'portType' => ['type' => self::BELONGS_TO, 'model' => VPortType::class, 'on' => '__type_port_id'],
-            'pstnNumbers' => ['type' => self::HAS_MANY, 'model' => PstnNumber::class]
+            'pstnNumbers' => ['type' => self::HAS_MANY, 'model' => PstnNumber::class, 'by' => '__voice_port_id']
         ]
     ];
 }

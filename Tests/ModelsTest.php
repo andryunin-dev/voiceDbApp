@@ -10,17 +10,19 @@ class ModelsTest extends \PHPUnit\Framework\TestCase
     {
         foreach ($model1 as $key => $value) {
             if (!isset($model2->$key)) {
+                echo get_class($model2) . '->' . $key . ' not found in ' . get_class($model2) . "\n";
                 return false;
             }
             if ($model1->$key !== $model2->$key) {
                 if ($key != get_class($model1)::PK) {
+                    echo get_class($model1) . '->' . $key . ' != ' . get_class($model2) . '->' . $key . "\n";
                     return false;
                 }
                 if ($key == get_class($model1)::PK && !empty($model1->$key) && !empty($model1->$key)) {
+                    echo get_class($model1) . '->' . $key . ' != ' . get_class($model2) . '->' . $key . "\n";
                     return false;
                 }
             }
-            //echo get_class($model1) . '->' . $key . ' == ' . get_class($model2) . '->' . $key . "\n";
         }
         return true;
     }
@@ -73,7 +75,7 @@ class ModelsTest extends \PHPUnit\Framework\TestCase
     /**
      * @depends testCityModel
      */
-    public function testAddressModel($city)
+    public function testAddress($city)
     {
         $address = (new \App\Models\Address())
             ->fill([
@@ -105,7 +107,7 @@ class ModelsTest extends \PHPUnit\Framework\TestCase
 
     /**
      * @depends testOfficeStatusModel
-     * @depends testAddressModel
+     * @depends testAddress
      *
      */
     public function testOfficeModel($officeStatus, $address)
@@ -128,6 +130,26 @@ class ModelsTest extends \PHPUnit\Framework\TestCase
 
     /**
      * EQUIPMENT TESTS
+     * @depends testInit
+     */
+    public function testCluster()
+    {
+        $objectName = 'cluster';
+        $className = '\App\Models\Cluster';
+        $$objectName = (new $className())
+            ->fill([
+                'title' => 'cluster title',
+                'details' => ['propName' => 'propValue'],
+                'comment' => 'cluster comment'
+            ])
+            ->save();
+        $fromDb = $className::findByPK($$objectName->getPk());
+        $fromDb->details = json_encode($fromDb->details->toArray());
+        $this->assertEquals(true, $this->compareModels($$objectName, $fromDb));
+        return $$objectName;
+    }
+
+    /**
      * @depends testInit
      *
      */
@@ -185,23 +207,6 @@ class ModelsTest extends \PHPUnit\Framework\TestCase
     /**
      * @depends testVendor
      */
-    public function testModule($vendor)
-    {
-        $module = (new \App\Models\Module())
-            ->fill([
-                'partNumber' => 'part Number',
-                'comment' => 'comment',
-                'vendor' => $vendor
-            ])
-            ->save();
-        $fromDb = \App\Models\Module::findByPK($module->getPk());
-        $this->assertEquals(true, $this->compareModels($module, $fromDb));
-        return $module;
-    }
-
-    /**
-     * @depends testVendor
-     */
     public function testPlatform($vendor)
     {
         $objectName = 'platform';
@@ -240,22 +245,283 @@ class ModelsTest extends \PHPUnit\Framework\TestCase
         return $$objectName;
     }
 
+   /**
+     * @depends testCluster
+     * @depends testVendor
+     * @depends testPlatformItem
+     * @depends testSoftwareItem
+     * @depends testOfficeModel
+     */
+    public function testAppliance($cluster, $vendor, $platformItem, $softwareItem, $office)
+    {
+        $objectName = 'appliance';
+        $className = '\App\Models\Appliance';
+        $$objectName = (new $className())
+            ->fill([
+                'details' => ['propName' => 'propValue'],
+                'comment' => 'platform comment',
+                'cluster' => $cluster,
+                'vendor' => $vendor,
+                'platform' => $platformItem,
+                'software' => $softwareItem,
+                'location' => $office
+            ])
+            ->save();
+        $fromDb = $className::findByPK($$objectName->getPk());
+        $fromDb->details = json_encode($fromDb->details->toArray());
+        $this->assertEquals(true, $this->compareModels($$objectName, $fromDb));
+        return $$objectName;
+    }
+
+    /**
+     * @depends testVendor
+     */
+    public function testModule($vendor)
+    {
+        $objectName = 'module';
+        $className = '\App\Models\Module';
+        $$objectName = (new $className())
+            ->fill([
+                'partNumber' => 'part Number',
+                'comment' => 'comment',
+                'vendor' => $vendor
+            ])
+            ->save();
+        $fromDb = $className::findByPK($$objectName->getPk());
+        $this->assertEquals(true, $this->compareModels($$objectName, $fromDb));
+        return $$objectName;
+    }
+
+    /**
+     * @depends testModule
+     * @depends testAppliance
+     */
+    public function testModuleItem($module, $appliance)
+    {
+        $objectName = 'moduleItem';
+        $className = '\App\Models\ModuleItem';
+        $$objectName = (new $className())
+            ->fill([
+                'serialNumber' => 'part Number',
+                'inventoryNumber' => 'comment',
+                'details' => ['propName' => 'propValue'],
+                'comment' => 'module item comment',
+                'module' => $module,
+                'appliance' => $appliance
+            ])
+            ->save();
+        $fromDb = $className::findByPK($$objectName->getPk());
+        $fromDb->details = json_encode($fromDb->details->toArray());
+        $this->assertEquals(true, $this->compareModels($$objectName, $fromDb));
+        return $$objectName;
+    }
 
 
-//   /**
-//     * @depends testVendor
-//     */
-//    public function testModuleItem($vendor)
-//    {
-//        $module = (new \App\Models\ModuleItem())
-//            ->fill([
-//                'partNumber' => 'part Number',
-//                'comment' => 'comment',
-//                'vendor' => $vendor
-//            ])
-//            ->save();
-//        $fromDb = \App\Models\Module::findByPK($module->getPk());
-//        $this->assertEquals(true, $this->compareModels($module, $fromDb));
-//        return $module;
-//    }
+    /**
+     * @depends testInit
+     */
+    public function testDPortType()
+    {
+        $objectName = 'dPortType';
+        $className = '\App\Models\DPortType';
+        $$objectName = (new $className())
+            ->fill([
+                'type' => 'data port type'
+            ])
+            ->save();
+        $fromDb = $className::findByPK($$objectName->getPk());
+        $this->assertEquals(true, $this->compareModels($$objectName, $fromDb));
+        return $$objectName;
+    }
+
+    /**
+     * @depends testDPortType
+     * @depends testAppliance
+     */
+    public function testDataPort($dPortType, $appliance)
+    {
+        $objectName = 'dataPort';
+        $className = '\App\Models\DataPort';
+        $$objectName = (new $className())
+            ->fill([
+                'ipAddress' => '192.168.1.1/24',
+                'macAddress' => '08:00:2b:01:02:03',
+                'details' => ['propName' => 'propValue'],
+                'comment' => 'data port comment',
+                'appliance' => $appliance,
+                'portType' => $dPortType
+            ])
+            ->save();
+        $fromDb = $className::findByPK($$objectName->getPk());
+        $fromDb->details = json_encode($fromDb->details->toArray());
+        $this->assertEquals(true, $this->compareModels($$objectName, $fromDb));
+        return $$objectName;
+    }
+
+    /**
+     * @depends testInit
+     */
+    public function testVPortType()
+    {
+        $objectName = 'vPortType';
+        $className = '\App\Models\VPortType';
+        $$objectName = (new $className())
+            ->fill([
+                'type' => 'voice port type'
+            ])
+            ->save();
+        $fromDb = $className::findByPK($$objectName->getPk());
+        $this->assertEquals(true, $this->compareModels($$objectName, $fromDb));
+        return $$objectName;
+    }
+
+    /**
+     * @depends testVPortType
+     * @depends testAppliance
+     */
+    public function testVoicePort($vPortType, $appliance)
+    {
+        $objectName = 'voicePort';
+        $className = '\App\Models\VoicePort';
+        $$objectName = (new $className())
+            ->fill([
+                'details' => ['propName' => 'propValue'],
+                'comment' => 'voice port comment',
+                'appliance' => $appliance,
+                'portType' => $vPortType
+            ])
+            ->save();
+        $fromDb = $className::findByPK($$objectName->getPk());
+        $fromDb->details = json_encode($fromDb->details->toArray());
+        $this->assertEquals(true, $this->compareModels($$objectName, $fromDb));
+        return $$objectName;
+    }
+
+    /**
+     * @depends testVoicePort
+     */
+    public function testPstnNumber($voicePort)
+    {
+        $this->markTestIncomplete(
+            'This test has not been implemented yet.'
+        );
+        $objectName = 'pstnNumber';
+        $className = '\App\Models\PstnNumber';
+        $$objectName = (new $className())
+            ->fill([
+                'number' => (string)rand(1000000000, 9999999999),
+                'transferedTo' => (string)rand(1000000000, 9999999999),
+                'comment' => 'pstn number comment',
+                'voicePort' => $voicePort
+            ])
+            ->save();
+        $fromDb = $className::findByPK($$objectName->getPk());
+        $this->assertEquals(true, $this->compareModels($$objectName, $fromDb));
+        return $$objectName;
+    }
+
+
+    /**
+     * @depends testInit
+     */
+    public function testOrganisation()
+    {
+        $objectName = 'organisation';
+        $className = '\App\Models\Organisation';
+        $$objectName = (new $className())
+            ->fill([
+                'title' => 'organisation title',
+            ])
+            ->save();
+        $fromDb = $className::findByPK($$objectName->getPk());
+        $this->assertEquals(true, $this->compareModels($$objectName, $fromDb));
+        return $$objectName;
+    }
+
+    /**
+     * @depends testOrganisation
+     * @depends testAddress
+     */
+    public function testPartnerOffice($organisation, $address)
+    {
+        $objectName = 'partnerOffice';
+        $className = '\App\Models\PartnerOffice';
+        $$objectName = (new $className())
+            ->fill([
+                'details' => ['propName' => 'propValue'],
+                'comment' => 'partner office comment',
+                'organisation' => $organisation,
+                'address' => $address
+            ])
+            ->save();
+        $fromDb = $className::findByPK($$objectName->getPk());
+        $fromDb->details = json_encode($fromDb->details->toArray());
+        $this->assertEquals(true, $this->compareModels($$objectName, $fromDb));
+        return $$objectName;
+    }
+
+    /**
+     * @depends testPartnerOffice
+     */
+    public function testPerson($partnerOffice)
+    {
+        $objectName = 'person';
+        $className = '\App\Models\Person';
+        $$objectName = (new $className())
+            ->fill([
+                'name' => 'Ivanov Ivan Ivanovich',
+                'position' => 'manager',
+                'details' => ['propName' => 'propValue'],
+                'comment' => 'comment for person',
+                'office' => $partnerOffice
+            ])
+            ->save();
+        $fromDb = $className::findByPK($$objectName->getPk());
+        $fromDb->details = json_encode($fromDb->details->toArray());
+        $this->assertEquals(true, $this->compareModels($$objectName, $fromDb));
+        return $$objectName;
+    }
+
+    /**
+     * @depends testInit
+     */
+    public function testContactType()
+    {
+        $objectName = 'contactType';
+        $className = '\App\Models\ContactType';
+        $$objectName = (new $className())
+            ->fill([
+                'type' => 'contact type',
+            ])
+            ->save();
+        $fromDb = $className::findByPK($$objectName->getPk());
+        //$fromDb->details = json_encode($fromDb->details->toArray());
+        $this->assertEquals(true, $this->compareModels($$objectName, $fromDb));
+        return $$objectName;
+    }
+
+    /**
+     * @depends testContactType
+     * @depends testPerson
+     */
+    public function testContact($contactType, $person)
+    {
+        $objectName = 'contact';
+        $className = '\App\Models\Contact';
+        $$objectName = (new $className())
+            ->fill([
+                'contact' => 'email or phone number etc.',
+                'extention' => 'extension dialing',
+                'details' => ['propName' => 'propValue'],
+                'comment' => 'contact comment',
+                'type' => $contactType,
+                'person' => $person
+            ])
+            ->save();
+        $fromDb = $className::findByPK($$objectName->getPk());
+        $fromDb->details = json_encode($fromDb->details->toArray());
+        $this->assertEquals(true, $this->compareModels($$objectName, $fromDb));
+        return $$objectName;
+    }
+
 }

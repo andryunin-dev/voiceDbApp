@@ -6,21 +6,21 @@ use T4\Core\Collection;
 use T4\Orm\Model;
 
 /**
- * Class VPortType
+ * Class ContactType
  * @package App\Models
  *
  * @property string $type
- * @property Collection|VoicePort[] $ports
+ * @property Collection|Contact[] $contacts
  */
-class VPortType extends Model
+class ContactType extends Model
 {
     protected static $schema = [
-        'table' => 'equipment.voicePortTypes',
+        'table' => 'contact_book.contactTypes',
         'columns' => [
             'type' => ['type' => 'string']
         ],
         'relations' => [
-            'ports' => ['type' => self::HAS_MANY, 'model' => VoicePort::class, 'by' => '__type_port_id']
+            'contacts' => ['type' => self::HAS_MANY, 'model' => Contact::class, 'by' => '__contact_type_id']
         ]
     ];
 }

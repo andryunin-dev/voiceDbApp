@@ -20,8 +20,7 @@ class DPortType extends Model
             'type' => ['type' => 'string']
         ],
         'relations' => [
-            'ports' => ['type' => self::HAS_MANY, 'model' => DataPort::class]
-
+            'ports' => ['type' => self::HAS_MANY, 'model' => DataPort::class, 'by' => '__type_port_id']
         ]
     ];
 }

@@ -23,6 +23,7 @@ class m_1484050074_initialMigrate
          * @var array $sql массив запросов для миграции
          */
         $sql = [];
+
         /**
          * Create tables in geolocation and company schemas
          */
@@ -87,7 +88,7 @@ class m_1484050074_initialMigrate
             __id SERIAL,
             title VARCHAR(200),
             details JSONB,
-            comments TEXT,
+            comment TEXT,
             PRIMARY KEY (__id)
         )';
 
@@ -265,8 +266,8 @@ class m_1484050074_initialMigrate
          */
         $sql['telephony.pstnNumbers'] = 'CREATE TABLE telephony."pstnNumbers" (
           __id SERIAL,
-          number CHAR(15) UNIQUE,
-          "transferedTo"  CHAR(15) DEFAULT NULL,
+          number VARCHAR(15) UNIQUE,
+          "transferedTo"  VARCHAR(15) DEFAULT NULL,
           __voice_port_id BIGINT NOT NULL, -- что ставить если номер переадресован? Как вариант создать девайс FreePool.
           comment TEXT,
           PRIMARY KEY (__id),
@@ -289,6 +290,8 @@ class m_1484050074_initialMigrate
             __id SERIAL,
             __organisation_id BIGINT NOT NULL,
             __address_id BIGINT NOT NULL,
+            details JSONB,
+            comment TEXT,
             PRIMARY KEY (__id),
             CONSTRAINT fk_organisation_id FOREIGN KEY (__organisation_id)
               REFERENCES partners."organisations" (__id)
@@ -318,74 +321,61 @@ class m_1484050074_initialMigrate
          * create tables in contacts schema
          * контакты
          */
-        $sql['contact_book.contacts'] = 'CREATE TABLE contact_book."contacts" (
-          __id SERIAL,
-          name VARCHAR(200),
-          __workplace_id BIGINT NOT NULL,
-          position VARCHAR(200), --должность или за что отвечает
-          comment TEXT,
-          PRIMARY KEY (__id),
-          CONSTRAINT fk_workplace_id FOREIGN KEY (__workplace_id)
-            REFERENCES partners."offices" (__id)
-            ON UPDATE CASCADE
-            ON DELETE RESTRICT
+        $sql['contact_book.persons'] = 'CREATE TABLE contact_book."persons" (
+            __id           SERIAL,
+            name           VARCHAR(200),
+            __workplace_id BIGINT NOT NULL,
+            position       VARCHAR(200), --должность или за что отвечает
+            details JSONB,
+            comment        TEXT,
+            PRIMARY KEY (__id),
+            CONSTRAINT fk_workplace_id FOREIGN KEY (__workplace_id)
+              REFERENCES partners."offices" (__id)
+              ON UPDATE CASCADE
+              ON DELETE RESTRICT
         )';
 
-        $sql['contact_book.types'] = 'CREATE TABLE contact_book.types (
+        $sql['contact_book.contactTypes'] = 'CREATE TABLE contact_book."contactTypes" (
             __id SERIAL,
-            type VARCHAR(100), --рабочий , личный
+            type VARCHAR(100), -- телефон, email, Skype
             PRIMARY KEY (__id)
         )';
 
-        $sql['contact_book.phones'] = 'CREATE TABLE contact_book."phones" (
-            __id SERIAL,
-            __contact_id BIGINT NOT NULL,
-            __type_id BIGINT NOT NULL,
-            phone VARCHAR(15),
-            extention VARCHAR(10),
+        $sql['contact_book.contacts'] = 'CREATE TABLE contact_book."contacts" (
+            __id         SERIAL,
+            __person_id BIGINT NOT NULL,
+            __contact_type_id    BIGINT NOT NULL,
+            contact       VARCHAR(255),
+            extention    VARCHAR(255),
+            details JSONB,
+            comment        TEXT,
             PRIMARY KEY (__id),
-            CONSTRAINT fk_phone_type_id FOREIGN KEY (__type_id)
-              REFERENCES contact_book."types" (__id)
-              ON UPDATE CASCADE
-              ON DELETE RESTRICT,
-            CONSTRAINT fk_contact_id FOREIGN KEY (__contact_id)
-              REFERENCES contact_book."contacts" (__id)
-              ON UPDATE CASCADE
-              ON DELETE RESTRICT
-        )';
-
-        $sql['contact_book.emails'] = 'CREATE TABLE contact_book."emails" (
-            __id SERIAL,
-            __contact_id BIGINT NOT NULL,
-            __type_id BIGINT NOT NULL,
-            email VARCHAR(200),
-            PRIMARY KEY (__id),
-            CONSTRAINT fk_email_type_id FOREIGN KEY (__type_id)
-              REFERENCES contact_book."types" (__id)
-              ON UPDATE CASCADE
-              ON DELETE RESTRICT,
-            CONSTRAINT fk_contact_id FOREIGN KEY (__contact_id)
-              REFERENCES contact_book."contacts" (__id)
-              ON UPDATE CASCADE
-              ON DELETE RESTRICT
+            CONSTRAINT fk_phone_type_id FOREIGN KEY (__contact_type_id)
+            REFERENCES contact_book."contactTypes" (__id)
+            ON UPDATE CASCADE
+            ON DELETE RESTRICT,
+            CONSTRAINT fk_contact_id FOREIGN KEY (__person_id)
+            REFERENCES contact_book."persons" (__id)
+            ON UPDATE CASCADE
+            ON DELETE RESTRICT
         )';
 
         /**
          * ТАБЛИЦЫ СВЯЗЕЙ MANY TO MANY
          * привязка контактов к контрактам
          */
-        $sql['partners.contracts_to_contacts'] = 'CREATE TABLE partners."contracts_to_contacts" (
+        $sql['partners.contracts_to_persons'] = 'CREATE TABLE partners."contracts_to_persons" (
             __contract_id BIGINT NOT NULL,
-            __contact_id BIGINT NOT NULL,
-            PRIMARY KEY (__contract_id, __contact_id),
+            __person_id  BIGINT NOT NULL,
+            PRIMARY KEY (__contract_id, __person_id),
             CONSTRAINT fk_contract_id FOREIGN KEY (__contract_id)
-              REFERENCES partners."contracts" (__id)
-              ON UPDATE CASCADE
-              ON DELETE RESTRICT,
-            CONSTRAINT fk_contact_id FOREIGN KEY (__contact_id)
-              REFERENCES contact_book."contacts" (__id)
-              ON UPDATE CASCADE
-              ON DELETE RESTRICT
+            REFERENCES partners."contracts" (__id)
+            ON UPDATE CASCADE
+            ON DELETE RESTRICT,
+            CONSTRAINT fk_contact_id FOREIGN KEY (__person_id)
+            REFERENCES contact_book."persons" (__id)
+            ON UPDATE CASCADE
+            ON DELETE RESTRICT
         )';
 
         /**
@@ -429,7 +419,7 @@ class m_1484050074_initialMigrate
 
         foreach ($sql as $key => $query) {
             if (true === $this->db->execute($query)) {
-                echo 'Table ' . $key . ' is created' . "\n";
+                echo 'Tables in ' . $key . ' are created' . "\n";
             }
         }
 
