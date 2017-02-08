@@ -24,12 +24,12 @@ class Contract extends Model
         ],
         'relations' => [
             'contractType' => ['type' => self::BELONGS_TO, 'model' => ContactType::class],
-            'persons' => [
-                'type' => self::MANY_TO_MANY,
-                'model' => Person::class,
-                'this' => '__contract_id',
-                'that' => '__person_id'
-            ]
+//            'persons' => [
+//                'type' => self::MANY_TO_MANY,
+//                'model' => Person::class,
+//                'this' => '__contract_id',
+//                'that' => '__person_id'
+//            ]
         ]
     ];
 }

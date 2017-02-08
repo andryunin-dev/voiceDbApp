@@ -26,9 +26,7 @@ class Person extends Model
             'contacts' => ['type' => self::HAS_MANY, 'model' => Contact::class],
             'contracts' => [
                 'type' => self::MANY_TO_MANY,
-                'model' => Contract::class,
-                'this' => '__person_id',
-                'that' => '__contract_id'
+                'model' => Contract::class
             ]
         ]
     ];

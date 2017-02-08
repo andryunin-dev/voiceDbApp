@@ -462,6 +462,8 @@ class ModelsTest extends \PHPUnit\Framework\TestCase
 
     /**
      * @depends testPartnerOffice
+     * в TRelations получаем связующую таблицу
+     * contact_book.persons_to_partners.contracts
      */
     public function testPerson($partnerOffice)
     {
