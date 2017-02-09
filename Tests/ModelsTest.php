@@ -245,14 +245,33 @@ class ModelsTest extends \PHPUnit\Framework\TestCase
         return $$objectName;
     }
 
+    /**
+     * @depends testInit
+     */
+    public function testApplianceType()
+    {
+        $objectName = 'applianceType';
+        $className = '\App\Models\ApplianceType';
+        $$objectName = (new $className())
+            ->fill([
+                'type' => 'appliance type'
+            ])
+            ->save();
+        $fromDb = $className::findByPK($$objectName->getPk());
+        $this->assertEquals(true, $this->compareModels($$objectName, $fromDb));
+        return $$objectName;
+
+    }
+
    /**
+     * @depends testApplianceType
      * @depends testCluster
      * @depends testVendor
      * @depends testPlatformItem
      * @depends testSoftwareItem
      * @depends testOfficeModel
      */
-    public function testAppliance($cluster, $vendor, $platformItem, $softwareItem, $office)
+    public function testAppliance($applianceType, $cluster, $vendor, $platformItem, $softwareItem, $office)
     {
         $objectName = 'appliance';
         $className = '\App\Models\Appliance';
@@ -260,6 +279,7 @@ class ModelsTest extends \PHPUnit\Framework\TestCase
             ->fill([
                 'details' => ['propName' => 'propValue'],
                 'comment' => 'platform comment',
+                'type' => $applianceType,
                 'cluster' => $cluster,
                 'vendor' => $vendor,
                 'platform' => $platformItem,
@@ -393,29 +413,6 @@ class ModelsTest extends \PHPUnit\Framework\TestCase
             ->save();
         $fromDb = $className::findByPK($$objectName->getPk());
         $fromDb->details = json_encode($fromDb->details->toArray());
-        $this->assertEquals(true, $this->compareModels($$objectName, $fromDb));
-        return $$objectName;
-    }
-
-    /**
-     * @depends testVoicePort
-     */
-    public function testPstnNumber($voicePort)
-    {
-        $this->markTestIncomplete(
-            'This test has not been implemented yet.'
-        );
-        $objectName = 'pstnNumber';
-        $className = '\App\Models\PstnNumber';
-        $$objectName = (new $className())
-            ->fill([
-                'number' => (string)rand(1000000000, 9999999999),
-                'transferedTo' => (string)rand(1000000000, 9999999999),
-                'comment' => 'pstn number comment',
-                'voicePort' => $voicePort
-            ])
-            ->save();
-        $fromDb = $className::findByPK($$objectName->getPk());
         $this->assertEquals(true, $this->compareModels($$objectName, $fromDb));
         return $$objectName;
     }
@@ -565,5 +562,30 @@ class ModelsTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals(true, $this->compareModels($$objectName, $fromDb));
         return $$objectName;
     }
+
+    /**
+     * @depends testVoicePort
+     * @depends testContract
+     */
+    public function testPstnNumber($voicePort, $contract)
+    {
+        $objectName = 'pstnNumber';
+        $className = '\App\Models\PstnNumber';
+        $$objectName = (new $className())
+            ->fill([
+                'number' => (string)rand(1000000000, 9999999999),
+                'transferedTo' => (string)rand(1000000000, 9999999999),
+                'comment' => 'pstn number comment',
+                'voicePort' => $voicePort
+            ])
+            ->save();
+        $$objectName->contracts->add($contract);
+        $$objectName->save();
+        $fromDb = $className::findByPK($$objectName->getPk());
+        $this->assertEquals(true, $this->compareModels($$objectName, $fromDb));
+        return $$objectName;
+    }
+
+
 
 }

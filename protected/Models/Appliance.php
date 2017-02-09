@@ -26,6 +26,7 @@ class Appliance extends Model
             'comment' => ['type' => 'text']
         ],
         'relations' => [
+            'type' => ['type' => self::BELONGS_TO, 'model' => ApplianceType::class, 'by' => '__type_id'],
             'location' => ['type' => self::BELONGS_TO, 'model' => Office::class, 'by' => '__location_id'],
             'cluster' => ['type' => self::BELONGS_TO, 'model' => Cluster::class],
             'vendor' => ['type' => self::BELONGS_TO, 'model' => Vendor::class],

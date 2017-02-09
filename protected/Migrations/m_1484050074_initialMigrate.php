@@ -149,6 +149,13 @@ class m_1484050074_initialMigrate
                 ON DELETE RESTRICT
         )';
 
+        $sql['equipment.applianceTypes'] = 'CREATE TABLE equipment."applianceTypes" (
+            __id SERIAL,
+            type VARCHAR(200),
+            PRIMARY KEY (__id)
+        );';
+
+
         $sql['equipment.appliances'] = 'CREATE TABLE equipment."appliances" (
            __id SERIAL,
            __cluster_id BIGINT NOT NULL,
@@ -156,6 +163,7 @@ class m_1484050074_initialMigrate
            __platform_item_id BIGINT NOT NULL,
            __software_item_id BIGINT NOT NULL,
            __location_id BIGINT NOT NULL,
+           __type_id BIGINT NOT NULL,
            details JSONB,
            comment TEXT,
            PRIMARY KEY (__id),
@@ -172,13 +180,17 @@ class m_1484050074_initialMigrate
              ON UPDATE CASCADE
              ON DELETE RESTRICT,
            CONSTRAINT fk_software_item_id FOREIGN KEY (__software_item_id)
-             REFERENCES equipment."softwareItems" (__id)
-             ON UPDATE CASCADE
-             ON DELETE RESTRICT,
+              REFERENCES equipment."softwareItems" (__id)
+              ON UPDATE CASCADE
+              ON DELETE RESTRICT,
            CONSTRAINT fk_location_id FOREIGN KEY (__location_id)
-             REFERENCES company."offices" (__id)
-             ON UPDATE CASCADE
-             ON DELETE RESTRICT
+              REFERENCES company."offices" (__id)
+              ON UPDATE CASCADE
+              ON DELETE RESTRICT,
+           CONSTRAINT fk_type_id FOREIGN KEY (__type_id)
+              REFERENCES equipment."applianceTypes" (__id)
+              ON UPDATE CASCADE
+              ON DELETE RESTRICT
         )';
 
         $sql['equipment.modules'] = 'CREATE TABLE equipment."modules" (

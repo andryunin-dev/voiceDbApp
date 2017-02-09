@@ -29,6 +29,12 @@ class Contract extends Model
                 'type' => self::MANY_TO_MANY,
                 'model' => Person::class,
                 'pivot' => 'partners.contracts_to_persons'
+            ],
+            'pstnNumbers' => [
+                'type' => self::MANY_TO_MANY,
+                'model' => PstnNumber::class,
+                'pivot' => 'telephony.pstnNumbers_to_contracts',
+                'that' => '__pstn_number_id'
             ]
         ]
     ];
