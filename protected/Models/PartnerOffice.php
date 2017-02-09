@@ -25,7 +25,7 @@ class PartnerOffice extends Model
             'organisation' => ['type' => self::BELONGS_TO, 'model' => Organisation::class],
             'address' => ['type' => self::BELONGS_TO, 'model' => Address::class],
             'persons' => ['type' => self::HAS_MANY, 'model' => Person::class, 'by' => '__workplace_id'],
-            'contracts' => ['type' => self::HAS_MANY, 'model' => Contract::class, 'by' => '__partner_id']
+            'contracts' => ['type' => self::HAS_MANY, 'model' => Contract::class, 'by' => '__partner_office_id']
         ]
     ];
 }

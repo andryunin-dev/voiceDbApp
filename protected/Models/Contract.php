@@ -23,13 +23,13 @@ class Contract extends Model
             'pathToScan' => ['type' => 'string']
         ],
         'relations' => [
-            'contractType' => ['type' => self::BELONGS_TO, 'model' => ContactType::class],
-//            'persons' => [
-//                'type' => self::MANY_TO_MANY,
-//                'model' => Person::class,
-//                'this' => '__contract_id',
-//                'that' => '__person_id'
-//            ]
+            'contractType' => ['type' => self::BELONGS_TO, 'model' => ContractType::class, 'by' => '__contract_type_id'],
+            'partnerOffice' => ['type' => self::BELONGS_TO, 'model' => PartnerOffice::class, 'by' => '__partner_office_id'],
+            'persons' => [
+                'type' => self::MANY_TO_MANY,
+                'model' => Person::class,
+                'pivot' => 'partners.contracts_to_persons'
+            ]
         ]
     ];
 }

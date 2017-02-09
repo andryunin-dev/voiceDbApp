@@ -26,7 +26,8 @@ class Person extends Model
             'contacts' => ['type' => self::HAS_MANY, 'model' => Contact::class],
             'contracts' => [
                 'type' => self::MANY_TO_MANY,
-                'model' => Contract::class
+                'model' => Contract::class,
+                'pivot' => 'partners.contracts_to_persons'
             ]
         ]
     ];

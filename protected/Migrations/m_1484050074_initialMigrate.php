@@ -304,18 +304,29 @@ class m_1484050074_initialMigrate
         )';
 
         //--договоры
+        $sql['partners.contractTypes'] = 'CREATE TABLE partners."contractTypes" (
+            __id  SERIAL,
+            title VARCHAR(200),
+            PRIMARY KEY (__id)
+        );';
+
         $sql['partners.contracts'] = 'CREATE TABLE partners."contracts" (
-            __id SERIAL,
-            __partner_id BIGINT NOT NULL,
-            number VARCHAR(50),
-            date DATE,
-            "pathToScan" VARCHAR(255),
-            PRIMARY KEY (__id),
-            CONSTRAINT fk_partner_id FOREIGN KEY (__partner_id) --ссылка на конкретный офис партнера
-              REFERENCES partners."offices" (__id)
-              ON UPDATE CASCADE
-              ON DELETE RESTRICT
-        )';
+                __id               SERIAL,
+                __partner_office_id       BIGINT NOT NULL,
+                __contract_type_id BIGINT NOT NULL,
+                number             VARCHAR(50),
+                date               DATE,
+                "pathToScan"       VARCHAR(255),
+                PRIMARY KEY (__id),
+                CONSTRAINT fk_partner_id FOREIGN KEY (__partner_office_id) --ссылка на конкретный офис партнера
+                REFERENCES partners."offices" (__id)
+                ON UPDATE CASCADE
+                ON DELETE RESTRICT,
+                CONSTRAINT fk_contract_type_id FOREIGN KEY (__contract_type_id) --тип договора(МГ, МН и т.д.)
+                REFERENCES partners."contractTypes" (__id)
+                ON UPDATE CASCADE
+                ON DELETE RESTRICT
+            )';
 
         /**
          * create tables in contacts schema

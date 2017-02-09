@@ -19,7 +19,7 @@ class ContractType extends Model
             'title' => ['type' => 'string']
         ],
         'relations' => [
-            'contracts' => ['type' => self::HAS_MANY, 'model' => Contract::class]
+            'contracts' => ['type' => self::HAS_MANY, 'model' => Contract::class, 'by' => '__contract_type_id']
         ]
     ];
 }

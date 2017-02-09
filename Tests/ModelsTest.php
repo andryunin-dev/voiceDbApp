@@ -462,8 +462,6 @@ class ModelsTest extends \PHPUnit\Framework\TestCase
 
     /**
      * @depends testPartnerOffice
-     * в TRelations получаем связующую таблицу
-     * contact_book.persons_to_partners.contracts
      */
     public function testPerson($partnerOffice)
     {
@@ -522,6 +520,48 @@ class ModelsTest extends \PHPUnit\Framework\TestCase
             ->save();
         $fromDb = $className::findByPK($$objectName->getPk());
         $fromDb->details = json_encode($fromDb->details->toArray());
+        $this->assertEquals(true, $this->compareModels($$objectName, $fromDb));
+        return $$objectName;
+    }
+
+    /**
+     * @depends testInit
+     */
+    public function testContractType()
+    {
+        $objectName = 'contractType';
+        $className = '\App\Models\ContractType';
+        $$objectName = (new $className())
+            ->fill([
+                'title' => 'contract type 1',
+            ])
+            ->save();
+        $fromDb = $className::findByPK($$objectName->getPk());
+        $this->assertEquals(true, $this->compareModels($$objectName, $fromDb));
+        return $$objectName;
+    }
+
+    /**
+     * @depends testContractType
+     * @depends testPartnerOffice
+     * @depends testPerson
+     */
+    public function testContract($contractType, $partnerOffice, $person)
+    {
+        $objectName = 'contract';
+        $className = '\App\Models\Contract';
+        $$objectName = (new $className())
+            ->fill([
+                'number' => 'contract 1',
+                'date' => '2017-02-23',
+                'pathToScan' => '/c/data/scan/договор1.pdf',
+                'contractType' => $contractType,
+                'partnerOffice' => $partnerOffice
+            ])
+            ->save();
+        $$objectName->persons->add($person);
+        $$objectName->save();
+        $fromDb = $className::findByPK($$objectName->getPk());
         $this->assertEquals(true, $this->compareModels($$objectName, $fromDb));
         return $$objectName;
     }
