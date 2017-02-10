@@ -11,6 +11,7 @@ use T4\Orm\Model;
  *
  * @property string $title
  * @property string $diallingCode
+ *
  * @property Region $region
  * @property Collection|Address[] $addresses
  */

@@ -11,7 +11,11 @@ use T4\Orm\Model;
  *
  * @property string $details
  * @property string $comment
- * @property Collection|City[] $offices
+ *
+ * @property Organisation $organisation
+ * @property Address $address
+ * @property Collection|Person[] $persons
+ * @property Collection|Contract[] $contracts
  */
 class PartnerOffice extends Model
 {

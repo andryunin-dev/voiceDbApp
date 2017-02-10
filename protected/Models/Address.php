@@ -8,7 +8,7 @@ use T4\Orm\Model;
  * Class Address
  * @package App\Models
  *
- * @property string $address Office's post address
+ * @property string $address
  * @property City $city
  * @property Office $office
  * @property PartnerOffice $partnerOffice

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use T4\Core\Collection;
 use T4\Orm\Model;
 
 /**
@@ -11,6 +12,8 @@ use T4\Orm\Model;
  * @property string $title
  * @property string $details
  * @property string $comment
+ *
+ * @property Collection|Appliance[] $appliances
  */
 class Cluster extends Model
 {

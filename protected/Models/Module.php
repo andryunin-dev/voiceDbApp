@@ -9,7 +9,9 @@ use T4\Orm\Model;
  * Class Module
  * @package App\Models
  *
- * @property string $title
+ * @property string $partNumber
+ * @property string $comment
+ *
  * @property Vendor $vendor
  * @property Collection|ModuleItem[] $moduleItems
  */

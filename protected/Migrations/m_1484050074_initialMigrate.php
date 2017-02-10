@@ -369,7 +369,7 @@ class m_1484050074_initialMigrate
             __person_id BIGINT NOT NULL,
             __contact_type_id    BIGINT NOT NULL,
             contact       VARCHAR(255),
-            extention    VARCHAR(255),
+            extension    VARCHAR(255),
             details JSONB,
             comment        TEXT,
             PRIMARY KEY (__id),

@@ -6,13 +6,13 @@ use T4\Core\Collection;
 use T4\Orm\Model;
 
 /**
- * Class City
+ * Class Software
  * @package App\Models
  *
  * @property string $title
- * @property string $diallingCode
- * @property Region $region
- * @property Collection|Address[] $addresses
+ *
+ * @property Vendor $vendor
+ * @property Collection|SoftwareItem[] $softwareItems
  */
 class Software extends Model
 {

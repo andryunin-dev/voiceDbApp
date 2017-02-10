@@ -519,7 +519,7 @@ class ModelsTest extends \PHPUnit\Framework\TestCase
         $$objectName = (new $className())
             ->fill([
                 'contact' => 'email or phone number etc.',
-                'extention' => 'extension dialing',
+                'extension' => 'extension dialing',
                 'details' => ['propName' => 'propValue'],
                 'comment' => 'contact comment',
                 'type' => $contactType,

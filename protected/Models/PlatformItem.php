@@ -13,6 +13,7 @@ use T4\Orm\Model;
  * @property string $version
  * @property string $details
  * @property string $comment
+ *
  * @property Platform $platform
  * @property Appliance $appliance
  */

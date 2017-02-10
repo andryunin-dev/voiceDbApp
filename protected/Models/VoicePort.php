@@ -11,6 +11,7 @@ use T4\Orm\Model;
  *
  * @property string $details
  * @property string $comment
+ *
  * @property Appliance $appliance
  * @property VPortType $portType
  * @property Collection|PstnNumber[] $pstnNumbers

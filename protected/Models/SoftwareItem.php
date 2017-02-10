@@ -12,6 +12,7 @@ use T4\Orm\Model;
  * @property string $version
  * @property string $detail
  * @property string $comment
+ *
  * @property Software $software
  * @property Collection|Appliance[] $appliances
  */

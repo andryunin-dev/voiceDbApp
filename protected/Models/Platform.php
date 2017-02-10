@@ -10,6 +10,7 @@ use T4\Orm\Model;
  * @package App\Models
  *
  * @property string $title
+ *
  * @property Vendor $vendor
  * @property Collection|PlatformItem[] $platformItems
  */

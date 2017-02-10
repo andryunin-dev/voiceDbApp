@@ -2,8 +2,7 @@
 
 namespace App\Models;
 
-
-use phpDocumentor\Reflection\Location;
+use T4\Core\Collection;
 use T4\Orm\Model;
 
 /**
@@ -12,10 +11,16 @@ use T4\Orm\Model;
  *
  * @property string $details
  * @property string $comment
- * @property Software $software
- * @property Platform $platform
- * @property Vendor $vendor
+ * @property ApplianceType $type
+ * @property Office $location
  * @property Cluster $cluster
+ * @property Vendor $vendor
+ * @property Platform $platform
+ * @property Software $software
+ *
+ * @property Collection|VoicePort[] $voicePorts
+ * @property Collection|DataPort[] $dataPorts
+ * @property Collection|ModuleItem[] $modules
  */
 class Appliance extends Model
 {

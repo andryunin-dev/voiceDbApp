@@ -12,6 +12,11 @@ use T4\Orm\Model;
  * @property string $number
  * @property string $date
  * @property string $pathToScan
+ *
+ * @property ContractType $contractType
+ * @property PartnerOffice $partnerOffice
+ * @property Collection|Person[] $persons
+ * @property Collection|PstnNumber[] $pstnNumbers
  */
 class Contract extends Model
 {

@@ -10,7 +10,8 @@ use T4\Orm\Model;
  * @package App\Models
  *
  * @property string $title
- * @property Collection|City[] $offices
+ *
+ * @property Collection|PartnerOffice[] $offices
  */
 class Organisation extends Model
 {

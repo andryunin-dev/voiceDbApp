@@ -9,8 +9,10 @@ use T4\Orm\Model;
  * @package App\Models
  *
  * @property string $ipAddress
+ * @property string $macAddress
  * @property string $details
  * @property string $comment
+ *
  * @property Appliance $appliance
  * @property DPortType $portType
  */

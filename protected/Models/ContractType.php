@@ -9,7 +9,9 @@ use T4\Orm\Model;
  * Class ContractType
  * @package App\Models
  *
- * @property string $name
+ * @property string $title
+ *
+ * @property Collection|Contract $contracts
  */
 class ContractType extends Model
 {

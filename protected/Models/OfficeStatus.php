@@ -17,6 +17,7 @@ use T4\Orm\Model;
  * @package App\Models
  *
  * @property string $title Office status(opened, closed e.g.)
+ *
  * @property Collection|Office[] $offices
  */
 class OfficeStatus extends Model

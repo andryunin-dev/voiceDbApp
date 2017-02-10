@@ -8,12 +8,13 @@ use T4\Orm\Model;
  * Class Office
  * @package App\Models
  *
- * @property string $title Office title
+ * @property string $title
  * @property int $lotusId
+ * @property string $details
+ * @property string $comment
+ *
  * @property Address $address
  * @property OfficeStatus $status
- * @property string $details Any additional info about office in JSONB format
- * @property string $comment
  */
 class Office extends Model
 {
@@ -21,7 +22,7 @@ class Office extends Model
         'table' => 'company.offices',
         'columns' => [
             'title' => ['type' => 'string'],
-            'lotusId' => ['type' => 'string'],
+            'lotusId' => ['type' => 'integer'],
             'details' => ['type' => 'json'],
             'comment' => ['type' => 'string']
         ],

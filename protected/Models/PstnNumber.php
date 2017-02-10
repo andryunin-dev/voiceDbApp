@@ -2,8 +2,20 @@
 
 namespace App\Models;
 
+use T4\Core\Collection;
 use T4\Orm\Model;
 
+/**
+ * Class PstnNumber
+ * @package App\Models
+ *
+ * @property string $number
+ * @property string $transferedTo
+ * @property string $comment
+ *
+ * @property VoicePort $voicePort
+ * @property Collection|Contract[] $contracts
+ */
 class PstnNumber extends Model
 {
     protected static $schema = [

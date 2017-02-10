@@ -10,6 +10,7 @@ use T4\Orm\Model;
  * @package App\Models
  *
  * @property string $type
+ *
  * @property Collection|DataPort[] $ports
  */
 class DPortType extends Model

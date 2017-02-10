@@ -2,14 +2,19 @@
 
 namespace App\Models;
 
-use T4\Core\Collection;
 use T4\Orm\Model;
 
 /**
  * Class Contact
  * @package App\Models
  *
- * @property string $name
+ * @property string $contact
+ * @property string $extension
+ * @property string $details
+ * @property string $comment
+ *
+ * @property Person $person
+ * @property ContactType $type
  */
 class Contact extends Model
 {
@@ -17,7 +22,7 @@ class Contact extends Model
         'table' => 'contact_book.contacts',
         'columns' => [
             'contact' => ['type' => 'string'],
-            'extention' => ['type' => 'string'],
+            'extension' => ['type' => 'string'],
             'details' => ['type' => 'json'],
             'comment' => ['type' => 'string']
         ],

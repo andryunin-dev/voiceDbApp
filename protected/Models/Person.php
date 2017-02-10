@@ -10,6 +10,15 @@ use T4\Orm\Model;
  * @package App\Models
  *
  * @property string $name
+ * @property string $position
+ * @property string $details
+ * @property string $comment
+ *
+ * @property PartnerOffice $office
+ * @property Collection|Contact[] $contacts
+ * @property Collection|Contract[] $contracts
+ *
+ *
  */
 class Person extends Model
 {

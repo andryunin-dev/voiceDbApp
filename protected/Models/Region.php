@@ -10,6 +10,7 @@ use T4\Orm\Model;
  * @package App\Models
  *
  * @property string $title Region's title
+ *
  * @property Collection|City[] $cities
  */
 class Region extends Model
