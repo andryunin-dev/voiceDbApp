@@ -1,5 +1,14 @@
-# Minimal web-application based on T4 framework
-
-Use 
-<code>composer create-project pr-of-it/t4-app-mini --stability="dev"</code>
-to install this application
+1) обработка кнопок:
+    кнопки оформлять как ссылки или как button
+    атрибуты:
+    
+    role="button"
+    
+    href="addRegion | editRegion?id=2 | delRegion?id=2
+    
+    data-action = "add|edit|delete|close"
+    в модальном окне обрабатываем кнопки по событиям:
+    submit - отправляем данные формы 
+    click - закрываем окно
+    
+    

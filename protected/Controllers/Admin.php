@@ -21,6 +21,75 @@ class Admin extends Controller
     {
 
     }
+    public function actionRegions()
+    {
+        $this->publisher();
+        $this->data->regions = Region::findAll(['order' => 'title']);
+    }
+    public function actionAddRegion($region = null)
+    {
+        if (!empty($region)) {
+            if (!empty(trim($region['many']))) {
+                $pattern = '~[\n\r]~';
+                $regsInString = preg_replace($pattern, '', trim($region['many']));
+                $regInArray = explode(',', $regsInString);
+
+                foreach ($regInArray as $region) {
+                    (new Region())
+                        ->fill(['title' => trim($region)])
+                        ->save();
+                }
+
+            } elseif (!empty(trim($region['one']))) {
+                (new Region())
+                    ->fill(['title' => $region['one']])
+                    ->save();
+            }
+        }
+        header('Location: /admin/Regions');
+    }
+
+    public function actionDelRegion($id)
+    {
+        if (false !== $region = Region::findByPK($id)->delete()) {
+            $region->delete();
+        }
+        header('Location: /admin/regions');
+    }
+
+    protected function publisher()
+    {
+        $this->app->assets->publish('/Templates/resources');
+        $this->app->assets->publishCssFile('/Templates/resources/jquery-ui-min/jquery-ui.min.css');
+        $this->app->assets->publishCssFile('/Templates/resources/bootstrap/css/bootstrap.css');
+        $this->app->assets->publishCssFile('/Templates/resources/css/style.css');
+
+        $this->app->assets->publishJsFile('/Templates/resources/jquery-ui-min/external/jquery/jquery.js');
+        $this->app->assets->publishJsFile('/Templates/resources/jquery-ui-min/jquery-ui.min.js');
+        $this->app->assets->publishJsFile('/Templates/resources/js/script.js');
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     /**
      * action вывода всех имеющихся статусов
@@ -217,41 +286,6 @@ class Admin extends Controller
         header('Location: /admin/cities');
     }
 
-    public function actionRegions()
-    {
-        $this->data->regions = Region::findAll(['order' => 'title']);
-    }
-
-    public function actionAddRegion($region = null)
-    {
-        if (!empty($region)) {
-            if (!empty(trim($region['many']))) {
-                $pattern = '~[\n\r]~';
-                $regsInString = preg_replace($pattern, '', trim($region['many']));
-                $regInArray = explode(',', $regsInString);
-
-                foreach ($regInArray as $region) {
-                    (new Region())
-                        ->fill(['title' => trim($region)])
-                        ->save();
-                }
-
-            } elseif (!empty(trim($region['one']))) {
-                (new Region())
-                    ->fill(['title' => $region['one']])
-                    ->save();
-            }
-        }
-        header('Location: /admin/Regions');
-    }
-
-    public function actionDelRegion($id)
-    {
-        if (false !== $region = Region::findByPK($id)->delete()) {
-            $region->delete();
-        }
-        header('Location: /admin/regions');
-    }
 
     public function actionDevices()
     {
