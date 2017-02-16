@@ -33,7 +33,7 @@ jQuery(function ($) {
     //задаем обработчик событий на кнопки
     controlButtons.each(function () {
         $(this).on("click", function (event) {
-            event.stopPropagation()
+            //event.stopPropagation()
             var window = {
                 id: $(this).attr("aria-controls"),
                 dataId: $(this).data("id")
@@ -54,6 +54,7 @@ jQuery(function ($) {
     });
 
     //задаем обработчик событий на клики по строкам таблицы
+<<<<<<< HEAD
     controlRows.each(function () {
         $(this).on("click", function (event) {
             var window = {
@@ -67,7 +68,6 @@ jQuery(function ($) {
             tabs.filter("[aria-selected='true']").children().get(0).focus();
         })
     });
-
 //Tabs
     var tabs = $(".nav-tabs[role='tablist'] li[role='tab']");
     var panels = $(".tab-content div[role=tabpanel]");

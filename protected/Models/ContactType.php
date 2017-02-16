@@ -6,22 +6,22 @@ use T4\Core\Collection;
 use T4\Orm\Model;
 
 /**
- * Class DPortType
+ * Class ContactType
  * @package App\Models
  *
  * @property string $type
  *
- * @property Collection|DataPort[] $ports
+ * @property Collection|Contact[] $contacts
  */
-class DPortType extends Model
+class ContactType extends Model
 {
     protected static $schema = [
-        'table' => 'equipment.dataPortTypes',
+        'table' => 'contact_book.contactTypes',
         'columns' => [
             'type' => ['type' => 'string']
         ],
         'relations' => [
-            'ports' => ['type' => self::HAS_MANY, 'model' => DataPort::class, 'by' => '__type_port_id']
+            'contacts' => ['type' => self::HAS_MANY, 'model' => Contact::class, 'by' => '__contact_type_id']
         ]
     ];
 }

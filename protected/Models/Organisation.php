@@ -6,22 +6,22 @@ use T4\Core\Collection;
 use T4\Orm\Model;
 
 /**
- * Class Region
+ * Class Organisation
  * @package App\Models
  *
- * @property string $title Region's title
+ * @property string $title
  *
- * @property Collection|City[] $cities
+ * @property Collection|PartnerOffice[] $offices
  */
-class Region extends Model
+class Organisation extends Model
 {
     protected static $schema = [
-        'table' => 'geolocation.regions',
+        'table' => 'partners.organisations',
         'columns' => [
             'title' => ['type' => 'string']
         ],
         'relations' => [
-            'cities' => ['type' => self::HAS_MANY, 'model' => City::class]
+            'offices' => ['type' => self::HAS_MANY, 'model' => PartnerOffice::class]
         ]
     ];
 }
