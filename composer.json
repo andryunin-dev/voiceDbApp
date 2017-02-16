@@ -1,6 +1,13 @@
 {
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "https://github.com/Maximus905/t4"
+    }
+  ],
+
   "require": {
-    "pr-of-it/t4": "dev-master",
+    "pr-of-it/t4": "dev-pivot_table",
     "phpunit/phpunit": "*"
   }
 }

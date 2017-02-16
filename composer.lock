@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "7eedbf4f073d3bdcf3c9f54cc52a5130",
-    "content-hash": "414b91b423889172d3d0ccf31c1c7122",
+    "hash": "fc8b283ab81dddae563db968ea97de99",
+    "content-hash": "1947a0950fc1145660c5c964caa46ba3",
     "packages": [
         {
             "name": "doctrine/instantiator",
@@ -617,16 +617,16 @@
         },
         {
             "name": "phpunit/phpunit",
-            "version": "6.0.5",
+            "version": "6.0.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "1fb01cbd5aa7fa2457cc10170070676a9ad315d2"
+                "reference": "e702506af102d0dc5312dd24b8e97fd6e58ce3ba"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/1fb01cbd5aa7fa2457cc10170070676a9ad315d2",
-                "reference": "1fb01cbd5aa7fa2457cc10170070676a9ad315d2",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/e702506af102d0dc5312dd24b8e97fd6e58ce3ba",
+                "reference": "e702506af102d0dc5312dd24b8e97fd6e58ce3ba",
                 "shasum": ""
             },
             "require": {
@@ -695,7 +695,7 @@
                 "testing",
                 "xunit"
             ],
-            "time": "2017-02-05 15:33:43"
+            "time": "2017-02-08 05:57:26"
         },
         {
             "name": "phpunit/phpunit-mock-objects",
@@ -758,16 +758,16 @@
         },
         {
             "name": "pr-of-it/t4",
-            "version": "dev-master",
+            "version": "dev-pivot_table",
             "source": {
                 "type": "git",
-                "url": "https://github.com/pr-of-it/t4.git",
-                "reference": "8d391c768f91b8bca06ba81f4a8b703f8193e1da"
+                "url": "https://github.com/Maximus905/t4.git",
+                "reference": "cdbabfb040670e9a20a00ccacbe1d8b8dcdda235"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pr-of-it/t4/zipball/8d391c768f91b8bca06ba81f4a8b703f8193e1da",
-                "reference": "8d391c768f91b8bca06ba81f4a8b703f8193e1da",
+                "url": "https://api.github.com/repos/Maximus905/t4/zipball/cdbabfb040670e9a20a00ccacbe1d8b8dcdda235",
+                "reference": "cdbabfb040670e9a20a00ccacbe1d8b8dcdda235",
                 "shasum": ""
             },
             "require": {
@@ -790,14 +790,16 @@
                     "framework/boot.php"
                 ]
             },
-            "notification-url": "https://packagist.org/downloads/",
             "description": "T4 framework",
             "keywords": [
                 "framework",
                 "php",
                 "t4"
             ],
-            "time": "2016-12-17 21:22:14"
+            "support": {
+                "source": "https://github.com/Maximus905/t4/tree/pivot_table"
+            },
+            "time": "2017-02-13 19:48:33"
         },
         {
             "name": "psr/log",
