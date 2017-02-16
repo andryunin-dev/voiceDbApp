@@ -54,7 +54,6 @@ jQuery(function ($) {
     });
 
     //задаем обработчик событий на клики по строкам таблицы
-<<<<<<< HEAD
     controlRows.each(function () {
         $(this).on("click", function (event) {
             var window = {
