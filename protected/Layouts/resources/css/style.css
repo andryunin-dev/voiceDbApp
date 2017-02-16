@@ -25,7 +25,7 @@ aside .btn {
 
 body,
 .modal-window.ui-widget-content {
-    background: #fff url(/img/2.jpg) repeat;
+    background: #fff url(../img/2.jpg) repeat;
 }
 
 /*=====================================

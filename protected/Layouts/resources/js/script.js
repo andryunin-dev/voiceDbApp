@@ -9,13 +9,14 @@ jQuery(function ($) {
             console.log($(this).attr("href"));
             switch ($(this).attr("data-action")) {
                 case "add":
+                case "edit":
                     $.ajax({
                         url: $(this).attr("href"),
                         type: "GET",
                         dataType: "html"
                     })
                         .done(function (html) {
-                            //console.log(html);
+                            console.log(html);
                             var modalWindow = $(html);
 
                             modalWindow.dialog({
@@ -33,7 +34,7 @@ jQuery(function ($) {
                                 "[role='button'][data-action]",
                                 function (event) {
                                     event.preventDefault();
-                                    switch ($(this).attr("data-action")) {
+                                    switch ($(this).data("action")) {
                                         case "close":
                                             modalWindow.dialog("close");
                                     }

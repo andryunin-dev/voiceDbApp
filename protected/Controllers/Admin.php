@@ -23,7 +23,6 @@ class Admin extends Controller
     }
     public function actionRegions()
     {
-        $this->publisher();
         $this->data->regions = Region::findAll(['order' => 'title']);
     }
     public function actionAddRegion($region = null)
@@ -49,24 +48,22 @@ class Admin extends Controller
         header('Location: /admin/Regions');
     }
 
+    public function actionEditRegion($region)
+    {
+        if (!empty(trim($region['title'])) && (false !== $item = Region::findByPK($region['id']))) {
+            $item->title = $region['title'];
+            $item->save();
+        }
+        header('Location: /admin/regions');
+
+    }
+
     public function actionDelRegion($id)
     {
-        if (false !== $region = Region::findByPK($id)->delete()) {
+        if (false !== $region = Region::findByPK($id)) {
             $region->delete();
         }
         header('Location: /admin/regions');
-    }
-
-    protected function publisher()
-    {
-        $this->app->assets->publish('/Templates/resources');
-        $this->app->assets->publishCssFile('/Templates/resources/jquery-ui-min/jquery-ui.min.css');
-        $this->app->assets->publishCssFile('/Templates/resources/bootstrap/css/bootstrap.css');
-        $this->app->assets->publishCssFile('/Templates/resources/css/style.css');
-
-        $this->app->assets->publishJsFile('/Templates/resources/jquery-ui-min/external/jquery/jquery.js');
-        $this->app->assets->publishJsFile('/Templates/resources/jquery-ui-min/jquery-ui.min.js');
-        $this->app->assets->publishJsFile('/Templates/resources/js/script.js');
     }
 
 
@@ -261,7 +258,13 @@ class Admin extends Controller
 
     public function actionCities()
     {
-        $this->data->regions = Region::findAll(['order' => 'title']);
+        $asc = function (City $city_1, City $city_2) {
+            return strnatcmp($city_1->region->title, $city_2->region->title);
+        };
+        $all = City::findAll();
+        $sorted = $all->uasort($asc);
+
+        $this->data->cities = $sorted;
     }
 
     public function actionAddCity($city)
