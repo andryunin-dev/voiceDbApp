@@ -51,11 +51,12 @@ class Admin extends Controller
     public function actionEditRegion($region)
     {
         if (!empty(trim($region['title'])) && (false !== $item = Region::findByPK($region['id']))) {
-            $item->title = $region['title'];
+            $item->fill([
+                'title' => $region['title']
+            ]);
             $item->save();
         }
         header('Location: /admin/regions');
-
     }
 
     public function actionDelRegion($id)
@@ -66,36 +67,56 @@ class Admin extends Controller
         header('Location: /admin/regions');
     }
 
+    public function actionCities()
+    {
+        $asc = function (City $city_1, City $city_2) {
+            return strnatcmp($city_1->region->title, $city_2->region->title);
+        };
 
+        $this->data->cities = City::findAll()->uasort($asc);
+    }
 
+    public function actionAddCity($city)
+    {
+        $region = Region::findByPK($city['regId']);
 
+        $newCity = (new City())
+            ->fill([
+                'title' => $city['title'],
+                'region' => $region
+            ]);
+        $newCity->save();
 
+        header('Location: /admin/cities');
+    }
 
+    public function actionEditCity($city)
+    {
+        $currentCity = City::findByPK($city['id']);
+        $currentCity->title = $city['title'];
+        $currentCity->region = Region::findByPK($city['regId']);
+        $currentCity->save();
 
+        header('Location: /admin/cities');
+    }
 
+    public function actionDelCity($id = null)
+    {
+        if (!empty($id)) {
+            City::findByPK($id)
+                ->delete();
+        }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+        header('Location: /admin/cities');
+    }
 
     /**
      * action вывода всех имеющихся статусов
      */
     public function actionOfficeStatuses()
     {
-        $this->data->statuses = OfficeStatus::findAll();
+        $this->data->statuses = OfficeStatus::findAll(['order' => 'title']);
     }
-
     /**
      * action добавления нового статуса.
      *
@@ -107,7 +128,7 @@ class Admin extends Controller
         if (!empty($status)) {
             if (!empty(trim($status['many']))) {
                 $pattern = '~[\n\r]~';
-                $statsInString = preg_replace($pattern, '', $status['many']);
+                $statsInString = preg_replace($pattern, ',', $status['many']);
                 $statsInArray = explode(',', $statsInString);
 
                 foreach ($statsInArray as $status) {
@@ -124,21 +145,51 @@ class Admin extends Controller
         header('Location: /admin/OfficeStatuses');
     }
 
+    public function actionEditStatus($status)
+    {
+        if (true == $currentStatus = OfficeStatus::findByPK($status['id'])) {
+            $currentStatus->fill([
+                'title' => $status['title']
+            ]);
+            $currentStatus->save();
+        }
+        header('Location: /admin/OfficeStatuses');
+    }
+
     public function actionDelStatus($id = null)
     {
         OfficeStatus::findByPK($id)->delete();
         header('Location: /admin/officeStatuses');
     }
 
-    /**
-     * action вывода всех офисов
-     */
     public function actionOffices()
     {
-        $regions = Region::findAll();
-        $this->data->regions = $regions;
-        $this->data->statuses = OfficeStatus::findAll();
+        $asc = function (Office $office_1, Office $office_2) {
+            return strnatcmp($office_1->address->city->region->title, $office_2->address->city->region->title);
+        };
+
+        $this->data->offices = Office::findAll()->uasort($asc);
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     /**
      * @param Std $data POST array в виде объекта Std класса
@@ -181,9 +232,8 @@ class Admin extends Controller
                     }
 
                     //Address
-                    $address = (new Address())
-                        ->fill(['address' => $item->address, 'city' => $city])
-                        ->save();
+//                    $address = (new Address())
+//                        ->fill(['address' => $item->address, 'city' => $city]);
 
                     //Office status
                     //если парсинг откинул поле статуса или оно пустое - берем из формы
@@ -207,42 +257,42 @@ class Admin extends Controller
                     }
 
                     //Office
-                    //проверка существования оффиса по lotusId
-                    if (false !== Office::findByLotusId($item->lotusId)) {
-                        continue; //если есть с таким lotusId - к следующей записи
-                    }
+                    //проверка существования оффиса по lotusId (перенес в валидатор)
+//                    if (false !== Office::findByLotusId($item->lotusId)) {
+//                        continue; //если есть с таким lotusId - к следующей записи
+//                    }
                     $office = (new Office())
                         ->fill([
                             'title' => $item->office,
                             'lotusId' => $item->lotusId,
-                            'address' => $address,
                             'status' => $status
                         ])
                         ->save();
+                    if (false !== $office) {
+                        $office->address = (new Address())
+                            ->fill([
+                                'address' => $item->address,
+                                'city' => $city])
+                            ->save();
+                        $office->save();
+                    }
                 }
             } else {
                 //ошибка импорта данных, надо бы выкинуть сообщение об ошибке
             }
         } else {
-            if (empty(trim($data->lotusId))) {
-                header('Location: /admin/offices');//LotusId обязательное поле
-            } elseif (false !== Office::findByLotusId(trim($data->lotusId))) {
-                header('Location: /admin/offices'); //есть офис с таким Lotus ID
-            } elseif (empty(trim($data->title))) {
-                header('Location: /admin/offices'); //Пустое название офиса
-            } elseif (false !== Office::findByTitle($data->title)) {
-                header('Location: /admin/offices'); //Офис с таким названием уже есть
-            } else {
                 $city = City::findByPK($data->cityId);
-                $status = OfficeStatus::findByPK($data->statId);
+                $status = OfficeStatus::findByPK($data->statusId);
                 $address = (new Address())
-                    ->fill(['address' => trim($data->address), 'city' => $city])
-                    ->save();
+                    ->fill(['address' => trim($data->address), 'city' => $city]);
                 $office = (new Office())
-                    ->fill(['title' =>$data->title, 'lotusId' => $data->lotusId, 'address' => $address, 'status' => $status])
+                    ->fill(['title' =>$data->title, 'lotusId' => $data->lotusId, 'status' => $status])
                     ->save();
-                $office->save();
-            }
+                if (false !== $office) {
+                    $address->save();
+                    $office->address = $address;
+                    $office->save();
+                }
         }
         header('Location: /admin/offices');
     }
@@ -256,38 +306,8 @@ class Admin extends Controller
         header('Location: /admin/offices');
     }
 
-    public function actionCities()
-    {
-        $asc = function (City $city_1, City $city_2) {
-            return strnatcmp($city_1->region->title, $city_2->region->title);
-        };
-        $all = City::findAll();
-        $sorted = $all->uasort($asc);
 
-        $this->data->cities = $sorted;
-    }
 
-    public function actionAddCity($city)
-    {
-        $region = Region::findByPK($city['regId']);
-
-        $newCity = (new City())
-            ->fill(['title' => $city['title']]);
-        $newCity->region = $region;
-        $newCity->save();
-
-        header('Location: /admin/cities');
-    }
-
-    public function actionDelCity($id = null)
-    {
-        if (!empty($id)) {
-            City::findByPK($id)
-                ->delete();
-        }
-
-        header('Location: /admin/cities');
-    }
 
 
     public function actionDevices()

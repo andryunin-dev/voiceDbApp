@@ -28,4 +28,20 @@ class City extends Model
             'addresses' => ['type' => self::HAS_MANY, 'model' => Address::class]
         ]
     ];
+
+    protected function validateTitle($val)
+    {
+        return (!empty(trim($val)));
+    }
+
+    protected function validate()
+    {
+        if (empty($this->title)) {
+            return false;
+        }
+        if (empty($this->region)) {
+            return false;
+        }
+        return true;
+    }
 }

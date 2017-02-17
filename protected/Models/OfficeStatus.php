@@ -31,4 +31,15 @@ class OfficeStatus extends Model
             'offices' => ['type' => self::HAS_MANY, 'model' => Office::class, 'by' => '__office_status_id']
         ]
     ];
+
+    protected function validateTitle($val)
+    {
+        return (!empty(trim($val)));
+    }
+
+    protected function validate()
+    {
+        return !empty($this->title);
+    }
+
 }

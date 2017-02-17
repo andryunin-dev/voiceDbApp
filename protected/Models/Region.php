@@ -24,4 +24,15 @@ class Region extends Model
             'cities' => ['type' => self::HAS_MANY, 'model' => City::class]
         ]
     ];
+
+    protected function validateTitle($val)
+    {
+        return (!empty(trim($val)));
+    }
+
+    protected function validate()
+    {
+        return (!empty(trim($this->title)));
+    }
+
 }

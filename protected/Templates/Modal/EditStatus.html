@@ -1,0 +1,15 @@
+<div id="edit-status" role="dialog" title="Редактировать статус">
+    <form action="/admin/editStatus" method="post" role="form">
+        <div class="form-group">
+            <label for="id-status"></label>
+            <input type="hidden" class="form-control" name="status[id]" value="{{ status.getPk }}">
+            <input type="text" class="form-control" name="status[title]" id="id-status" value="{{ status.title }}">
+        </div>
+
+        <button class="btn btn-success" type="submit">Сохранить</button>
+        <button class="btn btn-danger" type="button" role="button" data-action="close">
+            Отмена
+        </button>
+
+    </form>
+</div>
