@@ -7,7 +7,7 @@
   ],
 
   "require": {
-    "pr-of-it/t4": "dev-pivot_table",
+    "pr-of-it/t4": "dev-fixes",
     "phpunit/phpunit": "*"
   }
 }
