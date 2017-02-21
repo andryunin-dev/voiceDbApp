@@ -34,20 +34,18 @@ class Office extends Model
 
     protected function validate()
     {
-        if (false === $this->isNew()) {
-            if (empty(trim($this->lotusId))) {
-                return false; //LotusId обязательное поле
-            }
-            if (empty(trim($this->title))) {
-                return false; //Пустое название офиса
-            }
-            return true;
+        if (
+            empty($this->title) ||
+            empty($this->lotusId) ||
+            false === $this->status
+        ) {
+            return false;
         }
-
-        if (true == Office::findByColumn('lotusId', trim($this->lotusId))) {
+        //только для нового объекта проверяем на наличие такого в БД
+        if (true === $this->isNew() && true == Office::findByColumn('lotusId', trim($this->lotusId))) {
             return false; //есть офис с таким Lotus ID
         }
-        if (true == Office::findByColumn('title', $this->title)) {
+        if (true === $this->isNew() && true == Office::findByColumn('title', $this->title)) {
             return false; //Офис с таким названием уже есть
         }
         return true;

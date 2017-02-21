@@ -30,4 +30,24 @@ class Vendor extends Model
             'modules' => ['type' => self::HAS_MANY, 'model' => Module::class]
         ]
     ];
+
+    public function validateTitle($title)
+    {
+        return (!empty(trim($title)));
+    }
+
+    public function validate()
+    {
+        if (
+            true === empty(trim($this->title))
+        ) {
+            return false;
+        }
+        //только для нового объекта проверяем на наличие такого в БД
+        if (true === $this->isNew() && true == Vendor::findByColumn('title', trim($this->title))) {
+            return false; //есть вендор с таким title
+        }
+        return true;
+    }
+
 }

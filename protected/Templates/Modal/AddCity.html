@@ -1,20 +1,20 @@
 <div role="dialog" title="Новый город">
-  <form action="/admin/addCity" method="post" role="form">
-    <div class="form-group">
-      <select name="city[regId]" id="id-region" class="form-control">
-          {% for region in regions %}
-            <option value="{{ region.getPK }}">{{ region.title }}</option>
-          {% endfor %}
-      </select>
-    </div>
-    <div class="form-group">
-      <label for="id-region"></label>
-      <input type="text" class="form-control" name="city[title]" id="id-region" placeholder="Новый город">
-    </div>
+    <form action="/admin/addCity" method="post" role="form">
+        <div class="form-group">
+            <select name="city[regId]" id="id-region" class="form-control">
+                {% for region in regions %}
+                    <option value="{{ region.getPK }}">{{ region.title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="id-region"></label>
+            <input type="text" class="form-control" name="city[title]" id="id-region" placeholder="Новый город">
+        </div>
 
-    <button class="btn btn-success" type="submit">Создать</button>
-    <button class="btn btn-danger" type="button" role="button" data-action="close">
-      Отмена
-    </button>
-  </form>
+        <button class="btn btn-success" type="submit">Создать</button>
+        <button class="btn btn-danger" type="button" role="button" data-action="close">
+            Отмена
+        </button>
+    </form>
 </div>

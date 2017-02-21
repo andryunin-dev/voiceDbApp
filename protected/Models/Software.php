@@ -26,4 +26,20 @@ class Software extends Model
             'softwareItems' => ['type' => self::HAS_MANY, 'model' => SoftwareItem::class, 'by' => '__software_id']
         ]
     ];
+
+    public function validateTitle($title)
+    {
+        return (!empty(trim($title)));
+    }
+
+    public function validate()
+    {
+        if (
+            true === empty(trim($this->title)) ||
+            false === $this->vendor
+        ) {
+            return false;
+        }
+        return true;
+    }
 }

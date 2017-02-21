@@ -6,7 +6,10 @@ namespace App\Controllers;
 use App\Models\City;
 use App\Models\Office;
 use App\Models\OfficeStatus;
+use App\Models\Platform;
 use App\Models\Region;
+use App\Models\Software;
+use App\Models\Vendor;
 use T4\Mvc\Controller;
 
 class Modal extends Controller
@@ -79,6 +82,33 @@ class Modal extends Controller
         } else {
             header('Location: /admin/cities');
         }
+    }
+
+    public function actionAddPlatform()
+    {
+        $this->data->vendors = Vendor::findAll(['order' => 'title']);
+    }
+
+    public function actionEditPlatform($id)
+    {
+        $this->data->vendors = Vendor::findAll(['order' => 'title']);
+        $this->data->platform = Platform::findByPK($id);
+    }
+
+    public function actionAddSoftware()
+    {
+        $this->data->vendors = Vendor::findAll(['order' => 'title']);
+    }
+
+    public function actionEditSoftware($id)
+    {
+        $this->data->vendors = Vendor::findAll(['order' => 'title']);
+        $this->data->software = Software::findByPK($id);
+    }
+
+    public function actionAddVendor()
+    {
+
     }
 
 }

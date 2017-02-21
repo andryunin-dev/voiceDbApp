@@ -171,31 +171,9 @@ class Admin extends Controller
         $this->data->offices = Office::findAll()->uasort($asc);
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     /**
-     * @param Std $data POST array в виде объекта Std класса
+     * @param Std $data
      * В случае $data->many формат записи для офиса: регион; город; адрес; офис; статус
-     *
-     * @var OfficeStatus $status
      */
     public function actionAddOffice($data)
     {
@@ -203,96 +181,137 @@ class Admin extends Controller
             $officeCollection = Parser::lotusTerritory(trim($data->many));
             if (false !== $officeCollection) {
                 foreach ($officeCollection as $item) {
+                    Office::getDbConnection()->beginTransaction();
                     //Region
                     $region = Region::findByTitle($item->region);
-                    if (false ===$region) {
+                    if (false === $region) {
                         if (isset($data->addNewRegion)) {
                             $region = (new Region())
                                 ->fill(['title' => $item->region])
                                 ->save();
                         } else {
-                            echo 'continue reg';die;
-
-                            continue; //Ошибка. невозможно установить регион, переход к след записи
+                            $region = false;
                         }
                     }
 
                     //City
                     $city = City::findByTitle($item->city);
                     //если город не найден и разрешено создание нового региона
-                    if (false ===$city) {
+                    if (false === $city) {
                         if (isset($data->addNewCity)) {
                             $city = (new City())
-                                ->fill(['title' => $item->city, 'region' => $region])
+                                ->fill([
+                                    'title' => $item->city,
+                                    'region' => $region
+                                ])
                                 ->save();
                         } else {
-                            echo 'continue city';die;
-                            continue; //Ошибка. невозможно установить город, переход к след записи
+                            $city = false;
                         }
                     }
 
                     //Address
-//                    $address = (new Address())
-//                        ->fill(['address' => $item->address, 'city' => $city]);
+                    $address = (new Address())
+                        ->fill([
+                            'address' => $item->address,
+                            'city' => $city
+                        ])
+                        ->save();
 
                     //Office status
-                    //если парсинг откинул поле статуса или оно пустое - берем из формы
-                    if (empty($item->status)) {
-                        $status = OfficeStatus::findByPK($data->statId);
-                        if (false ===$status) {
-                            continue; //Ошибка. невозможно установить статус, переход к след записи
-                        }
-                    } else {
-                        $status = OfficeStatus::findByTitle($item->status);
-                        if (false === $status) {
-                            if (isset($data->addNewStatus)) {
-                                $status = (new OfficeStatus())
-                                    ->fill(['title' => $item->status])
-                                    ->save();
-                            } else {
-                                echo 'continue status';
-                                continue; //Ошибка. невозможно установить статус, переход к след записи
-                            }
+                    $status = OfficeStatus::findByPK($data->statId);
+                    if (false === $status) {
+                        if (isset($data->addNewStatus)) {
+                            $status = (new OfficeStatus())
+                                ->fill(['title' => $item->status])
+                                ->save();
+                        } else {
+                            $status = false;
                         }
                     }
 
                     //Office
                     //проверка существования оффиса по lotusId (перенес в валидатор)
-//                    if (false !== Office::findByLotusId($item->lotusId)) {
-//                        continue; //если есть с таким lotusId - к следующей записи
-//                    }
+
                     $office = (new Office())
                         ->fill([
                             'title' => $item->office,
                             'lotusId' => $item->lotusId,
-                            'status' => $status
+                            'status' => $status,
+                            'address' => $address
                         ])
                         ->save();
-                    if (false !== $office) {
-                        $office->address = (new Address())
-                            ->fill([
-                                'address' => $item->address,
-                                'city' => $city])
-                            ->save();
-                        $office->save();
+                    if (false === $office) {
+                        Office::getDbConnection()->rollbackTransaction();
+                    } else {
+                        Office::getDbConnection()->commitTransaction();
                     }
                 }
             } else {
                 //ошибка импорта данных, надо бы выкинуть сообщение об ошибке
             }
         } else {
-                $city = City::findByPK($data->cityId);
-                $status = OfficeStatus::findByPK($data->statusId);
-                $address = (new Address())
-                    ->fill(['address' => trim($data->address), 'city' => $city]);
-                $office = (new Office())
-                    ->fill(['title' =>$data->title, 'lotusId' => $data->lotusId, 'status' => $status])
-                    ->save();
-                if (false !== $office) {
-                    $address->save();
-                    $office->address = $address;
-                    $office->save();
-                }
+            Office::getDbConnection()->beginTransaction();
+
+            $city = City::findByPK($data->cityId);
+            $status = OfficeStatus::findByPK($data->statusId);
+            $address = (new Address())
+                ->fill([
+                    'address' => trim($data->address),
+                    'city' => $city
+                ])
+                ->save();
+            $office = (new Office())
+                ->fill([
+                    'title' =>$data->title,
+                    'lotusId' => $data->lotusId,
+                    'status' => $status,
+                    'address' => $address
+                ]);
+            $office->save();
+
+            if (false === $office) {
+                Office::getDbConnection()->rollbackTransaction();
+            } else {
+                Office::getDbConnection()->commitTransaction();
+            }
+        }
+        header('Location: /admin/offices');
+    }
+
+    public function actionEditOffice($data)
+    {
+        /**
+         * @var Office $office
+         */
+        $office = Office::findByLotusId($data['lotusId']);
+        $oldAddress = $office->address;
+        if (false === $office) {
+            header('Location: /admin/offices');
+            return;
+        }
+        Office::getDbConnection()->beginTransaction();
+        $city = City::findByPK($data->cityId);
+        $status = OfficeStatus::findByPK($data->statusId);
+        $newAddress = (new Address())
+            ->fill([
+                'address' => trim($data->address),
+                'city' => $city
+            ])
+            ->save();
+        $office = $office
+            ->fill([
+                'title' =>$data->title,
+                'status' => $status,
+                'address' => $newAddress
+            ])
+            ->save();
+
+        if (false === $office) {
+            Office::getDbConnection()->rollbackTransaction();
+        } else {
+            $oldAddress->delete();
+            Office::getDbConnection()->commitTransaction();
         }
         header('Location: /admin/offices');
     }
@@ -306,16 +325,133 @@ class Admin extends Controller
         header('Location: /admin/offices');
     }
 
-
-
-
-
     public function actionDevices()
     {
-        $this->data->vendors = Vendor::findAll();
+        $this->data->vendors = Vendor::findAll(['order' => 'title']);
+        $this->data->platforms = Platform::findAll(['order' => 'title']);
+        $this->data->software = Software::findAll(['order' => 'title']);
+    }
+
+    public function actionAddPlatform($platform)
+    {
+        (new Platform())
+            ->fill([
+                'title' => $platform['title'],
+                'vendor' => Vendor::findByPK($platform['vendorId'])
+            ])
+            ->save();
+        header('Location: /admin/devices');
+    }
+
+    public function actionEditPlatform($platform)
+    {
+        Platform::getDbConnection()->beginTransaction();
+        $updatedPlatform = (Platform::findByPK($platform['id']))
+            ->fill([
+                'title' => $platform['title'],
+                'vendor' => Vendor::findByPK($platform['vendorId'])
+            ])
+            ->save();
+        if (false === $updatedPlatform) {
+            Platform::getDbConnection()->rollbackTransaction();
+        } else {
+            Platform::getDbConnection()->commitTransaction();
+        }
+        header('Location: /admin/devices');
+    }
+
+    public function actionDelPlatform($id)
+    {
+        if (false !== $platform = Platform::findByPK($id)) {
+            $platform->delete();
+        }
+        header('Location: /admin/devices');
+    }
+
+    public function actionAddSoftware($software)
+    {
+        (new Software())
+            ->fill([
+                'title' => $software['title'],
+                'vendor' => Vendor::findByPK($software['vendorId'])
+            ])
+            ->save();
+        header('Location: /admin/devices');
+    }
+
+    public function actionEditSoftware($software)
+    {
+        Software::getDbConnection()->beginTransaction();
+        $updatedSoftware = (Software::findByPK($software['id']))
+            ->fill([
+                'title' => $software['title'],
+                'vendor' => Vendor::findByPK($software['vendorId'])
+            ])
+            ->save();
+        if (false === $updatedSoftware) {
+            Software::getDbConnection()->rollbackTransaction();
+        } else {
+            Software::getDbConnection()->commitTransaction();
+        }
+        header('Location: /admin/devices');
+
+    }
+
+    public function actionDelSoftware($id)
+    {
+        if (false !== $software = Software::findByPK($id)) {
+            $software->delete();
+        }
+        header('Location: /admin/devices');
+
     }
 
     public function actionAddVendor($vendor)
+    {
+
+    }
+
+    public function actionEditVendor($vendor)
+    {
+
+    }
+
+    public function actionDelVendor($id)
+    {
+        if (false !== $vendor = Vendor::findByPK($id)) {
+            $vendor->delete();
+        }
+        header('Location: /admin/devices');
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    public function actionAddVendorold($vendor)
     {
         if (!empty($vendor)) {
             if (!empty(trim($vendor['many']))) {
@@ -338,7 +474,7 @@ class Admin extends Controller
         header('Location: /admin/devices');
     }
 
-    public function actionDelVendor($id)
+    public function actionDelVendorold($id)
     {
         if (false !== $vendor = Vendor::findByPK($id)) {
             $vendor->delete();
@@ -346,28 +482,9 @@ class Admin extends Controller
         header('Location: /admin/devices');
     }
 
-    public function actionAddPlatform($platform)
-    {
-        if (!empty(trim($platform['title']))) {
-            (new Platform())
-                ->fill([
-                    'title' => $platform['title'],
-                    'vendor' => Vendor::findByPK($platform['vendorId'])
-                ])
-                ->save();
-        }
-        header('Location: /admin/devices');
-    }
 
-    public function actionDelPlatform($id)
-    {
-        if (false !== $platform = Platform::findByPK($id)) {
-            $platform->delete();
-        }
-        header('Location: /admin/devices');
-    }
 
-    public function actionAddSoftware($software)
+    public function actionAddSoftwareold($software)
     {
         if (!empty(trim($software['title']))) {
             (new Software())
@@ -380,7 +497,7 @@ class Admin extends Controller
         header('Location: /admin/devices');
     }
 
-    public function actionDelSoftware($id)
+    public function actionDelSoftwareold($id)
     {
         if (false !== $software = Software::findByPK($id)) {
             $software->delete();

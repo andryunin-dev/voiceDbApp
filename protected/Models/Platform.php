@@ -26,4 +26,20 @@ class Platform extends Model
             'platformItems' => ['type' => self::HAS_MANY, 'model' => PlatformItem::class]
         ]
     ];
+
+    public function validateTitle($title)
+    {
+        return (!empty(trim($title)));
+    }
+
+    public function validate()
+    {
+        if (
+            true === empty(trim($this->title)) ||
+            false === $this->vendor
+        ) {
+            return false;
+        }
+        return true;
+    }
 }

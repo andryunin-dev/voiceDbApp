@@ -1,0 +1,22 @@
+<div id="edit-platform" role="dialog" title="Редактирование платформы">
+    <form action="/admin/editPlatform" method="post" role="form">
+        <div class="form-group">
+            <label for="id-vendor">Vendor</label>
+            <select name="platform[vendorId]" id="id-vendor" class="form-control">
+                {% for vendor in vendors %}
+                    <option value="{{ vendor.getPK }}" {% if vendor.getPK == platform.vendor.getPk %} selected {% endif %}>{{ vendor.title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="id-platform">HW platform</label>
+            <input type="hidden" class="form-control" name="platform[id]" value="{{ platform.getPk }}">
+            <input type="text" class="form-control" name="platform[title]" id="id-platform"
+                   value="{{ platform.title }}">
+        </div>
+
+        <button class="btn btn-success" type="submit">Создать</button>
+        <button class="btn btn-danger" type="button" role="button" data-action="close">Отмена</button>
+    </form>
+</div>
+

@@ -1,0 +1,19 @@
+<div id="add-software" role="dialog" title="Новый тип ПО">
+    <form action="/admin/addSoftware" method="post" role="form">
+        <div class="form-group">
+            <label for="id-vendor">Производитель</label>
+            <select name="software[vendorId]" id="id-vendor" class="form-control">
+                {% for vendor in vendors %}
+                    <option value="{{ vendor.getPK }}">{{ vendor.title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="id-software">Тип ПО</label>
+            <input type="text" class="form-control" name="software[title]" id="id-software" placeholder="Новый тип ПО">
+        </div>
+
+        <button class="btn btn-success" type="submit">Создать</button>
+        <button class="btn btn-danger" type="button" role="button" data-action="close">Отмена</button>
+    </form>
+</div>
