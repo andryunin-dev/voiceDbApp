@@ -160,4 +160,19 @@
             </main>
         </div>
     </div>
+    <script>
+        var APP = APP || {};
+        APP.settings = APP.settings || {};
+        APP.settings.tablist = $(['role=tablist']);
+        APP.settings.panels = $(['role=tabpanel']);
+        APP.settings.activeTab = 'platforms';
+        APP.settings.tabs.on(
+                "click",
+                "[role=tab]",
+                function (event) {
+                    event.preventDefault();
+
+                }
+        )
+    </script>
 {% endblock %}
