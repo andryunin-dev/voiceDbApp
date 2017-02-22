@@ -330,6 +330,7 @@ class Admin extends Controller
         $this->data->vendors = Vendor::findAll(['order' => 'title']);
         $this->data->platforms = Platform::findAll(['order' => 'title']);
         $this->data->software = Software::findAll(['order' => 'title']);
+        $this->data->settings->activeTab = 'platforms';
     }
 
     public function actionAddPlatform($platform)
@@ -408,12 +409,19 @@ class Admin extends Controller
 
     public function actionAddVendor($vendor)
     {
-
+        (new Vendor())
+            ->fill($vendor)
+            ->save();
     }
 
     public function actionEditVendor($vendor)
     {
-
+        Vendor::findByPK($vendor['id'])
+            ->fill([
+                'title' => $vendor['title']
+            ])
+            ->save();
+        header('Location: /admin/devices');
     }
 
     public function actionDelVendor($id)

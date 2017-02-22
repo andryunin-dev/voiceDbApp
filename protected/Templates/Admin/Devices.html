@@ -161,27 +161,3 @@
         </div>
     </div>
 {% endblock %}
-{% block modal %}
-    <!-- Модальные окна добавления, изменения вендора -->
-
-    <div id="edit-vendor" role="dialog" title="Редактировать вендора">
-        <form action="/admin/editVendor" method="post" role="form">
-            <div class="form-group">
-                <label for="id-edit-vendor"></label>
-                <input type="text" class="form-control" name="vendor[one]" id="id-edit-vendor" placeholder="Новый вендор">
-            </div>
-
-            <button class="btn btn-success" type="submit">Создать</button>
-            <button class="btn btn-danger" type="button" role="button" aria-controls="edit-vendor" value="close">
-                Отмена
-            </button>
-        </form>
-    </div>
-
-
-
-    <!-- Модальные окна добавления, изменения SW платформы -->
-
-
-
-{% endblock %}

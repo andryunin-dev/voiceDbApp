@@ -113,6 +113,9 @@ table tbody tr {
 .cities .col-city {
     width: 40%;
 }
+.devices .panel {
+    min-width: 600px;
+}
 .devices .col-platform,
 .devices .col-vendor {
     min-width: 200px;;

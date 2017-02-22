@@ -111,4 +111,8 @@ class Modal extends Controller
 
     }
 
+    public function actionEditVendor($id)
+    {
+        $this->data->vendor = Vendor::findByPK($id);
+    }
 }

@@ -1,0 +1,12 @@
+<div id="edit-vendor" role="dialog" title="Новый вендор">
+  <form action="/admin/editVendor" method="post" role="form">
+    <div class="form-group">
+      <label for="id-vendor"></label>
+      <input type="hidden" class="form-control" name="vendor[id]" value="{{ vendor.getPk }}">
+      <input type="text" class="form-control" name="vendor[title]" id="id-vendor" value="{{ vendor.title }}">
+    </div>
+
+    <button class="btn btn-success" type="submit">Сохранить</button>
+    <button class="btn btn-danger" type="button" role="button" data-action="close">Отмена</button>
+  </form>
+</div>

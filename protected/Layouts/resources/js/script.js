@@ -1,12 +1,12 @@
 jQuery(function ($) {
     var body = $('body');
-    console.log($("[role='button'][data-action]"));
+    //console.log($("[role='button'][data-action]"));
     body.on(
         "click",
         "[role='button'][data-action]",
         function (event) {
             event.preventDefault();
-            console.log($(this).attr("href"));
+            //console.log($(this).attr("href"));
             switch ($(this).attr("data-action")) {
                 case "add":
                 case "edit":
@@ -16,7 +16,7 @@ jQuery(function ($) {
                         dataType: "html"
                     })
                         .done(function (html) {
-                            console.log(html);
+                            //console.log(html);
                             var modalWindow = $(html);
 
                             modalWindow.dialog({
@@ -135,5 +135,4 @@ jQuery(function ($) {
         })
     });
 });
-
 
