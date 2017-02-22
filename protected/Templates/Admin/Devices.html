@@ -30,17 +30,19 @@
                             <div>
                                 <!-- Nav tabs -->
                                 <ul class="nav nav-tabs" role="tablist">
-                                    <li class="active" aria-controls="platforms" aria-selected="true" role="tab" data-toggle="tab">
+                                    <li class="active" aria-controls="platforms" role="tab">
                                         <a href="#platforms">Платформы</a>
                                     </li>
-                                    <li aria-controls="software" aria-selected="false" role="tab" data-toggle="tab">
+                                    <li aria-controls="software" role="tab">
                                         <a href="#software">ПО</a>
                                     </li>
-                                    <li aria-controls="vendors" aria-selected="false" role="tab" data-toggle="tab">
+                                    <li aria-controls="vendors" role="tab">
                                         <a href="#vendors">Производители</a>
                                     </li>
                                     <!-- кластеры доделать потом
-                                    <li id="tab-clusters" class="" role="presentation"><a href="#clusters" aria-controls="clusters" role="tab">Кластеры</a></li>
+                                    <li aria-controls="clusters" role="tab">
+                                        <a href="#clusters">Производители</a>
+                                    </li>
                                     -->
                                 </ul>
 
@@ -163,15 +165,22 @@
     <script>
         var APP = APP || {};
         APP.settings = APP.settings || {};
-        APP.settings.tablist = $(['role=tablist']);
-        APP.settings.panels = $(['role=tabpanel']);
+        APP.settings.tablist = $('[role=tablist]');
+        APP.settings.panels = $('[role=tabpanel]');
         APP.settings.activeTab = 'platforms';
-        APP.settings.tabs.on(
+        APP.settings.tablist.on(
                 "click",
                 "[role=tab]",
                 function (event) {
                     event.preventDefault();
-
+                    //переключение табов
+                    //console.log($(this).attr("aria-controls"));
+                    APP.settings.tablist.children('[role=tab]').removeClass("active");
+                    APP.settings.activeTab = $(this).attr("aria-controls");
+                    $(this).addClass("active");
+                    //переключение панелей
+                    APP.settings.panels.removeClass("active");
+                    APP.settings.panels.filter("#" + APP.settings.activeTab).addClass("active");
                 }
         )
     </script>
