@@ -21,7 +21,7 @@ class Parser extends Std
         $pattern = '~"{2}~';
         $data = preg_replace($pattern, '', $data);
         //задаем имена полей
-        $fieldNames = ['region', 'city', 'address', 'lotusId', 'office', 'status'];
+        $fieldNames = ['region', 'city', 'address', 'lotusId', 'office'];
         $pattern = '~"?([^,"]+)"?\s*,\s*"?([^,"]+)"?\s*,\s*"?([^"]+)"?\s*,\s*([^,]+)\s*,\s*"([^"]+)"~';
         $resultCount = preg_match_all($pattern, $data, $resultArray, PREG_SET_ORDER);
         if (false === $resultCount) {
@@ -30,11 +30,7 @@ class Parser extends Std
         array_unshift($fieldNames, 'originalData');
         $resultCollection = new Collection();
         foreach ($resultArray as $item) {
-            //если кол-во полей заголовокв с добавленным полем 'originalData' == кол-ву полей в текущей записи + 1
-            //значит убрать поле статуса
-            if (count($item) + 1 == count($fieldNames)) {
-                array_pop($fieldNames); //убираем поле статуса
-            } elseif (count($item) != count($fieldNames)) {
+            if (count($item) != count($fieldNames)) {
                 continue; // если кол-во полей не совпадает - неправильная запись
             }
             $assocArray = array_combine($fieldNames, $item);

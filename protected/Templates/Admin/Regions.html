@@ -28,10 +28,7 @@
                             <th class="bg-primary col-region">
                                 <span class="th-divider-left">Регион</span>
                                 <span class="th-divider-right">
-                                    <button class="btn btn-success btn-xs" type="button"
-                                            role="button" aria-controls="add-region" value="open">
-                                        Добавить
-                                    </button>
+                                    <a class="btn btn-success btn-xs" href="/modal/addRegion" role="button" data-action="add">Добавить</a>
                                 </span>
                             </th>
 
@@ -47,11 +44,11 @@
                             <tr>
                                 <td class="col-region cut-string">{{ region.title }}</td>
                                 <td class="col-actions">
-                                    <button class="btn btn-success btn-xs"
-                                            role="button" aria-controls="edit-region"  value="open" data-id="{{ region.getPK }}">
+                                    <a class="btn btn-success btn-xs" href="/modal/editRegion?id={{ region.getPK }}"
+                                       role="button" data-action="edit">
                                         Изменить
-                                    </button>
-                                    <a href="/admin/delRegion?id={{ region.getPK }}" class="btn btn-danger btn-xs">
+                                    </a>
+                                    <a class="btn btn-danger btn-xs" href="/admin/delRegion?id={{ region.getPK }}" data-action="delete">
                                         Удалить
                                     </a>
                                 </td>
@@ -64,42 +61,4 @@
 
         </div>
     </div>
-{% endblock %}
-
-{% block modal %}
-<div id="add-region" role="dialog" title="Новый регион">
-    <form action="/admin/addRegion" method="post" role="form">
-        <div class="form-group">
-            <label for="id-region"></label>
-            <input type="text" class="form-control" name="region[one]" id="id-region" placeholder="Новый регион">
-        </div>
-        <div class="form-group">
-            <label for="id-regions"></label>
-            <textarea name="region[many]" id="id-regions" cols="41" rows="10" placeholder="Список регионов через запятую"></textarea>
-        </div>
-
-        <button class="btn btn-success" type="submit">Создать</button>
-        <button class="btn btn-danger" type="button" role="button" aria-controls="add-region" value="close">
-            Отмена
-        </button>
-    </form>
-</div>
-
-<div id="edit-region" role="dialog" title="Редактировать регион">
-    <form action="#" method="post" role="form">
-        <div class="form-group">
-            <label for="id-region"></label>
-            <input type="text" class="form-control" name="region[one]" id="id-region" placeholder="Новый регион">
-        </div>
-        <div class="form-group">
-            <label for="id-regions"></label>
-            <textarea name="region[many]" id="id-regions" cols="41" rows="10" placeholder="Список регионов через запятую"></textarea>
-        </div>
-
-        <button class="btn btn-success" type="submit">Создать</button>
-        <button class="btn btn-danger" type="button" role="button" aria-controls="edit-region" value="close">
-            Отмена
-        </button>
-    </form>
-</div>
 {% endblock %}

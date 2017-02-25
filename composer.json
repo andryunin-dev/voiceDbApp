@@ -1,8 +1,13 @@
 {
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "https://github.com/Maximus905/t4"
+    }
+  ],
+
   "require": {
-    "pr-of-it/t4": "dev-master",
-    "league/oauth2-client": "*",
-    "league/oauth2-google": "*",
+    "pr-of-it/t4": "dev-fixes",
     "phpunit/phpunit": "*"
   }
 }

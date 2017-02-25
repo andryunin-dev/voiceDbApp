@@ -1,0 +1,20 @@
+<div id="edit-software" role="dialog" title="Редактирование типа ПО">
+    <form action="/admin/editSoftware" method="post" role="form">
+        <div class="form-group">
+            <label for="id-vendor">Производитель</label>
+            <select name="software[vendorId]" id="id-vendor" class="form-control">
+                {% for vendor in vendors %}
+                    <option value="{{ vendor.getPK }}" {% if vendor.getPK == software.vendor.getPk %} selected {% endif %}>{{ vendor.title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="id-software">Тип ПО</label>
+            <input type="hidden" class="form-control" name="software[id]" value="{{ software.getPk }}">
+            <input type="text" class="form-control" name="software[title]" id="id-software" value="{{ software.title }}">
+        </div>
+
+        <button class="btn btn-success" type="submit">Сохранить</button>
+        <button class="btn btn-danger" type="button" role="button" data-action="close">Отмена</button>
+    </form>
+</div>

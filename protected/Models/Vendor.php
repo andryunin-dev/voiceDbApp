@@ -10,9 +10,11 @@ use T4\Orm\Model;
  * @package App\Models
  *
  * @property string $title
- * @property Collection $appliances
- * @property Collection $software
- * @property Collection $platforms
+ *
+ * @property Collection|Appliance[] $appliances
+ * @property Collection|Software[] $software
+ * @property Collection|Platform[] $platforms
+ * @property Collection|Module[] $modules
  */
 class Vendor extends Model
 {
@@ -25,6 +27,27 @@ class Vendor extends Model
             'appliances' => ['type' => self::HAS_MANY, 'model' => Appliance::class],
             'software' => ['type' => self::HAS_MANY, 'model' => Software::class],
             'platforms' => ['type' => self::HAS_MANY, 'model' => Platform::class],
+            'modules' => ['type' => self::HAS_MANY, 'model' => Module::class]
         ]
     ];
+
+    public function validateTitle($title)
+    {
+        return (!empty(trim($title)));
+    }
+
+    public function validate()
+    {
+        if (
+            true === empty(trim($this->title))
+        ) {
+            return false;
+        }
+        //только для нового объекта проверяем на наличие такого в БД
+        if (true === $this->isNew() && true == Vendor::findByColumn('title', trim($this->title))) {
+            return false; //есть вендор с таким title
+        }
+        return true;
+    }
+
 }

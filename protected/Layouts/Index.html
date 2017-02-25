@@ -4,13 +4,13 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>voiceDB</title>
+    <title>T4 template</title>
+    {{ publish('/Layouts/resources') }}
+    <link rel="stylesheet" href="{{ asset('/Layouts/resources/jquery-ui-min/jquery-ui.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('/Layouts/resources/bootstrap/css/bootstrap.css') }}">
+    <link rel="stylesheet" href="{{ asset('/Layouts/resources/css/style.css') }}">
 
-    <link rel="stylesheet" href="/jquery-ui-min/jquery-ui.min.css">
-    <link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/css/style.css">
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -19,26 +19,16 @@
     <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
 
-    <script type="text/javascript" src="/jquery-ui-min/external/jquery/jquery.js"></script>
-    <script type="text/javascript" src="/jquery-ui-min/jquery-ui.min.js"></script>
-    {#<script type="text/javascript" src="/bootstrap/js/bootstrap.min.js"></script>#}
-    <script type="text/javascript" src="/js/script.js"></script>
-    {{ publishJs() }}
-
+    <script src="{{ asset('/Layouts/resources/jquery-ui-min/external/jquery/jquery.js') }}"></script>
+    <script src="{{ asset('/Layouts/resources/jquery-ui-min/jquery-ui.min.js') }}"></script>
+    <script src="{{ asset('/Layouts/resources/js/script.js') }}"></script>
+    {% block headerScript %}
+    {% endblock %}
 </head>
 <body>
-    <header>
-        {% block header %}{% endblock %}
-    </header>
-    <main>
 
-            {% block main %}{% endblock %}
+{% block main %}
+{% endblock %}
 
-
-    </main>
-    <footer>
-        {% block footer %}{% endblock %}
-    </footer>
 </body>
-    {% block modal %}{% endblock %}
 </html>

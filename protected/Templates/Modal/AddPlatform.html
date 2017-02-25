@@ -1,0 +1,25 @@
+<div id="add-platform" role="dialog" title="Новая платформа">
+    <form action="/admin/addPlatform" method="post" role="form">
+        <div class="form-group">
+            <label for="id-vendor">Vendor</label>
+            <select name="platform[vendorId]" id="id-vendor" class="form-control">
+                {% for vendor in vendors %}
+                    <option value="{{ vendor.getPK }}">{{ vendor.title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="id-platform">HW platform</label>
+            <input type="text" class="form-control" name="platform[title]" id="id-platform"
+                   placeholder="Новая платформа">
+        </div>
+
+        <button class="btn btn-success" type="submit">Создать</button>
+        <button class="btn btn-danger" type="button" role="button" data-action="close">Отмена</button>
+    </form>
+    <script>
+        var APP = APP || {};
+        APP.settings = APP.settings || {};
+        APP.settings.modalWindow = "[id='add-platform'][role='dialog']"
+    </script>
+</div>

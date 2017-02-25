@@ -16,7 +16,8 @@ use T4\Orm\Model;
  * Class OfficeStatus
  * @package App\Models
  *
- * @property string $status Office status(opened, closed e.g.)
+ * @property string $title Office status(opened, closed e.g.)
+ *
  * @property Collection|Office[] $offices
  */
 class OfficeStatus extends Model
@@ -27,7 +28,18 @@ class OfficeStatus extends Model
             'title' => ['type' => 'string']
         ],
         'relations' => [
-            'offices' => ['type' => self::HAS_MANY, 'model' => Office::class,  'on' => '__officeStatus_id']
+            'offices' => ['type' => self::HAS_MANY, 'model' => Office::class, 'by' => '__office_status_id']
         ]
     ];
+
+    protected function validateTitle($val)
+    {
+        return (!empty(trim($val)));
+    }
+
+    protected function validate()
+    {
+        return !empty($this->title);
+    }
+
 }

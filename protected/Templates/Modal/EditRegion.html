@@ -1,0 +1,14 @@
+<div role="dialog" title="Редактирование региона">
+  <form action="/admin/editRegion" method="post" role="form">
+    <div class="form-group">
+      <label for="id-region"></label>
+      <input type="hidden" class="form-control" name="region[id]" value="{{ region.getPk }}">
+      <input type="text" class="form-control" name="region[title]" id="id-region" value="{{ region.title }}">
+    </div>
+
+    <button class="btn btn-success" type="submit">Сохранить</button>
+    <button class="btn btn-danger" type="button" role="button" data-action="close">
+      Отмена
+    </button>
+  </form>
+</div>

@@ -30,17 +30,19 @@
                             <div>
                                 <!-- Nav tabs -->
                                 <ul class="nav nav-tabs" role="tablist">
-                                    <li class="active" aria-controls="platforms" aria-selected="true" role="tab" data-toggle="tab">
+                                    <li class="active" aria-controls="platforms" role="tab">
                                         <a href="#platforms">Платформы</a>
                                     </li>
-                                    <li aria-controls="software" aria-selected="false" role="tab" data-toggle="tab">
+                                    <li aria-controls="software" role="tab">
                                         <a href="#software">ПО</a>
                                     </li>
-                                    <li aria-controls="vendors" aria-selected="false" role="tab" data-toggle="tab">
+                                    <li aria-controls="vendors" role="tab">
                                         <a href="#vendors">Производители</a>
                                     </li>
                                     <!-- кластеры доделать потом
-                                    <li id="tab-clusters" class="" role="presentation"><a href="#clusters" aria-controls="clusters" role="tab">Кластеры</a></li>
+                                    <li aria-controls="clusters" role="tab">
+                                        <a href="#clusters">Производители</a>
+                                    </li>
                                     -->
                                 </ul>
 
@@ -54,7 +56,7 @@
                                                 <th class="bg-primary col-platform">
                                                     <span class="th-divider-left">Платформа</span>
                                                     <span class="th-divider-right">
-                                                        <button class="btn btn-success btn-xs" type="button" role="button" aria-controls="add-platform" value="open">Добавить</button>
+                                                        <a class="btn btn-success btn-xs" href="/modal/addPlatform" role="button" data-action="add">Добавить</a>
                                                     </span>
                                                 </th>
                                                 <th class="bg-primary col-vendor">
@@ -68,22 +70,15 @@
                                             </thead>
                                             <!--Данные-->
                                             <tbody>
-                                            {% for vendor in vendors %}
-                                                {% for platform in vendor.platforms %}
-                                                    <tr>
-                                                        <td class="col-city cut-string">{{ platform.title }}</td>
-                                                        <td class="col-region cut-string">{{ vendor.title }}</td>
-                                                        <td class="col-actions">
-                                                            <button class="btn btn-success btn-xs"
-                                                                    role="button" aria-controls="edit-platform"
-                                                                    value="open"
-                                                                    data-id="{{ platform.getPK }}">
-                                                                Изменить
-                                                            </button>
-                                                            <a href="/admin/delPlatform?id={{ platform.getPK }}" class="btn btn-danger btn-xs">Удалить</a>
-                                                        </td>
-                                                    </tr>
-                                                {% endfor %}
+                                            {% for platform in platforms %}
+                                                <tr>
+                                                    <td class="col-city cut-string">{{ platform.title }}</td>
+                                                    <td class="col-region cut-string">{{ platform.vendor.title }}</td>
+                                                    <td class="col-actions">
+                                                        <a class="btn btn-success btn-xs" href="/modal/editPlatform?id={{ platform.getPK }}" role="button" data-action="edit">Изменить</a>
+                                                        <a class="btn btn-danger btn-xs" href="/admin/delPlatform?id={{ platform.getPK }}" data-action="delete">Удалить</a>
+                                                    </td>
+                                                </tr>
                                             {% endfor %}
                                             </tbody>
                                         </table>
@@ -95,7 +90,8 @@
                                             <tr>
                                                 <th class="bg-primary col-software">
                                                     <span class="th-divider-left">Тип ПО</span>
-                                                    <span class="th-divider-right"><button class="btn btn-success btn-xs" type="button" role="button" aria-controls="add-software" value="open">Добавить</button>
+                                                    <span class="th-divider-right">
+                                                        <a class="btn btn-success btn-xs" href="/modal/addSoftware" role="button" data-action="add">Добавить</a>
                                                     </span>
                                                 </th>
                                                 <th class="bg-primary col-vendor">
@@ -109,22 +105,15 @@
                                             </thead>
                                             <!--Данные-->
                                             <tbody>
-                                            {% for vendor in vendors %}
-                                                {% for software in vendor.software %}
-                                                    <tr>
-                                                        <td class="col-city cut-string">{{ software.title }}</td>
-                                                        <td class="col-region cut-string">{{ vendor.title }}</td>
-                                                        <td class="col-actions">
-                                                            <button class="btn btn-success btn-xs"
-                                                                    role="button" aria-controls="edit-software"
-                                                                    value="open"
-                                                                    data-id="{{ vendor.getPK }}">
-                                                                Изменить
-                                                            </button>
-                                                            <a href="/admin/delSoftware?id={{ software.getPK }}" class="btn btn-danger btn-xs">Удалить</a>
-                                                        </td>
-                                                    </tr>
-                                                {% endfor %}
+                                            {% for softItem in software %}
+                                                <tr>
+                                                    <td class="col-city cut-string">{{ softItem.title }}</td>
+                                                    <td class="col-region cut-string">{{ softItem.vendor.title }}</td>
+                                                    <td class="col-actions">
+                                                        <a class="btn btn-success btn-xs" href="/modal/editSoftware?id={{ softItem.getPK }}" role="button" data-action="edit">Изменить</a>
+                                                        <a class="btn btn-danger btn-xs" href="/admin/delSoftware?id={{ softItem.getPK }}" data-action="delete">Удалить</a>
+                                                    </td>
+                                                </tr>
                                             {% endfor %}
                                             </tbody>
                                         </table>
@@ -140,7 +129,9 @@
                                             <tr>
                                                 <th class="bg-primary col-vendor">
                                                     <span class="th-divider-left">Производитель</span>
-                                                    <span class="th-divider-right"><button class="btn btn-success btn-xs" type="button" role="button" aria-controls="add-vendor" value="open">Добавить</button></span>
+                                                    <span class="th-divider-right">
+                                                        <a class="btn btn-success btn-xs" href="/modal/addVendor" role="button" data-action="add">Добавить</a>
+                                                    </span>
                                                 </th>
                                                 <th class="bg-primary col-actions">
                                                     <span class="th-divider-left">Действия</span>
@@ -155,12 +146,8 @@
                                                         {{ vendor.title }}
                                                     </td>
                                                     <td class="col-actions">
-                                                        <button class="btn btn-success btn-xs"
-                                                                role="button" aria-controls="edit-vendor"  value="open"
-                                                                data-id="{{ vendor.getPK }}">
-                                                            Изменить
-                                                        </button>
-                                                        <a href="/admin/delVendor?id={{ vendor.getPK }}" class="btn btn-danger btn-xs">Удалить</a>
+                                                        <a class="btn btn-success btn-xs" href="/modal/editVendor?id={{ vendor.getPK }}" role="button" data-action="edit">Изменить</a>
+                                                        <a class="btn btn-danger btn-xs" href="/admin/delVendor?id={{ vendor.getPK }}" data-action="delete">Удалить</a>
                                                     </td>
                                                 </tr>
                                             {% endfor %}
@@ -175,131 +162,26 @@
             </main>
         </div>
     </div>
-{% endblock %}
-{% block modal %}
-    <!-- Модальные окна добавления, изменения вендора -->
-    <div id="add-vendor" role="dialog" title="Новый вендор">
-        <form action="/admin/addVendor" method="post" role="form">
-            <div class="form-group">
-                <label for="id-vendor"></label>
-                <input type="text" class="form-control" name="vendor[one]" id="id-vendor" placeholder="Новый вендор">
-            </div>
-            <div class="form-group">
-                <label for="id-vendors"></label>
-                <textarea name="vendor[many]" id="id-vendors" cols="41" rows="10" placeholder="Список вендоров через запятую"></textarea>
-            </div>
-
-            <button class="btn btn-success" type="submit">Создать</button>
-            <button class="btn btn-danger" type="button" role="button" aria-controls="add-vendor" value="close">
-                Отмена
-            </button>
-        </form>
-    </div>
-
-    <div id="edit-vendor" role="dialog" title="Редактировать вендора">
-        <form action="/admin/editVendor" method="post" role="form">
-            <div class="form-group">
-                <label for="id-edit-vendor"></label>
-                <input type="text" class="form-control" name="vendor[one]" id="id-edit-vendor" placeholder="Новый вендор">
-            </div>
-
-            <button class="btn btn-success" type="submit">Создать</button>
-            <button class="btn btn-danger" type="button" role="button" aria-controls="edit-vendor" value="close">
-                Отмена
-            </button>
-        </form>
-    </div>
-
-    <!-- Модальные окна добавления, изменения HW платформы -->
-    <div id="add-platform" role="dialog" title="Новая платформа">
-        <form action="/admin/addPlatform" method="post" role="form">
-            <div class="form-group">
-                <label for="id-vendor">Vendor</label>
-                <select name="platform[vendorId]" id="id-vendor" class="form-control">
-                    {% for vendor in vendors %}
-                        <option value="{{ vendor.getPK }}">{{ vendor.title }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="id-platform">HW platform</label>
-                <input type="text" class="form-control" name="platform[title]" id="id-platform" placeholder="Новая платформа">
-            </div>
-
-            <button class="btn btn-success" type="submit">Создать</button>
-            <button class="btn btn-danger" type="button" role="button" aria-controls="add-platform" value="close">
-                Отмена
-            </button>
-        </form>
-    </div>
-
-    <div id="edit-platform" role="dialog" title="Редактирование платформы">
-        <form action="#" method="post" role="form">
-            <div class="form-group">
-                <label for="id-vendor">Vendor</label>
-                <select name="platform[vendorId]" id="id-vendor" class="form-control">
-                    {% for vendor in vendors %}
-                        <option value="{{ vendor.getPK }}">{{ vendor.title }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="id-platform">HW platform</label>
-                <input type="text" class="form-control" name="platform[title]" id="id-platform" placeholder="Новая платформа">
-            </div>
-
-            <button class="btn btn-success" type="submit">Создать</button>
-            <button class="btn btn-danger" type="button" role="button" aria-controls="edit-platform" value="close">
-                Отмена
-            </button>
-        </form>
-    </div>
-
-    <!-- Модальные окна добавления, изменения SW платформы -->
-    <div id="add-software" role="dialog" title="Новый тип ПО">
-        <form action="/admin/addSoftware" method="post" role="form">
-            <div class="form-group">
-                <label for="id-vendor">Производитель</label>
-                <select name="software[vendorId]" id="id-vendor" class="form-control">
-                    {% for vendor in vendors %}
-                        <option value="{{ vendor.getPK }}">{{ vendor.title }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="id-software">Тип ПО</label>
-                <input type="text" class="form-control" name="software[title]" id="id-software" placeholder="Новый тип ПО">
-            </div>
-
-            <button class="btn btn-success" type="submit">Создать</button>
-            <button class="btn btn-danger" type="button" role="button" aria-controls="add-software" value="close">
-                Отмена
-            </button>
-        </form>
-    </div>
-
-    <div id="edit-software" role="dialog" title="Редактирование типа ПО">
-        <form action="#" method="post" role="form">
-            <div class="form-group">
-                <label for="id-vendor">Производитель</label>
-                <select name="software[vendorId]" id="id-vendor" class="form-control">
-                    {% for vendor in vendors %}
-                        <option value="{{ vendor.getPK }}">{{ vendor.title }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="id-software">Тип ПО</label>
-                <input type="text" class="form-control" name="software[title]" id="id-software" placeholder="Новый тип ПО">
-            </div>
-
-            <button class="btn btn-success" type="submit">Создать</button>
-            <button class="btn btn-danger" type="button" role="button" aria-controls="edit-software" value="close">
-                Отмена
-            </button>
-        </form>
-    </div>
-
-
-
+    <script>
+        var APP = APP || {};
+        APP.settings = APP.settings || {};
+        APP.settings.tablist = $('[role=tablist]');
+        APP.settings.panels = $('[role=tabpanel]');
+        APP.settings.activeTab = 'platforms';
+        APP.settings.tablist.on(
+                "click",
+                "[role=tab]",
+                function (event) {
+                    event.preventDefault();
+                    //переключение табов
+                    //console.log($(this).attr("aria-controls"));
+                    APP.settings.tablist.children('[role=tab]').removeClass("active");
+                    APP.settings.activeTab = $(this).attr("aria-controls");
+                    $(this).addClass("active");
+                    //переключение панелей
+                    APP.settings.panels.removeClass("active");
+                    APP.settings.panels.filter("#" + APP.settings.activeTab).addClass("active");
+                }
+        )
+    </script>
 {% endblock %}

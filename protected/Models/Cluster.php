@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use T4\Core\Collection;
 use T4\Orm\Model;
 
 /**
@@ -9,8 +10,10 @@ use T4\Orm\Model;
  * @package App\Models
  *
  * @property string $title
- * @property jsonb $details
+ * @property string $details
  * @property string $comment
+ *
+ * @property Collection|Appliance[] $appliances
  */
 class Cluster extends Model
 {
@@ -18,11 +21,11 @@ class Cluster extends Model
         'table' => 'equipment.clusters',
         'columns' => [
             'title' => ['type' => 'string'],
-            'details' => ['type' => 'jsonb'],
+            'details' => ['type' => 'json'],
             'comment' => ['type' => 'string']
         ],
         'relations' => [
-            'appliances' => ['type' => self::HAS_MANY]
+            'appliances' => ['type' => self::HAS_MANY, 'model' => Appliance::class]
         ]
     ];
 }

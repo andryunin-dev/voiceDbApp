@@ -25,7 +25,7 @@ aside .btn {
 
 body,
 .modal-window.ui-widget-content {
-    background: #fff url(/img/2.jpg) repeat;
+    background: #fff url(../img/2.jpg) repeat;
 }
 
 /*=====================================
@@ -113,6 +113,9 @@ table tbody tr {
 .cities .col-city {
     width: 40%;
 }
+.devices .panel {
+    min-width: 600px;
+}
 .devices .col-platform,
 .devices .col-vendor {
     min-width: 200px;;
@@ -132,60 +135,6 @@ table tbody tr {
     padding-right: 0;
 }
 
-/*.bs3-btn-style  .btn {*/
-    /*display: inline-block;*/
-    /*padding: 6px 12px;*/
-    /*margin-bottom: 0;*/
-    /*font-size: 14px;*/
-    /*font-weight: 400;*/
-    /*line-height: 1.42857143;*/
-    /*text-align: center;*/
-    /*white-space: nowrap;*/
-    /*vertical-align: middle;*/
-    /*-ms-touch-action: manipulation;*/
-    /*touch-action: manipulation;*/
-    /*cursor: pointer;*/
-    /*-webkit-user-select: none;*/
-    /*-moz-user-select: none;*/
-    /*-ms-user-select: none;*/
-    /*user-select: none;*/
-    /*background-image: none;*/
-    /*border: 1px solid transparent;*/
-    /*border-radius: 4px;*/
-/*}*/
-
-/*.bs3-btn-style .btn-group-xs>.btn,*/
-/*.bs3-btn-style  .btn-xs {*/
-    /*padding: 1px 5px;*/
-    /*font-size: 12px;*/
-    /*line-height: 1.5;*/
-    /*border-radius: 3px;*/
-/*}*/
-
-/*.bs3-btn-style .btn-danger {*/
-    /*color: #fff;*/
-    /*background-color: #d9534f;*/
-    /*border-color: #d43f3a;*/
-/*}*/
-/*.bs3-btn-style .btn-danger:hover {*/
-    /*color: #fff;*/
-    /*background-color: #c9302c;*/
-    /*border-color: #ac2925;*/
-/*}*/
-
-/*.bs3-btn-style .btn-warning {*/
-    /*color: #fff;*/
-    /*background-color: #f0ad4e;*/
-    /*border-color: #eea236;*/
-/*}*/
-/*.bs3-btn-style .btn-warning:hover {*/
-    /*color: #fff;*/
-    /*background-color: #ec971f;*/
-    /*border-color: #d58512;*/
-/*}*/
-
-/*.nav-tabs > li.active > a, .nav-tabs > li.active > a:hover, .nav-tabs > li.active > a:focus*/
-
 .nav-tabs>li.active>a,
 .nav-tabs>li.active>a:focus,
 .nav-tabs>li.active>a:hover
@@ -197,4 +146,19 @@ table tbody tr {
 .nav-tabs>li.active>a:hover
 {
     background-color: #286090;
+}
+
+.table-devices .col-port-number {
+    max-width: 110px;
+}
+.table-pstn .col-comment {
+    max-width: 200px;
+}
+
+.cust-table-striped tbody:nth-child(odd) {
+    background: #eeeeee;
+}
+
+.cust-table-striped tbody:hover td[rowspan], tr:hover td {
+    background: #c1c1c1;
 }

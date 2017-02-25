@@ -1,0 +1,21 @@
+<div role="dialog" title="Редактирование города">
+    <form action="/admin/editCity" method="post" role="form">
+        <div class="form-group">
+            <select name="city[regId]" id="id-region" class="form-control">
+                {% for region in regions %}
+                    <option value="{{ region.getPK }}" {% if region.getPK == city.region.getPk %} selected {% endif %}>{{ region.title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="id-region"></label>
+            <input type="hidden" class="form-control" name="city[id]" value="{{ city.getPk }}">
+            <input type="text" class="form-control" name="city[title]" id="id-region" value="{{ city.title }}">
+        </div>
+
+        <button class="btn btn-success" type="submit">Сохранить</button>
+        <button class="btn btn-danger" type="button" role="button" data-action="close">
+          Отмена
+        </button>
+    </form>
+</div>

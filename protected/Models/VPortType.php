@@ -10,6 +10,7 @@ use T4\Orm\Model;
  * @package App\Models
  *
  * @property string $type
+ *
  * @property Collection|VoicePort[] $ports
  */
 class VPortType extends Model
@@ -20,7 +21,7 @@ class VPortType extends Model
             'type' => ['type' => 'string']
         ],
         'relations' => [
-            'ports' => ['type' => self::HAS_MANY, 'model' => VoicePort::class]
+            'ports' => ['type' => self::HAS_MANY, 'model' => VoicePort::class, 'by' => '__type_port_id']
         ]
     ];
 }

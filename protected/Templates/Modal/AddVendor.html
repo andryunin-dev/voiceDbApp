@@ -1,0 +1,16 @@
+<div id="add-vendor" role="dialog" title="Новый вендор">
+    <form action="/admin/addVendor" method="post" role="form">
+        <div class="form-group">
+            <label for="id-vendor"></label>
+            <input type="text" class="form-control" name="vendor[title]" id="id-vendor" placeholder="Новый вендор">
+        </div>
+
+        <button class="btn btn-success" type="submit">Создать</button>
+        <button class="btn btn-danger" type="button" role="button" data-action="close">Отмена</button>
+    </form>
+    <script>
+        var APP = APP || {};
+        APP.settings = APP.settings || {};
+        APP.settings.modalWindow = "[id='add-vendor'][role='dialog']"
+    </script>
+</div>
