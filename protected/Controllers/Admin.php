@@ -325,7 +325,7 @@ class Admin extends Controller
         header('Location: /admin/offices');
     }
 
-    public function actionDevices()
+    public function actionDevparts()
     {
         $this->data->vendors = Vendor::findAll(['order' => 'title']);
         $this->data->platforms = Platform::findAll(['order' => 'title']);
@@ -341,7 +341,7 @@ class Admin extends Controller
                 'vendor' => Vendor::findByPK($platform['vendorId'])
             ])
             ->save();
-        header('Location: /admin/devices');
+        header('Location: /admin/devparts');
     }
 
     public function actionEditPlatform($platform)
@@ -358,7 +358,7 @@ class Admin extends Controller
         } else {
             Platform::getDbConnection()->commitTransaction();
         }
-        header('Location: /admin/devices');
+        header('Location: /admin/devparts');
     }
 
     public function actionDelPlatform($id)
@@ -366,7 +366,7 @@ class Admin extends Controller
         if (false !== $platform = Platform::findByPK($id)) {
             $platform->delete();
         }
-        header('Location: /admin/devices');
+        header('Location: /admin/devparts');
     }
 
     public function actionAddSoftware($software)
@@ -377,7 +377,7 @@ class Admin extends Controller
                 'vendor' => Vendor::findByPK($software['vendorId'])
             ])
             ->save();
-        header('Location: /admin/devices');
+        header('Location: /admin/devparts');
     }
 
     public function actionEditSoftware($software)
@@ -394,7 +394,7 @@ class Admin extends Controller
         } else {
             Software::getDbConnection()->commitTransaction();
         }
-        header('Location: /admin/devices');
+        header('Location: /admin/devparts');
 
     }
 
@@ -403,7 +403,7 @@ class Admin extends Controller
         if (false !== $software = Software::findByPK($id)) {
             $software->delete();
         }
-        header('Location: /admin/devices');
+        header('Location: /admin/devparts');
 
     }
 
@@ -421,7 +421,7 @@ class Admin extends Controller
                 'title' => $vendor['title']
             ])
             ->save();
-        header('Location: /admin/devices');
+        header('Location: /admin/devparts');
     }
 
     public function actionDelVendor($id)
@@ -429,9 +429,13 @@ class Admin extends Controller
         if (false !== $vendor = Vendor::findByPK($id)) {
             $vendor->delete();
         }
-        header('Location: /admin/devices');
+        header('Location: /admin/devparts');
     }
 
+    public function actionDevices()
+    {
+
+    }
 
 
 
@@ -479,7 +483,7 @@ class Admin extends Controller
                     ->save();
             }
         }
-        header('Location: /admin/devices');
+        header('Location: /admin/devparts');
     }
 
     public function actionDelVendorold($id)
@@ -487,7 +491,7 @@ class Admin extends Controller
         if (false !== $vendor = Vendor::findByPK($id)) {
             $vendor->delete();
         }
-        header('Location: /admin/devices');
+        header('Location: /admin/devparts');
     }
 
 
@@ -502,7 +506,7 @@ class Admin extends Controller
                 ])
                 ->save();
         }
-        header('Location: /admin/devices');
+        header('Location: /admin/devparts');
     }
 
     public function actionDelSoftwareold($id)
@@ -510,7 +514,7 @@ class Admin extends Controller
         if (false !== $software = Software::findByPK($id)) {
             $software->delete();
         }
-        header('Location: /admin/devices');
+        header('Location: /admin/devparts');
     }
 
 }

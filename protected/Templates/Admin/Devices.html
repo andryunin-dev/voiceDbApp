@@ -2,11 +2,13 @@
 
 {% block main %}
     <div class="container-fluid">
+
         <div class="row">
             <aside>
                 <div class="col-xs-2 aside-menu">
                     <div class="section">
                         <a class="btn btn-default" href="/admin/offices">Офисы</a>
+                        <a class="btn btn-default active" href="/admin/devices">Оборудование</a>
                     </div>
                     <div class="section-title">
                         <h4 class="text-center">Справочники</h4>
@@ -16,172 +18,42 @@
                         <a class="btn btn-default" href="/admin/regions">Регионы</a>
                         <a class="btn btn-default" href="/admin/cities">Города</a>
                         <a class="btn btn-default" href="/admin/officeStatuses">Статусы офисов</a>
-                        <a class="btn btn-default active" href="#">Оборудование</a>
+                        <a class="btn btn-default" href="/admin/devparts">Оборудование</a>
                     </div>
                 </div>
             </aside>
-            <main class="devices bs3-btn-style" id="bs3-style">
+            <main class="offices">
                 <div class="col-xs-10">
-                    <div class="panel panel-default col-xs-7">
-                    	<div class="panel-heading">
-                   		    <h3 class="panel-title">Vendors, Hardware, Software, Clusters</h3>
-                    	</div>
-                    	<div class="panel-body">
-                            <div>
-                                <!-- Nav tabs -->
-                                <ul class="nav nav-tabs" role="tablist">
-                                    <li class="active" aria-controls="platforms" role="tab">
-                                        <a href="#platforms">Платформы</a>
-                                    </li>
-                                    <li aria-controls="software" role="tab">
-                                        <a href="#software">ПО</a>
-                                    </li>
-                                    <li aria-controls="vendors" role="tab">
-                                        <a href="#vendors">Производители</a>
-                                    </li>
-                                    <!-- кластеры доделать потом
-                                    <li aria-controls="clusters" role="tab">
-                                        <a href="#clusters">Производители</a>
-                                    </li>
-                                    -->
-                                </ul>
+                    <table class="table table-bordered table-hover table-striped">
+                        <thead>
+                        <tr>
+                            <th class="bg-primary col-region">Регион</th>
+                            <th class="bg-primary col-city">Город</th>
+                            <th class="bg-primary col-office">Офис</th>
+                            <th class="bg-primary col-hardware">Оборудование</th>
+                            <th class="bg-primary col-software">ПО</th>
+                            <th class="bg-primary col-port-type">Тип порта</th>
+                            <th class="bg-primary col-ip-address">IP адрес</th>
+                            <th class="bg-primary col-mac-address">MAC адрес</th>
+                            <th class="bg-primary col-comment">Комментарий</th>
+                            <th class="bg-primary col-actions">Действия</th>
+                        </tr>
+                        </thead>
+                        <tbody>
 
-                                <!-- Tab panels -->
-                                <div class="tab-content">
-                                    <!-- Platforms -->
-                                    <div class="tab-pane active" role="tabpanel" id="platforms">
-                                        <table class="table table-bordered table-hover table-striped">
-                                            <thead>
-                                            <tr>
-                                                <th class="bg-primary col-platform">
-                                                    <span class="th-divider-left">Платформа</span>
-                                                    <span class="th-divider-right">
-                                                        <a class="btn btn-success btn-xs" href="/modal/addPlatform" role="button" data-action="add">Добавить</a>
-                                                    </span>
-                                                </th>
-                                                <th class="bg-primary col-vendor">
-                                                    <span class="th-divider-left">Производитель</span>
-                                                    <span class="th-divider-right"></span>
-                                                </th>
-                                                <th class="bg-primary col-actions">
-                                                    <span class="th-divider-left">Действия</span>
-                                                </th>
-                                            </tr>
-                                            </thead>
-                                            <!--Данные-->
-                                            <tbody>
-                                            {% for platform in platforms %}
-                                                <tr>
-                                                    <td class="col-city cut-string">{{ platform.title }}</td>
-                                                    <td class="col-region cut-string">{{ platform.vendor.title }}</td>
-                                                    <td class="col-actions">
-                                                        <a class="btn btn-success btn-xs" href="/modal/editPlatform?id={{ platform.getPK }}" role="button" data-action="edit">Изменить</a>
-                                                        <a class="btn btn-danger btn-xs" href="/admin/delPlatform?id={{ platform.getPK }}" data-action="delete">Удалить</a>
-                                                    </td>
-                                                </tr>
-                                            {% endfor %}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    <!-- Software -->
-                                    <div class="tab-pane" role="tabpanel" id="software">
-                                        <table class="table table-bordered table-hover table-striped">
-                                            <thead>
-                                            <tr>
-                                                <th class="bg-primary col-software">
-                                                    <span class="th-divider-left">Тип ПО</span>
-                                                    <span class="th-divider-right">
-                                                        <a class="btn btn-success btn-xs" href="/modal/addSoftware" role="button" data-action="add">Добавить</a>
-                                                    </span>
-                                                </th>
-                                                <th class="bg-primary col-vendor">
-                                                    <span class="th-divider-left">Производитель</span>
-                                                    <span class="th-divider-right"></span>
-                                                </th>
-                                                <th class="bg-primary col-actions">
-                                                    <span class="th-divider-left">Действия</span>
-                                                </th>
-                                            </tr>
-                                            </thead>
-                                            <!--Данные-->
-                                            <tbody>
-                                            {% for softItem in software %}
-                                                <tr>
-                                                    <td class="col-city cut-string">{{ softItem.title }}</td>
-                                                    <td class="col-region cut-string">{{ softItem.vendor.title }}</td>
-                                                    <td class="col-actions">
-                                                        <a class="btn btn-success btn-xs" href="/modal/editSoftware?id={{ softItem.getPK }}" role="button" data-action="edit">Изменить</a>
-                                                        <a class="btn btn-danger btn-xs" href="/admin/delSoftware?id={{ softItem.getPK }}" data-action="delete">Удалить</a>
-                                                    </td>
-                                                </tr>
-                                            {% endfor %}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    <!-- Clusters -->
-                                    <div class="tab-pane" role="tabpanel" id="clusters">
-                                        ...
-                                    </div>
-                                    <!-- Vendors -->
-                                    <div class="tab-pane" role="tabpanel" id="vendors">
-                                        <table class="table table-bordered table-hover table-striped">
-                                            <thead>
-                                            <tr>
-                                                <th class="bg-primary col-vendor">
-                                                    <span class="th-divider-left">Производитель</span>
-                                                    <span class="th-divider-right">
-                                                        <a class="btn btn-success btn-xs" href="/modal/addVendor" role="button" data-action="add">Добавить</a>
-                                                    </span>
-                                                </th>
-                                                <th class="bg-primary col-actions">
-                                                    <span class="th-divider-left">Действия</span>
-                                                </th>
-                                            </tr>
-                                            </thead>
-                                            <!--Данные-->
-                                            <tbody>
-                                            {% for vendor in vendors %}
-                                                <tr>
-                                                    <td class="col-vendor cut-string">
-                                                        {{ vendor.title }}
-                                                    </td>
-                                                    <td class="col-actions">
-                                                        <a class="btn btn-success btn-xs" href="/modal/editVendor?id={{ vendor.getPK }}" role="button" data-action="edit">Изменить</a>
-                                                        <a class="btn btn-danger btn-xs" href="/admin/delVendor?id={{ vendor.getPK }}" data-action="delete">Удалить</a>
-                                                    </td>
-                                                </tr>
-                                            {% endfor %}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                        </tbody>
+                    </table>
                 </div>
             </main>
+
         </div>
     </div>
     <script>
         var APP = APP || {};
         APP.settings = APP.settings || {};
-        APP.settings.tablist = $('[role=tablist]');
-        APP.settings.panels = $('[role=tabpanel]');
-        APP.settings.activeTab = 'platforms';
-        APP.settings.tablist.on(
-                "click",
-                "[role=tab]",
-                function (event) {
-                    event.preventDefault();
-                    //переключение табов
-                    //console.log($(this).attr("aria-controls"));
-                    APP.settings.tablist.children('[role=tab]').removeClass("active");
-                    APP.settings.activeTab = $(this).attr("aria-controls");
-                    $(this).addClass("active");
-                    //переключение панелей
-                    APP.settings.panels.removeClass("active");
-                    APP.settings.panels.filter("#" + APP.settings.activeTab).addClass("active");
-                }
-        )
+        APP.settings.modalURL = "/modal/officeDetail";
     </script>
+
+
+
 {% endblock %}
