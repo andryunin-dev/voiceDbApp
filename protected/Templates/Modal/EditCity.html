@@ -1,4 +1,4 @@
-<div role="dialog" title="Редактирование города">
+<div id="edit-city" role="dialog" title="Редактирование города">
     <form action="/admin/editCity" method="post" role="form">
         <div class="form-group">
             <select name="city[regId]" id="id-region" class="form-control">
@@ -19,3 +19,8 @@
         </button>
     </form>
 </div>
+<script>
+    var APP = APP || {};
+    APP.settings = APP.settings || {};
+    APP.settings.modalWindowSelector = "#edit-city";
+</script>

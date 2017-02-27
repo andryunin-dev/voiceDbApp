@@ -1,24 +1,26 @@
 jQuery(function ($) {
+
     var body = $('body');
     //console.log($("[role='button'][data-action]"));
     body.on(
         "click",
         "[role='button'][data-action]",
         function (event) {
-            event.preventDefault();
+
+            event.stopPropagation();
             //console.log($(this).attr("href"));
             switch ($(this).attr("data-action")) {
                 case "add":
                 case "edit":
+                    event.preventDefault();
                     $.ajax({
                         url: $(this).attr("href"),
                         type: "GET",
                         dataType: "html"
                     })
                         .done(function (html) {
-                            //console.log(html);
-                            var modalWindow = $(html);
-
+                            body.append(html);
+                            var modalWindow = $(APP.settings.modalWindowSelector);
                             modalWindow.dialog({
                                 autoOpen: true,
                                 height: "auto",
@@ -26,6 +28,7 @@ jQuery(function ($) {
                                 modal: true,
                                 close: function (event, ui) {
                                     modalWindow.dialog("destroy");
+                                    $(APP.settings.modalWindowSelector).remove();
                                 }
                             });
                             //прикручиваем обработчик кнопок модального окна
@@ -42,97 +45,37 @@ jQuery(function ($) {
                             );
                         });
                     break;
+                case "view":
+                    event.preventDefault();
+                    //console.log(this);
+                    console.log($(this).data("id"));
+                    $.ajax({
+                        url: APP.settings.modalURL,
+                        cache: false,
+                        type: "GET",
+                        dataType: "html",
+                        data: {id: $(this).data("id")}
+                    })
+                        .done(function (html) {
+                            body.append(html);
+                            var modalWindow = $(APP.settings.modalWindowSelector);
+                            console.log(html);
+                            modalWindow.dialog({
+                                autoOpen: true,
+                                height: "auto",
+                                width: "auto",
+                                modal: true,
+                                close: function (event, ui) {
+                                    modalWindow.dialog("destroy");
+                                    $(APP.settings.modalWindowSelector).remove()
+                                }
+                            });
+                        });
+                    break;
                 case "delete":
                     break;
             }
         }
     );
-
-
-
-
-    // var modalWindows = $("div[role='dialog']"); //модальные окна
-    //
-    // //задаем параметры модальных окон
-    // modalWindows.each(function () {
-    //     var winHeight = $(window).height();
-    //     var winWidth = $(window).width();
-    //     var result = $(this).dialog(
-    //         {
-    //             open: function(){
-    //                 $("body").css("overflow", "hidden");
-    //             },
-    //             close: function(){
-    //                 $("body").css("overflow", "auto");
-    //             },
-    //             position: { my: "center top", at: "top+5%", of: window },
-    //             autoOpen: false,
-    //             height: "auto",
-    //             maxHeight: winHeight * 0.9,
-    //             width: "auto",
-    //             modal: true
-    //         }
-    //     );
-    // });
-
-    //если надо поменять параметры окна
-    // modalWindows.filter("[id='add-region']").dialog(
-    //     {width: 400}
-    // );
-
-    //задаем обработчик событий на кнопки
-    // controlButtons.each(function () {
-    //     $(this).on("click", function (event) {
-    //         //event.stopPropagation()
-    //         var window = {
-    //             id: $(this).attr("aria-controls"),
-    //             dataId: $(this).data("id")
-    //         };
-    //         var action = $(this).attr("value");
-    //
-    //         switch(action) {
-    //             case 'open':
-    //                 modalWindows.filter("[id=" + window.id + "]").dialog("open");
-    //                 break;
-    //             case 'close':
-    //                 modalWindows.filter("[id=" + window.id + "]").dialog("close");
-    //                 break;
-    //         }
-    //         // console.log($(this).attr("value"));
-    //         // console.log(window.dataId);
-    //     })
-    // });
-
-    //задаем обработчик событий на клики по строкам таблицы
-    // controlRows.each(function () {
-    //     $(this).on("click", function (event) {
-    //         var window = {
-    //             id: $(this).attr("aria-controls"),
-    //             dataId: $(this).data("id")
-    //         };
-    //         modalWindows.filter("[id=" + window.id + "]").dialog("open");
-    //         // console.log($(this).attr("value"));
-    //         // console.log(window.dataId);
-    //         //переключаем фокус на элемент у которого [aria-selected='true']
-    //         tabs.filter("[aria-selected='true']").children().get(0).focus();
-    //     })
-    // });
-//Tabs
-    var tabs = $(".nav-tabs[role='tablist'] li[role='tab']");
-    var panels = $(".tab-content div[role=tabpanel]");
-
-    //задаем обработчик событий на клики по табам
-    tabs.each(function() {
-        $(this).on( "click", function (event) {
-            event.preventDefault();
-            tabs.filter("[aria-selected='true']").removeClass("active").attr('aria-selected','false');
-            $(this).addClass("active").attr('aria-selected','true');
-
-            panels.filter(".active").removeClass("active");
-            var panelId = $(this).attr("aria-controls");
-            panels.filter("[id=" + panelId + "]").addClass("active");
-            // console.log("[id=" + panelId + "]");
-        })
-    });
 });
 

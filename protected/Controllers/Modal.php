@@ -115,4 +115,10 @@ class Modal extends Controller
     {
         $this->data->vendor = Vendor::findByPK($id);
     }
+
+    public function actionOfficeDetail($id)
+    {
+        var_dump(Office::findByPK($id));
+        $this->data->office = Office::findByPK($id);
+    }
 }
