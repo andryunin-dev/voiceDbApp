@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="CopyProject" default="build" basedir=".">
-    <target name="build" depends="vars, copy, config, symlink" />
+    <target name="build" depends="vars, copy, config, composer, migrations, symlink" />
 
     <target name="vars">
 
