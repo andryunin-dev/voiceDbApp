@@ -12,6 +12,6 @@
     click - закрываем окно
     
  2) строка запуска скрипта сборки:
-    phing -f ./build/production/build.xml -Ddb.password=пароль_БД.
+    phing -f ./build/production/build.xml -Ddb.password=пароль_БД
     
     
