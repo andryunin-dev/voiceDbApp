@@ -440,12 +440,19 @@ class m_1484050074_initialMigrate
             }
         }
 
+
+        /**
+         * создание таблиц
+         */
         foreach ($sql as $key => $query) {
             if (true === $this->db->execute($query)) {
                 echo 'Tables in ' . $key . ' are created' . "\n";
             }
         }
 
+        /**
+         * вставка дефолтного статуса офисов
+         */
         $query = 'INSERT INTO company."officeStatuses" (title) VALUES (\'open\')';
         if (true === $this->db->execute($query)) {
             echo 'In table company."officeStatuses" inserted 1 record' . "\n";

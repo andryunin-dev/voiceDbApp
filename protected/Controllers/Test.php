@@ -16,6 +16,7 @@ class Test extends Controller
 {
     public function actionDefault()
     {
+
     }
 
     /**

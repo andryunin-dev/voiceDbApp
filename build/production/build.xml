@@ -54,7 +54,7 @@
 
     <target name="migrations">
         <echo msg="Applying migrations..." />
-        <exec command="php protected\t4.php /migrate" checkreturn="true" passthru="true" />
+        <exec command="php protected/t4.php /migrate" checkreturn="true" passthru="true" />
     </target>
 
     <target name="symlink">

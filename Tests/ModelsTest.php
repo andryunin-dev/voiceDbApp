@@ -29,22 +29,11 @@ class ModelsTest extends \PHPUnit\Framework\TestCase
 
     public function testInit()
     {
-        $config =  [
-            'db' => [
-                'default' => [
-                    'driver' => 'pgsql',
-                    'host' => '127.0.0.1',
-                    'user' => 'postgres',
-                    'password' => '',
-                    'dbname' => 'phpUnitTest'
-                ]
-            ]
-        ];
-        $config = new \T4\Core\Config($config);
-        $app = \T4\Console\Application::instance();
-        $app->setConfig($config);
+        $app = \T4\Console\Application
+            ::instance()
+            ->setConfig(new \T4\Core\Config(ROOT_PATH_PROTECTED . '/config.php'));
+        $app->db->default = $app->db->phpUnitTest;
         $conn = $app->db->default;
-
         \T4\Orm\Model::setConnection($conn);
         $this->assertInstanceOf('\T4\Dbal\Connection', \T4\Orm\Model::getDbConnection());
     }
