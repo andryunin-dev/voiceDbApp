@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="CopyProject" default="build" basedir=".">
-    <target name="build" depends="vars, copy, config, composer, symlink" />
+    <target name="build" depends="vars, copy, config, composer, migrations, symlink" />
 
     <target name="vars">
 
@@ -28,7 +28,6 @@
     <target name="copy">
         <echo msg="Creating dir ${target.build.dir}" />
         <mkdir dir="${target.build.dir}" />
-        <echo msg="Created dir: ${target.build.dir}" />
 
         <echo msg="Copy all files to build directory: ${target.build.dir}" />
         <copy todir="${target.build.dir}">
