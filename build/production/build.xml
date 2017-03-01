@@ -30,6 +30,7 @@
         <mkdir dir="${target.build.dir}" />
         <echo msg="Created dir: ${target.build.dir}" />
 
+        <echo msg="Copy all files to build directory: ${target.build.dir}" />
         <copy todir="${target.build.dir}">
             <fileset dir="${source.dir}" defaultexcludes="true" excludes="vendor/**, .idea/**">
                 <include name="**" />
