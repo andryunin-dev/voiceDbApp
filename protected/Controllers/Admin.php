@@ -219,14 +219,22 @@ class Admin extends Controller
                         ->save();
 
                     //Office status
-                    $status = OfficeStatus::findByPK($data->statId);
-                    if (false === $status) {
-                        if (isset($data->addNewStatus)) {
-                            $status = (new OfficeStatus())
-                                ->fill(['title' => $item->status])
-                                ->save();
-                        } else {
-                            $status = false;
+                    //если парсинг откинул поле статуса или оно пустое - берем из формы
+                    if (empty($item->status)) {
+                        $status = OfficeStatus::findByPK($data->statusId);
+                        if (false ===$status) {
+                            continue; //Ошибка. невозможно установить статус, переход к след записи
+                        }
+                    } else {
+                        $status = OfficeStatus::findByTitle($item->status);
+                        if (false === $status) {
+                            if (isset($data->addNewStatus)) {
+                                $status = (new OfficeStatus())
+                                    ->fill(['title' => $item->status])
+                                    ->save();
+                            } else {
+                                continue; //Ошибка. невозможно установить статус, переход к след записи
+                            }
                         }
                     }
 
