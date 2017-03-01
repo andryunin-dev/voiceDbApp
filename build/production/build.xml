@@ -26,6 +26,7 @@
     </target>
 
     <target name="copy">
+        <echo msg="Creating dir ${target.build.dir}" />
         <mkdir dir="${target.build.dir}" />
         <echo msg="Created dir: ${target.build.dir}" />
 
