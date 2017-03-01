@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="CopyProject" default="build" basedir=".">
-    <target name="build" depends="vars, copy, config, composer, migrations, symlink" />
+    <target name="build" depends="vars, copy, config, composer, twigCache, migrations, symlink" />
 
     <target name="vars">
 
@@ -35,6 +35,14 @@
                 <include name="**" />
             </fileset>
         </copy>
+    </target>
+
+    <target name="twigCache">
+        <mkdir dir="${target.build.dir}/protected/Cache" mode="777" />
+    </target>
+
+    <target name="permissions">
+        <exec command="chown -R teamcity:www ${target.build.dir}" />
     </target>
 
     <target name="config">
