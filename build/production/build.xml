@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="CopyProject" default="build" basedir=".">
-    <target name="build" depends="vars, copy, config, composer, twigCache, permissions, migrations, symlink" />
+    <target name="build" depends="vars, copy, config, composer, permissions, migrations, symlink" />
 
     <target name="vars">
 
@@ -42,7 +42,8 @@
     </target>
 
     <target name="permissions">
-        <exec command="chown -R teamcity:www ${target.build.dir}" />
+        <exec command="chmod -R 775 ${target.build.dir}" />
+        <exec command="chown -R nginx:www ${target.build.dir}" />
     </target>
 
     <target name="config">
