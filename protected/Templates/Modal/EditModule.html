@@ -1,0 +1,25 @@
+<div id="edit-module" role="dialog" title="Редактирование модуля">
+    <form action="/admin/editModule" method="post" role="form">
+        <div class="form-group">
+            <label for="id-vendor">Производитель</label>
+            <select name="module[vendorId]" id="id-vendor" class="form-control">
+                {% for vendor in vendors %}
+                    <option value="{{ vendor.getPK }}" {% if vendor.getPK == module.vendor.getPk %} selected {% endif %}>{{ vendor.title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="id-module">Название</label>
+            <input type="hidden" class="form-control" name="module[id]" value="{{ module.getPk }}">
+            <input type="text" class="form-control" name="module[title]" id="id-module" value="{{ module.title }}">
+        </div>
+
+        <button class="btn btn-success" type="submit">Сохранить</button>
+        <button class="btn btn-danger" type="button" role="button" data-action="close">Отмена</button>
+    </form>
+</div>
+<script>
+    var APP = APP || {};
+    APP.settings = APP.settings || {};
+    APP.settings.modalWindowSelector = "#edit-module";
+</script>

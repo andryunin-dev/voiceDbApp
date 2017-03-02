@@ -28,4 +28,21 @@ class Module extends Model
             'moduleItems' => ['type' => self::HAS_MANY, 'model' => ModuleItem::class]
         ]
     ];
+
+    public function validateTitle($title)
+    {
+        return (!empty(trim($title)));
+    }
+
+    public function validate()
+    {
+        if (
+            true === empty(trim($this->title)) ||
+            false === $this->vendor
+        ) {
+            return false;
+        }
+        return true;
+    }
+
 }

@@ -56,6 +56,9 @@
                                     <li class="active" aria-controls="platforms" role="tab">
                                         <a href="#platforms">Платформы</a>
                                     </li>
+                                    <li aria-controls="modules" role="tab">
+                                        <a href="#modules">Модули</a>
+                                    </li>
                                     <li aria-controls="software" role="tab">
                                         <a href="#software">ПО</a>
                                     </li>
@@ -100,6 +103,41 @@
                                                     <td class="col-actions">
                                                         <a class="btn btn-success btn-xs" href="/modal/editPlatform?id={{ platform.getPK }}" role="button" data-action="edit">Изменить</a>
                                                         <a class="btn btn-danger btn-xs" href="/admin/delPlatform?id={{ platform.getPK }}" data-action="delete">Удалить</a>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <!-- Modules -->
+                                    <div class="tab-pane" role="tabpanel" id="modules">
+                                        <table class="table table-bordered table-hover table-striped">
+                                            <thead>
+                                            <tr>
+                                                <th class="bg-primary col-software">
+                                                    <span class="th-divider-left">Название</span>
+                                                    <span class="th-divider-right">
+                                                        <a class="btn btn-success btn-xs" href="/modal/addModule" role="button" data-action="add">Добавить</a>
+                                                    </span>
+                                                </th>
+                                                <th class="bg-primary col-vendor">
+                                                    <span class="th-divider-left">Производитель</span>
+                                                    <span class="th-divider-right"></span>
+                                                </th>
+                                                <th class="bg-primary col-actions">
+                                                    <span class="th-divider-left">Действия</span>
+                                                </th>
+                                            </tr>
+                                            </thead>
+                                            <!--Данные-->
+                                            <tbody>
+                                            {% for moduleItem in modules %}
+                                                <tr>
+                                                    <td class="col-city cut-string">{{ moduleItem.title }}</td>
+                                                    <td class="col-region cut-string">{{ moduleItem.vendor.title }}</td>
+                                                    <td class="col-actions">
+                                                        <a class="btn btn-success btn-xs" href="/modal/editModule?id={{ moduleItem.getPK }}" role="button" data-action="edit">Изменить</a>
+                                                        <a class="btn btn-danger btn-xs" href="/admin/delModule?id={{ moduleItem.getPK }}" data-action="delete">Удалить</a>
                                                     </td>
                                                 </tr>
                                             {% endfor %}

@@ -6,6 +6,7 @@ use App\Components\Parser;
 use App\Components\Publisher;
 use App\Models\Address;
 use App\Models\City;
+use App\Models\Module;
 use App\Models\Office;
 use App\Models\OfficeStatus;
 use App\Models\Platform;
@@ -338,6 +339,7 @@ class Admin extends Controller
         $this->data->vendors = Vendor::findAll(['order' => 'title']);
         $this->data->platforms = Platform::findAll(['order' => 'title']);
         $this->data->software = Software::findAll(['order' => 'title']);
+        $this->data->modules = Module::findAll(['order' => 'title']);
         $this->data->settings->activeTab = 'platforms';
     }
 
@@ -377,6 +379,44 @@ class Admin extends Controller
         header('Location: /admin/devparts');
     }
 
+    public function actionAddModule($module)
+    {
+        //var_dump($module);
+        (new Module())
+            ->fill([
+                'title' => $module['title'],
+                'vendor' => Vendor::findByPK($module['vendorId'])
+            ])
+            ->save();
+        header('Location: /admin/devparts');
+    }
+
+    public function actionEditModule($module)
+    {
+        Module::getDbConnection()->beginTransaction();
+        $updatedModule = (Module::findByPK($module['id']))
+            ->fill([
+                'title' => $module['title'],
+                'vendor' => Vendor::findByPK($module['vendorId'])
+            ])
+            ->save();
+        if (false === $updatedModule) {
+            Module::getDbConnection()->rollbackTransaction();
+        } else {
+            Module::getDbConnection()->commitTransaction();
+        }
+        header('Location: /admin/devparts');
+
+    }
+
+    public function actionDelModule($id)
+    {
+        if (false !== $module = Module::findByPK($id)) {
+            $module->delete();
+        }
+        header('Location: /admin/devparts');
+    }
+
     public function actionAddSoftware($software)
     {
         (new Software())
@@ -403,7 +443,6 @@ class Admin extends Controller
             Software::getDbConnection()->commitTransaction();
         }
         header('Location: /admin/devparts');
-
     }
 
     public function actionDelSoftware($id)
@@ -412,7 +451,6 @@ class Admin extends Controller
             $software->delete();
         }
         header('Location: /admin/devparts');
-
     }
 
     public function actionAddVendor($vendor)
@@ -420,6 +458,7 @@ class Admin extends Controller
         (new Vendor())
             ->fill($vendor)
             ->save();
+        header('Location: /admin/devparts');
     }
 
     public function actionEditVendor($vendor)
