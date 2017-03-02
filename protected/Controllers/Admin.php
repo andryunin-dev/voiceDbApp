@@ -173,7 +173,7 @@ class Admin extends Controller
 
     /**
      * @param Std $data
-     * В случае $data->many формат записи для офиса: регион; город; адрес; офис; статус
+     * В случае $data->many формат записи для офиса : регион; город; адрес; офис; статус
      */
     public function actionAddOffice($data)
     {
