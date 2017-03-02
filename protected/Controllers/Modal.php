@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 
 use App\Models\City;
+use App\Models\Module;
 use App\Models\Office;
 use App\Models\OfficeStatus;
 use App\Models\Platform;
@@ -102,6 +103,8 @@ class Modal extends Controller
 
     public function actionEditModule($id)
     {
+        $this->data->vendors = Vendor::findAll(['order' => 'title']);
+        $this->data->module = Module::findByPK($id);
     }
 
     public function actionAddSoftware()
