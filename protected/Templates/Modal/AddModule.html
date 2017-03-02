@@ -1,16 +1,16 @@
-<div id="add-software" role="dialog" title="Новый тип ПО">
-    <form action="/admin/addSoftware" method="post" role="form">
+<div id="add-module" role="dialog" title="Новый модуль">
+    <form action="/admin/addModule" method="post" role="form">
         <div class="form-group">
             <label for="id-vendor">Производитель</label>
-            <select name="software[vendorId]" id="id-vendor" class="form-control">
+            <select name="module[vendorId]" id="id-vendor" class="form-control">
                 {% for vendor in vendors %}
                     <option value="{{ vendor.getPK }}">{{ vendor.title }}</option>
                 {% endfor %}
             </select>
         </div>
         <div class="form-group">
-            <label for="id-software">Тип ПО</label>
-            <input type="text" class="form-control" name="software[title]" id="id-software" placeholder="Новый тип ПО">
+            <label for="id-module">Название модуля</label>
+            <input type="text" class="form-control" name="module[title]" id="id-module" placeholder="Название нового модуля">
         </div>
 
         <button class="btn btn-success" type="submit">Создать</button>
@@ -20,5 +20,5 @@
 <script>
     var APP = APP || {};
     APP.settings = APP.settings || {};
-    APP.settings.modalWindowSelector = "#add-software";
+    APP.settings.modalWindowSelector = "#add-module";
 </script>

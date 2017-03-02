@@ -95,6 +95,15 @@ class Modal extends Controller
         $this->data->platform = Platform::findByPK($id);
     }
 
+    public function actionAddModule()
+    {
+        $this->data->vendors = Vendor::findAll(['order' => 'title']);
+    }
+
+    public function actionEditModule($id)
+    {
+    }
+
     public function actionAddSoftware()
     {
         $this->data->vendors = Vendor::findAll(['order' => 'title']);

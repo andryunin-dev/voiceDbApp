@@ -6,6 +6,7 @@ use App\Components\Parser;
 use App\Components\Publisher;
 use App\Models\Address;
 use App\Models\City;
+use App\Models\Module;
 use App\Models\Office;
 use App\Models\OfficeStatus;
 use App\Models\Platform;
@@ -377,6 +378,27 @@ class Admin extends Controller
         header('Location: /admin/devparts');
     }
 
+    public function actionAddModule($module)
+    {
+        (new Module())
+            ->fill([
+                'title' => $module['title'],
+                'vendor' => Vendor::findByPK($module['vendorId'])
+            ])
+            ->save();
+        header('Location: /admin/devparts');
+    }
+
+    public function actionEditModule($module)
+    {
+
+    }
+
+    public function actionDelModule($module)
+    {
+
+    }
+
     public function actionAddSoftware($software)
     {
         (new Software())
@@ -403,7 +425,6 @@ class Admin extends Controller
             Software::getDbConnection()->commitTransaction();
         }
         header('Location: /admin/devparts');
-
     }
 
     public function actionDelSoftware($id)
@@ -412,7 +433,6 @@ class Admin extends Controller
             $software->delete();
         }
         header('Location: /admin/devparts');
-
     }
 
     public function actionAddVendor($vendor)
@@ -420,6 +440,7 @@ class Admin extends Controller
         (new Vendor())
             ->fill($vendor)
             ->save();
+        header('Location: /admin/devparts');
     }
 
     public function actionEditVendor($vendor)
