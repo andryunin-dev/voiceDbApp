@@ -114,7 +114,7 @@ class ModelsTest extends \PHPUnit\Framework\TestCase
     {
         $office = (new \App\Models\Office())
             ->fill([
-                'title' => 'title office',
+                'title' => 'title office' . rand(0, 2147483647),
                 'lotusId' => rand(0, 2147483647),
                 'details' => ['propName' => 'propValue'],
                 'comment' => 'comment',
@@ -157,9 +157,10 @@ class ModelsTest extends \PHPUnit\Framework\TestCase
     {
         $vendor = (new \App\Models\Vendor())
             ->fill([
-                'title' => 'vendor name'
+                'title' => 'vendor name' . rand(0, 2147483647)
             ])
             ->save();
+
         $fromDb = \App\Models\Vendor::findByPK($vendor->getPk());
         $this->assertEquals(true, $this->compareModels($vendor, $fromDb));
         return $vendor;
@@ -302,8 +303,8 @@ class ModelsTest extends \PHPUnit\Framework\TestCase
         $className = '\App\Models\Module';
         $$objectName = (new $className())
             ->fill([
-                'partNumber' => 'part Number',
-                'comment' => 'comment',
+                'title' => 'part Number',
+                'description' => 'comment',
                 'vendor' => $vendor
             ])
             ->save();
