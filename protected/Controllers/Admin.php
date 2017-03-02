@@ -164,7 +164,6 @@ class Admin extends Controller
 
     public function actionOffices()
     {
-        $this->app->assets->publish('/Layouts/resources');
         $asc = function (Office $office_1, Office $office_2) {
             return strnatcmp($office_1->address->city->region->title, $office_2->address->city->region->title);
         };

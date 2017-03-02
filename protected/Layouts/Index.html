@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <title>T4 template</title>
+    {{ publish('/Layouts/resources') }}
+    {{ publishCss() }}
     <link rel="stylesheet" href="{{ asset('/Layouts/resources/jquery-ui-min/jquery-ui.min.css') }}">
     <link rel="stylesheet" href="{{ asset('/Layouts/resources/bootstrap/css/bootstrap.css') }}">
     <link rel="stylesheet" href="{{ asset('/Layouts/resources/css/style.css') }}">
@@ -18,6 +20,8 @@
     <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
 
+    <!--js-->
+    {{ publishJs() }}
     <script src="{{ asset('/Layouts/resources/jquery-ui-min/external/jquery/jquery.js') }}"></script>
     <script src="{{ asset('/Layouts/resources/bootstrap/js/dropdown.js') }}"></script>
     <script src="{{ asset('/Layouts/resources/jquery-ui-min/jquery-ui.min.js') }}"></script>
