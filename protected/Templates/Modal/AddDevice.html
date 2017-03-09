@@ -33,7 +33,7 @@
                     </div>
                     <div class="col-sm-4 input-group">
                         <span class="input-group-addon" id="hw-sn">S/N</span>
-                        <input type="text" class="form-control" placeholder="Серийный номер" aria-describedby="hw-sn">
+                        <input type="text" class="form-control" name="data[platformSn]" placeholder="Серийный номер" aria-describedby="hw-sn">
                     </div>
                 </div>
 
@@ -63,7 +63,7 @@
                         <template class="js-add-module">
                             <div class="form-group">
                                 <div class="col-xs-4">
-                                    <select name="data[moduleId[]]" id="id-module" class="form-control">
+                                    <select name="data[moduleId][]" id="id-module" class="form-control">
                                         <option value="" selected="selected">---------</option>
                                         {% for module in modules %}
                                             <option value="{{ module.getPK }}">{{ module.title }}</option>
@@ -71,10 +71,10 @@
                                     </select>
                                 </div>
                                 <div class="col-xs-4">
-                                    <input type="text" class="form-control" name="data[sn[]]" placeholder="Серийный номер">
+                                    <input type="text" class="form-control" name="data[sn][]" placeholder="Серийный номер">
                                 </div>
                                 <div class="col-xs-4">
-                                    <input type="text" class="form-control" name="data[comment[]]" placeholder="Комментарий">
+                                    <input type="text" class="form-control" name="data[comment][]" placeholder="Комментарий">
                                 </div>
                             </div>
                         </template>

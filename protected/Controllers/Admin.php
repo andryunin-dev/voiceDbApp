@@ -484,6 +484,11 @@ class Admin extends Controller
 
     }
 
+    public function actionAddDevice($data)
+    {
+        var_dump($data);die;
+    }
+
 
 
 
