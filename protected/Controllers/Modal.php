@@ -130,7 +130,16 @@ class Modal extends Controller
 
     public function actionOfficeDetail($id)
     {
-        var_dump(Office::findByPK($id));
         $this->data->office = Office::findByPK($id);
     }
+
+    public function actionAddDevice()
+    {
+        $this->data->offices = Office::findAll(['order' => 'title']);
+        $this->data->vendors = Vendor::findAll(['order' => 'title']);
+        $this->data->platforms = Platform::findAll(['order' => 'title']);
+        $this->data->software = Software::findAll(['order' => 'title']);
+        $this->data->modules = Module::findAll(['order' => 'title']);
+    }
+
 }

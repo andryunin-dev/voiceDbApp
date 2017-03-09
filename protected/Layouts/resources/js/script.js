@@ -24,7 +24,7 @@ jQuery(function ($) {
                             modalWindow.dialog({
                                 autoOpen: true,
                                 height: "auto",
-                                width: "auto",
+                                width: APP.settings.modalWidth || "auto",
                                 modal: true,
                                 close: function (event, ui) {
                                     modalWindow.dialog("destroy");

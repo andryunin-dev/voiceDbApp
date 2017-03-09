@@ -1,0 +1,114 @@
+<div id="add-device" role="dialog" title="Новое устройство">
+    <div class="container-fluid">
+        <div class="row">
+            <form class="form-horizontal" action="/admin/addDevice" method="post" role="form">
+                <div class="form-group">
+                    <label for="id-office" class="col-sm-3 control-label">Офис</label>
+                    <div class="col-sm-9"><select name="data[officeId]" id="id-office" class="form-control">
+                            {% for office in offices %}
+                                <option value="{{ office.getPK }}">{{ office.title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="id-vendor" class="col-sm-3 control-label">Производитель</label>
+                    <div class="col-sm-9"><select name="data[vendorId]" id="id-vendor" class="form-control">
+                            {% for vendor in vendors %}
+                                <option value="{{ vendor.getPK }}">{{ vendor.title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="id-platform" class="col-sm-3 control-label">Платформа</label>
+                    <div class="col-sm-5">
+                            <select name="data[platformId]" id="id-platform" class="form-control">
+                                {% for platform in platforms %}
+                                    <option value="{{ platform.getPK }}">{{ platform.title }}</option>
+                                {% endfor %}
+                            </select>
+                    </div>
+                    <div class="col-sm-4 input-group">
+                        <span class="input-group-addon" id="hw-sn">S/N</span>
+                        <input type="text" class="form-control" placeholder="Серийный номер" aria-describedby="hw-sn">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="id-software" class="col-sm-3 control-label">ПО</label>
+                    <div class="col-sm-9"><select name="data[softwareId]" id="id-software" class="form-control">
+                            {% for softwareItem in software %}
+                                <option value="{{ softwareItem.getPK }}">{{ softwareItem.title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="panel panel-default">
+                    <div class="panel-heading clearfix">
+                        <div class="col-sm-6">
+                            <label for="">Модули</label>
+                        </div>
+                        <div class="col-sm-1 col-sm-offset-4">
+                            <button class="btn btn-xs btn-success" type="button" data-action="add-module">
+                                добавить
+                            </button>
+                        </div>
+
+                    </div>
+                    <div class="panel-body js-add-module">
+                        <template class="js-add-module">
+                            <div class="form-group">
+                                <div class="col-xs-4">
+                                    <select name="data[moduleId[]]" id="id-module" class="form-control">
+                                        <option value="" selected="selected">---------</option>
+                                        {% for module in modules %}
+                                            <option value="{{ module.getPK }}">{{ module.title }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-xs-4">
+                                    <input type="text" class="form-control" name="data[sn[]]" placeholder="Серийный номер">
+                                </div>
+                                <div class="col-xs-4">
+                                    <input type="text" class="form-control" name="data[comment[]]" placeholder="Комментарий">
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <div class="col-sm-offset-3 col-sm-8">
+                    <button class="btn btn-success" type="submit">Создать</button>
+                    <button class="btn btn-danger" type="button" role="button" data-action="close">Отмена</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+    var APP = APP || {};
+    APP.settings = APP.settings || {};
+    APP.data = APP.data || {};
+    APP.settings.modalWindowSelector = "#add-device";
+    APP.settings.modalWidth = 800;
+    APP.data.moduleTemplate = $(APP.settings.modalWindowSelector + " template.js-add-module");
+//    APP = (function (app) {
+//        //console.log(app);
+//        app.data.moduleTemplate = $(APP.settings.modalWindowSelector + " template.js-add-module");
+//        //console.log(app.data.moduleTemplate);
+//        return app;
+//    })(APP);
+    $("button[data-action='add-module']").on(
+            "click",
+            function (event) {
+                event.preventDefault();
+                //console.log(APP);
+                $(APP.settings.modalWindowSelector + " .panel-body.js-add-module")
+                        .prepend(APP.data.moduleTemplate.clone().html());
+            }
+    )
+</script>

@@ -1,66 +1,98 @@
 {% extends 'Index.html' %}
 
 {% block main %}
-    <div class="container-fluid">
-        <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
-            <div class="container-fluid">
-                <!-- Brand and toggle get grouped for better mobile display -->
-                <div class="navbar-header">
-                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
-                        <span class="sr-only">Toggle navigation</span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                    </button>
-                    <a class="navbar-brand" href="/admin/offices">Home</a>
-                </div>
-
-                <!-- Collect the nav links, forms, and other content for toggling -->
-                <div class="collapse navbar-collapse navbar-ex1-collapse">
-                    <ul class="nav navbar-nav">
-                        <li>
-                            <a href="/admin/offices">Офисы</a>
-                        </li>
-                        <li class="active">
-                            <a href="/admin/devices">Оборудование</a>
-                        </li>
-                    </ul>
-                    <ul class="nav navbar-nav navbar-right">
-                        <li class="dropdown">
-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Справочники <b class="caret"></b></a>
-                            <ul class="dropdown-menu">
-                                <li><a href="/admin/offices">Офисы</a></li>
-                                <li><a href="/admin/regions">Регионы</a></li>
-                                <li><a href="/admin/cities">Города</a></li>
-                                <li><a href="/admin/officeStatuses">Статусы офисов</a></li>
-                                <li><a href="/admin/devparts">Оборудование</a></li>
-                            </ul>
-                        </li>
-                    </ul>
-                </div><!-- /.navbar-collapse -->
-
+    <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#">Home</a>
             </div>
-        </nav>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse navbar-ex1-collapse">
+                <ul class="nav navbar-nav">
+                    <li>
+                        <a href="/admin/offices">Офисы</a>
+                    </li>
+                    <li class="active">
+                        <a href="/admin/devices">Оборудование</a>
+                    </li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Справочники <b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="/admin/offices">Офисы</a></li>
+                            <li><a href="/admin/regions">Регионы</a></li>
+                            <li><a href="/admin/cities">Города</a></li>
+                            <li><a href="/admin/officeStatuses">Статусы офисов</a></li>
+                            <li><a href="/admin/devparts">Оборудование</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div><!-- /.navbar-collapse -->
+
+        </div>
+    </nav>
+    <div class="container-fluid">
         <div class="row">
             <main class="offices">
                 <div class="col-xs-12">
-                    <table class="table table-bordered table-hover table-striped">
+                    <table class="table table-bordered table-hover table-striped cust-table-striped">
                         <thead>
-                        <tr>
-                            <th class="bg-primary col-region">Регион</th>
-                            <th class="bg-primary col-city">Город</th>
-                            <th class="bg-primary col-office">Офис</th>
-                            <th class="bg-primary col-hardware">Оборудование</th>
-                            <th class="bg-primary col-software">ПО</th>
-                            <th class="bg-primary col-port-type">Тип порта</th>
-                            <th class="bg-primary col-ip-address">IP адрес</th>
-                            <th class="bg-primary col-mac-address">MAC адрес</th>
-                            <th class="bg-primary col-comment">Комментарий</th>
-                            <th class="bg-primary col-actions">Действия</th>
+                        <tr class="text-middle text-center">
+                            <th class="bg-primary col-office" rowspan="2">Офис</th>
+                            <th class="bg-primary col-hardware" rowspan="2">Оборудование<a class="btn btn-success btn-md btn-custom" href="/modal/addDevice" role="button" data-action="add">+</a></th>
+                            <th class="bg-primary col-software" rowspan="2">ПО</th>
+                            <th class="bg-primary col-software" rowspan="2">hostname</th>
+                            <th class="bg-primary col-module" rowspan="2">Модуль</th>
+                            <th class="bg-primary col-port" colspan="3">Порты</th>
+                            <th class="bg-primary col-comment" rowspan="2">Комментарий</th>
+                            <th class="bg-primary col-actions" rowspan="2">Действия</th>
+                        </tr>
+                        <tr class="text-center">
+                            <th class="bg-primary col-port-type">Тип</th>
+                            <th class="bg-primary col-port-type">MAC</th>
+                            <th class="bg-primary col-port-type">IP</th>
                         </tr>
                         </thead>
                         <tbody>
-
+                        <tr>
+                            <td rowspan="4">office</td>
+                            <td rowspan="4">device</td>
+                            <td rowspan="4">sotf</td>
+                            <td rowspan="4">host1</td>
+                            <td rowspan="2">module 1</td>
+                            <td>ethernet</td>
+                            <td>mac 1</td>
+                            <td>192.168.128.124/24</td>
+                            <td rowspan="2">comment 1</td>
+                            <td rowspan="2">action</td>
+                        </tr>
+                        <tr>
+                            <td>type eth</td>
+                            <td>mac 2</td>
+                            <td>192.168.128.124/24</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">module 1</td>
+                            <td>type eth</td>
+                            <td>mac 3</td>
+                            <td>192.168.128.124/24</td>
+                            <td rowspan="2">comment 1</td>
+                            <td rowspan="2">action</td>
+                        </tr>
+                        <tr>
+                            <td>type eth</td>
+                            <td>mac 4</td>
+                            <td>192.168.128.124/24</td>
+                        </tr>
                         </tbody>
                     </table>
                 </div>
@@ -71,9 +103,7 @@
     <script>
         var APP = APP || {};
         APP.settings = APP.settings || {};
-        APP.settings.modalURL = "/modal/officeDetail";
+        APP.settings.modalURL = "/modal/addDevice";
     </script>
-
-
-
 {% endblock %}
+
