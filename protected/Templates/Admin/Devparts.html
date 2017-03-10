@@ -53,6 +53,9 @@
                             <div>
                                 <!-- Nav tabs -->
                                 <ul class="nav nav-tabs" role="tablist">
+                                    <li aria-controls="types" role="tab">
+                                        <a href="#types">Тип(роль)</a>
+                                    </li>
                                     <li class="active" aria-controls="platforms" role="tab">
                                         <a href="#platforms">Платформы</a>
                                     </li>
@@ -74,6 +77,38 @@
 
                                 <!-- Tab panels -->
                                 <div class="tab-content">
+                                    <!-- Types -->
+                                    <div class="tab-pane" role="tabpanel" id="types">
+                                        <table class="table table-bordered table-hover table-striped">
+                                            <thead>
+                                            <tr>
+                                                <th class="bg-primary col-vendor">
+                                                    <span class="th-divider-left">Тип(роль)</span>
+                                                    <span class="th-divider-right">
+                                                        <a class="btn btn-success btn-xs" href="/modal/addApplianceType" role="button" data-action="add">Добавить</a>
+                                                    </span>
+                                                </th>
+                                                <th class="bg-primary col-actions">
+                                                    <span class="th-divider-left">Действия</span>
+                                                </th>
+                                            </tr>
+                                            </thead>
+                                            <!--Данные-->
+                                            <tbody>
+                                            {% for applianceType in applianceTypes %}
+                                                <tr>
+                                                    <td class="col-appliance-type cut-string">
+                                                        {{ applianceType }}
+                                                    </td>
+                                                    <td class="col-actions">
+                                                        <a class="btn btn-success btn-xs" href="/modal/editApplianceType?id={{ applianceType.getPK }}" role="button" data-action="edit">Изменить</a>
+                                                        <a class="btn btn-danger btn-xs" href="/admin/delApplianceType?id={{ applianceType.getPK }}" data-action="delete">Удалить</a>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
                                     <!-- Platforms -->
                                     <div class="tab-pane active" role="tabpanel" id="platforms">
                                         <table class="table table-bordered table-hover table-striped">

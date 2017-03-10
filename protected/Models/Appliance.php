@@ -24,6 +24,10 @@ use T4\Orm\Model;
  */
 class Appliance extends Model
 {
+    const MOTHERBOARD = 'motherboard'; // motherboard name in modules
+
+    public $moterboard;
+
     protected static $schema = [
         'table' => 'equipment.appliances',
         'columns' => [
@@ -42,4 +46,19 @@ class Appliance extends Model
             'modules' => ['type' => self::HAS_MANY, 'model' => ModuleItem::class]
         ]
     ];
+
+    public function validate()
+    {
+        if (
+            false === $this->location ||
+            false === $this->vendor ||
+            false === $this->platform ||
+            false === $this->software ||
+            false === $this->type
+        ) {
+            return false;
+        }
+        return true;
+    }
+
 }

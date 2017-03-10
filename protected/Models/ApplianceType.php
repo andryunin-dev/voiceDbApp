@@ -24,4 +24,30 @@ class ApplianceType extends Model
             'appliances' => ['type' => self::HAS_MANY, 'model' => Appliance::class, 'by' => '__type_id']
         ]
     ];
+
+    public function __toString()
+    {
+        return $this->type;
+    }
+
+
+    public function validateType($type)
+    {
+        return (!empty(trim($type)));
+    }
+
+    public function validate()
+    {
+        if (
+            true === empty(trim($this->type))
+        ) {
+            return false;
+        }
+        //только для нового объекта проверяем на наличие такого в БД
+        if (true === $this->isNew() && false !== ApplianceType::findByColumn('type', trim($this->type))) {
+            return false; //есть appliance type с таким типом
+        }
+        return true;
+    }
+
 }

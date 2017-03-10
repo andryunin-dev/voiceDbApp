@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 
+use App\Models\ApplianceType;
 use App\Models\City;
 use App\Models\Module;
 use App\Models\Office;
@@ -85,6 +86,16 @@ class Modal extends Controller
         }
     }
 
+    public function actionAddApplianceType()
+    {
+
+    }
+
+    public function actionEditApplianceType($id)
+    {
+        $this->data->applianceType = ApplianceType::findByPK($id);
+    }
+
     public function actionAddPlatform()
     {
         $this->data->vendors = Vendor::findAll(['order' => 'title']);
@@ -133,13 +144,14 @@ class Modal extends Controller
         $this->data->office = Office::findByPK($id);
     }
 
-    public function actionAddDevice()
+    public function actionAddAppliance()
     {
         $this->data->offices = Office::findAll(['order' => 'title']);
         $this->data->vendors = Vendor::findAll(['order' => 'title']);
         $this->data->platforms = Platform::findAll(['order' => 'title']);
         $this->data->software = Software::findAll(['order' => 'title']);
         $this->data->modules = Module::findAll(['order' => 'title']);
+        $this->data->applianceTypes = ApplianceType::findAll(['order' => 'type']);
     }
 
 }

@@ -5,6 +5,7 @@ namespace App\Controllers;
 
 use App\Components\Sorter;
 use App\Models\Address;
+use App\Models\ApplianceType;
 use App\Models\City;
 use App\Models\Office;
 use App\Models\OfficeStatus;
@@ -16,7 +17,7 @@ class Test extends Controller
 {
     public function actionDefault()
     {
-        var_dump(get_current_user());die;
+        var_dump(ApplianceType::findAll(['order' => 'type']));die;
     }
 
     /**

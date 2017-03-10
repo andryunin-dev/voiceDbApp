@@ -5,13 +5,17 @@ namespace App\Controllers;
 use App\Components\Parser;
 use App\Components\Publisher;
 use App\Models\Address;
+use App\Models\Appliance;
+use App\Models\ApplianceType;
 use App\Models\City;
 use App\Models\Module;
 use App\Models\Office;
 use App\Models\OfficeStatus;
 use App\Models\Platform;
+use App\Models\PlatformItem;
 use App\Models\Region;
 use App\Models\Software;
+use App\Models\SoftwareItem;
 use App\Models\Vendor;
 use T4\Core\Std;
 use T4\Mvc\Controller;
@@ -340,7 +344,35 @@ class Admin extends Controller
         $this->data->platforms = Platform::findAll(['order' => 'title']);
         $this->data->software = Software::findAll(['order' => 'title']);
         $this->data->modules = Module::findAll(['order' => 'title']);
+        $this->data->applianceTypes = ApplianceType::findAll(['order' => 'type']);
+
         $this->data->settings->activeTab = 'platforms';
+    }
+
+    public function actionAddApplianceType($applianceType)
+    {
+        (new ApplianceType())
+            ->fill($applianceType)
+            ->save();
+        header('Location: /admin/devparts');
+    }
+
+    public function actionEditApplianceType($applianceType)
+    {
+        ApplianceType::findByPK($applianceType['id'])
+            ->fill([
+                'type' => $applianceType['type']
+            ])
+            ->save();
+        header('Location: /admin/devparts');
+    }
+
+    public function actionDelApplianceType($id)
+    {
+        if (false !== $applianceType = ApplianceType::findByPK($id)) {
+            $applianceType->delete();
+        }
+        header('Location: /admin/devparts');
     }
 
     public function actionAddPlatform($platform)
@@ -484,89 +516,44 @@ class Admin extends Controller
 
     }
 
-    public function actionAddDevice($data)
+    public function actionAddAppliance($data)
     {
-        var_dump($data);die;
-    }
+        Appliance::getDbConnection()->beginTransaction();
 
+        $office = Office::findByPK($data->officeId);
+        $vendor = Vendor::findByPK($data->vendorId);
+        $applianceType = ApplianceType::findByPK($data->applianceTypeId);
 
+        $platformItem = (new PlatformItem())
+            ->fill([
+                'platform' => Platform::findByPK($data->platformId),
+                'serialNumber' => $data->platformSn
+            ])
+            ->save();
 
+        $softwareItem = (new SoftwareItem())
+            ->fill([
+                'software' => Software::findByPK($data->softwareId),
+                'version' => $data->softwareVersion
+            ])
+            ->save();
 
+        $appliance = (new Appliance())
+            ->fill([
+                'location' => $office,
+                'vendor' => $vendor,
+                'platform' => $platformItem,
+                'software' => $softwareItem,
+                'type' => $applianceType
+            ])
+            ->save();
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    public function actionAddVendorold($vendor)
-    {
-        if (!empty($vendor)) {
-            if (!empty(trim($vendor['many']))) {
-                $pattern = '~[\n\r]~';
-                $vendorListStr = preg_replace($pattern, '', trim($vendor['many']));
-                $vendorListArray = explode(',', $vendorListStr);
-
-                foreach ($vendorListArray as $vendor) {
-                    (new Vendor())
-                        ->fill(['title' => trim($vendor)])
-                        ->save();
-                }
-
-            } elseif (!empty(trim($vendor['one']))) {
-                (new Vendor())
-                    ->fill(['title' => $vendor['one']])
-                    ->save();
-            }
+        if (false === $appliance) {
+            Appliance::getDbConnection()->rollbackTransaction();
+        } else {
+            Appliance::getDbConnection()->commitTransaction();
         }
-        header('Location: /admin/devparts');
-    }
-
-    public function actionDelVendorold($id)
-    {
-        if (false !== $vendor = Vendor::findByPK($id)) {
-            $vendor->delete();
-        }
-        header('Location: /admin/devparts');
-    }
-
-
-
-    public function actionAddSoftwareold($software)
-    {
-        if (!empty(trim($software['title']))) {
-            (new Software())
-                ->fill([
-                    'title' => $software['title'],
-                    'vendor' => Vendor::findByPK($software['vendorId'])
-                ])
-                ->save();
-        }
-        header('Location: /admin/devparts');
-    }
-
-    public function actionDelSoftwareold($id)
-    {
-        if (false !== $software = Software::findByPK($id)) {
-            $software->delete();
-        }
-        header('Location: /admin/devparts');
+        header('Location: /admin/devices');
     }
 
 }

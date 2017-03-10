@@ -33,4 +33,12 @@ class PlatformItem extends Model
             'appliance' => ['type' => self::HAS_ONE, 'model' => Appliance::class, 'by' => '__platform_item_id']
         ]
     ];
+
+    public function validate()
+    {
+        if (false === $this->platform) {
+            return false;
+        }
+        return true;
+    }
 }

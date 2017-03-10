@@ -44,7 +44,7 @@ class Vendor extends Model
             return false;
         }
         //только для нового объекта проверяем на наличие такого в БД
-        if (true === $this->isNew() && true == Vendor::findByColumn('title', trim($this->title))) {
+        if (true === $this->isNew() && false !== Vendor::findByColumn('title', trim($this->title))) {
             return false; //есть вендор с таким title
         }
         return true;
