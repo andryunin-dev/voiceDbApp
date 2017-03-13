@@ -66,7 +66,7 @@
                                 <span class="th-divider-left">Офис</span>
                                 <span class="th-divider-right">
                                         <a class="btn btn-success btn-xs" href="/modal/addOffice" role="button"
-                                           data-action="add">Добавить</a>
+                                           data-action="popup-add">Добавить</a>
                                     </span>
                             </th>
                             <th class="bg-primary col-status">
@@ -79,7 +79,7 @@
                         </thead>
                         <tbody>
                         {% for office in offices %}
-                            <tr class="office-row" role="button" data-action="view" aria-controls="office-detail"
+                            <tr class="office-row" role="button" data-action="popup-view" aria-controls="office-detail"
                                 data-id="{{ office.getPK }}">
                                 <td class="col-region cut-string">{{ office.address.city.region.title }}</td>
                                 <td class="col-city cut-string">{{ office.address.city.title }}</td>
@@ -88,7 +88,7 @@
                                 <td class="col-status cut-string">{{ office.status.title }}</td>
                                 <td class="col-actions">
                                     <a class="btn btn-success btn-xs" href="/modal/editOffice?id={{ office.getPK }}"
-                                       role="button" data-action="edit">
+                                       role="button" data-action="popup-edit">
                                         Изменить
                                     </a>
                                     <a class="btn btn-danger btn-xs" href="/admin/delOffice?id={{ office.getPK }}" role="button"

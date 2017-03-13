@@ -10,8 +10,8 @@ jQuery(function ($) {
             event.stopPropagation();
             //console.log($(this).attr("href"));
             switch ($(this).attr("data-action")) {
-                case "add":
-                case "edit":
+                case "popup-add":
+                case "popup-edit":
                     event.preventDefault();
                     $.ajax({
                         url: $(this).attr("href"),
