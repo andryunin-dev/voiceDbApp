@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 
 use App\Models\City;
+use App\Models\Module;
 use App\Models\Office;
 use App\Models\OfficeStatus;
 use App\Models\Platform;
@@ -95,6 +96,17 @@ class Modal extends Controller
         $this->data->platform = Platform::findByPK($id);
     }
 
+    public function actionAddModule()
+    {
+        $this->data->vendors = Vendor::findAll(['order' => 'title']);
+    }
+
+    public function actionEditModule($id)
+    {
+        $this->data->vendors = Vendor::findAll(['order' => 'title']);
+        $this->data->module = Module::findByPK($id);
+    }
+
     public function actionAddSoftware()
     {
         $this->data->vendors = Vendor::findAll(['order' => 'title']);
@@ -114,5 +126,11 @@ class Modal extends Controller
     public function actionEditVendor($id)
     {
         $this->data->vendor = Vendor::findByPK($id);
+    }
+
+    public function actionOfficeDetail($id)
+    {
+        var_dump(Office::findByPK($id));
+        $this->data->office = Office::findByPK($id);
     }
 }

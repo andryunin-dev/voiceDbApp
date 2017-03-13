@@ -29,22 +29,11 @@ class ModelsTest extends \PHPUnit\Framework\TestCase
 
     public function testInit()
     {
-        $config =  [
-            'db' => [
-                'default' => [
-                    'driver' => 'pgsql',
-                    'host' => '127.0.0.1',
-                    'user' => 'postgres',
-                    'password' => '',
-                    'dbname' => 'phpUnitTest'
-                ]
-            ]
-        ];
-        $config = new \T4\Core\Config($config);
-        $app = \T4\Console\Application::instance();
-        $app->setConfig($config);
+        $app = \T4\Console\Application
+            ::instance()
+            ->setConfig(new \T4\Core\Config(ROOT_PATH_PROTECTED . '/config.php'));
+        $app->db->default = $app->db->phpUnitTest;
         $conn = $app->db->default;
-
         \T4\Orm\Model::setConnection($conn);
         $this->assertInstanceOf('\T4\Dbal\Connection', \T4\Orm\Model::getDbConnection());
     }
@@ -125,7 +114,7 @@ class ModelsTest extends \PHPUnit\Framework\TestCase
     {
         $office = (new \App\Models\Office())
             ->fill([
-                'title' => 'title office',
+                'title' => 'title office' . rand(0, 2147483647),
                 'lotusId' => rand(0, 2147483647),
                 'details' => ['propName' => 'propValue'],
                 'comment' => 'comment',
@@ -168,9 +157,10 @@ class ModelsTest extends \PHPUnit\Framework\TestCase
     {
         $vendor = (new \App\Models\Vendor())
             ->fill([
-                'title' => 'vendor name'
+                'title' => 'vendor name' . rand(0, 2147483647)
             ])
             ->save();
+
         $fromDb = \App\Models\Vendor::findByPK($vendor->getPk());
         $this->assertEquals(true, $this->compareModels($vendor, $fromDb));
         return $vendor;
@@ -313,8 +303,8 @@ class ModelsTest extends \PHPUnit\Framework\TestCase
         $className = '\App\Models\Module';
         $$objectName = (new $className())
             ->fill([
-                'partNumber' => 'part Number',
-                'comment' => 'comment',
+                'title' => 'part Number',
+                'description' => 'comment',
                 'vendor' => $vendor
             ])
             ->save();

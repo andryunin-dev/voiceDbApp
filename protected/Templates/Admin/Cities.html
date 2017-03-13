@@ -2,29 +2,52 @@
 
 {% block main %}
     <div class="container-fluid">
-        <div class="row">
-            <aside>
-                <div class="col-xs-2 aside-menu">
-                    <div class="section">
-                        <a class="btn btn-default" href="/admin/offices">Офисы</a>
-                    </div>
-                    <div class="section-title">
-                        <h4 class="text-center">Справочники</h4>
-                    </div>
-                    <div class="section">
-                        <a class="btn btn-default" href="/admin/offices">Офисы</a>
-                        <a class="btn btn-default" href="/admin/regions">Регионы</a>
-                        <a class="btn btn-default active" href="/admin/cities">Города</a>
-                        <a class="btn btn-default" href="/admin/officeStatuses">Статусы офисов</a>
-                        <a class="btn btn-default" href="/admin/devices">Оборудование</a>
-                    </div>
+        <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+            <div class="container-fluid">
+                <!-- Brand and toggle get grouped for better mobile display -->
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="#">Home</a>
                 </div>
-            </aside>
+
+                <!-- Collect the nav links, forms, and other content for toggling -->
+                <div class="collapse navbar-collapse navbar-ex1-collapse">
+                    <ul class="nav navbar-nav">
+                        <li>
+                            <a href="/admin/offices">Офисы</a>
+                        </li>
+                        <li>
+                            <a href="/admin/devices">Оборудование</a>
+                        </li>
+                    </ul>
+                    <ul class="nav navbar-nav navbar-right">
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Справочники <b class="caret"></b></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="/admin/offices">Офисы</a></li>
+                                <li><a href="/admin/regions">Регионы</a></li>
+                                <li><a href="/admin/cities">Города</a></li>
+                                <li><a href="/admin/officeStatuses">Статусы офисов</a></li>
+                                <li><a href="/admin/devparts">Оборудование</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div><!-- /.navbar-collapse -->
+
+            </div>
+        </nav>
+
+        <div class="row">
             <main class="cities">
                 <div class="col-xs-5">
                     <table class="table table-bordered table-hover table-striped">
                         <thead>
-                            <tr>
+                        <tr>
                             <th class="bg-primary col-region">
                                 <span class="th-divider-left">Регион</span>
                                 <span class="th-divider-right">

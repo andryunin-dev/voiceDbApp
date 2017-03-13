@@ -1,4 +1,4 @@
-<div role="dialog" title="Новый регион">
+<div id="add-region" role="dialog" title="Новый регион">
   <form action="/admin/addRegion" method="post" role="form">
     <div class="form-group">
       <label for="id-region"></label>
@@ -15,3 +15,8 @@
     </button>
   </form>
 </div>
+<script>
+  var APP = APP || {};
+  APP.settings = APP.settings || {};
+  APP.settings.modalWindowSelector = "#add-region";
+</script>

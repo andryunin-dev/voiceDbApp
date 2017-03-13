@@ -1,4 +1,4 @@
-<div role="dialog" title="Новый город">
+<div id="add-city" role="dialog" title="Новый город">
     <form action="/admin/addCity" method="post" role="form">
         <div class="form-group">
             <select name="city[regId]" id="id-region" class="form-control">
@@ -18,3 +18,9 @@
         </button>
     </form>
 </div>
+<script>
+    var APP = APP || {};
+    APP.settings = APP.settings || {};
+    APP.settings.modalWindowSelector = "#add-city";
+</script>
+

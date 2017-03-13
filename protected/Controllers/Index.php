@@ -13,9 +13,6 @@ class Index
 
     public function actionDefault()
     {
-        $data = 'Москва,Москва,"МО, Домодедовский р-он, г.Домодедово, мкр.Северный,ул.Логистическая,д.1,ПЛК ""Северное Домодедово"",зд.К-10 ",194,"Москва, ПЛК Северное Домодедово"';
-        //$res = str_replace('""', '', $data);
-        $res = Parser::lotusTerritory($data);
-        var_dump($res);die;
+        header('Location: /admin/offices');
     }
 }

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="CopyProject" default="build" basedir=".">
+    <target name="build" depends="vars, copy, config, composer, permissions, migrations, symlink" />
+
+    <target name="vars">
+
+        <resolvepath propertyName="source.dir" file="${project.basedir}" />
+        <echo msg="Source dir is: ${source.dir}" />
+
+        <resolvepath propertyName="www.dir" file="/var/www" />
+        <echo msg="Nginx base dir is: ${www.dir}" />
+
+        <property name="production.domain.name" value="voice.rs.ru" />
+        <echo msg="Production domain name: ${production.domain.name}" />
+
+        <php returnProperty="build.time" function="date">
+            <param value="Y-m-d-H-i-s" />
+        </php>
+
+        <resolvepath propertyName="target.build.dir" file="${www.dir}/${production.domain.name}/${build.time}" />
+        <echo msg="Target BUILD dir is: ${target.build.dir}" />
+
+        <resolvepath propertyName="target.project.dir" file="${www.dir}/${production.domain.name}/current" />
+        <echo msg="Target PROJECT dir is: ${target.project.dir}" />
+
+    </target>
+
+    <target name="copy">
+        <echo msg="Creating dir ${target.build.dir}" />
+        <mkdir dir="${target.build.dir}" />
+
+        <echo msg="Copy all files to build directory: ${target.build.dir}" />
+        <copy todir="${target.build.dir}">
+            <fileset dir="${source.dir}" defaultexcludes="true" excludes="vendor/**, .idea/**">
+                <include name="**" />
+            </fileset>
+        </copy>
+    </target>
+
+    <target name="permissions">
+        <exec command="chmod -R 777 ${target.build.dir}" />
+    </target>
+
+    <target name="config">
+        <copy todir="${target.build.dir}/protected" file="${source.dir}/build/production/config.php" overwrite="true">
+            <filterchain>
+                <replacetokens begintoken="{{" endtoken="}}">
+                    <token key="db.password" value="${db.password}" />
+                </replacetokens>
+            </filterchain>
+        </copy>
+    </target>
+
+    <target name="composer">
+        <echo msg="Installing composer depedencies..." />
+        <exec command="composer install" dir="${target.build.dir}" checkreturn="true" passthru="true" />
+    </target>
+
+    <target name="migrations">
+        <echo msg="Applying migrations..." />
+        <exec command="php protected/t4.php /migrate" dir="${target.build.dir}" checkreturn="true" passthru="true" />
+    </target>
+
+    <target name="symlink">
+        <symlink link="${target.project.dir}" target="${target.build.dir}" overwrite="true" />
+        <echo msg="Create symlink from bulid directory - ${target.build.dir} \n to - ${target.project.dir}" />
+    </target>
+</project>
