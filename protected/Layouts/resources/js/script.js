@@ -1,8 +1,7 @@
 jQuery(function ($) {
-
-    var body = $('body');
+    APP.selectors.body = $('body');
     //console.log($("[role='button'][data-action]"));
-    body.on(
+    APP.selectors.body.on(
         "click",
         "[role='button'][data-action]",
         function (event) {
@@ -19,8 +18,9 @@ jQuery(function ($) {
                         dataType: "html"
                     })
                         .done(function (html) {
-                            body.append(html);
-                            var modalWindow = $(APP.settings.modalWindowSelector);
+                            console.log(APP);
+                            APP.selectors.body.append(html);
+                            var modalWindow = $(APP.popups[APP.popups.length - 1].selector);
                             modalWindow.dialog({
                                 autoOpen: true,
                                 height: "auto",
@@ -28,7 +28,8 @@ jQuery(function ($) {
                                 modal: true,
                                 close: function (event, ui) {
                                     modalWindow.dialog("destroy");
-                                    $(APP.settings.modalWindowSelector).remove();
+                                    modalWindow.remove();
+                                    APP.popups.pop();
                                 }
                             });
                             //прикручиваем обработчик кнопок модального окна
@@ -57,7 +58,7 @@ jQuery(function ($) {
                         data: {id: $(this).data("id")}
                     })
                         .done(function (html) {
-                            body.append(html);
+                            APP.selectors.body.append(html);
                             var modalWindow = $(APP.settings.modalWindowSelector);
                             console.log(html);
                             modalWindow.dialog({
