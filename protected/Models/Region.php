@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use T4\Core\Collection;
+use T4\Core\Exception;
 use T4\Orm\Model;
 
 /**
@@ -27,7 +28,10 @@ class Region extends Model
 
     protected function validateTitle($val)
     {
-        return (!empty(trim($val)));
+        if (empty(trim($val))) {
+            throw new Exception('Пустое имя региона');
+        }
+        return true;
     }
 
     protected function validate()

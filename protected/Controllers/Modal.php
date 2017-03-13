@@ -21,6 +21,11 @@ class Modal extends Controller
 
     }
 
+    public function actionTestAddRegion()
+    {
+
+    }
+
     public function actionEditRegion($id)
     {
         if (false !== $region = Region::findByPK($id)) {

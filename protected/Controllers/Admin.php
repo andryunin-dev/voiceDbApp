@@ -17,6 +17,7 @@ use App\Models\Region;
 use App\Models\Software;
 use App\Models\SoftwareItem;
 use App\Models\Vendor;
+use T4\Core\MultiException;
 use T4\Core\Std;
 use T4\Mvc\Controller;
 
@@ -518,35 +519,39 @@ class Admin extends Controller
 
     public function actionAddAppliance($data)
     {
-        Appliance::getDbConnection()->beginTransaction();
+        try {
+            Appliance::getDbConnection()->beginTransaction();
 
-        $office = Office::findByPK($data->officeId);
-        $vendor = Vendor::findByPK($data->vendorId);
-        $applianceType = ApplianceType::findByPK($data->applianceTypeId);
+            $office = Office::findByPK($data->officeId);
+            $vendor = Vendor::findByPK($data->vendorId);
+            $applianceType = ApplianceType::findByPK($data->applianceTypeId);
 
-        $platformItem = (new PlatformItem())
-            ->fill([
-                'platform' => Platform::findByPK($data->platformId),
-                'serialNumber' => $data->platformSn
-            ])
-            ->save();
+            $platformItem = (new PlatformItem())
+                ->fill([
+                    'platform' => Platform::findByPK($data->platformId),
+                    'serialNumber' => $data->platformSn
+                ])
+                ->save();
 
-        $softwareItem = (new SoftwareItem())
-            ->fill([
-                'software' => Software::findByPK($data->softwareId),
-                'version' => $data->softwareVersion
-            ])
-            ->save();
+            $softwareItem = (new SoftwareItem())
+                ->fill([
+                    'software' => Software::findByPK($data->softwareId),
+                    'version' => $data->softwareVersion
+                ])
+                ->save();
 
-        $appliance = (new Appliance())
-            ->fill([
-                'location' => $office,
-                'vendor' => $vendor,
-                'platform' => $platformItem,
-                'software' => $softwareItem,
-                'type' => $applianceType
-            ])
-            ->save();
+            $appliance = (new Appliance())
+                ->fill([
+                    'location' => $office,
+                    'vendor' => $vendor,
+                    'platform' => $platformItem,
+                    'software' => $softwareItem,
+                    'type' => $applianceType
+                ])
+                ->save();
+        } catch (MultiException $e) {
+
+        }
 
         if (false === $appliance) {
             Appliance::getDbConnection()->rollbackTransaction();
