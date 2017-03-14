@@ -36,7 +36,7 @@ class Admin extends Controller
         if (!empty($region)) {
             if (!empty(trim($region['many']))) {
                 $pattern = '~[\n\r]~';
-                $regsInString = preg_replace($pattern, '', trim($region['many']));
+                $regsInString = preg_replace($pattern, ',', trim($region['many']));
                 $regInArray = explode(',', $regsInString);
 
                 foreach ($regInArray as $region) {
@@ -92,8 +92,6 @@ class Admin extends Controller
                 'region' => $region
             ]);
         $newCity->save();
-
-        header('Location: /admin/cities');
     }
 
     public function actionEditCity($city)

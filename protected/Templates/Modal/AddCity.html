@@ -1,5 +1,5 @@
 <div id="add-city" role="dialog" title="Новый город">
-    <form action="/admin/addCity" method="post" role="form">
+    <form action="/admin/addCity.json" method="post" role="form">
         <div class="form-group">
             <select name="city[regId]" id="id-region" class="form-control">
                 {% for region in regions %}
@@ -16,11 +16,18 @@
         <button class="btn btn-danger" type="button" role="button" data-action="close">
             Отмена
         </button>
+        <a class="btn btn-success btn-xs" href="/modal/addRegion" role="button"
+           data-action="popup-add">Добавить 2</a>
     </form>
+    <script>
+        var APP = APP || {};
+        APP.popups = APP.popups || [];
+        APP.popups.push({
+            popupSelector: "#add-city",
+            contentSelector: "form",
+            width: "auto"
+        });
+    </script>
 </div>
-<script>
-    var APP = APP || {};
-    APP.settings = APP.settings || {};
-    APP.settings.modalWindowSelector = "#add-city";
-</script>
+
 

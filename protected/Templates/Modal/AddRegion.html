@@ -17,19 +17,12 @@
     </form>
     <script>
         var APP = APP || {};
-        APP.settings = APP.settings || {};
-        APP.settings.modalWindowSelector = "#add-region";
         APP.popups = APP.popups || [];
-        APP.popups.push(
-                {
-
-
-                    selector: "#add-region",
-
-
-                    width: "auto"
-                }
-        )
+        APP.popups.push({
+            popupSelector: "#add-region",
+            contentSelector: "form",
+            width: "auto"
+        });
     </script>
 </div>
 
