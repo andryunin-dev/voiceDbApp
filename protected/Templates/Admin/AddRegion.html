@@ -1,0 +1,18 @@
+<div class="row">
+    {% if errors is defined %}
+        <div class="alert alert-danger">
+            {% for error in errors %}
+                <p>{{ error.message }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% if result is defined %}
+        <div class="alert alert-success">
+            <p>{{ result }}</p>
+        </div>
+    {% endif %}
+    <button class="btn btn-default">OK</button>
+</div>
+
+

@@ -17,6 +17,7 @@ use App\Models\Region;
 use App\Models\Software;
 use App\Models\SoftwareItem;
 use App\Models\Vendor;
+use T4\Core\Exception;
 use T4\Core\MultiException;
 use T4\Core\Std;
 use T4\Mvc\Controller;
@@ -33,25 +34,40 @@ class Admin extends Controller
     }
     public function actionAddRegion($region = null)
     {
-        if (!empty($region)) {
-            if (!empty(trim($region['many']))) {
-                $pattern = '~[\n\r]~';
-                $regsInString = preg_replace($pattern, ',', trim($region['many']));
-                $regInArray = explode(',', $regsInString);
+        try {
+            Region::getDbConnection()->beginTransaction();
+            if (!empty($region)) {
+                if (!empty(trim($region['many']))) {
+                    $pattern = '~[\n\r]~';
+                    $regsInString = preg_replace($pattern, ',', trim($region['many']));
+                    $regInArray = explode(',', $regsInString);
 
-                foreach ($regInArray as $region) {
+                    try {
+                        foreach ($regInArray as $region) {
+                            (new Region())
+                                ->fill(['title' => trim($region)])
+                                ->save();
+                        }
+                        $this->data->result = 'Регионы добавлены';
+                    } catch (MultiException $e) {
+                        $e->prepend(new Exception('Ошибка пакетного ввода'));
+                        throw $e;
+                    }
+                } elseif (!empty($region['one'])) {
                     (new Region())
-                        ->fill(['title' => trim($region)])
+                        ->fill(['title' => $region['one']])
                         ->save();
+                    $this->data->result = 'Регионы добавлены';
                 }
-
-            } elseif (!empty(trim($region['one']))) {
-                (new Region())
-                    ->fill(['title' => $region['one']])
-                    ->save();
             }
+            //Region::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Region::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Region::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
         }
-        header('Location: /admin/Regions');
     }
 
     public function actionEditRegion($region)

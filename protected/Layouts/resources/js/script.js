@@ -32,14 +32,11 @@ APP.submitForm = function (href, data) {
         url: href,
         type: "POST",
         data: data,
-        dataType: "json"
+        dataType: "html"
     })
         .done(function (data, textStatus, jqXHR) {
             console.log("done");
             console.log(data);
-            console.log(textStatus);
-            console.log(jqXHR);
-            console.log(jqXHR.status);
         })
         .fail(function ( jqXHR, textStatus, errorThrown) {
             console.log("fail");
