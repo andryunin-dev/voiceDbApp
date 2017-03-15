@@ -34,9 +34,16 @@ class Region extends Model
         return true;
     }
 
+    protected function sanitizeTitle($val)
+    {
+        return trim($val);
+    }
+
     protected function validate()
     {
-        return (!empty(trim($this->title)));
-    }
+        if (empty($this->title)) {
+            throw new Exception('Пустое имя региона');
+        }
+        return true;    }
 
 }
