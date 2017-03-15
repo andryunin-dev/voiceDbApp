@@ -12,13 +12,14 @@ use App\Models\Platform;
 use App\Models\Region;
 use App\Models\Software;
 use App\Models\Vendor;
+use T4\Http\Request;
 use T4\Mvc\Controller;
 
 class Modal extends Controller
 {
     public function actionAddRegion()
     {
-
+        $this->data->path = (new Request())->path;
     }
 
     public function actionTestAddRegion()

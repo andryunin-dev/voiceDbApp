@@ -13,13 +13,14 @@ use App\Models\Region;
 use T4\Core\Exception;
 use T4\Core\IArrayable;
 use T4\Core\MultiException;
+use T4\Http\Request;
 use T4\Mvc\Controller;
 
 class Test extends Controller
 {
     public function actionDefault()
     {
-
+        var_dump((new Request())->path);die;
     }
 
     public function actionRegions($region = null)

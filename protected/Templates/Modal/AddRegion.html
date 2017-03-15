@@ -15,12 +15,13 @@
             Отмена
         </button>
     </form>
+
     <script>
         var APP = APP || {};
         APP.popups = APP.popups || [];
         APP.popups.push({
+            path: "{{ path }}",
             popupSelector: "#add-region",
-            contentSelector: "form",
             width: "auto"
         });
     </script>

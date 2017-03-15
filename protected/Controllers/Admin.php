@@ -54,39 +54,72 @@ class Admin extends Controller
                         throw $e;
                     }
                 } elseif (!empty($region['one'])) {
-                    (new Region())
+                    $res = (new Region())
                         ->fill(['title' => $region['one']])
                         ->save();
-                    $this->data->result = 'Регионы добавлены';
+                    $this->data->result = 'Регион добавлен';
+                } else {
+                    $this->data->result = 'Нет данных';
                 }
             }
-            //Region::getDbConnection()->commitTransaction();
+            Region::getDbConnection()->commitTransaction();
         } catch (MultiException $e) {
             Region::getDbConnection()->rollbackTransaction();
             $this->data->errors = $e;
         } catch (Exception $e) {
             Region::getDbConnection()->rollbackTransaction();
-            $this->data->errors = $e;
+            $this->data->errors = (new MultiException())->add($e);
         }
     }
 
     public function actionEditRegion($region)
     {
-        if (!empty(trim($region['title'])) && (false !== $item = Region::findByPK($region['id']))) {
+        try {
+            Region::getDbConnection()->beginTransaction();
+
+            if (false === $item = Region::findByPK($region['id'])) {
+                throw new \Exception('Неверные данные');
+            }
             $item->fill([
                 'title' => $region['title']
             ]);
             $item->save();
+            $this->data->result = 'Регион изменен';
+
+            Region::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Region::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Region::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
         }
-        header('Location: /admin/regions');
     }
 
     public function actionDelRegion($id)
     {
-        if (false !== $region = Region::findByPK($id)) {
-            $region->delete();
+        try {
+            Region::getDbConnection()->beginTransaction();
+
+            //проверка правильности id
+            if (false === $item = Region::findByPK($id)) {
+                throw new \Exception('Неверные данные');
+            }
+            //Проверка наличия городов в этом регионе
+            if ($item->cities->count() > 0) {
+                throw new \Exception('Сначала удалите все города из этого региона');
+            }
+            $item->delete();
+            $this->data->result = 'Регион \"' . $item->title .  '\" удален';
+
+            Region::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Region::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Region::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
         }
-        header('Location: /admin/regions');
     }
 
     public function actionCities()
