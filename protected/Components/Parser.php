@@ -9,13 +9,13 @@ class Parser extends Std
 {
     /**
      * @param string $data
-     * @return Collection
+     * @return Collection|boolean
      *
      * @param string $data входные данные
      * @param array $fieldNames массив с названиями полей в объектах выходной коллекции
-     * @val array $fieldNames = ['region', 'city', 'address', 'lotusId', 'office', 'status']
+     * @val array $fieldNames = ['region', 'city', 'address', 'lotusId', 'office']
      */
-    public static function lotusTerritory(string $data) : Collection
+    public static function lotusTerritory(string $data)
     {
         //Убираем "" (две двойных кавычки подряд)
         $pattern = '~"{2}~';
@@ -24,7 +24,7 @@ class Parser extends Std
         $fieldNames = ['region', 'city', 'address', 'lotusId', 'office'];
         $pattern = '~"?([^,"]+)"?\s*,\s*"?([^,"]+)"?\s*,\s*"?([^"]+)"?\s*,\s*([^,]+)\s*,\s*"([^"]+)"~';
         $resultCount = preg_match_all($pattern, $data, $resultArray, PREG_SET_ORDER);
-        if (false === $resultCount) {
+        if (empty($resultCount)) {
             return false;
         }
         array_unshift($fieldNames, 'originalData');

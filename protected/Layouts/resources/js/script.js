@@ -62,7 +62,7 @@ APP.request = function (href, data) {
         dataType: "html"
     })
         .done(function (data, textStatus, jqXHR) {
-            console.log("done");
+            console.log("done in request");
             //если POST запрос, то закрываем форму и открываем окно результат
             //если GET запрос, значит окна формы нет и сразу открываем окно результата
             if ("POST" == this.type) {
@@ -93,7 +93,7 @@ jQuery(function ($) {
     );
     APP.body.on(
         "click",
-        "a[role='button'][data-action!='get-popup']", //запрос
+        "a[role='button'][data-action!='get-popup']", //запрос GET или POST
         function (event) {
             event.stopPropagation();
             event.preventDefault();
@@ -104,7 +104,7 @@ jQuery(function ($) {
 
     APP.body.on(
         "click",
-        "button[data-action]",
+        "button[data-action]", //click on button with attribute "data-action"
         function (event) {
             var action = $(this).data("action");
             switch (action) {
@@ -116,14 +116,13 @@ jQuery(function ($) {
     );
     
     APP.body.on(
-        "submit",
+        "submit", //submit form
         "form",
         function (event) {
+            console.log("submit form");
             event.stopPropagation();
             event.preventDefault();
             data = $(this).serialize();
-            //console.log(data);
-            // console.log($(this).attr('action'));
             APP.request($(this).attr('action'), data);
         }
     )

@@ -57,7 +57,7 @@
                                 <span class="th-divider-left">Город</span>
                                 <span class="th-divider-right">
                                     <a class="btn btn-success btn-xs" href="/modal/addCity" role="button"
-                                       data-action="popup-add">Добавить</a>
+                                       data-action="get-popup">Добавить</a>
                                 </span>
                             </th>
 
@@ -74,11 +74,11 @@
                                 <td class="col-city cut-string">{{ city.title }}</td>
                                 <td class="col-actions">
                                     <a class="btn btn-success btn-xs" href="/modal/editCity?id={{ city.getPK }}"
-                                       role="button" data-action="popup-edit">
+                                       role="button" data-action="get-popup">
                                         Изменить
                                     </a>
                                     <a class="btn btn-danger btn-xs" href="/admin/delCity?id={{ city.getPK }}"
-                                       data-action="delete">
+                                       role="button" data-action="delete">
                                         Удалить
                                     </a>
                                 </td>

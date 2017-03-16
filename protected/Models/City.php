@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use T4\Core\Collection;
+use T4\Core\Exception;
 use T4\Orm\Model;
 
 /**
@@ -31,16 +32,24 @@ class City extends Model
 
     protected function validateTitle($val)
     {
-        return (!empty(trim($val)));
+        if (empty(trim($val))) {
+            throw new Exception('Пустое имя города');
+        }
+        return true;
+    }
+
+    protected function sanitizeTitle($val)
+    {
+        return trim($val);
     }
 
     protected function validate()
     {
-        if (empty($this->title)) {
-            return false;
+        if (false !== City::findByColumn('title', $this->title)) {
+            throw new Exception('Город с таким именем существует');
         }
-        if (empty($this->region)) {
-            return false;
+        if (false === $this->region) {
+            throw new Exception('Регион не найден');
         }
         return true;
     }

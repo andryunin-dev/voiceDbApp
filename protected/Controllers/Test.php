@@ -20,7 +20,7 @@ class Test extends Controller
 {
     public function actionDefault()
     {
-        var_dump((new Request())->path);die;
+
     }
 
     public function actionRegions($region = null)

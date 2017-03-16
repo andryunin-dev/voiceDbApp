@@ -78,7 +78,7 @@ class Admin extends Controller
             Region::getDbConnection()->beginTransaction();
 
             if (false === $item = Region::findByPK($region['id'])) {
-                throw new \Exception('Неверные данные');
+                throw new Exception('Неверные данные');
             }
             $item->fill([
                 'title' => $region['title']
@@ -103,14 +103,14 @@ class Admin extends Controller
 
             //проверка правильности id
             if (false === $item = Region::findByPK($id)) {
-                throw new \Exception('Неверные данные');
+                throw new Exception('Неверные данные');
             }
             //Проверка наличия городов в этом регионе
             if ($item->cities->count() > 0) {
-                throw new \Exception('Сначала удалите все города из этого региона');
+                throw new Exception('Сначала удалите все города из этого региона');
             }
             $item->delete();
-            $this->data->result = 'Регион \"' . $item->title .  '\" удален';
+            $this->data->result = 'Регион "' . $item->title .  '" удален';
 
             Region::getDbConnection()->commitTransaction();
         } catch (MultiException $e) {
@@ -133,34 +133,78 @@ class Admin extends Controller
 
     public function actionAddCity($city)
     {
-        $region = Region::findByPK($city['regId']);
-
-        $newCity = (new City())
-            ->fill([
+        try {
+            City::getDbConnection()->beginTransaction();
+            if (!is_numeric($city['regId'])) {
+                throw new Exception('Регион не выбран');
+            }
+            if (false === $region = Region::findByPK($city['regId'])) {
+                throw new Exception('Регион не найден');
+            }
+            (new City())
+                ->fill([
                 'title' => $city['title'],
                 'region' => $region
-            ]);
-        $newCity->save();
+                ])
+                ->save();
+
+            City::getDbConnection()->commitTransaction();
+
+        } catch (MultiException $e) {
+            City::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            City::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
     }
 
     public function actionEditCity($city)
     {
-        $currentCity = City::findByPK($city['id']);
-        $currentCity->title = $city['title'];
-        $currentCity->region = Region::findByPK($city['regId']);
-        $currentCity->save();
+        try {
+            City::getDbConnection()->beginTransaction();
 
-        header('Location: /admin/cities');
+            if (false === $editedCity = City::findByPK($city['id'])) {
+                throw new Exception('Неверные данные');
+            }
+            $editedCity->title = $city['title'];
+            $editedCity->region = Region::findByPK($city['regId']);
+            $editedCity->save();
+
+            City::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            City::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            City::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
     }
 
     public function actionDelCity($id = null)
     {
-        if (!empty($id)) {
-            City::findByPK($id)
-                ->delete();
-        }
+        try {
+            City::getDbConnection()->beginTransaction();
 
-        header('Location: /admin/cities');
+            //проверка правильности id
+            if (false === $item = City::findByPK($id)) {
+                throw new Exception('Неверные данные');
+            }
+            //Проверка наличия адресов в этом регионе
+            if ($item->addresses->count() > 0) {
+                throw new Exception('Сначала удалите все адреса и офисы из этого города');
+            }
+            $item->delete();
+            $this->data->result = 'Город  "' . $item->title .  '" удален';
+
+            City::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            City::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            City::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
     }
 
     /**
@@ -178,41 +222,68 @@ class Admin extends Controller
      */
     public function actionAddStatus($status = null)
     {
-        if (!empty($status)) {
-            if (!empty(trim($status['many']))) {
-                $pattern = '~[\n\r]~';
-                $statsInString = preg_replace($pattern, ',', $status['many']);
-                $statsInArray = explode(',', $statsInString);
+        try {
+            OfficeStatus::getDbConnection()->beginTransaction();
 
-                foreach ($statsInArray as $status) {
-                    (new OfficeStatus())
-                        ->fill(['title' => trim($status)])
-                        ->save();
-                }
-            } elseif (!empty(trim($status['one']))) {
-                (new OfficeStatus())
-                    ->fill(['title' => trim($status['one'])])
-                    ->save();
-            }
+            (new OfficeStatus())
+                ->fill($status)
+                ->save();
+
+            OfficeStatus::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            OfficeStatus::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            OfficeStatus::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
         }
-        header('Location: /admin/OfficeStatuses');
     }
 
     public function actionEditStatus($status)
     {
-        if (true == $currentStatus = OfficeStatus::findByPK($status['id'])) {
-            $currentStatus->fill([
-                'title' => $status['title']
-            ]);
-            $currentStatus->save();
+        try {
+            OfficeStatus::getDbConnection()->beginTransaction();
+            if (false === $editedStatus = OfficeStatus::findByPK($status['id'])) {
+                throw new Exception('Неверные данные');
+            }
+            $editedStatus
+                ->fill([
+                    'title' => $status['title']
+                ])
+                ->save();
+
+            OfficeStatus::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            OfficeStatus::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            OfficeStatus::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
         }
-        header('Location: /admin/OfficeStatuses');
     }
 
     public function actionDelStatus($id = null)
     {
-        OfficeStatus::findByPK($id)->delete();
-        header('Location: /admin/officeStatuses');
+        try {
+            OfficeStatus::getDbConnection()->beginTransaction();
+            if (false === $status = OfficeStatus::findByPK($id)) {
+                throw new Exception('Неверные данные');
+            }
+            if ($status->offices->count() > 0 ) {
+                throw new Exception('Удаление невозможно. Данный статус используется');
+            }
+            $status->delete();
+            $this->data->result = 'Статус "' . $status->title . '" удален.';
+
+            OfficeStatus::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            OfficeStatus::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            OfficeStatus::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
+
     }
 
     public function actionOffices()
@@ -227,117 +298,231 @@ class Admin extends Controller
     /**
      * @param Std $data
      * В случае $data->many формат записи для офиса : регион; город; адрес; офис; статус
+     * @throws Exception
      */
     public function actionAddOffice($data)
     {
+        //если поле пакетного ввода не пустое, то берем данные оттуда
         if (!empty(trim($data->many))) {
-            $officeCollection = Parser::lotusTerritory(trim($data->many));
-            if (false !== $officeCollection) {
-                foreach ($officeCollection as $item) {
-                    Office::getDbConnection()->beginTransaction();
-                    //Region
-                    $region = Region::findByTitle($item->region);
-                    if (false === $region) {
-                        if (isset($data->addNewRegion)) {
-                            $region = (new Region())
-                                ->fill(['title' => $item->region])
-                                ->save();
-                        } else {
-                            $region = false;
-                        }
-                    }
+            try {
+                Office::getDbConnection()->beginTransaction();
 
-                    //City
-                    $city = City::findByTitle($item->city);
-                    //если город не найден и разрешено создание нового региона
-                    if (false === $city) {
-                        if (isset($data->addNewCity)) {
+                $officeCollection = Parser::lotusTerritory(trim($data->many));
+                if (false === $officeCollection) {
+                    throw new Exception('Ошибка данных пакетного ввода');
+                }
+
+                foreach ($officeCollection as $item) {
+                        //Region
+                        $region = Region::findByTitle($item->region);
+                        if (false === $region && isset($data->addNewRegion)) {
+                            $region = (new Region())
+                                ->fill([
+                                    'title' => $item->region
+                                ])
+                                ->save();
+                        }
+
+                        //City
+                        $city = City::findByTitle($item->city);
+                        if (false === $city && isset($data->addNewCity)) {
                             $city = (new City())
                                 ->fill([
                                     'title' => $item->city,
                                     'region' => $region
                                 ])
                                 ->save();
-                        } else {
-                            $city = false;
                         }
-                    }
 
-                    //Address
-                    $address = (new Address())
-                        ->fill([
-                            'address' => $item->address,
-                            'city' => $city
-                        ])
-                        ->save();
+                        //Address
+                        $address = (new Address())
+                            ->fill([
+                                'address' => $item->address,
+                                'city' => $city
+                            ])
+                            ->save();
 
-                    //Office status
-                    //если парсинг откинул поле статуса или оно пустое - берем из формы
-                    if (empty($item->status)) {
+                        //статус (берем из формы)
                         $status = OfficeStatus::findByPK($data->statusId);
-                        if (false ===$status) {
-                            continue; //Ошибка. невозможно установить статус, переход к след записи
-                        }
-                    } else {
-                        $status = OfficeStatus::findByTitle($item->status);
-                        if (false === $status) {
-                            if (isset($data->addNewStatus)) {
-                                $status = (new OfficeStatus())
-                                    ->fill(['title' => $item->status])
-                                    ->save();
-                            } else {
-                                continue; //Ошибка. невозможно установить статус, переход к след записи
-                            }
-                        }
-                    }
 
-                    //Office
-                    //проверка существования оффиса по lotusId (перенес в валидатор)
 
-                    $office = (new Office())
-                        ->fill([
-                            'title' => $item->office,
-                            'lotusId' => $item->lotusId,
-                            'status' => $status,
-                            'address' => $address
-                        ])
-                        ->save();
-                    if (false === $office) {
-                        Office::getDbConnection()->rollbackTransaction();
-                    } else {
-                        Office::getDbConnection()->commitTransaction();
-                    }
+                        //собираем офис
+                        $res = (new Office())
+                            ->fill([
+                                'title' => $item->office,
+                                'lotusId' => $item->lotusId,
+                                'address' => $address,
+                                'status' => $status
+                            ])
+                            ->save();
+                     Office::getDbConnection()->commitTransaction();
                 }
-            } else {
-                //ошибка импорта данных, надо бы выкинуть сообщение об ошибке
+            } catch (MultiException $e) {
+                Office::getDbConnection()->rollbackTransaction();
+                $e->prepend(new Exception('Ошибка пакетного ввода'));
+                $this->data->errors = $e;
+            } catch (Exception $e) {
+                Office::getDbConnection()->rollbackTransaction();
+                $errors = (new MultiException())
+                    ->add(
+                        new Exception('Ошибка пакетного ввода')
+                    );
+                $this->data->errors = $errors->add($e);
             }
-        } else {
-            Office::getDbConnection()->beginTransaction();
+            return;
+        }
 
-            $city = City::findByPK($data->cityId);
-            $status = OfficeStatus::findByPK($data->statusId);
+        //если поле пакетного ввода пустое, то берем поля формы
+        try {
+            Office::getDbConnection()->beginTransaction();
+            if (!is_numeric($data->regionId)) {
+                throw new Exception('Регион не выбран');
+            }
+            if (!is_numeric($data->cityId)) {
+                throw new Exception('Город не выбран');
+            }
+            if (!is_numeric($data->statusId)) {
+                throw new Exception('Статус не выбран');
+            }
+
+            //создаем объект адреса
             $address = (new Address())
                 ->fill([
-                    'address' => trim($data->address),
-                    'city' => $city
+                    'address' => $data->address,
+                    'city' => City::findByPK($data->cityId)
                 ])
                 ->save();
-            $office = (new Office())
-                ->fill([
-                    'title' =>$data->title,
-                    'lotusId' => $data->lotusId,
-                    'status' => $status,
-                    'address' => $address
-                ]);
-            $office->save();
 
-            if (false === $office) {
-                Office::getDbConnection()->rollbackTransaction();
-            } else {
-                Office::getDbConnection()->commitTransaction();
-            }
+            (new Office())
+                ->fill([
+                    'title' => $data->title,
+                    'lotusId' => $data->lotusId,
+                    'address' => $address,
+                    'status' => OfficeStatus::findByPK($data->statusId)
+                ])
+                ->save();
+
+            //Office::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Office::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Office::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
         }
-        header('Location: /admin/offices');
+
+
+
+
+
+//        if (!empty(trim($data->many))) {
+//            $officeCollection = Parser::lotusTerritory(trim($data->many));
+//            if (false !== $officeCollection) {
+//                foreach ($officeCollection as $item) {
+//                    Office::getDbConnection()->beginTransaction();
+//                    //Region
+//                    $region = Region::findByTitle($item->region);
+//                    if (false === $region) {
+//                        if (isset($data->addNewRegion)) {
+//                            $region = (new Region())
+//                                ->fill(['title' => $item->region])
+//                                ->save();
+//                        } else {
+//                            $region = false;
+//                        }
+//                    }
+//
+//                    //City
+//                    $city = City::findByTitle($item->city);
+//                    //если город не найден и разрешено создание нового региона
+//                    if (false === $city) {
+//                        if (isset($data->addNewCity)) {
+//                            $city = (new City())
+//                                ->fill([
+//                                    'title' => $item->city,
+//                                    'region' => $region
+//                                ])
+//                                ->save();
+//                        } else {
+//                            $city = false;
+//                        }
+//                    }
+//
+//                    //Address
+//                    $address = (new Address())
+//                        ->fill([
+//                            'address' => $item->address,
+//                            'city' => $city
+//                        ])
+//                        ->save();
+//
+//                    //Office status
+//                    //если парсинг откинул поле статуса или оно пустое - берем из формы
+//                    if (empty($item->status)) {
+//                        $status = OfficeStatus::findByPK($data->statusId);
+//                        if (false ===$status) {
+//                            continue; //Ошибка. невозможно установить статус, переход к след записи
+//                        }
+//                    } else {
+//                        $status = OfficeStatus::findByTitle($item->status);
+//                        if (false === $status) {
+//                            if (isset($data->addNewStatus)) {
+//                                $status = (new OfficeStatus())
+//                                    ->fill(['title' => $item->status])
+//                                    ->save();
+//                            } else {
+//                                continue; //Ошибка. невозможно установить статус, переход к след записи
+//                            }
+//                        }
+//                    }
+//
+//                    //Office
+//                    //проверка существования оффиса по lotusId (перенес в валидатор)
+//
+//                    $office = (new Office())
+//                        ->fill([
+//                            'title' => $item->office,
+//                            'lotusId' => $item->lotusId,
+//                            'status' => $status,
+//                            'address' => $address
+//                        ])
+//                        ->save();
+//                    if (false === $office) {
+//                        Office::getDbConnection()->rollbackTransaction();
+//                    } else {
+//                        Office::getDbConnection()->commitTransaction();
+//                    }
+//                }
+//            } else {
+//                //ошибка импорта данных, надо бы выкинуть сообщение об ошибке
+//            }
+//        } else {
+//            Office::getDbConnection()->beginTransaction();
+//
+//            $city = City::findByPK($data->cityId);
+//            $status = OfficeStatus::findByPK($data->statusId);
+//            $address = (new Address())
+//                ->fill([
+//                    'address' => trim($data->address),
+//                    'city' => $city
+//                ])
+//                ->save();
+//            $office = (new Office())
+//                ->fill([
+//                    'title' =>$data->title,
+//                    'lotusId' => $data->lotusId,
+//                    'status' => $status,
+//                    'address' => $address
+//                ]);
+//            $office->save();
+//
+//            if (false === $office) {
+//                Office::getDbConnection()->rollbackTransaction();
+//            } else {
+//                Office::getDbConnection()->commitTransaction();
+//            }
+//        }
+//        header('Location: /admin/offices');
     }
 
     public function actionEditOffice($data)

@@ -6,11 +6,14 @@
                 <p>{{ error.message }}</p>
             {% endfor %}
         </div>
-        {% endif %}
 
-        {% if result is defined %}
+        {% elseif result is defined %}
             <div class="alert">
                 <p>{{ result }}</p>
+            </div>
+        {% else %}
+            <div class="alert">
+                <p>Успешно!</p>
             </div>
         {% endif %}
         <button class="btn btn-default center-block" data-action="close">OK</button>

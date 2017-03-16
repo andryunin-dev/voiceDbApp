@@ -52,7 +52,7 @@
                                 <span class="th-divider-left">Статус</span>
                                 <span class="th-divider-right">
                                     <a class="btn btn-success btn-xs" href="/modal/addStatus" role="button"
-                                       data-action="popup-add">Добавить</a>
+                                       data-action="get-popup">Добавить</a>
                                 </span>
                             </th>
 
@@ -69,11 +69,11 @@
 
                                 <td class="col-actions">
                                     <a class="btn btn-success btn-xs" href="/modal/editStatus?id={{ status.getPK }}"
-                                       role="button" data-action="popup-edit">
+                                       role="button" data-action="get-popup">
                                         Изменить
                                     </a>
                                     <a class="btn btn-danger btn-xs" href="/admin/delStatus?id={{ status.getPK }}"
-                                       data-action="delete">
+                                       role="button" data-action="delete">
                                         Удалить
                                     </a>
                                 </td>
@@ -83,27 +83,6 @@
                     </table>
                 </div>
             </main>
-
         </div>
     </div>
-{% endblock %}
-
-{% block modal %}
-<div id="edit-status" role="dialog" title="Редактировать статус">
-    <form action="/#" method="post" role="form">
-        <div class="form-group">
-            <label for="id-status"></label>
-            <input type="text" class="form-control" name="status[one]" id="id-status[one]" placeholder="Новый статус">
-        </div>
-        <div class="form-group">
-            <label for="id-statuses"></label>
-            <textarea name="status[many]" id="id-statuses" cols="41" rows="10" placeholder="Список статусов через запятую"></textarea>
-        </div>
-
-        <button class="btn btn-success" type="submit">Создать</button>
-        <button class="btn btn-danger" type="button" role="button" aria-controls="edit-status"
-                value="close">Отмена</button>
-
-    </form>
-</div>
 {% endblock %}

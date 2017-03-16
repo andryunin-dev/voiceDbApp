@@ -66,7 +66,7 @@
                                 <span class="th-divider-left">Офис</span>
                                 <span class="th-divider-right">
                                         <a class="btn btn-success btn-xs" href="/modal/addOffice" role="button"
-                                           data-action="popup-add">Добавить</a>
+                                           data-action="get-popup">Добавить</a>
                                     </span>
                             </th>
                             <th class="bg-primary col-status">
@@ -88,7 +88,7 @@
                                 <td class="col-status cut-string">{{ office.status.title }}</td>
                                 <td class="col-actions">
                                     <a class="btn btn-success btn-xs" href="/modal/editOffice?id={{ office.getPK }}"
-                                       role="button" data-action="popup-edit">
+                                       role="button" data-action="get-popup">
                                         Изменить
                                     </a>
                                     <a class="btn btn-danger btn-xs" href="/admin/delOffice?id={{ office.getPK }}" role="button"
@@ -105,12 +105,4 @@
 
         </div>
     </div>
-    <script>
-        var APP = APP || {};
-        APP.settings = APP.settings || {};
-        APP.settings.modalURL = "/modal/officeDetail";
-    </script>
-
-
-
 {% endblock %}

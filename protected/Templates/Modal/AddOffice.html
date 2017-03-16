@@ -6,6 +6,7 @@
                 <div class="form-group">
                     <label for="id-region" class="col-sm-4 control-label">Регион</label>
                     <div class="col-sm-8"><select name="data[regionId]" id="id-region" class="form-control">
+                            <option value="" selected="selected">---------</option>
                             {% for region in regions %}
                                 <option value="{{ region.getPK }}">{{ region.title }}</option>
                             {% endfor %}
@@ -18,6 +19,7 @@
                     <label for="id-city" class="col-sm-4 control-label">Город</label>
                     <div class="col-sm-8">
                         <select name="data[cityId]" id="id-city" class="form-control">
+                            <option value="" selected="selected">---------</option>
                             {% for city in cities %}
                                 <option value="{{ city.getPK }}">{{ city.title }}</option>
                             {% endfor %}
@@ -108,10 +110,15 @@
             </form>
         </div>
     </div>
+    <script>
+        var APP = APP || {};
+        APP.popups = APP.popups || [];
+        APP.popups.push({
+            path: "{{ path }}",
+            popupSelector: "#add-office",
+            width: "auto"
+        });
+    </script>
 </div>
-<script>
-    var APP = APP || {};
-    APP.settings = APP.settings || {};
-    APP.settings.modalWindowSelector = "#add-office";
-</script>
+
 
