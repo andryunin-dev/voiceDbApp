@@ -48,6 +48,10 @@ class OfficeStatus extends Model
 
     protected function validate()
     {
+        if (false === $this->isNew()) {
+            return true;
+        }
+
         if (false !== OfficeStatus::findByColumn('title', $this->title)) {
 
             throw new Exception('Такой статус уже существует');

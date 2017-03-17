@@ -3,13 +3,13 @@
         {% if errors is defined %}
         <div class="alert">
             {% for error in errors %}
-                <p>{{ error.message }}</p>
+                <p>{{ error.message|raw }}</p>
             {% endfor %}
         </div>
 
         {% elseif result is defined %}
             <div class="alert">
-                <p>{{ result }}</p>
+                <p>{{ result|raw  }}</p>
             </div>
         {% else %}
             <div class="alert">

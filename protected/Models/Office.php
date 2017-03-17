@@ -16,6 +16,7 @@ use T4\Orm\Model;
  *
  * @property Address $address
  * @property OfficeStatus $status
+ * @property Appliance $appliances
  */
 class Office extends Model
 {
@@ -29,14 +30,15 @@ class Office extends Model
         ],
         'relations' => [
             'address' => ['type' => self::BELONGS_TO, 'model' => Address::class],
-            'status' => ['type' => self::BELONGS_TO, 'model' => OfficeStatus::class, 'on' => '__office_status_id']
+            'status' => ['type' => self::BELONGS_TO, 'model' => OfficeStatus::class, 'on' => '__office_status_id'],
+            'appliances' => ['type' => self::HAS_MANY, 'model' => Appliance::class, 'by' => '__location_id']
         ]
     ];
 
     protected function validateTitle($val)
     {
         if (empty(trim($val))) {
-            throw new Exception('Пустое Название офиса');
+            throw new Exception('Пустое название офиса');
         }
         return true;
     }
@@ -70,7 +72,11 @@ class Office extends Model
         if (empty($this->status)) {
             throw new Exception('Статус не найден');
         }
-        //проверка существования офиса по lotusId
+        if (false === $this->isNew()) {
+            return true;
+        }
+        //дальнейшие проверки только для новых офисов
+        //проверка существования офиса по lotusId (только для новых офисов)
         if (false !== Office::findByColumn('lotusId', $this->lotusId)) {
             throw new Exception('Офис с данным Lotus ID существует');
         }

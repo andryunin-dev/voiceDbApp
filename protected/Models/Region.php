@@ -41,6 +41,9 @@ class Region extends Model
 
     protected function validate()
     {
+        if (false === $this->isNew()) {
+            return true;
+        }
         if (false !== Region::findByColumn('title', $this->title)) {
             throw new Exception('Регион с таким именем существует');
         }

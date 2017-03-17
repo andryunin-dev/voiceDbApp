@@ -45,11 +45,14 @@ class City extends Model
 
     protected function validate()
     {
-        if (false !== City::findByColumn('title', $this->title)) {
-            throw new Exception('Город с таким именем существует');
-        }
         if (false === $this->region) {
             throw new Exception('Регион не найден');
+        }
+        if (false === $this->isNew()) {
+            return true;
+        }
+        if (false !== City::findByColumn('title', $this->title)) {
+            throw new Exception('Город с таким именем существует');
         }
         return true;
     }

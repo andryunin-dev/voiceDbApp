@@ -79,7 +79,7 @@
                         </thead>
                         <tbody>
                         {% for office in offices %}
-                            <tr class="office-row" role="button" data-action="popup-view" aria-controls="office-detail"
+                            <tr class="office-row" data-action="popup-view" aria-controls="office-detail"
                                 data-id="{{ office.getPK }}">
                                 <td class="col-region cut-string">{{ office.address.city.region.title }}</td>
                                 <td class="col-city cut-string">{{ office.address.city.title }}</td>
