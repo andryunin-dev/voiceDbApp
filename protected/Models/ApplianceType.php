@@ -4,6 +4,7 @@ namespace App\Models;
 
 
 use T4\Core\Collection;
+use T4\Core\Exception;
 use T4\Orm\Model;
 
 /**
@@ -30,24 +31,27 @@ class ApplianceType extends Model
         return $this->type;
     }
 
-
-    public function validateType($type)
+    protected function validateType($val)
     {
-        return (!empty(trim($type)));
-    }
-
-    public function validate()
-    {
-        if (
-            true === empty(trim($this->type))
-        ) {
-            return false;
-        }
-        //только для нового объекта проверяем на наличие такого в БД
-        if (true === $this->isNew() && false !== ApplianceType::findByColumn('type', trim($this->type))) {
-            return false; //есть appliance type с таким типом
+        if (empty(trim($val))) {
+            throw new Exception('Пустое название типа(роли)');
         }
         return true;
     }
 
+    protected function sanitizeType($val)
+    {
+        return trim($val);
+    }
+
+    protected function validate()
+    {
+        if (false === $this->isNew()) {
+            return true;
+        }
+        if (false !== ApplianceType::findByColumn('type', $this->type)) {
+            throw new Exception('Такой тип уже существует');
+        }
+        return true;
+    }
 }

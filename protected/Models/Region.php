@@ -49,5 +49,4 @@ class Region extends Model
         }
         return true;
     }
-
 }

@@ -17,9 +17,13 @@
         <button class="btn btn-success" type="submit">Сохранить</button>
         <button class="btn btn-danger" type="button" role="button" data-action="close">Отмена</button>
     </form>
+    <script>
+        var APP = APP || {};
+        APP.popups = APP.popups || [];
+        APP.popups.push({
+            path: "{{ path }}",
+            popupSelector: "#edit-software",
+            width: "auto"
+        });
+    </script>
 </div>
-<script>
-    var APP = APP || {};
-    APP.settings = APP.settings || {};
-    APP.settings.modalWindowSelector = "#edit-software";
-</script>

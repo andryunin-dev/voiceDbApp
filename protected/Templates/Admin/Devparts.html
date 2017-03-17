@@ -85,7 +85,7 @@
                                                 <th class="bg-primary col-vendor">
                                                     <span class="th-divider-left">Тип(роль)</span>
                                                     <span class="th-divider-right">
-                                                        <a class="btn btn-success btn-xs" href="/modal/addApplianceType" role="button" data-action="popup-add">Добавить</a>
+                                                        <a class="btn btn-success btn-xs" href="/modal/addApplianceType" role="button" data-action="get-popup">Добавить</a>
                                                     </span>
                                                 </th>
                                                 <th class="bg-primary col-actions">
@@ -101,8 +101,8 @@
                                                         {{ applianceType }}
                                                     </td>
                                                     <td class="col-actions">
-                                                        <a class="btn btn-success btn-xs" href="/modal/editApplianceType?id={{ applianceType.getPK }}" role="button" data-action="popup-edit">Изменить</a>
-                                                        <a class="btn btn-danger btn-xs" href="/admin/delApplianceType?id={{ applianceType.getPK }}" data-action="delete">Удалить</a>
+                                                        <a class="btn btn-success btn-xs" href="/modal/editApplianceType?id={{ applianceType.getPK }}" role="button" data-action="get-popup">Изменить</a>
+                                                        <a class="btn btn-danger btn-xs" href="/admin/delApplianceType?id={{ applianceType.getPK }}" role="button" data-action="delete">Удалить</a>
                                                     </td>
                                                 </tr>
                                             {% endfor %}
@@ -117,7 +117,7 @@
                                                 <th class="bg-primary col-platform">
                                                     <span class="th-divider-left">Платформа</span>
                                                     <span class="th-divider-right">
-                                                        <a class="btn btn-success btn-xs" href="/modal/addPlatform" role="button" data-action="popup-add">Добавить</a>
+                                                        <a class="btn btn-success btn-xs" href="/modal/addPlatform" role="button" data-action="get-popup">Добавить</a>
                                                     </span>
                                                 </th>
                                                 <th class="bg-primary col-vendor">
@@ -136,8 +136,8 @@
                                                     <td class="col-city cut-string">{{ platform.title }}</td>
                                                     <td class="col-region cut-string">{{ platform.vendor.title }}</td>
                                                     <td class="col-actions">
-                                                        <a class="btn btn-success btn-xs" href="/modal/editPlatform?id={{ platform.getPK }}" role="button" data-action="popup-edit">Изменить</a>
-                                                        <a class="btn btn-danger btn-xs" href="/admin/delPlatform?id={{ platform.getPK }}" data-action="delete">Удалить</a>
+                                                        <a class="btn btn-success btn-xs" href="/modal/editPlatform?id={{ platform.getPK }}" role="button" data-action="get-popup">Изменить</a>
+                                                        <a class="btn btn-danger btn-xs" href="/admin/delPlatform?id={{ platform.getPK }}" role="button"  data-action="delete">Удалить</a>
                                                     </td>
                                                 </tr>
                                             {% endfor %}
@@ -152,7 +152,7 @@
                                                 <th class="bg-primary col-software">
                                                     <span class="th-divider-left">Название</span>
                                                     <span class="th-divider-right">
-                                                        <a class="btn btn-success btn-xs" href="/modal/addModule" role="button" data-action="popup-add">Добавить</a>
+                                                        <a class="btn btn-success btn-xs" href="/modal/addModule" role="button" data-action="get-popup">Добавить</a>
                                                     </span>
                                                 </th>
                                                 <th class="bg-primary col-vendor">
@@ -171,8 +171,8 @@
                                                     <td class="col-city cut-string">{{ moduleItem.title }}</td>
                                                     <td class="col-region cut-string">{{ moduleItem.vendor.title }}</td>
                                                     <td class="col-actions">
-                                                        <a class="btn btn-success btn-xs" href="/modal/editModule?id={{ moduleItem.getPK }}" role="button" data-action="popup-edit">Изменить</a>
-                                                        <a class="btn btn-danger btn-xs" href="/admin/delModule?id={{ moduleItem.getPK }}" data-action="delete">Удалить</a>
+                                                        <a class="btn btn-success btn-xs" href="/modal/editModule?id={{ moduleItem.getPK }}" role="button" data-action="get-popup">Изменить</a>
+                                                        <a class="btn btn-danger btn-xs" href="/admin/delModule?id={{ moduleItem.getPK }}" role="button" data-action="delete">Удалить</a>
                                                     </td>
                                                 </tr>
                                             {% endfor %}
@@ -187,7 +187,7 @@
                                                 <th class="bg-primary col-software">
                                                     <span class="th-divider-left">Тип ПО</span>
                                                     <span class="th-divider-right">
-                                                        <a class="btn btn-success btn-xs" href="/modal/addSoftware" role="button" data-action="popup-add">Добавить</a>
+                                                        <a class="btn btn-success btn-xs" href="/modal/addSoftware" role="button" data-action="get-popup">Добавить</a>
                                                     </span>
                                                 </th>
                                                 <th class="bg-primary col-vendor">
@@ -206,8 +206,8 @@
                                                     <td class="col-city cut-string">{{ softItem.title }}</td>
                                                     <td class="col-region cut-string">{{ softItem.vendor.title }}</td>
                                                     <td class="col-actions">
-                                                        <a class="btn btn-success btn-xs" href="/modal/editSoftware?id={{ softItem.getPK }}" role="button" data-action="popup-edit">Изменить</a>
-                                                        <a class="btn btn-danger btn-xs" href="/admin/delSoftware?id={{ softItem.getPK }}" data-action="delete">Удалить</a>
+                                                        <a class="btn btn-success btn-xs" href="/modal/editSoftware?id={{ softItem.getPK }}" role="button" data-action="get-popup">Изменить</a>
+                                                        <a class="btn btn-danger btn-xs" href="/admin/delSoftware?id={{ softItem.getPK }}" role="button" data-action="delete">Удалить</a>
                                                     </td>
                                                 </tr>
                                             {% endfor %}
@@ -226,7 +226,7 @@
                                                 <th class="bg-primary col-vendor">
                                                     <span class="th-divider-left">Производитель</span>
                                                     <span class="th-divider-right">
-                                                        <a class="btn btn-success btn-xs" href="/modal/addVendor" role="button" data-action="popup-add">Добавить</a>
+                                                        <a class="btn btn-success btn-xs" href="/modal/addVendor" role="button" data-action="get-popup">Добавить</a>
                                                     </span>
                                                 </th>
                                                 <th class="bg-primary col-actions">
@@ -242,8 +242,8 @@
                                                         {{ vendor.title }}
                                                     </td>
                                                     <td class="col-actions">
-                                                        <a class="btn btn-success btn-xs" href="/modal/editVendor?id={{ vendor.getPK }}" role="button" data-action="popup-edit">Изменить</a>
-                                                        <a class="btn btn-danger btn-xs" href="/admin/delVendor?id={{ vendor.getPK }}" data-action="delete">Удалить</a>
+                                                        <a class="btn btn-success btn-xs" href="/modal/editVendor?id={{ vendor.getPK }}" role="button" data-action="get-popup">Изменить</a>
+                                                        <a class="btn btn-danger btn-xs" href="/admin/delVendor?id={{ vendor.getPK }}" role="button" data-action="delete">Удалить</a>
                                                     </td>
                                                 </tr>
                                             {% endfor %}

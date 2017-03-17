@@ -109,7 +109,7 @@ class Admin extends Controller
             }
             //Проверка наличия городов в этом регионе
             if ($item->cities->count() > 0) {
-                throw new Exception('Сначала удалите все города из этого региона');
+                throw new Exception('Удаление невозможно. Регион используется.');
             }
             $item->delete();
             $this->data->result = 'Регион "' . $item->title .  '" удален';
@@ -197,7 +197,7 @@ class Admin extends Controller
             }
             //Проверка наличия адресов в этом регионе
             if ($item->addresses->count() > 0) {
-                throw new Exception('Сначала удалите все адреса и офисы из этого города');
+                throw new Exception('Удаление невозможно. Город используется.');
             }
             $item->delete();
             $this->data->result = 'Город  "' . $item->title .  '" удален';
@@ -503,164 +503,399 @@ class Admin extends Controller
 
     public function actionAddApplianceType($applianceType)
     {
-        (new ApplianceType())
-            ->fill($applianceType)
-            ->save();
-        header('Location: /admin/devparts');
+        try {
+            ApplianceType::getDbConnection()->beginTransaction();
+            (new ApplianceType())
+                ->fill($applianceType)
+                ->save();
+
+            ApplianceType::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            ApplianceType::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            ApplianceType::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
     }
 
     public function actionEditApplianceType($applianceType)
     {
-        ApplianceType::findByPK($applianceType['id'])
-            ->fill([
-                'type' => $applianceType['type']
-            ])
-            ->save();
-        header('Location: /admin/devparts');
+        try {
+            ApplianceType::getDbConnection()->beginTransaction();
+
+            if (false === $editedType = ApplianceType::findByPK($applianceType->id)) {
+                throw new Exception('Неверные данные');
+            }
+            if ($editedType->type != $applianceType->type && false !== ApplianceType::findByColumn('type', $applianceType->type)) {
+                throw new Exception('Такой тип существует');
+            }
+            $editedType
+                ->fill([
+                    'type' => $applianceType->type
+                ])
+                ->save();
+
+            ApplianceType::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            ApplianceType::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            ApplianceType::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
     }
 
     public function actionDelApplianceType($id)
     {
-        if (false !== $applianceType = ApplianceType::findByPK($id)) {
-            $applianceType->delete();
+        try {
+            ApplianceType::getDbConnection()->beginTransaction();
+
+            //проверка правильности id
+            if (false === $item = ApplianceType::findByPK($id)) {
+                throw new Exception('Неверные данные');
+            }
+            //Проверка использования данного объекта
+            if ($item->appliances->count() > 0) {
+                throw new Exception('Удаление невозможно. Данный тип(роль) используется.');
+            }
+            $item->delete();
+            $this->data->result = 'Тип(роль) "' . $item->type .  '" удален';
+
+            ApplianceType::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            ApplianceType::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            ApplianceType::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
         }
-        header('Location: /admin/devparts');
     }
 
     public function actionAddPlatform($platform)
     {
-        (new Platform())
-            ->fill([
-                'title' => $platform['title'],
-                'vendor' => Vendor::findByPK($platform['vendorId'])
-            ])
-            ->save();
-        header('Location: /admin/devparts');
+        try {
+            Platform::getDbConnection()->beginTransaction();
+            if (!is_numeric($platform->vendorId)) {
+                throw new Exception('Производитель не выбран');
+            }
+            if (false === $vendor = Vendor::findByPK($platform->vendorId)) {
+                throw new Exception('Производитель не найден');
+            }
+            (new Platform())
+                ->fill([
+                    'title' => $platform->title,
+                    'vendor' => $vendor
+                ])
+                ->save();
+            Platform::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Platform::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Platform::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
     }
 
     public function actionEditPlatform($platform)
     {
-        Platform::getDbConnection()->beginTransaction();
-        $updatedPlatform = (Platform::findByPK($platform['id']))
-            ->fill([
-                'title' => $platform['title'],
-                'vendor' => Vendor::findByPK($platform['vendorId'])
-            ])
-            ->save();
-        if (false === $updatedPlatform) {
-            Platform::getDbConnection()->rollbackTransaction();
-        } else {
+        try {
+            Platform::getDbConnection()->beginTransaction();
+
+            if (false === $updatedPlatform = Platform::findByPK($platform->id)) {
+                throw new Exception('Неверные данные');
+            }
+            if (false === $vendor = Vendor::findByPK($platform->vendorId)) {
+                throw new Exception('Производитель не найден');
+            }
+            if ($platform->title != $updatedPlatform->title && false !== Platform::findByColumn('title', $platform->title)) {
+                throw new Exception('Такая платформа существует');
+            }
+            $updatedPlatform
+                ->fill([
+                    'title' => $platform->title,
+                    'vendor' => $vendor
+                ])
+                ->save();
+
             Platform::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Platform::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Platform::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
         }
-        header('Location: /admin/devparts');
     }
 
     public function actionDelPlatform($id)
     {
-        if (false !== $platform = Platform::findByPK($id)) {
-            $platform->delete();
+        try {
+            Platform::getDbConnection()->beginTransaction();
+
+            //проверка правильности id
+            if (false === $item = Platform::findByPK($id)) {
+                throw new Exception('Неверные данные');
+            }
+            //Проверка использования данного объекта
+            if ($item->platformItems->count() > 0) {
+                throw new Exception('Удаление невозможно. Данная платформа используется.');
+            }
+            $item->delete();
+            $this->data->result = 'Платформа "' . $item->title .  '" удалена';
+
+            Platform::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Platform::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Platform::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
         }
-        header('Location: /admin/devparts');
     }
 
     public function actionAddModule($module)
     {
-        //var_dump($module);
-        (new Module())
-            ->fill([
-                'title' => $module['title'],
-                'vendor' => Vendor::findByPK($module['vendorId'])
-            ])
-            ->save();
-        header('Location: /admin/devparts');
+        try {
+            Module::getDbConnection()->beginTransaction();
+            if (!is_numeric($module->vendorId)) {
+                throw new Exception('Производитель не выбран');
+            }
+            if (false === $vendor = Vendor::findByPK($module->vendorId)) {
+                throw new Exception('Производитель не найден');
+            }
+            (new Module())
+                ->fill([
+                    'title' => $module->title,
+                    'vendor' => $vendor
+                ])
+                ->save();
+            Module::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Module::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Module::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
     }
 
     public function actionEditModule($module)
     {
-        Module::getDbConnection()->beginTransaction();
-        $updatedModule = (Module::findByPK($module['id']))
-            ->fill([
-                'title' => $module['title'],
-                'vendor' => Vendor::findByPK($module['vendorId'])
-            ])
-            ->save();
-        if (false === $updatedModule) {
-            Module::getDbConnection()->rollbackTransaction();
-        } else {
-            Module::getDbConnection()->commitTransaction();
-        }
-        header('Location: /admin/devparts');
+        try {
+            Module::getDbConnection()->beginTransaction();
 
+            if (false === $updatedModule = Module::findByPK($module->id)) {
+                throw new Exception('Неверные данные');
+            }
+            if (false === $vendor = Vendor::findByPK($module->vendorId)) {
+                throw new Exception('Производитель не найден');
+            }
+            if ($module->title != $updatedModule->title && false !== Module::findByColumn('title', $module->title)) {
+                throw new Exception('Такой модуль существует');
+            }
+            $updatedModule
+                ->fill([
+                    'title' => $module->title,
+                    'vendor' => $vendor
+                ])
+                ->save();
+
+            Module::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Module::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Module::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
     }
 
     public function actionDelModule($id)
     {
-        if (false !== $module = Module::findByPK($id)) {
-            $module->delete();
+        try {
+            Module::getDbConnection()->beginTransaction();
+
+            //проверка правильности id
+            if (false === $item = Module::findByPK($id)) {
+                throw new Exception('Неверные данные');
+            }
+            //Проверка использования данного объекта
+            if ($item->moduleItems->count() > 0) {
+                throw new Exception('Удаление невозможно. Данный модуль используется.');
+            }
+            $item->delete();
+            $this->data->result = 'Модуль "' . $item->title .  '" удален';
+
+            Module::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Module::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Module::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
         }
-        header('Location: /admin/devparts');
     }
 
     public function actionAddSoftware($software)
     {
-        (new Software())
-            ->fill([
-                'title' => $software['title'],
-                'vendor' => Vendor::findByPK($software['vendorId'])
-            ])
-            ->save();
-        header('Location: /admin/devparts');
+        try {
+            Software::getDbConnection()->beginTransaction();
+            if (!is_numeric($software->vendorId)) {
+                throw new Exception('Производитель не выбран');
+            }
+            if (false === $vendor = Vendor::findByPK($software->vendorId)) {
+                throw new Exception('Производитель не найден');
+            }
+            (new Software())
+                ->fill([
+                    'title' => $software->title,
+                    'vendor' => $vendor
+                ])
+                ->save();
+            Software::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Software::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Software::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
     }
 
     public function actionEditSoftware($software)
     {
-        Software::getDbConnection()->beginTransaction();
-        $updatedSoftware = (Software::findByPK($software['id']))
-            ->fill([
-                'title' => $software['title'],
-                'vendor' => Vendor::findByPK($software['vendorId'])
-            ])
-            ->save();
-        if (false === $updatedSoftware) {
-            Software::getDbConnection()->rollbackTransaction();
-        } else {
+        try {
+            Software::getDbConnection()->beginTransaction();
+
+            if (false === $updatedSoftware = Software::findByPK($software->id)) {
+                throw new Exception('Неверные данные');
+            }
+            if (false === $vendor = Vendor::findByPK($software->vendorId)) {
+                throw new Exception('Производитель не найден');
+            }
+            if ($software->title != $updatedSoftware->title && false !== Software::findByColumn('title', $software->title)) {
+                throw new Exception('Такое ПО существует');
+            }
+            $updatedSoftware
+                ->fill([
+                    'title' => $software->title,
+                    'vendor' => $vendor
+                ])
+                ->save();
+
             Software::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Software::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Software::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
         }
-        header('Location: /admin/devparts');
     }
 
     public function actionDelSoftware($id)
     {
-        if (false !== $software = Software::findByPK($id)) {
-            $software->delete();
+        try {
+            Software::getDbConnection()->beginTransaction();
+
+            //проверка правильности id
+            if (false === $item = Software::findByPK($id)) {
+                throw new Exception('Неверные данные');
+            }
+            //Проверка использования данного объекта
+            if ($item->softwareItems->count() > 0) {
+                throw new Exception('Удаление невозможно. Данное ПО используется.');
+            }
+            $item->delete();
+            $this->data->result = 'ПО "' . $item->title .  '" удалено';
+
+            Software::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Software::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Software::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
         }
-        header('Location: /admin/devparts');
     }
 
     public function actionAddVendor($vendor)
     {
-        (new Vendor())
-            ->fill($vendor)
-            ->save();
-        header('Location: /admin/devparts');
+        try {
+            Vendor::getDbConnection()->beginTransaction();
+            (new Vendor())
+                ->fill([
+                    'title' => $vendor->title,
+                ])
+                ->save();
+            Vendor::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Vendor::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Vendor::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
     }
 
     public function actionEditVendor($vendor)
     {
-        Vendor::findByPK($vendor['id'])
-            ->fill([
-                'title' => $vendor['title']
-            ])
-            ->save();
-        header('Location: /admin/devparts');
+        try {
+            Vendor::getDbConnection()->beginTransaction();
+
+            if (false === $editingObj = Vendor::findByPK($vendor->id)) {
+                throw new Exception('Неверные данные');
+            }
+            if ($editingObj->title != $vendor->title && false !== Vendor::findByColumn('title', $vendor->title)) {
+                throw new Exception('Такой производитель существует');
+            }
+            $editingObj
+                ->fill([
+                    'title' => $vendor->title
+                ])
+                ->save();
+
+            Vendor::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Vendor::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Vendor::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
     }
 
     public function actionDelVendor($id)
     {
-        if (false !== $vendor = Vendor::findByPK($id)) {
-            $vendor->delete();
+        try {
+            Vendor::getDbConnection()->beginTransaction();
+
+            //проверка правильности id
+            if (false === $item = Vendor::findByPK($id)) {
+                throw new Exception('Неверные данные');
+            }
+            //Проверка использования данного объекта
+            if (
+                $item->appliances->count() > 0 ||
+                $item->platforms->count() > 0 ||
+                $item->modules->count() > 0 ||
+                $item->software->count() > 0
+            ) {
+                throw new Exception('Удаление невозможно. Данный производитель используется.');
+            }
+            $item->delete();
+            $this->data->result = 'Производитель "' . $item->title .  '" удален';
+
+            Vendor::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Vendor::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Vendor::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
         }
-        header('Location: /admin/devparts');
     }
 
     public function actionDevices()

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use T4\Core\Collection;
+use T4\Core\Exception;
 use T4\Orm\Model;
 
 /**
@@ -31,23 +32,23 @@ class Vendor extends Model
         ]
     ];
 
-    public function validateTitle($title)
+    public function validateTitle($val)
     {
-        return (!empty(trim($title)));
+        if (empty(trim($val))) {
+            throw new Exception('Пустое название производителя');
+        }
+        return true;
+
     }
 
     public function validate()
     {
-        if (
-            true === empty(trim($this->title))
-        ) {
-            return false;
+        if (false === $this->isNew()) {
+            return true;
         }
-        //только для нового объекта проверяем на наличие такого в БД
-        if (true === $this->isNew() && false !== Vendor::findByColumn('title', trim($this->title))) {
-            return false; //есть вендор с таким title
+        if (false !== Vendor::findByColumn('title', $this->title)) {
+            throw new Exception('Такой производитель уже существует');
         }
         return true;
     }
-
 }

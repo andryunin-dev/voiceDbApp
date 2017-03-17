@@ -42,13 +42,13 @@
     </nav>
     <div class="container-fluid">
         <div class="row">
-            <main class="offices">
+            <main class="devices">
                 <div class="col-xs-12">
                     <table class="table table-bordered table-hover table-striped cust-table-striped">
                         <thead>
                         <tr class="text-middle text-center">
                             <th class="bg-primary col-office" rowspan="2">Офис</th>
-                            <th class="bg-primary col-hardware" rowspan="2">Оборудование<a class="btn btn-success btn-md btn-custom" href="/modal/addAppliance" role="button" data-action="popup-add">+</a></th>
+                            <th class="bg-primary col-hardware" rowspan="2">Оборудование<a class="btn btn-success btn-md btn-custom" href="/modal/addAppliance" role="button" data-action="get-popup">+</a></th>
                             <th class="bg-primary col-software" rowspan="2">ПО</th>
                             <th class="bg-primary col-software" rowspan="2">hostname</th>
                             <th class="bg-primary col-module" rowspan="2">Модуль</th>
@@ -100,10 +100,5 @@
 
         </div>
     </div>
-    <script>
-        var APP = APP || {};
-        APP.settings = APP.settings || {};
-        APP.settings.modalURL = "/modal/addDevice";
-    </script>
 {% endblock %}
 

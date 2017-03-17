@@ -10,12 +10,11 @@
     </form>
     <script>
         var APP = APP || {};
-        APP.settings = APP.settings || {};
-        APP.settings.modalWindow = "[id='add-vendor'][role='dialog']"
+        APP.popups = APP.popups || [];
+        APP.popups.push({
+            path: "{{ path }}",
+            popupSelector: "#add-vendor",
+            width: "auto"
+        });
     </script>
 </div>
-<script>
-    var APP = APP || {};
-    APP.settings = APP.settings || {};
-    APP.settings.modalWindowSelector = "#add-vendor";
-</script>

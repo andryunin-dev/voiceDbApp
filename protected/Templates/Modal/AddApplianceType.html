@@ -8,10 +8,13 @@
         <button class="btn btn-success" type="submit">Создать</button>
         <button class="btn btn-danger" type="button" role="button" data-action="close">Отмена</button>
     </form>
+    <script>
+        var APP = APP || {};
+        APP.popups = APP.popups || [];
+        APP.popups.push({
+            path: "{{ path }}",
+            popupSelector: "#add-appliance-type",
+            width: "auto"
+        });
+    </script>
 </div>
-<script>
-    var APP = APP || {};
-    APP.settings = APP.settings || {};
-    APP.settings.modalWindowSelector = "#add-appliance-type";
-    APP.settings.modalWidth = 300;
-</script>
