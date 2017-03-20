@@ -4,6 +4,7 @@ namespace App\Models;
 
 use T4\Core\Collection;
 use T4\Core\Exception;
+use T4\Dbal\QueryBuilder;
 use T4\Orm\Model;
 
 /**
@@ -18,6 +19,8 @@ use T4\Orm\Model;
  */
 class Module extends Model
 {
+    const MOTHERBOARD = 'motherboard'; // motherboard name in modules
+
     protected static $schema = [
         'table' => 'equipment.modules',
         'columns' => [
@@ -30,7 +33,7 @@ class Module extends Model
         ]
     ];
 
-    public function validateTitle($val)
+    protected function validateTitle($val)
     {
         if (empty(trim($val))) {
             throw new Exception('Пустое название модуля');
@@ -39,7 +42,7 @@ class Module extends Model
 
     }
 
-    public function validate()
+    protected function validate()
     {
         if (false === $this->isNew()) {
             return true;
