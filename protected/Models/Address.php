@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use T4\Core\Exception;
 use T4\Orm\Model;
 
 /**
@@ -26,4 +27,22 @@ class Address extends Model
             'partnerOffice' => ['type' => self::HAS_ONE, 'model' => PartnerOffice::class]
         ]
     ];
+
+    protected function validateAddress($val)
+    {
+        return true;
+    }
+    protected function sanitizeAddress($val)
+    {
+        return trim($val);
+    }
+
+    protected function validate()
+    {
+        if (empty($this->city)) {
+            throw new Exception('Город не найден');
+        }
+
+        return true;
+    }
 }

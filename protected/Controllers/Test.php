@@ -5,32 +5,63 @@ namespace App\Controllers;
 
 use App\Components\Sorter;
 use App\Models\Address;
+use App\Models\ApplianceType;
 use App\Models\City;
 use App\Models\Office;
 use App\Models\OfficeStatus;
 use App\Models\Region;
+use T4\Core\Exception;
 use T4\Core\IArrayable;
+use T4\Core\MultiException;
+use T4\Http\Request;
 use T4\Mvc\Controller;
 
 class Test extends Controller
 {
     public function actionDefault()
     {
-        var_dump(get_current_user());die;
+
     }
 
-    /**
-     * action вывода всех офисов
-     */
-    public function actionOffices()
+    public function actionRegions($region = null)
     {
-        $asc = function (Office $office_1, Office $office_2) {
-            return strnatcmp($office_1->address->city->region->title, $office_2->address->city->region->title);
-        };
+        //var_dump($region);
+        if (!empty($region)) {
+            $this->actionAddRegion($region);
+        }
+        $this->data->regions = Region::findAll(['order' => 'title']);
+        //var_dump($this->data);
+    }
 
-        $this->data->offices = Office::findAll()->uasort($asc);
-        $this->data->regions = Region::findAll();
-        $this->data->statuses = OfficeStatus::findAll();
+    public function actionAddRegion($region = null)
+    {
+        try {
+            Region::getDbConnection()->beginTransaction();
+            if (!empty(trim($region['many']))) {
+                $pattern = '~[\n\r]~';
+                $regsInString = preg_replace($pattern, '', trim($region['many']));
+                $regInArray = explode(',', $regsInString);
+                try {
+                    foreach ($regInArray as $region) {
+                        (new Region())
+                            ->fill(['title' => trim($region)])
+                            ->save();
+                    }
+                } catch (MultiException $e) {
+                    $e->prepend(new Exception('Ошибка пакетного ввода'));
+                    throw $e;
+                }
+            } else {
+                (new Region())
+                    ->fill(['title' => $region['one']])
+                    ->save();
+            }
+            Region::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Region::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+            //var_dump($this->data);die;
+        }
     }
 
 }

@@ -2,6 +2,7 @@
     <form action="/admin/addCity" method="post" role="form">
         <div class="form-group">
             <select name="city[regId]" id="id-region" class="form-control">
+                <option value="" selected="selected">---------</option>
                 {% for region in regions %}
                     <option value="{{ region.getPK }}">{{ region.title }}</option>
                 {% endfor %}
@@ -17,10 +18,15 @@
             Отмена
         </button>
     </form>
+    <script>
+        var APP = APP || {};
+        APP.popups = APP.popups || [];
+        APP.popups.push({
+            path: "{{ path }}",
+            popupSelector: "#add-city",
+            width: "auto"
+        });
+    </script>
 </div>
-<script>
-    var APP = APP || {};
-    APP.settings = APP.settings || {};
-    APP.settings.modalWindowSelector = "#add-city";
-</script>
+
 

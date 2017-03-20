@@ -41,8 +41,10 @@
                 <div class="form-group">
                     <label for="id-office" class="col-sm-4 control-label">Lotus ID</label>
                     <div class="col-sm-8">
+                        <input type="hidden" class="form-control" name="data[curLotusId]" id="id-office"
+                               value="{{ office.lotusId }}">
                         <input type="text" class="form-control" name="data[lotusId]" id="id-office"
-                               value="{{ office.lotusId }}" readonly>
+                               value="{{ office.lotusId }}">
                     </div>
                 </div>
 
@@ -73,10 +75,14 @@
             </form>
         </div>
     </div>
+    <script>
+        var APP = APP || {};
+        APP.popups = APP.popups || [];
+        APP.popups.push({
+            path: "{{ path }}",
+            popupSelector: "#edit-office",
+            width: "auto"
+        });
+    </script>
 </div>
-<script>
-    var APP = APP || {};
-    APP.settings = APP.settings || {};
-    APP.settings.modalWindowSelector = "#edit-office";
-</script>
 

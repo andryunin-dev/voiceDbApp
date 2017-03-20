@@ -58,6 +58,8 @@ table th .th-divider-right {
     text-align: center;
 }
 
+/*custom striped table*/
+
 .table-striped > tbody > tr:nth-of-type(odd) {
     background-color: #f9f9f9;
 }
@@ -68,9 +70,9 @@ table th .th-divider-right {
     background-color: #c5b6f5;
 }
 
-table tbody tr {
-    cursor: pointer;
-}
+/*table tbody tr {*/
+    /*cursor: default;*/
+/*}*/
 
 .no-wrap {
     white-space: nowrap;

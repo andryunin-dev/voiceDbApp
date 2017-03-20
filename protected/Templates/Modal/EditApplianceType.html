@@ -1,0 +1,22 @@
+<div id="edit-appliance-type" role="dialog" title="Редактирование типа(роли)">
+    <form action="/admin/editApplianceType" method="post" role="form">
+        <div class="form-group">
+            <label for="id-appliance-type"></label>
+            <input type="hidden" class="form-control" name="applianceType[id]" value="{{ applianceType.getPk }}">
+            <input type="text" class="form-control" name="applianceType[type]" id="id-appliance-type"
+                   value="{{ applianceType }}">
+        </div>
+
+        <button class="btn btn-success" type="submit">Сохранить</button>
+        <button class="btn btn-danger" type="button" role="button" data-action="close">Отмена</button>
+    </form>
+    <script>
+        var APP = APP || {};
+        APP.popups = APP.popups || [];
+        APP.popups.push({
+            path: "{{ path }}",
+            popupSelector: "#edit-appliance-type",
+            width: "auto"
+        });
+    </script>
+</div>

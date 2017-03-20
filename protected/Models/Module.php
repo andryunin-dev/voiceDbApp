@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use T4\Core\Collection;
+use T4\Core\Exception;
 use T4\Orm\Model;
 
 /**
@@ -29,20 +30,23 @@ class Module extends Model
         ]
     ];
 
-    public function validateTitle($title)
+    public function validateTitle($val)
     {
-        return (!empty(trim($title)));
+        if (empty(trim($val))) {
+            throw new Exception('Пустое название модуля');
+        }
+        return true;
+
     }
 
     public function validate()
     {
-        if (
-            true === empty(trim($this->title)) ||
-            false === $this->vendor
-        ) {
-            return false;
+        if (false === $this->isNew()) {
+            return true;
+        }
+        if (false !== Module::findByColumn('title', $this->title)) {
+            throw new Exception('Такой модуль уже существует');
         }
         return true;
     }
-
 }

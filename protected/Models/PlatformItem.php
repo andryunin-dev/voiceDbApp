@@ -33,4 +33,22 @@ class PlatformItem extends Model
             'appliance' => ['type' => self::HAS_ONE, 'model' => Appliance::class, 'by' => '__platform_item_id']
         ]
     ];
+
+    protected function validateSerialNumber($val)
+    {
+        return trim($val);
+    }
+
+    protected function validateInventoryNumber($val)
+    {
+        return trim($val);
+    }
+
+    protected function validate()
+    {
+        if (false === $this->platform) {
+            return false;
+        }
+        return true;
+    }
 }

@@ -1,22 +1,29 @@
 <div id="add-region" role="dialog" title="Новый регион">
-  <form action="/admin/addRegion" method="post" role="form">
-    <div class="form-group">
-      <label for="id-region"></label>
-      <input type="text" class="form-control" name="region[one]" id="id-region" placeholder="Новый регион">
-    </div>
-    <div class="form-group">
-      <label for="id-regions"></label>
-      <textarea name="region[many]" id="id-regions" cols="41" rows="10" placeholder="Список регионов через запятую"></textarea>
-    </div>
+    <form action="/admin/addRegion" method="post" role="form">
+        <div class="form-group">
+            <label for="id-region"></label>
+            <input type="text" class="form-control" name="region[one]" id="id-region" placeholder="Новый регион">
+        </div>
+        <div class="form-group">
+            <label for="id-regions"></label>
+            <textarea name="region[many]" id="id-regions" cols="41" rows="10"
+                      placeholder="Список регионов через запятую"></textarea>
+        </div>
 
-    <button class="btn btn-success" type="submit">Создать</button>
-    <button class="btn btn-danger" type="button" role="button" data-action="close">
-      Отмена
-    </button>
-  </form>
+        <button class="btn btn-success" type="submit">Создать</button>
+        <button class="btn btn-danger" type="button" role="button" data-action="close">
+            Отмена
+        </button>
+    </form>
+
+    <script>
+        var APP = APP || {};
+        APP.popups = APP.popups || [];
+        APP.popups.push({
+            path: "{{ path }}",
+            popupSelector: "#add-region",
+            width: "auto"
+        });
+    </script>
 </div>
-<script>
-  var APP = APP || {};
-  APP.settings = APP.settings || {};
-  APP.settings.modalWindowSelector = "#add-region";
-</script>
+

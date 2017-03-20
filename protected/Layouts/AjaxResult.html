@@ -1,0 +1,32 @@
+<div id="result" role="dialog" title="">
+    <div class="js-content">
+        {% if errors is defined %}
+        <div class="alert">
+            {% for error in errors %}
+                <p>{{ error.message|raw }}</p>
+            {% endfor %}
+        </div>
+
+        {% elseif result is defined %}
+            <div class="alert">
+                <p>{{ result|raw  }}</p>
+            </div>
+        {% else %}
+            <div class="alert">
+                <p>Успешно!</p>
+            </div>
+        {% endif %}
+        <button class="btn btn-default center-block" data-action="close">OK</button>
+    </div>
+
+    <script>
+        var APP = APP || {};
+        APP.popups = APP.popups || [];
+        APP.popups.push({
+            popupSelector: "#result",
+            width: "auto"
+        });
+    </script>
+</div>
+
+
