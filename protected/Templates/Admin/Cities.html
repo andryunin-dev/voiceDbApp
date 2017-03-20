@@ -1,93 +1,50 @@
 {% extends 'Index.html' %}
 
 {% block main %}
-    <div class="container-fluid">
-        <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
-            <div class="container-fluid">
-                <!-- Brand and toggle get grouped for better mobile display -->
-                <div class="navbar-header">
-                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
-                        <span class="sr-only">Toggle navigation</span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                    </button>
-                    <a class="navbar-brand" href="#">Home</a>
-                </div>
-
-                <!-- Collect the nav links, forms, and other content for toggling -->
-                <div class="collapse navbar-collapse navbar-ex1-collapse">
-                    <ul class="nav navbar-nav">
-                        <li>
-                            <a href="/admin/offices">Офисы</a>
-                        </li>
-                        <li>
-                            <a href="/admin/devices">Оборудование</a>
-                        </li>
-                    </ul>
-                    <ul class="nav navbar-nav navbar-right">
-                        <li class="dropdown">
-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Справочники <b class="caret"></b></a>
-                            <ul class="dropdown-menu">
-                                <li><a href="/admin/offices">Офисы</a></li>
-                                <li><a href="/admin/regions">Регионы</a></li>
-                                <li><a href="/admin/cities">Города</a></li>
-                                <li><a href="/admin/officeStatuses">Статусы офисов</a></li>
-                                <li><a href="/admin/devparts">Оборудование</a></li>
-                            </ul>
-                        </li>
-                    </ul>
-                </div><!-- /.navbar-collapse -->
-
-            </div>
-        </nav>
-
-        <div class="row">
-            <main class="cities js-content">
-                <div class="col-xs-5">
-                    <table class="table table-bordered table-hover table-striped">
-                        <thead>
+    <div class="row">
+        <main class="cities js-content">
+            <div class="col-xs-5">
+                <table class="table table-bordered table-hover table-striped">
+                    <thead>
+                    <tr>
+                        <th class="bg-primary col-region">
+                            <span class="th-divider-left">Регион</span>
+                            <span class="th-divider-right">
+                            </span>
+                        </th>
+                        <th class="bg-primary col-city">
+                            <span class="th-divider-left">Город</span>
+                            <span class="th-divider-right">
+                                <a class="btn btn-success btn-xs" href="/modal/addCity" role="button"
+                                   data-action="get-popup">Добавить</a>
+                            </span>
+                        </th>
+                        <th class="bg-primary col-actions">
+                            <span class="th-divider-left">Действия</span>
+                        </th>
+                    </tr>
+                    </thead>
+                    <!--Данные-->
+                    <tbody>
+                    {% for city in cities %}
                         <tr>
-                            <th class="bg-primary col-region">
-                                <span class="th-divider-left">Регион</span>
-                                <span class="th-divider-right">
-                                </span>
-                            </th>
-                            <th class="bg-primary col-city">
-                                <span class="th-divider-left">Город</span>
-                                <span class="th-divider-right">
-                                    <a class="btn btn-success btn-xs" href="/modal/addCity" role="button"
-                                       data-action="get-popup">Добавить</a>
-                                </span>
-                            </th>
-
-                            <th class="bg-primary col-actions">
-                                <span class="th-divider-left">Действия</span>
-                            </th>
+                            <td class="col-region cut-string">{{ city.region.title }}</td>
+                            <td class="col-city cut-string">{{ city.title }}</td>
+                            <td class="col-actions">
+                                <a class="btn btn-success btn-xs" href="/modal/editCity?id={{ city.getPK }}"
+                                   role="button" data-action="get-popup">
+                                    Изменить
+                                </a>
+                                <a class="btn btn-danger btn-xs" href="/admin/delCity?id={{ city.getPK }}"
+                                   role="button" data-action="delete">
+                                    Удалить
+                                </a>
+                            </td>
                         </tr>
-                        </thead>
-                        <!--Данные-->
-                        <tbody>
-                        {% for city in cities %}
-                            <tr>
-                                <td class="col-region cut-string">{{ city.region.title }}</td>
-                                <td class="col-city cut-string">{{ city.title }}</td>
-                                <td class="col-actions">
-                                    <a class="btn btn-success btn-xs" href="/modal/editCity?id={{ city.getPK }}"
-                                       role="button" data-action="get-popup">
-                                        Изменить
-                                    </a>
-                                    <a class="btn btn-danger btn-xs" href="/admin/delCity?id={{ city.getPK }}"
-                                       role="button" data-action="delete">
-                                        Удалить
-                                    </a>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </main>
-        </div>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </main>
     </div>
 {% endblock %}

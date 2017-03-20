@@ -34,7 +34,17 @@ class PlatformItem extends Model
         ]
     ];
 
-    public function validate()
+    protected function validateSerialNumber($val)
+    {
+        return trim($val);
+    }
+
+    protected function validateInventoryNumber($val)
+    {
+        return trim($val);
+    }
+
+    protected function validate()
     {
         if (false === $this->platform) {
             return false;

@@ -54,7 +54,8 @@
 
                 <div class="form-group">
                     <label for="id-software" class="col-sm-3 control-label">ПО</label>
-                    <div class="col-sm-5"><select name="data[softwareId]" id="id-software" class="form-control">
+                    <div class="col-sm-5">
+                        <select name="data[softwareId]" id="id-software" class="form-control">
                             <option value="" selected="selected">---------</option>
                             {% for softwareItem in software %}
                                 <option value="{{ softwareItem.getPK }}">{{ softwareItem.title }}</option>
@@ -64,6 +65,17 @@
                     <div class="col-sm-4 input-group">
                         <span class="input-group-addon" id="sw-ver">ver.</span>
                         <input type="text" class="form-control" name="data[softwareVersion]" placeholder="Версия ПО" aria-describedby="sw-ver">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="id-software" class="col-sm-3 control-label"></label>
+                    <div class="col-sm-4">
+                        <div class="input-group">
+                            <span class="input-group-addon" id="hostname">hostname</span>
+                            <input type="text" class="form-control" name="data[hostname]" placeholder="hostname"
+                                   aria-describedby="hostname">
+                        </div>
                     </div>
                 </div>
 
@@ -77,13 +89,48 @@
                                 добавить
                             </button>
                         </div>
-
                     </div>
                     <div class="panel-body js-add-module">
+                        {#------------#}
+                        {#<div class="form-group">#}
+                            {#<div class="col-xs-4">#}
+                                {#<select name="data[module][id][]" id="id-module" class="form-control">#}
+                                    {#<option value="" selected="selected">---------</option>#}
+                                    {#{% for module in modules %}#}
+                                        {#<option value="{{ module.getPK }}">{{ module.title }}</option>#}
+                                    {#{% endfor %}#}
+                                {#</select>#}
+                            {#</div>#}
+                            {#<div class="col-xs-4">#}
+                                {#<input type="text" class="form-control" name="data[module][sn][]" placeholder="Серийный номер">#}
+                            {#</div>#}
+                            {#<div class="col-xs-4">#}
+                                {#<input type="text" class="form-control" name="data[module][comment][]" placeholder="Комментарий">#}
+                            {#</div>#}
+                        {#</div>#}
+
+                        {#<div class="form-group">#}
+                            {#<div class="col-xs-4">#}
+                                {#<select name="data[module][id][]" id="id-module" class="form-control">#}
+                                    {#<option value="" selected="selected">---------</option>#}
+                                    {#{% for module in modules %}#}
+                                        {#<option value="{{ module.getPK }}">{{ module.title }}</option>#}
+                                    {#{% endfor %}#}
+                                {#</select>#}
+                            {#</div>#}
+                            {#<div class="col-xs-4">#}
+                                {#<input type="text" class="form-control" name="data[module][sn][]" placeholder="Серийный номер">#}
+                            {#</div>#}
+                            {#<div class="col-xs-4">#}
+                                {#<input type="text" class="form-control" name="data[module][comment][]" placeholder="Комментарий">#}
+                            {#</div>#}
+                        {#</div>#}
+                        {#---------------#}
+
                         <template class="js-add-module">
                             <div class="form-group">
                                 <div class="col-xs-4">
-                                    <select name="data[moduleId][]" id="id-module" class="form-control">
+                                    <select name="data[module][id][]" id="id-module" class="form-control">
                                         <option value="" selected="selected">---------</option>
                                         {% for module in modules %}
                                             <option value="{{ module.getPK }}">{{ module.title }}</option>
@@ -91,10 +138,10 @@
                                     </select>
                                 </div>
                                 <div class="col-xs-4">
-                                    <input type="text" class="form-control" name="data[moduleSn][]" placeholder="Серийный номер">
+                                    <input type="text" class="form-control" name="data[module][sn][]" placeholder="Серийный номер">
                                 </div>
                                 <div class="col-xs-4">
-                                    <input type="text" class="form-control" name="data[moduleComment][]" placeholder="Комментарий">
+                                    <input type="text" class="form-control" name="data[module][comment][]" placeholder="Комментарий">
                                 </div>
                             </div>
                         </template>
@@ -108,21 +155,21 @@
             </form>
         </div>
     </div>
+    <script>
+        var APP = APP || {};
+        APP.popups = APP.popups || [];
+        APP.popups.push({
+            path: "{{ path }}",
+            popupSelector: "#add-appliance",
+            width: "800"
+        });
+        $("button[data-action='add-module']").on(
+                "click",
+                function (event) {
+                    event.preventDefault();
+                    //console.log(APP);
+                    $(APP.popups[APP.currentPopup.index].popupSelector + " .panel-body.js-add-module").prepend($("template.js-add-module").clone().html());
+                }
+        )
+    </script>
 </div>
-<script>
-    var APP = APP || {};
-    APP.settings = APP.settings || {};
-    APP.data = APP.data || {};
-    APP.settings.modalWindowSelector = "#add-appliance";
-    APP.settings.modalWidth = 800;
-    APP.data.moduleTemplate = $(APP.settings.modalWindowSelector + " template.js-add-module");
-    $("button[data-action='add-module']").on(
-            "click",
-            function (event) {
-                event.preventDefault();
-                //console.log(APP);
-                $(APP.settings.modalWindowSelector + " .panel-body.js-add-module")
-                        .prepend(APP.data.moduleTemplate.clone().html());
-            }
-    )
-</script>

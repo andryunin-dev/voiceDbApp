@@ -9,6 +9,7 @@ use App\Models\Appliance;
 use App\Models\ApplianceType;
 use App\Models\City;
 use App\Models\Module;
+use App\Models\ModuleItem;
 use App\Models\Office;
 use App\Models\OfficeStatus;
 use App\Models\Platform;
@@ -31,6 +32,7 @@ class Admin extends Controller
     public function actionRegions()
     {
         $this->data->regions = Region::findAll(['order' => 'title']);
+        $this->data->activeLink->dictionary = true;
     }
     public function actionAddRegion($region = null)
     {
@@ -131,6 +133,7 @@ class Admin extends Controller
         };
 
         $this->data->cities = City::findAll()->uasort($asc);
+        $this->data->activeLink->dictionary = true;
     }
 
     public function actionAddCity($city)
@@ -218,6 +221,7 @@ class Admin extends Controller
     public function actionOfficeStatuses()
     {
         $this->data->statuses = OfficeStatus::findAll(['order' => 'title']);
+        $this->data->activeLink->dictionary = true;
     }
     /**
      * action добавления нового статуса.
@@ -301,6 +305,7 @@ class Admin extends Controller
         };
 
         $this->data->offices = Office::findAll()->uasort($asc);
+        $this->data->activeLink->offices = true;
     }
 
     /**
@@ -499,6 +504,7 @@ class Admin extends Controller
         $this->data->applianceTypes = ApplianceType::findAll(['order' => 'type']);
 
         $this->data->settings->activeTab = 'platforms';
+        $this->data->activeLink->dictionary = true;
     }
 
     public function actionAddApplianceType($applianceType)
@@ -900,7 +906,7 @@ class Admin extends Controller
 
     public function actionDevices()
     {
-
+        $this->data->activeLink->devices = true;
     }
 
     public function actionAddAppliance($data)
@@ -908,6 +914,21 @@ class Admin extends Controller
         try {
             Appliance::getDbConnection()->beginTransaction();
 
+            if (!is_numeric($data->officeId)) {
+                throw new Exception('Офис не выбран');
+            }
+            if (!is_numeric($data->vendorId)) {
+                throw new Exception('Производитель не выбран');
+            }
+            if (!is_numeric($data->applianceTypeId)) {
+                throw new Exception('Тип оборудования не выбран');
+            }
+            if (!is_numeric($data->platformId)) {
+                throw new Exception('Платформа не выбрана');
+            }
+            if (!is_numeric($data->softwareId)) {
+                throw new Exception('ПО не выбрано');
+            }
             $office = Office::findByPK($data->officeId);
             $vendor = Vendor::findByPK($data->vendorId);
             $applianceType = ApplianceType::findByPK($data->applianceTypeId);
@@ -932,19 +953,38 @@ class Admin extends Controller
                     'vendor' => $vendor,
                     'platform' => $platformItem,
                     'software' => $softwareItem,
-                    'type' => $applianceType
+                    'type' => $applianceType,
+                    'details' => [
+                        'hostname' => $data->hostname
+                    ]
                 ])
                 ->save();
+
+            //если appliance сохранился без ошибок - сохраняем модули к нему
+            foreach ($data->module->id as $key => $value) {
+                //если не выбран модуль - пропускаем
+                if (!is_numeric($value)) {
+                    continue;
+                }
+                $module = Module::findByPK($value);
+                $moduleItem = (new ModuleItem())
+                    ->fill([
+                        'appliance' => $appliance,
+                        'module' => $module,
+                        'serialNumber' => $data->module->sn->$key,
+                        'comment' => $data->module->comment->$key
+                    ])
+                    ->save();
+            }
+
+            //Appliance::getDbConnection()->commitTransaction();
         } catch (MultiException $e) {
-
-        }
-
-        if (false === $appliance) {
             Appliance::getDbConnection()->rollbackTransaction();
-        } else {
-            Appliance::getDbConnection()->commitTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Appliance::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
         }
-        header('Location: /admin/devices');
     }
 
 }
