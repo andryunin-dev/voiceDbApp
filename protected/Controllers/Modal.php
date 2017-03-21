@@ -5,6 +5,7 @@ namespace App\Controllers;
 
 use App\Models\ApplianceType;
 use App\Models\City;
+use App\Models\DPortType;
 use App\Models\Module;
 use App\Models\Office;
 use App\Models\OfficeStatus;
@@ -12,6 +13,7 @@ use App\Models\Platform;
 use App\Models\Region;
 use App\Models\Software;
 use App\Models\Vendor;
+use App\Models\VPortType;
 use T4\Http\Request;
 use T4\Mvc\Controller;
 
@@ -158,6 +160,22 @@ class Modal extends Controller
         $this->data->software = Software::findAll(['order' => 'title']);
         $this->data->modules = Module::findAll(['order' => 'title']);
         $this->data->applianceTypes = ApplianceType::findAll(['order' => 'type']);
+    }
+
+    public function actionAddPortType($type)
+    {
+        $this->data->type = $type;
+        $this->data->path = (new Request())->path;
+    }
+
+    public function actionEditPortType($portType)
+    {
+        if ('voice' == $portType->type) {
+            $this->data->portType = VPortType::findByPK($portType->id);
+        } elseif ('data' == $portType->type) {
+            $this->data->portType = DPortType::findByPK($portType->id);
+        }
+        $this->data->type = $portType->type;
     }
 
 }
