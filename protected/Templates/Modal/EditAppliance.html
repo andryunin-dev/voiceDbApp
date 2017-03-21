@@ -1,13 +1,12 @@
-<div id="add-appliance" role="dialog" title="Новое устройство">
+<div id="edit-appliance" role="dialog" title="Редактирование устройства">
     <div class="container-fluid">
         <div class="row">
             <form class="form-horizontal" action="/admin/addAppliance" method="post" role="form">
                 <div class="form-group">
                     <label for="id-office" class="col-sm-3 control-label">Офис</label>
                     <div class="col-sm-9"><select name="data[officeId]" id="id-office" class="form-control">
-                            <option value="" selected="selected">---------</option>
                             {% for office in offices %}
-                                <option value="{{ office.getPK }}">{{ office.title }}</option>
+                                <option value="{{ office.getPK }}"{% if office.getPK == current.location.getPk %} selected {% endif %}>{{ office.title }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -16,9 +15,8 @@
                 <div class="form-group">
                     <label for="id-vendor" class="col-sm-3 control-label">Производитель</label>
                     <div class="col-sm-9"><select name="data[vendorId]" id="id-vendor" class="form-control">
-                            <option value="" selected="selected">---------</option>
                             {% for vendor in vendors %}
-                                <option value="{{ vendor.getPK }}">{{ vendor.title }}</option>
+                                <option value="{{ vendor.getPK }}"{% if vendor.getPK == current.vendor.getPk %} selected {% endif %}>{{ vendor.title }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -28,9 +26,8 @@
                     <label for="id-appliance-type" class="col-sm-3 control-label">Тип (роль)</label>
                     <div class="col-sm-5">
                         <select name="data[applianceTypeId]" id="id-appliance-type" class="form-control">
-                            <option value="" selected="selected">---------</option>
                             {% for applianceType in applianceTypes %}
-                                <option value="{{ applianceType.getPK }}">{{ applianceType }}</option>
+                                <option value="{{ applianceType.getPK }}"{% if applianceType.getPK == current.type.getPk %} selected {% endif %}>{{ applianceType }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -40,15 +37,14 @@
                     <label for="id-platform" class="col-sm-3 control-label">Платформа</label>
                     <div class="col-sm-5">
                             <select name="data[platformId]" id="id-platform" class="form-control">
-                                <option value="" selected="selected">---------</option>
                                 {% for platform in platforms %}
-                                    <option value="{{ platform.getPK }}">{{ platform.title }}</option>
+                                    <option value="{{ platform.getPK }}"{% if platform.getPK == current.platform.getPk %} selected {% endif %}>{{ platform.title }}</option>
                                 {% endfor %}
                             </select>
                     </div>
                     <div class="col-sm-4 input-group">
                         <span class="input-group-addon" id="hw-sn">S/N</span>
-                        <input type="text" class="form-control" name="data[platformSn]" placeholder="Серийный номер" aria-describedby="hw-sn">
+                        <input type="text" class="form-control" name="data[platformSn]" value="{{ current.platform.serialNumber }}" aria-describedby="hw-sn">
                     </div>
                 </div>
 
@@ -56,15 +52,14 @@
                     <label for="id-software" class="col-sm-3 control-label">ПО</label>
                     <div class="col-sm-5">
                         <select name="data[softwareId]" id="id-software" class="form-control">
-                            <option value="" selected="selected">---------</option>
                             {% for softwareItem in software %}
-                                <option value="{{ softwareItem.getPK }}">{{ softwareItem.title }}</option>
+                                <option value="{{ softwareItem.getPK }}"{% if softwareItem.getPK == current.software.getPk %} selected {% endif %}>{{ softwareItem.title }}</option>
                             {% endfor %}
                         </select>
                     </div>
                     <div class="col-sm-4 input-group">
                         <span class="input-group-addon" id="sw-ver">ver.</span>
-                        <input type="text" class="form-control" name="data[softwareVersion]" placeholder="Версия ПО" aria-describedby="sw-ver">
+                        <input type="text" class="form-control" name="data[softwareVersion]" value="{{ current.software.version }}" aria-describedby="sw-ver">
                     </div>
                 </div>
 
@@ -73,7 +68,7 @@
                     <div class="col-sm-4">
                         <div class="input-group">
                             <span class="input-group-addon" id="hostname">hostname</span>
-                            <input type="text" class="form-control" name="data[hostname]" placeholder="hostname"
+                            <input type="text" class="form-control" name="data[hostname]" value="{{ current.details.hostname }}"
                                    aria-describedby="hostname">
                         </div>
                     </div>
@@ -91,7 +86,24 @@
                         </div>
                     </div>
                     <div class="panel-body js-add-module">
+                    {% for currentModule in current.modules %}
+                        <div class="form-group">
+                            <div class="col-xs-4">
+                                <select name="data[module][id][]" id="id-module" class="form-control">
+                                    {% for module in modules %}
+                                        <option value="{{ module.getPK }}"{% if module.getPK == currentModule.getPk %} selected {% endif %}>{{ module.title }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-xs-4">
+                                <input type="text" class="form-control" name="data[module][sn][]" value="{{ currentModule.serialNumber }}">
+                            </div>
+                            <div class="col-xs-4">
+                                <input type="text" class="form-control" name="data[module][comment][]" value="{{ currentModule.comment }}">
+                            </div>
+                        </div>
 
+                    {% endfor %}
                         <template class="js-add-module">
                             <div class="form-group">
                                 <div class="col-xs-4">
@@ -103,10 +115,10 @@
                                     </select>
                                 </div>
                                 <div class="col-xs-4">
-                                    <input type="text" class="form-control" name="data[module][sn][]" placeholder="Серийный номер">
+                                    <input type="text" class="form-control" name="data[newModule][sn][]" placeholder="Серийный номер">
                                 </div>
                                 <div class="col-xs-4">
-                                    <input type="text" class="form-control" name="data[module][comment][]" placeholder="Комментарий">
+                                    <input type="text" class="form-control" name="data[newModule][comment][]" placeholder="Комментарий">
                                 </div>
                             </div>
                         </template>
@@ -125,7 +137,7 @@
         APP.popups = APP.popups || [];
         APP.popups.push({
             path: "{{ path }}",
-            popupSelector: "#add-appliance",
+            popupSelector: "#edit-appliance",
             width: "800"
         });
         $("button[data-action='add-module']").on(

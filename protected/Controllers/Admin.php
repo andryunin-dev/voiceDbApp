@@ -916,6 +916,11 @@ class Admin extends Controller
 
     public function actionDevices()
     {
+        $this->data->offices = Office::findAll(['order' => 'title']);
+
+        foreach ($this->data->offices as $office) {
+
+        }
         $this->data->activeLink->devices = true;
     }
 
@@ -1075,20 +1080,22 @@ class Admin extends Controller
                 ->save();
 
             //если appliance сохранился без ошибок - сохраняем модули к нему
-            foreach ($data->module->id as $key => $value) {
-                //если не выбран модуль - пропускаем
-                if (!is_numeric($value)) {
-                    continue;
+            if (!empty($data->module->id)) {
+                foreach ($data->module->id as $key => $value) {
+                    //если не выбран модуль - пропускаем
+                    if (!is_numeric($value)) {
+                        continue;
+                    }
+                    $module = Module::findByPK($value);
+                    $moduleItem = (new ModuleItem())
+                        ->fill([
+                            'appliance' => $appliance,
+                            'module' => $module,
+                            'serialNumber' => $data->module->sn->$key,
+                            'comment' => $data->module->comment->$key
+                        ])
+                        ->save();
                 }
-                $module = Module::findByPK($value);
-                $moduleItem = (new ModuleItem())
-                    ->fill([
-                        'appliance' => $appliance,
-                        'module' => $module,
-                        'serialNumber' => $data->module->sn->$key,
-                        'comment' => $data->module->comment->$key
-                    ])
-                    ->save();
             }
 
             Appliance::getDbConnection()->commitTransaction();
@@ -1099,6 +1106,11 @@ class Admin extends Controller
             Appliance::getDbConnection()->rollbackTransaction();
             $this->data->errors = (new MultiException())->add($e);
         }
+    }
+
+    public function EditAppliance($id)
+    {
+
     }
 
 }

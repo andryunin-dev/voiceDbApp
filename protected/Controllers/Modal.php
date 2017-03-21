@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 
+use App\Models\Appliance;
 use App\Models\ApplianceType;
 use App\Models\City;
 use App\Models\DPortType;
@@ -154,6 +155,17 @@ class Modal extends Controller
 
     public function actionAddAppliance()
     {
+        $this->data->offices = Office::findAll(['order' => 'title']);
+        $this->data->vendors = Vendor::findAll(['order' => 'title']);
+        $this->data->platforms = Platform::findAll(['order' => 'title']);
+        $this->data->software = Software::findAll(['order' => 'title']);
+        $this->data->modules = Module::findAll(['order' => 'title']);
+        $this->data->applianceTypes = ApplianceType::findAll(['order' => 'type']);
+    }
+
+    public function actionEditAppliance($id)
+    {
+        $this->data->current = Appliance::findByPK($id);
         $this->data->offices = Office::findAll(['order' => 'title']);
         $this->data->vendors = Vendor::findAll(['order' => 'title']);
         $this->data->platforms = Platform::findAll(['order' => 'title']);

@@ -21,10 +21,6 @@ body { padding-top: 60px; }
     border: 1px solid #e61f07;
 }
 
-aside .btn {
-    width: 100%;
-}
-
 body,
 .modal-window.ui-widget-content {
     background: #fff url(../img/2.jpg) repeat;
@@ -58,21 +54,6 @@ table th .th-divider-right {
     text-align: center;
 }
 
-/*custom striped table*/
-
-.table-striped > tbody > tr:nth-of-type(odd) {
-    background-color: #f9f9f9;
-}
-.table-striped > tbody > tr:nth-of-type(even) {
-    background-color: #eeeeee;
-}
-.table-hover > tbody > tr:hover {
-    background-color: #c5b6f5;
-}
-
-/*table tbody tr {*/
-    /*cursor: default;*/
-/*}*/
 
 .no-wrap {
     white-space: nowrap;
@@ -84,19 +65,24 @@ table th .th-divider-right {
 .offices .col-city {
     width: 15%;
 }
-.offices .col-address,
-.offices .col-office {
+.offices .col-address {
     max-width: 250px;
 }
 
-.offices .col-office {
-    width: 15%;
+.offices .col-office,
+.devices .col-office{
+    max-width: 150px;
+}
+
+.devices .col-device{
+    max-width: 150px;
 }
 
 .offices .col-status {
     width: 5%;
 }
-.offices .col-actions {
+.offices .col-actions,
+.devices .col-actions{
     width: 270px;
     white-space: nowrap;
 }
@@ -159,10 +145,33 @@ table th .th-divider-right {
     max-width: 200px;
 }
 
-.cust-table-striped tbody:nth-child(odd) {
-    background: #eeeeee;
+
+/*custom striped table*/
+
+.table-striped > tbody > tr:nth-of-type(odd) {
+    background-color: #f9f9f9;
+}
+.table-striped > tbody > tr:nth-of-type(even) {
+    background-color: #eeeeee;
+}
+.table-hover > tbody > tr:hover {
+    background-color: #dadada;
 }
 
-.cust-table-striped tbody:hover td[rowspan], tr:hover td {
+/*table tbody tr {*/
+/*cursor: default;*/
+/*}*/
+
+.cust-table-striped tbody:nth-child(odd) {
+    background: #d9d9d9;
+}
+.cust-table-striped tbody:nth-child(even) {
+    background: #f4f4f4;
+}
+
+.cust-table-striped tbody:hover {
     background: #c1c1c1;
 }
+/*.cust-table-striped tbody:hover td[rowspan], tr:hover td {*/
+    /*background: #c1c1c1;*/
+/*}*/
