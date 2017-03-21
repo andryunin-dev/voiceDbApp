@@ -20,7 +20,7 @@ class m_1489148844_alterApplianceTable
     {
         $sqlSetNotNull = 'ALTER TABLE equipment.appliances ALTER COLUMN __cluster_id SET NOT NULL ';
         if (true === $this->db->execute($sqlSetNotNull)) {
-            echo 'set restriction NOT NUL on \"__cluster_id column\" \"equipment.appliances\" table' . "\n";
+            echo 'set restriction NOT NUL on "__cluster_id column" "equipment.appliances" table' . "\n";
         }
     }
     

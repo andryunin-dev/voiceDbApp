@@ -23,7 +23,7 @@
                                 <td class="col-office cut-string" rowspan="{{ appliance.modules.count }}">{{ office.title }}</td>
                                 <td class="col-device cut-string" rowspan="{{ appliance.modules.count }}">{{ appliance.platform.platform.vendor.title }} {{ appliance.platform.platform.title }}</td>
                                 <td rowspan="{{ appliance.modules.count }}">{{ appliance.software.software.title }}</td>
-                                <td rowspan="{{ appliance.modules.count }}">host1</td>
+                                <td rowspan="{{ appliance.modules.count }}">{{ appliance.details.hostname }}</td>
                                 <td rowspan="">{{ appliance.modules.first.module.title }}</td>
                                 <td rowspan="{{ appliance.modules.count }}">{{ appliance.comment }}</td>
                                 <td class="col-actions" rowspan="{{ appliance.modules.count }}">

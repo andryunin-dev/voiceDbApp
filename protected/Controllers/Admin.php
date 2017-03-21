@@ -1108,9 +1108,99 @@ class Admin extends Controller
         }
     }
 
-    public function EditAppliance($id)
+    public function actionEditAppliance($data)
     {
+        try {
+            Appliance::getDbConnection()->beginTransaction();
 
+            $current = Appliance::findByPK($data->currentId);
+
+            if (false === $office = Office::findByPK($data->officeId)) {
+                throw new Exception('Офис не найден');
+            }
+            if (false === $vendor = Vendor::findByPK($data->vendorId)) {
+                throw new Exception('Производитель не найден');
+            }
+            if (false === $applianceType = ApplianceType::findByPK($data->applianceTypeId)) {
+                throw new Exception('Тип оборудования не найден');
+            }
+            if (false === $platform = Platform::findByPK($data->platformId)) {
+                throw new Exception('Платформа не найдена');
+            }
+            if (false === $software = Software::findByPK($data->softwareId)) {
+                throw new Exception('ПО не найдено');
+            }
+            ($current->platform)
+                ->fill([
+                    'platform' => $platform,
+                    'serialNumber' => $data->platformSn
+                ])
+                ->save();
+
+            ($current->software)
+                ->fill([
+                    'software' => $software,
+                    'version' => $data->softwareVersion
+                ])
+                ->save();
+
+            ($current)
+                ->fill([
+                    'location' => $office,
+                    'vendor' => $vendor,
+                    'type' => $applianceType,
+                    'details' => [
+                        'hostname' => $data->hostname
+                    ]
+                ])
+                ->save();
+
+            //если appliance сохранился без ошибок - сохраняем существующие модули к нему
+            if (!empty($data->module->id)) {
+                foreach ($data->module->id as $key => $value) {
+                    //если не выбран модуль - пропускаем
+                    if (!is_numeric($value)) {
+                        continue;
+                    }
+                    $module = Module::findByPK($value);
+                    $moduleItem = (ModuleItem::findByPK($data->module->currentId->$key))
+                        ->fill([
+                            'appliance' => $current, //текущий appliance
+                            'module' => $module,
+                            'serialNumber' => $data->module->sn->$key,
+                            'comment' => $data->module->comment->$key
+                        ])
+                        ->save();
+                }
+            }
+
+           //сохраняем новые модули
+            if (!empty($data->newModule->id)) {
+                foreach ($data->newModule->id as $key => $value) {
+                    //если не выбран модуль - пропускаем
+                    if (!is_numeric($value)) {
+                        continue;
+                    }
+                    $module = Module::findByPK($value);
+                    $moduleItem = (new ModuleItem())
+                        ->fill([
+                            'appliance' => $current, //текущий appliance
+                            'module' => $module,
+                            'serialNumber' => $data->module->sn->$key,
+                            'comment' => $data->module->comment->$key
+                        ])
+                        ->save();
+                }
+            }
+
+            Appliance::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Appliance::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Appliance::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
     }
 
 }

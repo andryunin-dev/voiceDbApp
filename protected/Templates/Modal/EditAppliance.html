@@ -1,7 +1,8 @@
 <div id="edit-appliance" role="dialog" title="Редактирование устройства">
     <div class="container-fluid">
         <div class="row">
-            <form class="form-horizontal" action="/admin/addAppliance" method="post" role="form">
+            <form class="form-horizontal" action="/admin/editAppliance" method="post" role="form">
+                <input type="hidden" class="form-control" name="data[currentId]" title="current appliance id" value="{{ current.getPK }}">
                 <div class="form-group">
                     <label for="id-office" class="col-sm-3 control-label">Офис</label>
                     <div class="col-sm-9"><select name="data[officeId]" id="id-office" class="form-control">
@@ -38,7 +39,7 @@
                     <div class="col-sm-5">
                             <select name="data[platformId]" id="id-platform" class="form-control">
                                 {% for platform in platforms %}
-                                    <option value="{{ platform.getPK }}"{% if platform.getPK == current.platform.getPk %} selected {% endif %}>{{ platform.title }}</option>
+                                    <option value="{{ platform.getPK }}"{% if platform.getPK == current.platform.platform.getPk %} selected {% endif %}>{{ platform.title }}</option>
                                 {% endfor %}
                             </select>
                     </div>
@@ -53,7 +54,7 @@
                     <div class="col-sm-5">
                         <select name="data[softwareId]" id="id-software" class="form-control">
                             {% for softwareItem in software %}
-                                <option value="{{ softwareItem.getPK }}"{% if softwareItem.getPK == current.software.getPk %} selected {% endif %}>{{ softwareItem.title }}</option>
+                                <option value="{{ softwareItem.getPK }}"{% if softwareItem.getPK == current.software.software.getPk %} selected {% endif %}>{{ softwareItem.title }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -85,29 +86,32 @@
                             </button>
                         </div>
                     </div>
+                    {#============Модули========================#}
                     <div class="panel-body js-add-module">
-                    {% for currentModule in current.modules %}
+                    {% for currentModuleItem in current.modules %}
                         <div class="form-group">
                             <div class="col-xs-4">
-                                <select name="data[module][id][]" id="id-module" class="form-control">
+                                <select name="data[module][id][]" id="id-module" class="form-control" title="modules list">
                                     {% for module in modules %}
-                                        <option value="{{ module.getPK }}"{% if module.getPK == currentModule.getPk %} selected {% endif %}>{{ module.title }}</option>
+                                        <option value="{{ module.getPK }}"{% if module.getPK == currentModuleItem.module.getPk %} selected {% endif %}>{{ module.title }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
                             <div class="col-xs-4">
-                                <input type="text" class="form-control" name="data[module][sn][]" value="{{ currentModule.serialNumber }}">
+                                <input type="hidden" class="form-control" name="data[module][currentId][]" title="current module id" value="{{ currentModuleItem.getPK }}">
+                                <input type="text" class="form-control" name="data[module][sn][]" title="serial number" value="{{ currentModuleItem.serialNumber }}">
                             </div>
                             <div class="col-xs-4">
-                                <input type="text" class="form-control" name="data[module][comment][]" value="{{ currentModule.comment }}">
+                                <input type="text" class="form-control" name="data[module][comment][]" title="comment for module" value="{{ currentModuleItem.comment }}">
                             </div>
                         </div>
 
                     {% endfor %}
+                        {#===========Template for new module=====================#}
                         <template class="js-add-module">
                             <div class="form-group">
                                 <div class="col-xs-4">
-                                    <select name="data[module][id][]" id="id-module" class="form-control">
+                                    <select id="id-module" class="form-control" name="data[newModule][id][]" title="modules list">
                                         <option value="" selected="selected">---------</option>
                                         {% for module in modules %}
                                             <option value="{{ module.getPK }}">{{ module.title }}</option>
