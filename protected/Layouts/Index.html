@@ -50,8 +50,11 @@
                     <li {% if activeLink.offices == true %}class="active" {% endif %}>
                         <a href="/admin/offices">Офисы</a>
                     </li>
-                    <li {% if activeLink.devices == true %}class="active" {% endif %}>
-                        <a href="/admin/devices">Оборудование</a>
+                    <li class="dropdown {% if activeLink.devices == true %} active {% endif %}">
+                        <a href="#" class="dropdown-toggle active" data-toggle="dropdown">Оборудование <b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="/admin/devices">По офисам</a></li>
+                        </ul>
                     </li>
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
