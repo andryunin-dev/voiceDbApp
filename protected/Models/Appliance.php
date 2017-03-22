@@ -25,8 +25,6 @@ use T4\Orm\Model;
  */
 class Appliance extends Model
 {
-    const MOTHERBOARD = 'motherboard'; // motherboard name in modules
-
     protected static $schema = [
         'table' => 'equipment.appliances',
         'columns' => [
