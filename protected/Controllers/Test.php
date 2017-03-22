@@ -7,25 +7,28 @@ use App\Components\Sorter;
 use App\Models\Address;
 use App\Models\ApplianceType;
 use App\Models\City;
+use App\Models\DataPort;
 use App\Models\Office;
 use App\Models\OfficeStatus;
 use App\Models\Region;
 use T4\Core\Exception;
 use T4\Core\IArrayable;
 use T4\Core\MultiException;
+use T4\Dbal\Query;
 use T4\Http\Request;
 use T4\Mvc\Controller;
 
 class Test extends Controller
 {
-    public function actionDefault($ip)
+    public function actionDefault()
     {
-        var_dump($ip);
-        $res = str_replace('\\', '/', $ip);
-        $res = explode('/',$res);
+        $query = (new Query())
+            ->select()
+            ->from(DataPort::getTableName())
+            ->where('"ipAddress" && :ip')
+            ->params([':ip' => '192.168.1.1']);
+        $res = DataPort::countAllByQuery($query);
         var_dump($res);die;
-        var_dump(preg_replace('/\\\/', '/', $ip));die;
-        var_dump(filter_var($ip, FILTER_VALIDATE_IP));die;
     }
 
     public function actionRegions($region = null)

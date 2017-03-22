@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use T4\Core\Exception;
+use T4\Dbal\Query;
 use T4\Orm\Model;
 
 /**
@@ -103,6 +104,21 @@ class DataPort extends Model
         }
         if (false === $this->portType) {
             throw new Exception('Данный тип порта не найден');
+        }
+
+        //остальные проверки только для существующих записей
+//        if (false === $this->isNew) {
+//            return true;
+//        }
+        //ищем записи с таким ip
+        $query = (new Query())
+            ->select()
+            ->from(DataPort::getTableName())
+            ->where('"ipAddress" && :ip')
+            ->params([':ip' => $this->ipAddress]);
+
+        if (DataPort::countAllByQuery($query) > 0) {
+            throw new Exception('IP адрес ' . $this->ipAddress . ' уже используется.');
         }
 
         return true;

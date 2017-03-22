@@ -1,0 +1,65 @@
+<div id="edit-port" role="dialog" title="Изменение порта передачи данных">
+    <div class="container-fluid">
+        <div class="row">
+            <form class="form-horizontal" action="/admin/editDataPort" method="post" role="form">
+                {#hidden field with current appliance ID#}
+                <input type="hidden" class="form-control" name="data[applianceId]" title="current appliance id" value="{{ currentAppliance.getPK }}">
+                <input type="hidden" class="form-control" name="data[portId]" title="current port id" value="{{ currentPort.getPK }}">
+                {#Type of port#}
+                <div class="form-group">
+                    <label for="id-data-port-type" class="col-sm-3 control-label">Тип порта</label>
+                    <div class="col-sm-9">
+                        <select name="data[portTypeId]" id="id-data-port-type" class="form-control">
+                            <option value="" selected="selected">---------</option>
+                            {% for portType in portTypes %}
+                                <option value="{{ portType.getPK }}" {% if portType.getPK == currentPort.portType.getPK %}selected{% endif %}>{{ portType.type }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                {#IP address#}
+                <div class="form-group">
+                    <div class="col-sm-9 col-sm-offset-3">
+                        <div class="input-group">
+                            <span class="input-group-addon" id="ip-addr">IP</span>
+                            <input type="text" class="form-control" name="data[ip]" placeholder="192.168.1.1/24"
+                                   aria-describedby="ip-addr">
+                        </div>
+                    </div>
+                </div>
+                {#MAC address#}
+                <div class="form-group">
+                    <div class="col-sm-9 col-sm-offset-3">
+                        <div class="input-group">
+                            <span class="input-group-addon" id="mac-addr">MAC</span>
+                            <input type="text" class="form-control" name="data[mac]" placeholder="00-0C-46-CD-ED-A8"
+                                   aria-describedby="mac-addr">
+                        </div>
+                    </div>
+                </div>
+                {#comment#}
+                <div class="form-group">
+                    <label for="id-comment" class="col-sm-3 control-label">Комментарий</label>
+                    <div class="col-sm-9">
+                        <input id="id-comment" type="text" class="form-control" name="data[comment]" placeholder="Комментарий к порту">
+                    </div>
+                </div>
+
+
+                <div class="col-sm-offset-3 col-sm-8">
+                    <button class="btn btn-success" type="submit">Создать</button>
+                    <button class="btn btn-danger" type="button" role="button" data-action="close">Отмена</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script>
+        var APP = APP || {};
+        APP.popups = APP.popups || [];
+        APP.popups.push({
+            path: "{{ path }}",
+            popupSelector: "#edit-port",
+            width: "500"
+        });
+    </script>
+</div>

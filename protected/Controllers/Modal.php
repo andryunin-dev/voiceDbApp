@@ -6,6 +6,7 @@ namespace App\Controllers;
 use App\Models\Appliance;
 use App\Models\ApplianceType;
 use App\Models\City;
+use App\Models\DataPort;
 use App\Models\DPortType;
 use App\Models\Module;
 use App\Models\Office;
@@ -195,15 +196,14 @@ class Modal extends Controller
     public function actionAddDataPort($id)
     {
         $this->data->current = Appliance::findByPK($id);
-
         $this->data->portTypes = DPortType::findAll(['order' => 'type']);
-        $this->data->offices = Office::findAll(['order' => 'title']);
-        $this->data->vendors = Vendor::findAll(['order' => 'title']);
-        $this->data->platforms = Platform::findAll(['order' => 'title']);
-        $this->data->software = Software::findAll(['order' => 'title']);
-        $this->data->modules = Module::findAll(['order' => 'title']);
-        $this->data->applianceTypes = ApplianceType::findAll(['order' => 'type']);
     }
 
+    public function actionEditDataPort($data)
+    {
+        $this->data->currentAppliance = Appliance::findByPK($data->deviceId);
+        $this->data->currentPort = DataPort::findByPK($data->portId);
+        $this->data->portTypes = DPortType::findAll(['order' => 'type']);
 
+    }
 }

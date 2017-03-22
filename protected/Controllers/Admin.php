@@ -1259,12 +1259,44 @@ class Admin extends Controller
             if (!is_numeric($data->portTypeId)) {
                 throw new Exception('Тип порта не выбран');
             }
-            $res = (new DataPort())
+            (new DataPort())
                 ->fill([
                     'ipAddress' => $data->ip,
                     'macAddress' => $data->mac,
                     'comment' => $data->comment,
                     'appliance' => $currentAppliance,
+                    'portType' => DPortType::findByPK($data->portTypeId)
+                ])
+                ->save();
+
+            DataPort::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            DataPort::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            DataPort::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
+
+    }
+
+    public function actionEditDataPort($data)
+    {
+        try {
+            DataPort::getDbConnection()->beginTransaction();
+            if (false === $currentAppliance = Appliance::findByPK($data->applianceId)) {
+                throw new Exception('Неверные данные');
+            }
+            if (false === $currentDataPort = DataPort::findByPK($data->portId)) {
+                throw new Exception('Неверные данные');
+            }
+
+            $currentDataPort
+                ->fill([
+                    'ipAddress' => $data->ip,
+                    'macAddress' => $data->mac,
+                    'comment' => $data->comment,
+                    'appliance' => $currentAppliance, //нужен только для валидатора
                     'portType' => DPortType::findByPK($data->portTypeId)
                 ])
                 ->save();
