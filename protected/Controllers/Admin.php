@@ -8,6 +8,7 @@ use App\Models\Address;
 use App\Models\Appliance;
 use App\Models\ApplianceType;
 use App\Models\City;
+use App\Models\DataPort;
 use App\Models\DPortType;
 use App\Models\Module;
 use App\Models\ModuleItem;
@@ -1025,6 +1026,37 @@ class Admin extends Controller
             VPortType::getDbConnection()->rollbackTransaction();
             $this->data->errors = (new MultiException())->add($e);
         }
+        try {
+            VPortType::getDbConnection()->beginTransaction();
+            if ('voice' == $portType->type) {
+                if (false === $currentPort = VPortType::findByPK($portType->id)) {
+                    throw new Exception('Порт не найден');
+                }
+                if ($currentPort->ports->count() > 0) {
+                    throw new Exception('Удаление не возможно. Данный тип используется.');
+                }
+                $currentPort->delete();
+            } elseif ('data' == $portType->type) {
+                if (false === $currentPort = DPortType::findByPK($portType->id)) {
+                    throw new Exception('Порт не найден');
+                }
+                if ($currentPort->ports->count() > 0) {
+                    throw new Exception('Удаление не возможно. Данный тип используется.');
+                }
+                $currentPort->delete();
+
+            } else {
+                throw new Exception('Неизвестный тип порта');
+            }
+
+            VPortType::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            VPortType::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            VPortType::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
     }
 
 
@@ -1201,6 +1233,51 @@ class Admin extends Controller
             Appliance::getDbConnection()->rollbackTransaction();
             $this->data->errors = (new MultiException())->add($e);
         }
+    }
+
+    public function actionDelAppliance()
+    {
+        // TO DO
+    }
+
+    public function actionPortInventory()
+    {
+        $this->data->offices = Office::findAll(['order' => 'title']);
+    }
+    public function actionPortInventoryTemplate()
+    {
+
+    }
+
+    public function actionAddDataPort($data)
+    {
+        try {
+            DataPort::getDbConnection()->beginTransaction();
+            if (false === $currentAppliance = Appliance::findByPK($data->id)) {
+                throw new Exception('Неверные данные');
+            }
+            if (!is_numeric($data->portTypeId)) {
+                throw new Exception('Тип порта не выбран');
+            }
+            $res = (new DataPort())
+                ->fill([
+                    'ipAddress' => $data->ip,
+                    'macAddress' => $data->mac,
+                    'comment' => $data->comment,
+                    'appliance' => $currentAppliance,
+                    'portType' => DPortType::findByPK($data->portTypeId)
+                ])
+                ->save();
+
+            DataPort::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            DataPort::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            DataPort::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
+
     }
 
 }

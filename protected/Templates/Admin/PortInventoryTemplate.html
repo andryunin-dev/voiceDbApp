@@ -1,0 +1,181 @@
+{% extends 'Index.html' %}
+
+{% block main %}
+    <div class="row">
+        <main class="devices">
+            <div class="col-xs-12">
+                <table class="table table-bordered cust-table-striped">
+                    <thead>
+                    <tr class="text-middle text-center">
+                        <th class="bg-primary col-office" rowspan="2">Офис</th>
+                        <th class="bg-primary col-hardware" rowspan="2">Оборудование</th>
+                        <th class="bg-primary col-software" rowspan="2">ПО</th>
+                        <th class="bg-primary col-software" rowspan="2">hostname</th>
+                        <th class="bg-primary col-port" colspan="3">Порты</th>
+                        <th class="bg-primary col-actions" rowspan="2">Действия</th>
+                    </tr>
+                    <tr class="text-center">
+                        <th class="bg-primary col-port-type">Тип</th>
+                        <th class="bg-primary col-port-type">MAC</th>
+                        <th class="bg-primary col-port-type">IP</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                        <tr>
+                            <td rowspan="4">office</td>
+                            <td rowspan="4">device
+                                <a class="btn btn-success btn-xs btn-custom pull-right" href="/modal/addPort" role="button" data-action="get-popup"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> порт</a>
+                            </td>
+                            <td rowspan="4">sotf</td>
+                            <td rowspan="4">host1</td>
+                            <td>ethernet</td>
+                            <td>mac 1</td>
+                            <td>192.168.128.124/24</td>
+                            <td>
+                                <div class="pull-right">
+                                    <a class="btn btn-success btn-xs" href="/modal/editPort?id={{ appliance.getPK }}"
+                                       role="button" data-action="get-popup">
+                                        Изменить
+                                    </a>
+                                    <a class="btn btn-danger btn-xs" href="/admin/delPort?id={{ appliance.getPK }}" role="button"
+                                       data-action="delete">
+                                        Удалить
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>type eth</td>
+                            <td>mac 2</td>
+                            <td>192.168.128.124/24</td>
+                            <td>
+                                <div class="pull-right">
+                                    <a class="btn btn-success btn-xs" href="/modal/editPort?id={{ appliance.getPK }}"
+                                       role="button" data-action="get-popup">
+                                        Изменить
+                                    </a>
+                                    <a class="btn btn-danger btn-xs" href="/admin/delPort?id={{ appliance.getPK }}" role="button"
+                                       data-action="delete">
+                                        Удалить
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>type eth</td>
+                            <td>mac 3</td>
+                            <td>192.168.128.124/24</td>
+                            <td>
+                                <div class="pull-right">
+                                    <a class="btn btn-success btn-xs" href="/modal/editPort?id={{ appliance.getPK }}"
+                                       role="button" data-action="get-popup">
+                                        Изменить
+                                    </a>
+                                    <a class="btn btn-danger btn-xs" href="/admin/delPort?id={{ appliance.getPK }}" role="button"
+                                       data-action="delete">
+                                        Удалить
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>type eth</td>
+                            <td>mac 4</td>
+                            <td>192.168.128.124/24</td>
+                            <td>
+                                <div class="pull-right">
+                                    <a class="btn btn-success btn-xs" href="/modal/editPort?id={{ appliance.getPK }}"
+                                       role="button" data-action="get-popup">
+                                        Изменить
+                                    </a>
+                                    <a class="btn btn-danger btn-xs" href="/admin/delPort?id={{ appliance.getPK }}" role="button"
+                                       data-action="delete">
+                                        Удалить
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tbody>
+                        <tr>
+                            <td rowspan="4">office</td>
+                            <td rowspan="4">device
+                                <a class="btn btn-success btn-xs btn-custom pull-right" href="/modal/addPort" role="button" data-action="get-popup"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> порт</a>
+                            </td>
+                            <td rowspan="4">sotf</td>
+                            <td rowspan="4">host1</td>
+                            <td>ethernet</td>
+                            <td>mac 1</td>
+                            <td>192.168.128.124/24</td>
+                            <td>
+                                <div class="pull-right">
+                                    <a class="btn btn-success btn-xs" href="/modal/editPort?id={{ appliance.getPK }}"
+                                       role="button" data-action="get-popup">
+                                        Изменить
+                                    </a>
+                                    <a class="btn btn-danger btn-xs" href="/admin/delPort?id={{ appliance.getPK }}" role="button"
+                                       data-action="delete">
+                                        Удалить
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>type eth</td>
+                            <td>mac 2</td>
+                            <td>192.168.128.124/24</td>
+                            <td>
+                                <div class="pull-right">
+                                    <a class="btn btn-success btn-xs" href="/modal/editPort?id={{ appliance.getPK }}"
+                                       role="button" data-action="get-popup">
+                                        Изменить
+                                    </a>
+                                    <a class="btn btn-danger btn-xs" href="/admin/delPort?id={{ appliance.getPK }}" role="button"
+                                       data-action="delete">
+                                        Удалить
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>type eth</td>
+                            <td>mac 3</td>
+                            <td>192.168.128.124/24</td>
+                            <td>
+                                <div class="pull-right">
+                                    <a class="btn btn-success btn-xs" href="/modal/editPort?id={{ appliance.getPK }}"
+                                       role="button" data-action="get-popup">
+                                        Изменить
+                                    </a>
+                                    <a class="btn btn-danger btn-xs" href="/admin/delPort?id={{ appliance.getPK }}" role="button"
+                                       data-action="delete">
+                                        Удалить
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>type eth</td>
+                            <td>mac 4</td>
+                            <td>192.168.128.124/24</td>
+                            <td>
+                                <div class="pull-right">
+                                    <a class="btn btn-success btn-xs" href="/modal/editPort?id={{ appliance.getPK }}"
+                                       role="button" data-action="get-popup">
+                                        Изменить
+                                    </a>
+                                    <a class="btn btn-danger btn-xs" href="/admin/delPort?id={{ appliance.getPK }}" role="button"
+                                       data-action="delete">
+                                        Удалить
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+{% endblock %}
+

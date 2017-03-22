@@ -18,9 +18,14 @@ use T4\Mvc\Controller;
 
 class Test extends Controller
 {
-    public function actionDefault()
+    public function actionDefault($ip)
     {
-
+        var_dump($ip);
+        $res = str_replace('\\', '/', $ip);
+        $res = explode('/',$res);
+        var_dump($res);die;
+        var_dump(preg_replace('/\\\/', '/', $ip));die;
+        var_dump(filter_var($ip, FILTER_VALIDATE_IP));die;
     }
 
     public function actionRegions($region = null)
