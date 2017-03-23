@@ -77,7 +77,7 @@ class DataPort extends Model
         $query = (new Query())
             ->select()
             ->from(DataPort::getTableName())
-            ->where('"ipAddress" && :ip')
+            ->where('host("ipAddress") = host(:ip)')
             ->params([':ip' => $ip]);
 
         return DataPort::countAllByQuery($query);
@@ -88,7 +88,7 @@ class DataPort extends Model
         $query = (new Query())
             ->select()
             ->from(DataPort::getTableName())
-            ->where('"ipAddress" && :ip')
+            ->where('host("ipAddress") = host(:ip)')
             ->params([':ip' => $ip]);
 
         return DataPort::findAllByQuery($query);

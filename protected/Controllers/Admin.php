@@ -1292,7 +1292,7 @@ class Admin extends Controller
             }
             $data->ip = DataPort::sanitizeIp($data->ip);
             if ($currentDataPort->ipAddress != $data->ip && DataPort::countAllByIp($data->ip) > 0) {
-                throw new Exception('IP адрес ' . $data->ip . ' уже используется. ');
+                throw new Exception('IP адрес ' . $data->ip . ' уже используется.');
             }
 
             $currentDataPort

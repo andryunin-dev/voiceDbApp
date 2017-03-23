@@ -22,12 +22,13 @@ class Test extends Controller
 {
     public function actionDefault()
     {
-        $query = (new Query())
-            ->select()
-            ->from(DataPort::getTableName())
-            ->where('"ipAddress" && :ip')
-            ->params([':ip' => '192.168.1.1']);
-        $res = DataPort::countAllByQuery($query);
+//        $query = (new Query())
+//            ->select()
+//            ->from(DataPort::getTableName())
+//            ->where('"ipAddress" && :ip')
+//            ->params([':ip' => '192.168.1.1']);
+//        $res = DataPort::countAllByQuery($query);
+        $res = DataPort::countAllByIp('192.168.1.1/23');
         var_dump($res);die;
     }
 
