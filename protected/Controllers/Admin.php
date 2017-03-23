@@ -151,8 +151,8 @@ class Admin extends Controller
             }
             (new City())
                 ->fill([
-                'title' => $city['title'],
-                'region' => $region
+                    'title' => $city['title'],
+                    'region' => $region
                 ])
                 ->save();
 
@@ -329,49 +329,49 @@ class Admin extends Controller
                 }
 
                 foreach ($officeCollection as $item) {
-                        //Region
-                        $region = Region::findByTitle($item->region);
-                        if (false === $region && isset($data->addNewRegion)) {
-                            $region = (new Region())
-                                ->fill([
-                                    'title' => $item->region
-                                ])
-                                ->save();
-                        }
-
-                        //City
-                        $city = City::findByTitle($item->city);
-                        if (false === $city && isset($data->addNewCity)) {
-                            $city = (new City())
-                                ->fill([
-                                    'title' => $item->city,
-                                    'region' => $region
-                                ])
-                                ->save();
-                        }
-
-                        //Address
-                        $address = (new Address())
+                    //Region
+                    $region = Region::findByTitle($item->region);
+                    if (false === $region && isset($data->addNewRegion)) {
+                        $region = (new Region())
                             ->fill([
-                                'address' => $item->address,
-                                'city' => $city
+                                'title' => $item->region
                             ])
                             ->save();
+                    }
 
-                        //статус (берем из формы)
-                        $status = OfficeStatus::findByPK($data->statusId);
-
-
-                        //собираем офис
-                        (new Office())
+                    //City
+                    $city = City::findByTitle($item->city);
+                    if (false === $city && isset($data->addNewCity)) {
+                        $city = (new City())
                             ->fill([
-                                'title' => $item->office,
-                                'lotusId' => $item->lotusId,
-                                'address' => $address,
-                                'status' => $status
+                                'title' => $item->city,
+                                'region' => $region
                             ])
                             ->save();
-                     Office::getDbConnection()->commitTransaction();
+                    }
+
+                    //Address
+                    $address = (new Address())
+                        ->fill([
+                            'address' => $item->address,
+                            'city' => $city
+                        ])
+                        ->save();
+
+                    //статус (берем из формы)
+                    $status = OfficeStatus::findByPK($data->statusId);
+
+
+                    //собираем офис
+                    (new Office())
+                        ->fill([
+                            'title' => $item->office,
+                            'lotusId' => $item->lotusId,
+                            'address' => $address,
+                            'status' => $status
+                        ])
+                        ->save();
+                    Office::getDbConnection()->commitTransaction();
                 }
             } catch (MultiException $e) {
                 Office::getDbConnection()->rollbackTransaction();
@@ -1206,7 +1206,7 @@ class Admin extends Controller
                 }
             }
 
-           //сохраняем новые модули
+            //сохраняем новые модули
             if (!empty($data->newModule->id)) {
                 foreach ($data->newModule->id as $key => $value) {
                     //если не выбран модуль - пропускаем
@@ -1291,6 +1291,9 @@ class Admin extends Controller
                 throw new Exception('Неверные данные');
             }
             $data->ip = DataPort::sanitizeIp($data->ip);
+            if (false === DataPort::is_ipAddress($data->ip)) {
+                throw new Exception('Неверный формат IP адреса');
+            }
             if ($currentDataPort->ipAddress != $data->ip && DataPort::countAllByIp($data->ip) > 0) {
                 throw new Exception('IP адрес ' . $data->ip . ' уже используется.');
             }
