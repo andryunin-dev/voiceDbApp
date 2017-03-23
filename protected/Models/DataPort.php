@@ -34,44 +34,6 @@ class DataPort extends Model
         ]
     ];
 
-    public function is_ipValid($val)
-    {
-        if (empty($val = trim($val))) {
-            return false;
-        }
-        $val = str_replace('\\', '/', $val); //меняем ошибочные слеши
-        $val = explode('/', $val);
-        if (1 == count($val)) {     //нет маски
-            $ip = array_pop($val);
-        } elseif (2 == count($val)) { //есть маска
-            $mask = array_pop($val);
-            $ip = array_pop($val);
-        } else {
-            return false;
-        }
-        // class of IP address
-        $is_ipv4 = (false !== filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4));
-        $is_ipv6 = (false !== filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6));
-        if (false === $is_ipv4 && false === $is_ipv6) {
-            return false;
-        }
-
-        //check mask
-        $maskLengthMax = ($is_ipv4) ? 32 : 128;
-        if (!isset($mask)) {
-            return true; //if empty mask and IP valid
-        }
-        if (!empty($mask) && !is_numeric($mask)) { //if mask is not empty and not numeric
-            return false;
-        }
-
-        if (false === ($mask > 0 && $mask <= $maskLengthMax)) {
-            return false;
-        }
-        return true;
-
-    }
-
     public static function countAllByIp($ip)
     {
         $query = (new Query())
