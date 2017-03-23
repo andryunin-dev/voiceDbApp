@@ -199,11 +199,10 @@ class Modal extends Controller
         $this->data->portTypes = DPortType::findAll(['order' => 'type']);
     }
 
-    public function actionEditDataPort($data)
+    public function actionEditDataPort()
     {
-        $this->data->currentAppliance = Appliance::findByPK($data->deviceId);
-        $this->data->currentPort = DataPort::findByPK($data->portId);
+        $this->data->currentAppliance = Appliance::findByPK($this->app->request->get->deviceId);
+        $this->data->currentPort = DataPort::findByPK($this->app->request->get->portId);
         $this->data->portTypes = DPortType::findAll(['order' => 'type']);
-
     }
 }

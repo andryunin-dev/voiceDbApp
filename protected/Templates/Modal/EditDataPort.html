@@ -10,7 +10,6 @@
                     <label for="id-data-port-type" class="col-sm-3 control-label">Тип порта</label>
                     <div class="col-sm-9">
                         <select name="data[portTypeId]" id="id-data-port-type" class="form-control">
-                            <option value="" selected="selected">---------</option>
                             {% for portType in portTypes %}
                                 <option value="{{ portType.getPK }}" {% if portType.getPK == currentPort.portType.getPK %}selected{% endif %}>{{ portType.type }}</option>
                             {% endfor %}
@@ -22,7 +21,7 @@
                     <div class="col-sm-9 col-sm-offset-3">
                         <div class="input-group">
                             <span class="input-group-addon" id="ip-addr">IP</span>
-                            <input type="text" class="form-control" name="data[ip]" placeholder="192.168.1.1/24"
+                            <input type="text" class="form-control" name="data[ip]" value="{{ currentPort.ipAddress }}"
                                    aria-describedby="ip-addr">
                         </div>
                     </div>
@@ -32,7 +31,7 @@
                     <div class="col-sm-9 col-sm-offset-3">
                         <div class="input-group">
                             <span class="input-group-addon" id="mac-addr">MAC</span>
-                            <input type="text" class="form-control" name="data[mac]" placeholder="00-0C-46-CD-ED-A8"
+                            <input type="text" class="form-control" name="data[mac]" value="{{ currentPort.macAddress }}"
                                    aria-describedby="mac-addr">
                         </div>
                     </div>

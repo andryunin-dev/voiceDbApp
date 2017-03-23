@@ -1290,6 +1290,10 @@ class Admin extends Controller
             if (false === $currentDataPort = DataPort::findByPK($data->portId)) {
                 throw new Exception('Неверные данные');
             }
+            $data->ip = DataPort::sanitizeIp($data->ip);
+            if ($currentDataPort->ipAddress != $data->ip && DataPort::countAllByIp($data->ip) > 0) {
+                throw new Exception('IP адрес ' . $data->ip . ' уже используется. ');
+            }
 
             $currentDataPort
                 ->fill([
@@ -1300,6 +1304,28 @@ class Admin extends Controller
                     'portType' => DPortType::findByPK($data->portTypeId)
                 ])
                 ->save();
+
+            DataPort::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            DataPort::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            DataPort::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
+
+    }
+
+    public function actionDelDataPort($portId)
+    {
+        try {
+            DataPort::getDbConnection()->beginTransaction();
+            if (false === $currentDataPort = DataPort::findByPK($portId)) {
+                throw new Exception('Неверные данные');
+            }
+            $currentDataPort->delete();
+
+            $this->data->result = 'Порт с IP адресом ' . $currentDataPort->ipAddress . ' удален';
 
             DataPort::getDbConnection()->commitTransaction();
         } catch (MultiException $e) {

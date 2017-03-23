@@ -38,11 +38,11 @@
                                     <td>
                                         {%  if appliance.dataPorts.count > 0 %}
                                             <div class="pull-right">
-                                                <a class="btn btn-success btn-xs" href="/modal/editPort?data[portId]={{ port.getPK }}&data[deviceId]={{ appliance.getPK }} "
+                                                <a class="btn btn-success btn-xs" href="/modal/editDataPort?portId={{ appliance.dataPorts.first.getPK }}&deviceId={{ appliance.getPK }} "
                                                    role="button" data-action="get-popup">
                                                     Изменить
                                                 </a>
-                                                <a class="btn btn-danger btn-xs" href="/admin/delPort?data[portId]={{ port.getPK }}&data[deviceId]={{ appliance.getPK }} " role="button"
+                                                <a class="btn btn-danger btn-xs" href="/admin/delDataPort?portId={{ port.getPK }}&deviceId={{ appliance.getPK }} " role="button"
                                                    data-action="delete">
                                                     Удалить
                                                 </a>
@@ -57,11 +57,11 @@
                                     <td>{{ port.ipAddress }}</td>
                                     <td>
                                         <div class="pull-right">
-                                            <a class="btn btn-success btn-xs" href="/modal/editPort?data[portId]={{ port.getPK }}&data[deviceId]={{ appliance.getPK }} "
+                                            <a class="btn btn-success btn-xs" href="/modal/editDataPort?portId={{ port.getPK }}&deviceId={{ appliance.getPK }} "
                                                role="button" data-action="get-popup">
                                                 Изменить
                                             </a>
-                                            <a class="btn btn-danger btn-xs" href="/admin/delPort?data[portId]={{ port.getPK }}&data[deviceId]={{ appliance.getPK }} " role="button"
+                                            <a class="btn btn-danger btn-xs" href="/admin/delDataPort?portId={{ port.getPK }}&deviceId={{ appliance.getPK }} " role="button"
                                                data-action="delete">
                                                 Удалить
                                             </a>
