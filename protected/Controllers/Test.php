@@ -42,6 +42,11 @@ class Test extends Controller
         //var_dump($this->data);
     }
 
+    public function actionAddAppliance()
+    {
+        $this->data->response = 'Hello!';
+    }
+
     public function actionAddRegion($region = null)
     {
         try {
