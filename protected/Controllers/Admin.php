@@ -834,16 +834,9 @@ class Admin extends Controller
     {
         try {
             Vendor::getDbConnection()->beginTransaction();
-            $vendor = (new Vendor())
+            (new Vendor())
                 ->fill([
                     'title' => $vendor->title,
-                ])
-                ->save();
-            //создаем модуль motherboard
-            $mb = (new Module())
-                ->fill([
-                    'title' => Module::MOTHERBOARD,
-                    'vendor' => $vendor
                 ])
                 ->save();
             Vendor::getDbConnection()->commitTransaction();
