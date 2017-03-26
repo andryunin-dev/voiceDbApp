@@ -1,0 +1,25 @@
+<div id="add-port-type" role="dialog" title="Новый тип порта">
+    <form action="/admin/addPortType" method="post" role="form">
+        <div class="form-group">
+            <label for="id-port-type"></label>
+            <input type="text" class="form-control" name="portType[title]" id="id-port-type" placeholder="Тип порта">
+            <input type="hidden" name="portType[type]" value="{{ type }}">
+        </div>
+
+        <button class="btn btn-success" type="submit">Создать</button>
+        <button class="btn btn-danger" type="button" role="button" data-action="close">
+            Отмена
+        </button>
+    </form>
+
+    <script>
+        var APP = APP || {};
+        APP.popups = APP.popups || [];
+        APP.popups.push({
+            path: "{{ path }}",
+            popupSelector: "#add-port-type",
+            width: "auto"
+        });
+    </script>
+</div>
+

@@ -30,4 +30,12 @@ class SoftwareItem extends Model
             'appliances' => ['type' => self::HAS_MANY, 'model' => Appliance::class, 'by' => '__software_item_id']
         ]
     ];
+
+    public function validate()
+    {
+        if (false === $this->software) {
+            return false;
+        }
+        return true;
+    }
 }

@@ -1,227 +1,219 @@
 {% extends 'Index.html' %}
 
 {% block main %}
-    <div class="container-fluid">
-        <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
-            <div class="container-fluid">
-                <!-- Brand and toggle get grouped for better mobile display -->
-                <div class="navbar-header">
-                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
-                        <span class="sr-only">Toggle navigation</span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                    </button>
-                    <a class="navbar-brand" href="#">Home</a>
-                </div>
-
-                <!-- Collect the nav links, forms, and other content for toggling -->
-                <div class="collapse navbar-collapse navbar-ex1-collapse">
-                    <ul class="nav navbar-nav">
-                        <li>
-                            <a href="/admin/offices">Офисы</a>
-                        </li>
-                        <li>
-                            <a href="/admin/devices">Оборудование</a>
-                        </li>
-                    </ul>
-                    <ul class="nav navbar-nav navbar-right">
-                        <li class="dropdown">
-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Справочники <b class="caret"></b></a>
-                            <ul class="dropdown-menu">
-                                <li><a href="/admin/offices">Офисы</a></li>
-                                <li><a href="/admin/regions">Регионы</a></li>
-                                <li><a href="/admin/cities">Города</a></li>
-                                <li><a href="/admin/officeStatuses">Статусы офисов</a></li>
-                                <li><a href="/admin/devparts">Оборудование</a></li>
+    <div class="row">
+        <main class="devices bs3-btn-style" id="bs3-style">
+            <div class="col-xs-12">
+                <div class="panel panel-default col-xs-7">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Vendors, Hardware, Software, Clusters</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div>
+                            <!-- Nav tabs -->
+                            <ul class="nav nav-tabs" role="tablist">
+                                <li aria-controls="types" role="tab">
+                                    <a href="#types">Тип(роль)</a>
+                                </li>
+                                <li class="active" aria-controls="platforms" role="tab">
+                                    <a href="#platforms">Платформы</a>
+                                </li>
+                                <li aria-controls="modules" role="tab">
+                                    <a href="#modules">Модули</a>
+                                </li>
+                                <li aria-controls="software" role="tab">
+                                    <a href="#software">ПО</a>
+                                </li>
+                                <li aria-controls="vendors" role="tab">
+                                    <a href="#vendors">Производители</a>
+                                </li>
+                                <!-- кластеры доделать потом
+                                   <li aria-controls="clusters" role="tab">
+                                       <a href="#clusters">Производители</a>
+                                   </li>
+                                   -->
                             </ul>
-                        </li>
-                    </ul>
-                </div><!-- /.navbar-collapse -->
-
-            </div>
-        </nav>
-
-        <div class="row">
-            <main class="devices bs3-btn-style" id="bs3-style">
-                <div class="col-xs-12">
-                    <div class="panel panel-default col-xs-7">
-                    	<div class="panel-heading">
-                   		    <h3 class="panel-title">Vendors, Hardware, Software, Clusters</h3>
-                    	</div>
-                    	<div class="panel-body">
-                            <div>
-                                <!-- Nav tabs -->
-                                <ul class="nav nav-tabs" role="tablist">
-                                    <li class="active" aria-controls="platforms" role="tab">
-                                        <a href="#platforms">Платформы</a>
-                                    </li>
-                                    <li aria-controls="modules" role="tab">
-                                        <a href="#modules">Модули</a>
-                                    </li>
-                                    <li aria-controls="software" role="tab">
-                                        <a href="#software">ПО</a>
-                                    </li>
-                                    <li aria-controls="vendors" role="tab">
-                                        <a href="#vendors">Производители</a>
-                                    </li>
-                                    <!-- кластеры доделать потом
-                                    <li aria-controls="clusters" role="tab">
-                                        <a href="#clusters">Производители</a>
-                                    </li>
-                                    -->
-                                </ul>
-
-                                <!-- Tab panels -->
-                                <div class="tab-content">
-                                    <!-- Platforms -->
-                                    <div class="tab-pane active" role="tabpanel" id="platforms">
-                                        <table class="table table-bordered table-hover table-striped">
-                                            <thead>
+                            <!-- Tab panels -->
+                            <div class="tab-content">
+                                <!-- Types -->
+                                <div class="tab-pane" role="tabpanel" id="types">
+                                    <table class="table table-bordered table-hover table-striped">
+                                        <thead>
+                                        <tr>
+                                            <th class="bg-primary col-vendor">
+                                                <span class="th-divider-left">Тип(роль)</span>
+                                                <span class="th-divider-right">
+                                                    <a class="btn btn-success btn-xs" href="/modal/addApplianceType" role="button" data-action="get-popup">Добавить</a>
+                                                </span>
+                                            </th>
+                                            <th class="bg-primary col-actions">
+                                                <span class="th-divider-left">Действия</span>
+                                            </th>
+                                        </tr>
+                                        </thead>
+                                        <!--Данные-->
+                                        <tbody>
+                                        {% for applianceType in applianceTypes %}
                                             <tr>
-                                                <th class="bg-primary col-platform">
-                                                    <span class="th-divider-left">Платформа</span>
-                                                    <span class="th-divider-right">
-                                                        <a class="btn btn-success btn-xs" href="/modal/addPlatform" role="button" data-action="add">Добавить</a>
-                                                    </span>
-                                                </th>
-                                                <th class="bg-primary col-vendor">
-                                                    <span class="th-divider-left">Производитель</span>
-                                                    <span class="th-divider-right"></span>
-                                                </th>
-                                                <th class="bg-primary col-actions">
-                                                    <span class="th-divider-left">Действия</span>
-                                                </th>
+                                                <td class="col-appliance-type cut-string">
+                                                    {{ applianceType }}
+                                                </td>
+                                                <td class="col-actions">
+                                                    <a class="btn btn-success btn-xs" href="/modal/editApplianceType?id={{ applianceType.getPK }}" role="button" data-action="get-popup">Изменить</a>
+                                                    <a class="btn btn-danger btn-xs" href="/admin/delApplianceType?id={{ applianceType.getPK }}" role="button" data-action="delete">Удалить</a>
+                                                </td>
                                             </tr>
-                                            </thead>
-                                            <!--Данные-->
-                                            <tbody>
-                                            {% for platform in platforms %}
-                                                <tr>
-                                                    <td class="col-city cut-string">{{ platform.title }}</td>
-                                                    <td class="col-region cut-string">{{ platform.vendor.title }}</td>
-                                                    <td class="col-actions">
-                                                        <a class="btn btn-success btn-xs" href="/modal/editPlatform?id={{ platform.getPK }}" role="button" data-action="edit">Изменить</a>
-                                                        <a class="btn btn-danger btn-xs" href="/admin/delPlatform?id={{ platform.getPK }}" data-action="delete">Удалить</a>
-                                                    </td>
-                                                </tr>
-                                            {% endfor %}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    <!-- Modules -->
-                                    <div class="tab-pane" role="tabpanel" id="modules">
-                                        <table class="table table-bordered table-hover table-striped">
-                                            <thead>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <!-- Platforms -->
+                                <div class="tab-pane active" role="tabpanel" id="platforms">
+                                    <table class="table table-bordered table-hover table-striped">
+                                        <thead>
+                                        <tr>
+                                            <th class="bg-primary col-platform">
+                                                <span class="th-divider-left">Платформа</span>
+                                                <span class="th-divider-right">
+                                                    <a class="btn btn-success btn-xs" href="/modal/addPlatform" role="button" data-action="get-popup">Добавить</a>
+                                                </span>
+                                            </th>
+                                            <th class="bg-primary col-vendor">
+                                                <span class="th-divider-left">Производитель</span>
+                                                <span class="th-divider-right"></span>
+                                            </th>
+                                            <th class="bg-primary col-actions">
+                                                <span class="th-divider-left">Действия</span>
+                                            </th>
+                                        </tr>
+                                        </thead>
+                                        <!--Данные-->
+                                        <tbody>
+                                        {% for platform in platforms %}
                                             <tr>
-                                                <th class="bg-primary col-software">
-                                                    <span class="th-divider-left">Название</span>
-                                                    <span class="th-divider-right">
-                                                        <a class="btn btn-success btn-xs" href="/modal/addModule" role="button" data-action="add">Добавить</a>
-                                                    </span>
-                                                </th>
-                                                <th class="bg-primary col-vendor">
-                                                    <span class="th-divider-left">Производитель</span>
-                                                    <span class="th-divider-right"></span>
-                                                </th>
-                                                <th class="bg-primary col-actions">
-                                                    <span class="th-divider-left">Действия</span>
-                                                </th>
+                                                <td class="col-city cut-string">{{ platform.title }}</td>
+                                                <td class="col-region cut-string">{{ platform.vendor.title }}</td>
+                                                <td class="col-actions">
+                                                    <a class="btn btn-success btn-xs" href="/modal/editPlatform?id={{ platform.getPK }}" role="button" data-action="get-popup">Изменить</a>
+                                                    <a class="btn btn-danger btn-xs" href="/admin/delPlatform?id={{ platform.getPK }}" role="button"  data-action="delete">Удалить</a>
+                                                </td>
                                             </tr>
-                                            </thead>
-                                            <!--Данные-->
-                                            <tbody>
-                                            {% for moduleItem in modules %}
-                                                <tr>
-                                                    <td class="col-city cut-string">{{ moduleItem.title }}</td>
-                                                    <td class="col-region cut-string">{{ moduleItem.vendor.title }}</td>
-                                                    <td class="col-actions">
-                                                        <a class="btn btn-success btn-xs" href="/modal/editModule?id={{ moduleItem.getPK }}" role="button" data-action="edit">Изменить</a>
-                                                        <a class="btn btn-danger btn-xs" href="/admin/delModule?id={{ moduleItem.getPK }}" data-action="delete">Удалить</a>
-                                                    </td>
-                                                </tr>
-                                            {% endfor %}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    <!-- Software -->
-                                    <div class="tab-pane" role="tabpanel" id="software">
-                                        <table class="table table-bordered table-hover table-striped">
-                                            <thead>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <!-- Modules -->
+                                <div class="tab-pane" role="tabpanel" id="modules">
+                                    <table class="table table-bordered table-hover table-striped">
+                                        <thead>
+                                        <tr>
+                                            <th class="bg-primary col-software">
+                                                <span class="th-divider-left">Название</span>
+                                                <span class="th-divider-right">
+                                                    <a class="btn btn-success btn-xs" href="/modal/addModule" role="button" data-action="get-popup">Добавить</a>
+                                                </span>
+                                            </th>
+                                            <th class="bg-primary col-vendor">
+                                                <span class="th-divider-left">Производитель</span>
+                                                <span class="th-divider-right"></span>
+                                            </th>
+                                            <th class="bg-primary col-actions">
+                                                <span class="th-divider-left">Действия</span>
+                                            </th>
+                                        </tr>
+                                        </thead>
+                                        <!--Данные-->
+                                        <tbody>
+                                        {% for moduleItem in modules %}
                                             <tr>
-                                                <th class="bg-primary col-software">
-                                                    <span class="th-divider-left">Тип ПО</span>
-                                                    <span class="th-divider-right">
-                                                        <a class="btn btn-success btn-xs" href="/modal/addSoftware" role="button" data-action="add">Добавить</a>
-                                                    </span>
-                                                </th>
-                                                <th class="bg-primary col-vendor">
-                                                    <span class="th-divider-left">Производитель</span>
-                                                    <span class="th-divider-right"></span>
-                                                </th>
-                                                <th class="bg-primary col-actions">
-                                                    <span class="th-divider-left">Действия</span>
-                                                </th>
+                                                <td class="col-city cut-string">{{ moduleItem.title }}</td>
+                                                <td class="col-region cut-string">{{ moduleItem.vendor.title }}</td>
+                                                <td class="col-actions">
+                                                    <a class="btn btn-success btn-xs" href="/modal/editModule?id={{ moduleItem.getPK }}" role="button" data-action="get-popup">Изменить</a>
+                                                    <a class="btn btn-danger btn-xs" href="/admin/delModule?id={{ moduleItem.getPK }}" role="button" data-action="delete">Удалить</a>
+                                                </td>
                                             </tr>
-                                            </thead>
-                                            <!--Данные-->
-                                            <tbody>
-                                            {% for softItem in software %}
-                                                <tr>
-                                                    <td class="col-city cut-string">{{ softItem.title }}</td>
-                                                    <td class="col-region cut-string">{{ softItem.vendor.title }}</td>
-                                                    <td class="col-actions">
-                                                        <a class="btn btn-success btn-xs" href="/modal/editSoftware?id={{ softItem.getPK }}" role="button" data-action="edit">Изменить</a>
-                                                        <a class="btn btn-danger btn-xs" href="/admin/delSoftware?id={{ softItem.getPK }}" data-action="delete">Удалить</a>
-                                                    </td>
-                                                </tr>
-                                            {% endfor %}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    <!-- Clusters -->
-                                    <div class="tab-pane" role="tabpanel" id="clusters">
-                                        ...
-                                    </div>
-                                    <!-- Vendors -->
-                                    <div class="tab-pane" role="tabpanel" id="vendors">
-                                        <table class="table table-bordered table-hover table-striped">
-                                            <thead>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <!-- Software -->
+                                <div class="tab-pane" role="tabpanel" id="software">
+                                    <table class="table table-bordered table-hover table-striped">
+                                        <thead>
+                                        <tr>
+                                            <th class="bg-primary col-software">
+                                                <span class="th-divider-left">Тип ПО</span>
+                                                <span class="th-divider-right">
+                                                    <a class="btn btn-success btn-xs" href="/modal/addSoftware" role="button" data-action="get-popup">Добавить</a>
+                                                </span>
+                                            </th>
+                                            <th class="bg-primary col-vendor">
+                                                <span class="th-divider-left">Производитель</span>
+                                                <span class="th-divider-right"></span>
+                                            </th>
+                                            <th class="bg-primary col-actions">
+                                                <span class="th-divider-left">Действия</span>
+                                            </th>
+                                        </tr>
+                                        </thead>
+                                        <!--Данные-->
+                                        <tbody>
+                                        {% for softItem in software %}
                                             <tr>
-                                                <th class="bg-primary col-vendor">
-                                                    <span class="th-divider-left">Производитель</span>
-                                                    <span class="th-divider-right">
-                                                        <a class="btn btn-success btn-xs" href="/modal/addVendor" role="button" data-action="add">Добавить</a>
-                                                    </span>
-                                                </th>
-                                                <th class="bg-primary col-actions">
-                                                    <span class="th-divider-left">Действия</span>
-                                                </th>
+                                                <td class="col-city cut-string">{{ softItem.title }}</td>
+                                                <td class="col-region cut-string">{{ softItem.vendor.title }}</td>
+                                                <td class="col-actions">
+                                                    <a class="btn btn-success btn-xs" href="/modal/editSoftware?id={{ softItem.getPK }}" role="button" data-action="get-popup">Изменить</a>
+                                                    <a class="btn btn-danger btn-xs" href="/admin/delSoftware?id={{ softItem.getPK }}" role="button" data-action="delete">Удалить</a>
+                                                </td>
                                             </tr>
-                                            </thead>
-                                            <!--Данные-->
-                                            <tbody>
-                                            {% for vendor in vendors %}
-                                                <tr>
-                                                    <td class="col-vendor cut-string">
-                                                        {{ vendor.title }}
-                                                    </td>
-                                                    <td class="col-actions">
-                                                        <a class="btn btn-success btn-xs" href="/modal/editVendor?id={{ vendor.getPK }}" role="button" data-action="edit">Изменить</a>
-                                                        <a class="btn btn-danger btn-xs" href="/admin/delVendor?id={{ vendor.getPK }}" data-action="delete">Удалить</a>
-                                                    </td>
-                                                </tr>
-                                            {% endfor %}
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <!-- Clusters -->
+                                <div class="tab-pane" role="tabpanel" id="clusters">
+                                    ...
+                                </div>
+                                <!-- Vendors -->
+                                <div class="tab-pane" role="tabpanel" id="vendors">
+                                    <table class="table table-bordered table-hover table-striped">
+                                        <thead>
+                                        <tr>
+                                            <th class="bg-primary col-vendor">
+                                                <span class="th-divider-left">Производитель</span>
+                                                <span class="th-divider-right">
+                                                    <a class="btn btn-success btn-xs" href="/modal/addVendor" role="button" data-action="get-popup">Добавить</a>
+                                                </span>
+                                            </th>
+                                            <th class="bg-primary col-actions">
+                                                <span class="th-divider-left">Действия</span>
+                                            </th>
+                                        </tr>
+                                        </thead>
+                                        <!--Данные-->
+                                        <tbody>
+                                        {% for vendor in vendors %}
+                                            <tr>
+                                                <td class="col-vendor cut-string">
+                                                    {{ vendor.title }}
+                                                </td>
+                                                <td class="col-actions">
+                                                    <a class="btn btn-success btn-xs" href="/modal/editVendor?id={{ vendor.getPK }}" role="button" data-action="get-popup">Изменить</a>
+                                                    <a class="btn btn-danger btn-xs" href="/admin/delVendor?id={{ vendor.getPK }}" role="button" data-action="delete">Удалить</a>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </main>
-        </div>
+            </div>
+        </main>
     </div>
     <script>
         var APP = APP || {};

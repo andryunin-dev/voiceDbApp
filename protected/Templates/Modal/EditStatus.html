@@ -12,9 +12,13 @@
         </button>
 
     </form>
+    <script>
+        var APP = APP || {};
+        APP.popups = APP.popups || [];
+        APP.popups.push({
+            path: "{{ path }}",
+            popupSelector: "#edit-status",
+            width: "auto"
+        });
+    </script>
 </div>
-<script>
-    var APP = APP || {};
-    APP.settings = APP.settings || {};
-    APP.settings.modalWindowSelector = "#edit-status";
-</script>

@@ -5,14 +5,24 @@ namespace App\Controllers;
 use App\Components\Parser;
 use App\Components\Publisher;
 use App\Models\Address;
+use App\Models\Appliance;
+use App\Models\ApplianceType;
 use App\Models\City;
+use App\Models\DataPort;
+use App\Models\DPortType;
 use App\Models\Module;
+use App\Models\ModuleItem;
 use App\Models\Office;
 use App\Models\OfficeStatus;
 use App\Models\Platform;
+use App\Models\PlatformItem;
 use App\Models\Region;
 use App\Models\Software;
+use App\Models\SoftwareItem;
 use App\Models\Vendor;
+use App\Models\VPortType;
+use T4\Core\Exception;
+use T4\Core\MultiException;
 use T4\Core\Std;
 use T4\Mvc\Controller;
 
@@ -25,47 +35,98 @@ class Admin extends Controller
     public function actionRegions()
     {
         $this->data->regions = Region::findAll(['order' => 'title']);
+        $this->data->activeLink->dictionary = true;
     }
     public function actionAddRegion($region = null)
     {
-        if (!empty($region)) {
-            if (!empty(trim($region['many']))) {
-                $pattern = '~[\n\r]~';
-                $regsInString = preg_replace($pattern, '', trim($region['many']));
-                $regInArray = explode(',', $regsInString);
+        try {
+            Region::getDbConnection()->beginTransaction();
+            if (!empty($region)) {
+                if (!empty(trim($region['many']))) {
+                    $pattern = '~[\n\r]~';
+                    $regsInString = preg_replace($pattern, ',', trim($region['many']));
+                    $regInArray = explode(',', $regsInString);
 
-                foreach ($regInArray as $region) {
-                    (new Region())
-                        ->fill(['title' => trim($region)])
+                    try {
+                        foreach ($regInArray as $region) {
+                            (new Region())
+                                ->fill(['title' => trim($region)])
+                                ->save();
+                        }
+                        $this->data->result = 'Регионы добавлены';
+                    } catch (MultiException $e) {
+                        $e->prepend(new Exception('Ошибка пакетного ввода'));
+                        throw $e;
+                    }
+                } elseif (!empty($region['one'])) {
+                    $res = (new Region())
+                        ->fill(['title' => $region['one']])
                         ->save();
+                    $this->data->result = 'Регион добавлен';
+                } else {
+                    $this->data->result = 'Нет данных';
                 }
-
-            } elseif (!empty(trim($region['one']))) {
-                (new Region())
-                    ->fill(['title' => $region['one']])
-                    ->save();
             }
+            Region::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Region::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Region::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
         }
-        header('Location: /admin/Regions');
     }
 
     public function actionEditRegion($region)
     {
-        if (!empty(trim($region['title'])) && (false !== $item = Region::findByPK($region['id']))) {
+        try {
+            Region::getDbConnection()->beginTransaction();
+            if (false === $item = Region::findByPK($region['id'])) {
+                throw new Exception('Неверные данные');
+            }
+            if ($item->title != $region->title && false !== City::findByColumn('title', $region->title)) {
+                throw new Exception('Регион с таким именем существует');
+            }
             $item->fill([
-                'title' => $region['title']
+                'title' => $region->title
             ]);
             $item->save();
+            $this->data->result = 'Регион изменен';
+
+            Region::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Region::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Region::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
         }
-        header('Location: /admin/regions');
     }
 
     public function actionDelRegion($id)
     {
-        if (false !== $region = Region::findByPK($id)) {
-            $region->delete();
+        try {
+            Region::getDbConnection()->beginTransaction();
+
+            //проверка правильности id
+            if (false === $item = Region::findByPK($id)) {
+                throw new Exception('Неверные данные');
+            }
+            //Проверка наличия городов в этом регионе
+            if ($item->cities->count() > 0) {
+                throw new Exception('Удаление невозможно. Регион используется.');
+            }
+            $item->delete();
+            $this->data->result = 'Регион "' . $item->title .  '" удален';
+
+            Region::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Region::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Region::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
         }
-        header('Location: /admin/regions');
     }
 
     public function actionCities()
@@ -75,40 +136,86 @@ class Admin extends Controller
         };
 
         $this->data->cities = City::findAll()->uasort($asc);
+        $this->data->activeLink->dictionary = true;
     }
 
     public function actionAddCity($city)
     {
-        $region = Region::findByPK($city['regId']);
+        try {
+            City::getDbConnection()->beginTransaction();
+            if (!is_numeric($city['regId'])) {
+                throw new Exception('Регион не выбран');
+            }
+            if (false === $region = Region::findByPK($city['regId'])) {
+                throw new Exception('Регион не найден');
+            }
+            (new City())
+                ->fill([
+                    'title' => $city['title'],
+                    'region' => $region
+                ])
+                ->save();
 
-        $newCity = (new City())
-            ->fill([
-                'title' => $city['title'],
-                'region' => $region
-            ]);
-        $newCity->save();
+            City::getDbConnection()->commitTransaction();
 
-        header('Location: /admin/cities');
+        } catch (MultiException $e) {
+            City::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            City::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
     }
 
     public function actionEditCity($city)
     {
-        $currentCity = City::findByPK($city['id']);
-        $currentCity->title = $city['title'];
-        $currentCity->region = Region::findByPK($city['regId']);
-        $currentCity->save();
+        try {
+            City::getDbConnection()->beginTransaction();
 
-        header('Location: /admin/cities');
+            if (false === $editedCity = City::findByPK($city['id'])) {
+                throw new Exception('Неверные данные');
+            }
+            if ($editedCity->title != $city->title && false !== City::findByColumn('title', $city->title)) {
+                throw new Exception('Город с таким именем существует');
+            }
+            $editedCity->title = $city->title;
+            $editedCity->region = Region::findByPK($city['regId']);
+            $editedCity->save();
+
+            City::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            City::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            City::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
     }
 
     public function actionDelCity($id = null)
     {
-        if (!empty($id)) {
-            City::findByPK($id)
-                ->delete();
-        }
+        try {
+            City::getDbConnection()->beginTransaction();
 
-        header('Location: /admin/cities');
+            //проверка правильности id
+            if (false === $item = City::findByPK($id)) {
+                throw new Exception('Неверные данные');
+            }
+            //Проверка наличия адресов в этом регионе
+            if ($item->addresses->count() > 0) {
+                throw new Exception('Удаление невозможно. Город используется.');
+            }
+            $item->delete();
+            $this->data->result = 'Город  "' . $item->title .  '" удален';
+
+            City::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            City::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            City::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
     }
 
     /**
@@ -117,6 +224,7 @@ class Admin extends Controller
     public function actionOfficeStatuses()
     {
         $this->data->statuses = OfficeStatus::findAll(['order' => 'title']);
+        $this->data->activeLink->dictionary = true;
     }
     /**
      * action добавления нового статуса.
@@ -126,89 +234,120 @@ class Admin extends Controller
      */
     public function actionAddStatus($status = null)
     {
-        if (!empty($status)) {
-            if (!empty(trim($status['many']))) {
-                $pattern = '~[\n\r]~';
-                $statsInString = preg_replace($pattern, ',', $status['many']);
-                $statsInArray = explode(',', $statsInString);
+        try {
+            OfficeStatus::getDbConnection()->beginTransaction();
 
-                foreach ($statsInArray as $status) {
-                    (new OfficeStatus())
-                        ->fill(['title' => trim($status)])
-                        ->save();
-                }
-            } elseif (!empty(trim($status['one']))) {
-                (new OfficeStatus())
-                    ->fill(['title' => trim($status['one'])])
-                    ->save();
-            }
+            (new OfficeStatus())
+                ->fill($status)
+                ->save();
+
+            OfficeStatus::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            OfficeStatus::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            OfficeStatus::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
         }
-        header('Location: /admin/OfficeStatuses');
     }
 
     public function actionEditStatus($status)
     {
-        if (true == $currentStatus = OfficeStatus::findByPK($status['id'])) {
-            $currentStatus->fill([
-                'title' => $status['title']
-            ]);
-            $currentStatus->save();
+        try {
+            OfficeStatus::getDbConnection()->beginTransaction();
+            if (false === $editedStatus = OfficeStatus::findByPK($status['id'])) {
+                throw new Exception('Неверные данные');
+            }
+            if ($editedStatus->title != $status->title && false !== OfficeStatus::findByColumn('title', $status->title)) {
+                throw new Exception('Такой статус уже существует');
+            }
+            $editedStatus
+                ->fill([
+                    'title' => $status->title
+                ])
+                ->save();
+
+            OfficeStatus::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            OfficeStatus::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            OfficeStatus::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
         }
-        header('Location: /admin/OfficeStatuses');
     }
 
     public function actionDelStatus($id = null)
     {
-        OfficeStatus::findByPK($id)->delete();
-        header('Location: /admin/officeStatuses');
+        try {
+            OfficeStatus::getDbConnection()->beginTransaction();
+            if (false === $status = OfficeStatus::findByPK($id)) {
+                throw new Exception('Неверные данные');
+            }
+            if ($status->offices->count() > 0 ) {
+                throw new Exception('Удаление невозможно. Данный статус используется');
+            }
+            $status->delete();
+            $this->data->result = 'Статус "' . $status->title . '" удален.';
+
+            OfficeStatus::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            OfficeStatus::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            OfficeStatus::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
+
     }
 
     public function actionOffices()
     {
         $asc = function (Office $office_1, Office $office_2) {
-            return strnatcmp($office_1->address->city->region->title, $office_2->address->city->region->title);
+            return (0 != strnatcmp($office_1->address->city->region->title, $office_2->address->city->region->title)) ?: 1;
         };
 
         $this->data->offices = Office::findAll()->uasort($asc);
+        $this->data->activeLink->offices = true;
     }
 
     /**
      * @param Std $data
      * В случае $data->many формат записи для офиса : регион; город; адрес; офис; статус
+     * @throws Exception
      */
     public function actionAddOffice($data)
     {
+        //если поле пакетного ввода не пустое, то берем данные оттуда
         if (!empty(trim($data->many))) {
-            $officeCollection = Parser::lotusTerritory(trim($data->many));
-            if (false !== $officeCollection) {
+            try {
+                Office::getDbConnection()->beginTransaction();
+
+                $officeCollection = Parser::lotusTerritory(trim($data->many));
+                if (false === $officeCollection) {
+                    throw new Exception('Ошибка данных пакетного ввода');
+                }
+
                 foreach ($officeCollection as $item) {
-                    Office::getDbConnection()->beginTransaction();
                     //Region
                     $region = Region::findByTitle($item->region);
-                    if (false === $region) {
-                        if (isset($data->addNewRegion)) {
-                            $region = (new Region())
-                                ->fill(['title' => $item->region])
-                                ->save();
-                        } else {
-                            $region = false;
-                        }
+                    if (false === $region && isset($data->addNewRegion)) {
+                        $region = (new Region())
+                            ->fill([
+                                'title' => $item->region
+                            ])
+                            ->save();
                     }
 
                     //City
                     $city = City::findByTitle($item->city);
-                    //если город не найден и разрешено создание нового региона
-                    if (false === $city) {
-                        if (isset($data->addNewCity)) {
-                            $city = (new City())
-                                ->fill([
-                                    'title' => $item->city,
-                                    'region' => $region
-                                ])
-                                ->save();
-                        } else {
-                            $city = false;
-                        }
+                    if (false === $city && isset($data->addNewCity)) {
+                        $city = (new City())
+                            ->fill([
+                                'title' => $item->city,
+                                'region' => $region
+                            ])
+                            ->save();
                     }
 
                     //Address
@@ -219,119 +358,144 @@ class Admin extends Controller
                         ])
                         ->save();
 
-                    //Office status
-                    //если парсинг откинул поле статуса или оно пустое - берем из формы
-                    if (empty($item->status)) {
-                        $status = OfficeStatus::findByPK($data->statusId);
-                        if (false ===$status) {
-                            continue; //Ошибка. невозможно установить статус, переход к след записи
-                        }
-                    } else {
-                        $status = OfficeStatus::findByTitle($item->status);
-                        if (false === $status) {
-                            if (isset($data->addNewStatus)) {
-                                $status = (new OfficeStatus())
-                                    ->fill(['title' => $item->status])
-                                    ->save();
-                            } else {
-                                continue; //Ошибка. невозможно установить статус, переход к след записи
-                            }
-                        }
-                    }
+                    //статус (берем из формы)
+                    $status = OfficeStatus::findByPK($data->statusId);
 
-                    //Office
-                    //проверка существования оффиса по lotusId (перенес в валидатор)
 
-                    $office = (new Office())
+                    //собираем офис
+                    (new Office())
                         ->fill([
                             'title' => $item->office,
                             'lotusId' => $item->lotusId,
-                            'status' => $status,
-                            'address' => $address
+                            'address' => $address,
+                            'status' => $status
                         ])
                         ->save();
-                    if (false === $office) {
-                        Office::getDbConnection()->rollbackTransaction();
-                    } else {
-                        Office::getDbConnection()->commitTransaction();
-                    }
+                    Office::getDbConnection()->commitTransaction();
                 }
-            } else {
-                //ошибка импорта данных, надо бы выкинуть сообщение об ошибке
+            } catch (MultiException $e) {
+                Office::getDbConnection()->rollbackTransaction();
+                $e->prepend(new Exception('Ошибка пакетного ввода'));
+                $this->data->errors = $e;
+            } catch (Exception $e) {
+                Office::getDbConnection()->rollbackTransaction();
+                $errors = (new MultiException())
+                    ->add(
+                        new Exception('Ошибка пакетного ввода')
+                    );
+                $this->data->errors = $errors->add($e);
             }
-        } else {
-            Office::getDbConnection()->beginTransaction();
+            return;
+        }
 
-            $city = City::findByPK($data->cityId);
-            $status = OfficeStatus::findByPK($data->statusId);
+        //если поле пакетного ввода пустое, то берем поля формы
+        try {
+            Office::getDbConnection()->beginTransaction();
+            if (!is_numeric($data->regionId)) {
+                throw new Exception('Регион не выбран');
+            }
+            if (!is_numeric($data->cityId)) {
+                throw new Exception('Город не выбран');
+            }
+            if (!is_numeric($data->statusId)) {
+                throw new Exception('Статус не выбран');
+            }
+
+            //создаем объект адреса
             $address = (new Address())
                 ->fill([
-                    'address' => trim($data->address),
-                    'city' => $city
+                    'address' => $data->address,
+                    'city' => City::findByPK($data->cityId)
                 ])
                 ->save();
-            $office = (new Office())
+            //собираем офис
+            (new Office())
                 ->fill([
-                    'title' =>$data->title,
+                    'title' => $data->title,
                     'lotusId' => $data->lotusId,
-                    'status' => $status,
-                    'address' => $address
-                ]);
-            $office->save();
+                    'address' => $address,
+                    'status' => OfficeStatus::findByPK($data->statusId)
+                ])
+                ->save();
 
-            if (false === $office) {
-                Office::getDbConnection()->rollbackTransaction();
-            } else {
-                Office::getDbConnection()->commitTransaction();
-            }
+            Office::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Office::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Office::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
         }
-        header('Location: /admin/offices');
     }
 
     public function actionEditOffice($data)
     {
-        /**
-         * @var Office $office
-         */
-        $office = Office::findByLotusId($data['lotusId']);
-        $oldAddress = $office->address;
-        if (false === $office) {
-            header('Location: /admin/offices');
-            return;
-        }
-        Office::getDbConnection()->beginTransaction();
-        $city = City::findByPK($data->cityId);
-        $status = OfficeStatus::findByPK($data->statusId);
-        $newAddress = (new Address())
-            ->fill([
-                'address' => trim($data->address),
-                'city' => $city
-            ])
-            ->save();
-        $office = $office
-            ->fill([
-                'title' =>$data->title,
-                'status' => $status,
-                'address' => $newAddress
-            ])
-            ->save();
+        try {
+            Office::getDbConnection()->beginTransaction();
+            /**
+             * @var Office $office
+             */
+            $office = Office::findByLotusId($data->curLotusId);
+            $oldAddress = $office->address;
+            $city = City::findByPK($data->cityId);
+            $status = OfficeStatus::findByPK($data->statusId);
+            if ($office->lotusId != trim($data->lotusId) && false !== Office::findByColumn('lotusId', trim($data->lotusId))) {
+                throw new Exception('Офис с данным Lotus ID существует');
+            }
+            if ($office->title != trim($data->title) && false !== Office::findByColumn('title', trim($data->title))) {
+                throw new Exception('Офис с таким названием существует');
+            }
 
-        if (false === $office) {
-            Office::getDbConnection()->rollbackTransaction();
-        } else {
+            $newAddress = (new Address())
+                ->fill([
+                    'address' => $data->address,
+                    'city' => $city
+                ])
+                ->save();
+            //собираем офис с изменениями
+            $office
+                ->fill([
+                    'title' =>$data->title,
+                    'status' => $status,
+                    'lotusId' => $data->lotusId,
+                    'address' => $newAddress
+                ])
+                ->save();
             $oldAddress->delete();
+
             Office::getDbConnection()->commitTransaction();
+
+        } catch (MultiException $e) {
+            Office::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Office::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
         }
-        header('Location: /admin/offices');
     }
 
     public function actionDelOffice($id = null)
     {
-        $office = Office::findByPK($id);
-        $office->delete();
-        $office->address->delete();
+        try {
+            Office::getDbConnection()->beginTransaction();
+            if (false === $office = Office::findByPK($id)) {
+                throw new Exception('Неверные данные');
+            }
+            if ($office->appliances->count() > 0 ) {
+                throw new Exception('Удаление невозможно. Данный офис используется');
+            }
+            $office->delete();
+            $office->address->delete();
+            $this->data->result = 'Офис "' . $office->title . '" удален.';
 
-        header('Location: /admin/offices');
+            Office::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Office::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Office::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
     }
 
     public function actionDevparts()
@@ -340,228 +504,841 @@ class Admin extends Controller
         $this->data->platforms = Platform::findAll(['order' => 'title']);
         $this->data->software = Software::findAll(['order' => 'title']);
         $this->data->modules = Module::findAll(['order' => 'title']);
+        $this->data->applianceTypes = ApplianceType::findAll(['order' => 'type']);
+
         $this->data->settings->activeTab = 'platforms';
+        $this->data->activeLink->dictionary = true;
+    }
+
+    public function actionAddApplianceType($applianceType)
+    {
+        try {
+            ApplianceType::getDbConnection()->beginTransaction();
+            (new ApplianceType())
+                ->fill($applianceType)
+                ->save();
+
+            ApplianceType::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            ApplianceType::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            ApplianceType::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
+    }
+
+    public function actionEditApplianceType($applianceType)
+    {
+        try {
+            ApplianceType::getDbConnection()->beginTransaction();
+
+            if (false === $editedType = ApplianceType::findByPK($applianceType->id)) {
+                throw new Exception('Неверные данные');
+            }
+            if ($editedType->type != $applianceType->type && false !== ApplianceType::findByColumn('type', $applianceType->type)) {
+                throw new Exception('Такой тип существует');
+            }
+            $editedType
+                ->fill([
+                    'type' => $applianceType->type
+                ])
+                ->save();
+
+            ApplianceType::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            ApplianceType::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            ApplianceType::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
+    }
+
+    public function actionDelApplianceType($id)
+    {
+        try {
+            ApplianceType::getDbConnection()->beginTransaction();
+
+            //проверка правильности id
+            if (false === $item = ApplianceType::findByPK($id)) {
+                throw new Exception('Неверные данные');
+            }
+            //Проверка использования данного объекта
+            if ($item->appliances->count() > 0) {
+                throw new Exception('Удаление невозможно. Данный тип(роль) используется.');
+            }
+            $item->delete();
+            $this->data->result = 'Тип(роль) "' . $item->type .  '" удален';
+
+            ApplianceType::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            ApplianceType::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            ApplianceType::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
     }
 
     public function actionAddPlatform($platform)
     {
-        (new Platform())
-            ->fill([
-                'title' => $platform['title'],
-                'vendor' => Vendor::findByPK($platform['vendorId'])
-            ])
-            ->save();
-        header('Location: /admin/devparts');
+        try {
+            Platform::getDbConnection()->beginTransaction();
+            if (!is_numeric($platform->vendorId)) {
+                throw new Exception('Производитель не выбран');
+            }
+            if (false === $vendor = Vendor::findByPK($platform->vendorId)) {
+                throw new Exception('Производитель не найден');
+            }
+            (new Platform())
+                ->fill([
+                    'title' => $platform->title,
+                    'vendor' => $vendor
+                ])
+                ->save();
+            Platform::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Platform::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Platform::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
     }
 
     public function actionEditPlatform($platform)
     {
-        Platform::getDbConnection()->beginTransaction();
-        $updatedPlatform = (Platform::findByPK($platform['id']))
-            ->fill([
-                'title' => $platform['title'],
-                'vendor' => Vendor::findByPK($platform['vendorId'])
-            ])
-            ->save();
-        if (false === $updatedPlatform) {
-            Platform::getDbConnection()->rollbackTransaction();
-        } else {
+        try {
+            Platform::getDbConnection()->beginTransaction();
+
+            if (false === $updatedPlatform = Platform::findByPK($platform->id)) {
+                throw new Exception('Неверные данные');
+            }
+            if (false === $vendor = Vendor::findByPK($platform->vendorId)) {
+                throw new Exception('Производитель не найден');
+            }
+            if ($platform->title != $updatedPlatform->title && false !== Platform::findByColumn('title', $platform->title)) {
+                throw new Exception('Такая платформа существует');
+            }
+            $updatedPlatform
+                ->fill([
+                    'title' => $platform->title,
+                    'vendor' => $vendor
+                ])
+                ->save();
+
             Platform::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Platform::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Platform::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
         }
-        header('Location: /admin/devparts');
     }
 
     public function actionDelPlatform($id)
     {
-        if (false !== $platform = Platform::findByPK($id)) {
-            $platform->delete();
+        try {
+            Platform::getDbConnection()->beginTransaction();
+
+            //проверка правильности id
+            if (false === $item = Platform::findByPK($id)) {
+                throw new Exception('Неверные данные');
+            }
+            //Проверка использования данного объекта
+            if ($item->platformItems->count() > 0) {
+                throw new Exception('Удаление невозможно. Данная платформа используется.');
+            }
+            $item->delete();
+            $this->data->result = 'Платформа "' . $item->title .  '" удалена';
+
+            Platform::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Platform::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Platform::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
         }
-        header('Location: /admin/devparts');
     }
 
     public function actionAddModule($module)
     {
-        //var_dump($module);
-        (new Module())
-            ->fill([
-                'title' => $module['title'],
-                'vendor' => Vendor::findByPK($module['vendorId'])
-            ])
-            ->save();
-        header('Location: /admin/devparts');
+        try {
+            Module::getDbConnection()->beginTransaction();
+            if (!is_numeric($module->vendorId)) {
+                throw new Exception('Производитель не выбран');
+            }
+            if (false === $vendor = Vendor::findByPK($module->vendorId)) {
+                throw new Exception('Производитель не найден');
+            }
+            (new Module())
+                ->fill([
+                    'title' => $module->title,
+                    'vendor' => $vendor
+                ])
+                ->save();
+            Module::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Module::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Module::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
     }
 
     public function actionEditModule($module)
     {
-        Module::getDbConnection()->beginTransaction();
-        $updatedModule = (Module::findByPK($module['id']))
-            ->fill([
-                'title' => $module['title'],
-                'vendor' => Vendor::findByPK($module['vendorId'])
-            ])
-            ->save();
-        if (false === $updatedModule) {
-            Module::getDbConnection()->rollbackTransaction();
-        } else {
-            Module::getDbConnection()->commitTransaction();
-        }
-        header('Location: /admin/devparts');
+        try {
+            Module::getDbConnection()->beginTransaction();
 
+            if (false === $updatedModule = Module::findByPK($module->id)) {
+                throw new Exception('Неверные данные');
+            }
+            if (false === $vendor = Vendor::findByPK($module->vendorId)) {
+                throw new Exception('Производитель не найден');
+            }
+            if ($module->title != $updatedModule->title && false !== Module::findByColumn('title', $module->title)) {
+                throw new Exception('Такой модуль существует');
+            }
+            $updatedModule
+                ->fill([
+                    'title' => $module->title,
+                    'vendor' => $vendor
+                ])
+                ->save();
+
+            Module::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Module::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Module::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
     }
 
     public function actionDelModule($id)
     {
-        if (false !== $module = Module::findByPK($id)) {
-            $module->delete();
+        try {
+            Module::getDbConnection()->beginTransaction();
+
+            //проверка правильности id
+            if (false === $item = Module::findByPK($id)) {
+                throw new Exception('Неверные данные');
+            }
+            //Проверка использования данного объекта
+            if ($item->moduleItems->count() > 0) {
+                throw new Exception('Удаление невозможно. Данный модуль используется.');
+            }
+            $item->delete();
+            $this->data->result = 'Модуль "' . $item->title .  '" удален';
+
+            Module::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Module::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Module::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
         }
-        header('Location: /admin/devparts');
     }
 
     public function actionAddSoftware($software)
     {
-        (new Software())
-            ->fill([
-                'title' => $software['title'],
-                'vendor' => Vendor::findByPK($software['vendorId'])
-            ])
-            ->save();
-        header('Location: /admin/devparts');
+        try {
+            Software::getDbConnection()->beginTransaction();
+            if (!is_numeric($software->vendorId)) {
+                throw new Exception('Производитель не выбран');
+            }
+            if (false === $vendor = Vendor::findByPK($software->vendorId)) {
+                throw new Exception('Производитель не найден');
+            }
+            (new Software())
+                ->fill([
+                    'title' => $software->title,
+                    'vendor' => $vendor
+                ])
+                ->save();
+            Software::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Software::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Software::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
     }
 
     public function actionEditSoftware($software)
     {
-        Software::getDbConnection()->beginTransaction();
-        $updatedSoftware = (Software::findByPK($software['id']))
-            ->fill([
-                'title' => $software['title'],
-                'vendor' => Vendor::findByPK($software['vendorId'])
-            ])
-            ->save();
-        if (false === $updatedSoftware) {
-            Software::getDbConnection()->rollbackTransaction();
-        } else {
+        try {
+            Software::getDbConnection()->beginTransaction();
+
+            if (false === $updatedSoftware = Software::findByPK($software->id)) {
+                throw new Exception('Неверные данные');
+            }
+            if (false === $vendor = Vendor::findByPK($software->vendorId)) {
+                throw new Exception('Производитель не найден');
+            }
+            if ($software->title != $updatedSoftware->title && false !== Software::findByColumn('title', $software->title)) {
+                throw new Exception('Такое ПО существует');
+            }
+            $updatedSoftware
+                ->fill([
+                    'title' => $software->title,
+                    'vendor' => $vendor
+                ])
+                ->save();
+
             Software::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Software::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Software::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
         }
-        header('Location: /admin/devparts');
     }
 
     public function actionDelSoftware($id)
     {
-        if (false !== $software = Software::findByPK($id)) {
-            $software->delete();
+        try {
+            Software::getDbConnection()->beginTransaction();
+
+            //проверка правильности id
+            if (false === $item = Software::findByPK($id)) {
+                throw new Exception('Неверные данные');
+            }
+            //Проверка использования данного объекта
+            if ($item->softwareItems->count() > 0) {
+                throw new Exception('Удаление невозможно. Данное ПО используется.');
+            }
+            $item->delete();
+            $this->data->result = 'ПО "' . $item->title .  '" удалено';
+
+            Software::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Software::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Software::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
         }
-        header('Location: /admin/devparts');
     }
 
     public function actionAddVendor($vendor)
     {
-        (new Vendor())
-            ->fill($vendor)
-            ->save();
-        header('Location: /admin/devparts');
+        try {
+            Vendor::getDbConnection()->beginTransaction();
+            $vendor = (new Vendor())
+                ->fill([
+                    'title' => $vendor->title,
+                ])
+                ->save();
+            //создаем модуль motherboard
+            $mb = (new Module())
+                ->fill([
+                    'title' => Module::MOTHERBOARD,
+                    'vendor' => $vendor
+                ])
+                ->save();
+            Vendor::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Vendor::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Vendor::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
     }
 
     public function actionEditVendor($vendor)
     {
-        Vendor::findByPK($vendor['id'])
-            ->fill([
-                'title' => $vendor['title']
-            ])
-            ->save();
-        header('Location: /admin/devparts');
+        try {
+            Vendor::getDbConnection()->beginTransaction();
+
+            if (false === $editingObj = Vendor::findByPK($vendor->id)) {
+                throw new Exception('Неверные данные');
+            }
+            if ($editingObj->title != $vendor->title && false !== Vendor::findByColumn('title', $vendor->title)) {
+                throw new Exception('Такой производитель существует');
+            }
+            $editingObj
+                ->fill([
+                    'title' => $vendor->title
+                ])
+                ->save();
+
+            Vendor::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Vendor::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Vendor::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
     }
 
     public function actionDelVendor($id)
     {
-        if (false !== $vendor = Vendor::findByPK($id)) {
-            $vendor->delete();
+        try {
+            Vendor::getDbConnection()->beginTransaction();
+
+            //проверка правильности id
+            if (false === $item = Vendor::findByPK($id)) {
+                throw new Exception('Неверные данные');
+            }
+
+            //Проверка использования данного объекта
+            if (
+                $item->appliances->count() > 0 ||
+                $item->platforms->count() > 0 ||
+                $item->modules->count() > 1 ||
+                $item->software->count() > 0
+            ) {
+                throw new Exception('Удаление невозможно. Данный производитель используется.');
+            }
+            $item->delete();
+            $this->data->result = 'Производитель "' . $item->title .  '" удален';
+
+            Vendor::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Vendor::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Vendor::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
         }
-        header('Location: /admin/devparts');
     }
 
     public function actionDevices()
     {
+        $this->data->offices = Office::findAll(['order' => 'title']);
 
+        foreach ($this->data->offices as $office) {
+
+        }
+        $this->data->activeLink->devices = true;
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    public function actionAddVendorold($vendor)
+    public function actionPortTypes()
     {
-        if (!empty($vendor)) {
-            if (!empty(trim($vendor['many']))) {
-                $pattern = '~[\n\r]~';
-                $vendorListStr = preg_replace($pattern, '', trim($vendor['many']));
-                $vendorListArray = explode(',', $vendorListStr);
+        $this->data->voicePortTypes = VPortType::findAll(['order' => 'type']);
+        $this->data->dataPortTypes = DPortType::findAll(['order' => 'type']);
 
-                foreach ($vendorListArray as $vendor) {
-                    (new Vendor())
-                        ->fill(['title' => trim($vendor)])
-                        ->save();
-                }
+        $this->data->activeLink->dictionary = true;
+    }
 
-            } elseif (!empty(trim($vendor['one']))) {
-                (new Vendor())
-                    ->fill(['title' => $vendor['one']])
+    public function actionAddPortType($portType)
+    {
+        try {
+            VPortType::getDbConnection()->beginTransaction();
+            if ('voice' == $portType->type) {
+                (new VPortType())
+                    ->fill([
+                        'type' => $portType->title
+                    ])
                     ->save();
+            } elseif ('data' == $portType->type) {
+                (new DPortType())
+                    ->fill([
+                        'type' => $portType->title
+                    ])
+                    ->save();
+            } else {
+                throw new Exception('Неизвестный тип порта');
             }
+
+            VPortType::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            VPortType::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            VPortType::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
         }
-        header('Location: /admin/devparts');
     }
 
-    public function actionDelVendorold($id)
+    public function actionEditPortType($portType)
     {
-        if (false !== $vendor = Vendor::findByPK($id)) {
-            $vendor->delete();
+        try {
+            VPortType::getDbConnection()->beginTransaction();
+            $item = ('voice' == $portType->type) ? VPortType::findByPK($portType->id) :
+                (('data' == $portType->type) ? DPortType::findByPK($portType->id) : false);
+
+            if (false === $item) {
+                throw new Exception('Неверные данные');
+            }
+            if ($item->type != $portType->title && false !== get_class($item)::findByColumn('type', $portType->title)) {
+                throw new Exception('Такой тип существует');
+            }
+            $item->fill([
+                'type' => $portType->title
+            ]);
+            $item->save();
+            $this->data->result = 'Тип порта изменен';
+
+            VPortType::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            VPortType::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            VPortType::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
         }
-        header('Location: /admin/devparts');
+
+    }
+
+    public function actionDelPortType($portType)
+    {
+        try {
+            VPortType::getDbConnection()->beginTransaction();
+            if ('voice' == $portType->type) {
+                if (false === $currentPort = VPortType::findByPK($portType->id)) {
+                    throw new Exception('Порт не найден');
+                }
+                if ($currentPort->ports->count() > 0) {
+                    throw new Exception('Удаление не возможно. Данный тип используется.');
+                }
+                $currentPort->delete();
+            } elseif ('data' == $portType->type) {
+                if (false === $currentPort = DPortType::findByPK($portType->id)) {
+                    throw new Exception('Порт не найден');
+                }
+                if ($currentPort->ports->count() > 0) {
+                    throw new Exception('Удаление не возможно. Данный тип используется.');
+                }
+                $currentPort->delete();
+
+            } else {
+                throw new Exception('Неизвестный тип порта');
+            }
+
+            VPortType::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            VPortType::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            VPortType::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
+        try {
+            VPortType::getDbConnection()->beginTransaction();
+            if ('voice' == $portType->type) {
+                if (false === $currentPort = VPortType::findByPK($portType->id)) {
+                    throw new Exception('Порт не найден');
+                }
+                if ($currentPort->ports->count() > 0) {
+                    throw new Exception('Удаление не возможно. Данный тип используется.');
+                }
+                $currentPort->delete();
+            } elseif ('data' == $portType->type) {
+                if (false === $currentPort = DPortType::findByPK($portType->id)) {
+                    throw new Exception('Порт не найден');
+                }
+                if ($currentPort->ports->count() > 0) {
+                    throw new Exception('Удаление не возможно. Данный тип используется.');
+                }
+                $currentPort->delete();
+
+            } else {
+                throw new Exception('Неизвестный тип порта');
+            }
+
+            VPortType::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            VPortType::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            VPortType::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
     }
 
 
-
-    public function actionAddSoftwareold($software)
+    public function actionAddAppliance($data)
     {
-        if (!empty(trim($software['title']))) {
-            (new Software())
+        try {
+            Appliance::getDbConnection()->beginTransaction();
+
+            if (!is_numeric($data->officeId)) {
+                throw new Exception('Офис не выбран');
+            }
+            if (!is_numeric($data->vendorId)) {
+                throw new Exception('Производитель не выбран');
+            }
+            if (!is_numeric($data->applianceTypeId)) {
+                throw new Exception('Тип оборудования не выбран');
+            }
+            if (!is_numeric($data->platformId)) {
+                throw new Exception('Платформа не выбрана');
+            }
+            if (!is_numeric($data->softwareId)) {
+                throw new Exception('ПО не выбрано');
+            }
+            $office = Office::findByPK($data->officeId);
+            $vendor = Vendor::findByPK($data->vendorId);
+            $applianceType = ApplianceType::findByPK($data->applianceTypeId);
+
+            $platformItem = (new PlatformItem())
                 ->fill([
-                    'title' => $software['title'],
-                    'vendor' => Vendor::findByPK($software['vendorId'])
+                    'platform' => Platform::findByPK($data->platformId),
+                    'serialNumber' => $data->platformSn
                 ])
                 ->save();
+
+            $softwareItem = (new SoftwareItem())
+                ->fill([
+                    'software' => Software::findByPK($data->softwareId),
+                    'version' => $data->softwareVersion
+                ])
+                ->save();
+
+            $appliance = (new Appliance())
+                ->fill([
+                    'location' => $office,
+                    'vendor' => $vendor,
+                    'platform' => $platformItem,
+                    'software' => $softwareItem,
+                    'type' => $applianceType,
+                    'details' => [
+                        'hostname' => $data->hostname
+                    ]
+                ])
+                ->save();
+
+            //если appliance сохранился без ошибок - сохраняем модули к нему
+            if (!empty($data->module->id)) {
+                foreach ($data->module->id as $key => $value) {
+                    //если не выбран модуль - пропускаем
+                    if (!is_numeric($value)) {
+                        continue;
+                    }
+                    $module = Module::findByPK($value);
+                    $moduleItem = (new ModuleItem())
+                        ->fill([
+                            'appliance' => $appliance,
+                            'module' => $module,
+                            'serialNumber' => $data->module->sn->$key,
+                            'comment' => $data->module->comment->$key
+                        ])
+                        ->save();
+                }
+            }
+
+            Appliance::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Appliance::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Appliance::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
         }
-        header('Location: /admin/devparts');
     }
 
-    public function actionDelSoftwareold($id)
+    public function actionEditAppliance($data)
     {
-        if (false !== $software = Software::findByPK($id)) {
-            $software->delete();
+        try {
+            Appliance::getDbConnection()->beginTransaction();
+
+            $current = Appliance::findByPK($data->currentId);
+
+            if (false === $office = Office::findByPK($data->officeId)) {
+                throw new Exception('Офис не найден');
+            }
+            if (false === $vendor = Vendor::findByPK($data->vendorId)) {
+                throw new Exception('Производитель не найден');
+            }
+            if (false === $applianceType = ApplianceType::findByPK($data->applianceTypeId)) {
+                throw new Exception('Тип оборудования не найден');
+            }
+            if (false === $platform = Platform::findByPK($data->platformId)) {
+                throw new Exception('Платформа не найдена');
+            }
+            if (false === $software = Software::findByPK($data->softwareId)) {
+                throw new Exception('ПО не найдено');
+            }
+            ($current->platform)
+                ->fill([
+                    'platform' => $platform,
+                    'serialNumber' => $data->platformSn
+                ])
+                ->save();
+
+            ($current->software)
+                ->fill([
+                    'software' => $software,
+                    'version' => $data->softwareVersion
+                ])
+                ->save();
+
+            ($current)
+                ->fill([
+                    'location' => $office,
+                    'vendor' => $vendor,
+                    'type' => $applianceType,
+                    'details' => [
+                        'hostname' => $data->hostname
+                    ]
+                ])
+                ->save();
+
+            //если appliance сохранился без ошибок - сохраняем существующие модули к нему
+            if (!empty($data->module->id)) {
+                foreach ($data->module->id as $key => $value) {
+                    //если не выбран модуль - пропускаем
+                    if (!is_numeric($value)) {
+                        continue;
+                    }
+                    $module = Module::findByPK($value);
+                    $moduleItem = (ModuleItem::findByPK($data->module->currentId->$key))
+                        ->fill([
+                            'appliance' => $current, //текущий appliance
+                            'module' => $module,
+                            'serialNumber' => $data->module->sn->$key,
+                            'comment' => $data->module->comment->$key
+                        ])
+                        ->save();
+                }
+            }
+
+            //сохраняем новые модули
+            if (!empty($data->newModule->id)) {
+                foreach ($data->newModule->id as $key => $value) {
+                    //если не выбран модуль - пропускаем
+                    if (!is_numeric($value)) {
+                        continue;
+                    }
+                    $module = Module::findByPK($value);
+                    $moduleItem = (new ModuleItem())
+                        ->fill([
+                            'appliance' => $current, //текущий appliance
+                            'module' => $module,
+                            'serialNumber' => $data->module->sn->$key,
+                            'comment' => $data->module->comment->$key
+                        ])
+                        ->save();
+                }
+            }
+
+            Appliance::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Appliance::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Appliance::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
         }
-        header('Location: /admin/devparts');
+    }
+
+    public function actionDelAppliance()
+    {
+        // TO DO
+    }
+
+    public function actionPortInventory()
+    {
+        $this->data->offices = Office::findAll(['order' => 'title']);
+    }
+    public function actionPortInventoryTemplate()
+    {
+
+    }
+
+    public function actionAddDataPort($data)
+    {
+        try {
+            DataPort::getDbConnection()->beginTransaction();
+            if (false === $currentAppliance = Appliance::findByPK($data->id)) {
+                throw new Exception('Неверные данные');
+            }
+            if (!is_numeric($data->portTypeId)) {
+                throw new Exception('Тип порта не выбран');
+            }
+            (new DataPort())
+                ->fill([
+                    'ipAddress' => $data->ip,
+                    'macAddress' => $data->mac,
+                    'comment' => $data->comment,
+                    'appliance' => $currentAppliance,
+                    'portType' => DPortType::findByPK($data->portTypeId)
+                ])
+                ->save();
+
+            DataPort::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            DataPort::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            DataPort::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
+
+    }
+
+    public function actionEditDataPort($data)
+    {
+        try {
+            DataPort::getDbConnection()->beginTransaction();
+            if (false === $currentAppliance = Appliance::findByPK($data->applianceId)) {
+                throw new Exception('Неверные данные');
+            }
+            if (false === $currentDataPort = DataPort::findByPK($data->portId)) {
+                throw new Exception('Неверные данные');
+            }
+            $data->ip = DataPort::sanitizeIp($data->ip);
+            if (false === DataPort::is_ipAddress($data->ip)) {
+                throw new Exception('Неверный формат IP адреса');
+            }
+            if ($currentDataPort->ipAddress != $data->ip && DataPort::countAllByIp($data->ip) > 0) {
+                throw new Exception('IP адрес ' . $data->ip . ' уже используется.');
+            }
+
+            $currentDataPort
+                ->fill([
+                    'ipAddress' => $data->ip,
+                    'macAddress' => $data->mac,
+                    'comment' => $data->comment,
+                    'appliance' => $currentAppliance, //нужен только для валидатора
+                    'portType' => DPortType::findByPK($data->portTypeId)
+                ])
+                ->save();
+
+            DataPort::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            DataPort::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            DataPort::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
+
+    }
+
+    public function actionDelDataPort($portId)
+    {
+        try {
+            DataPort::getDbConnection()->beginTransaction();
+            if (false === $currentDataPort = DataPort::findByPK($portId)) {
+                throw new Exception('Неверные данные');
+            }
+            $currentDataPort->delete();
+
+            $this->data->result = 'Порт с IP адресом ' . $currentDataPort->ipAddress . ' удален';
+
+            DataPort::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            DataPort::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            DataPort::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
+
     }
 
 }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use T4\Core\Collection;
+use T4\Core\Exception;
 use T4\Orm\Model;
 
 /**
@@ -42,4 +43,25 @@ class Appliance extends Model
             'modules' => ['type' => self::HAS_MANY, 'model' => ModuleItem::class]
         ]
     ];
+
+    protected function validate()
+    {
+        if (false === $this->location) {
+            throw new Exception("офис не найден");
+        }
+        if (false === $this->vendor) {
+            throw new Exception('Производитель не найден');
+        }
+        if (false === $this->platform) {
+            throw new Exception('Ошибка при сохранении платформы');
+        }
+        if (false === $this->software) {
+            throw new Exception('Ошибка при сохранении ПО');
+        }
+        if (false === $this->type) {
+            throw new Exception('Тип оборудования не найден');
+        }
+        return true;
+    }
+
 }

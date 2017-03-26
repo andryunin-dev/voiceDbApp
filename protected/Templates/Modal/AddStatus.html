@@ -2,11 +2,7 @@
     <form action="/admin/addStatus" method="post" role="form">
         <div class="form-group">
             <label for="id-status"></label>
-            <input type="text" class="form-control" name="status[one]" id="id-status[one]" placeholder="Новый статус">
-        </div>
-        <div class="form-group">
-            <label for="id-statuses"></label>
-            <textarea name="status[many]" id="id-statuses" cols="41" rows="10" placeholder="Список статусов через запятую"></textarea>
+            <input type="text" class="form-control" name="status[title]" id="id-status[one]" placeholder="Новый статус">
         </div>
 
         <button class="btn btn-success" type="submit">Создать</button>
@@ -15,9 +11,13 @@
         </button>
 
     </form>
+    <script>
+        var APP = APP || {};
+        APP.popups = APP.popups || [];
+        APP.popups.push({
+            path: "{{ path }}",
+            popupSelector: "#add-status",
+            width: "auto"
+        });
+    </script>
 </div>
-<script>
-    var APP = APP || {};
-    APP.settings = APP.settings || {};
-    APP.settings.modalWindowSelector = "#add-status";
-</script>

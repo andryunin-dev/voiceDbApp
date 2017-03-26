@@ -3,7 +3,11 @@
 namespace App\Controllers;
 
 
+use App\Models\Appliance;
+use App\Models\ApplianceType;
 use App\Models\City;
+use App\Models\DataPort;
+use App\Models\DPortType;
 use App\Models\Module;
 use App\Models\Office;
 use App\Models\OfficeStatus;
@@ -11,11 +15,20 @@ use App\Models\Platform;
 use App\Models\Region;
 use App\Models\Software;
 use App\Models\Vendor;
+use App\Models\VPortType;
+use T4\Core\Exception;
+use T4\Core\MultiException;
+use T4\Http\Request;
 use T4\Mvc\Controller;
 
 class Modal extends Controller
 {
     public function actionAddRegion()
+    {
+        $this->data->path = (new Request())->path;
+    }
+
+    public function actionTestAddRegion()
     {
 
     }
@@ -85,6 +98,16 @@ class Modal extends Controller
         }
     }
 
+    public function actionAddApplianceType()
+    {
+
+    }
+
+    public function actionEditApplianceType($id)
+    {
+        $this->data->applianceType = ApplianceType::findByPK($id);
+    }
+
     public function actionAddPlatform()
     {
         $this->data->vendors = Vendor::findAll(['order' => 'title']);
@@ -130,7 +153,56 @@ class Modal extends Controller
 
     public function actionOfficeDetail($id)
     {
-        var_dump(Office::findByPK($id));
         $this->data->office = Office::findByPK($id);
+    }
+
+    public function actionAddAppliance()
+    {
+        $this->data->offices = Office::findAll(['order' => 'title']);
+        $this->data->vendors = Vendor::findAll(['order' => 'title']);
+        $this->data->platforms = Platform::findAll(['order' => 'title']);
+        $this->data->software = Software::findAll(['order' => 'title']);
+        $this->data->modules = Module::findAll(['order' => 'title']);
+        $this->data->applianceTypes = ApplianceType::findAll(['order' => 'type']);
+    }
+
+    public function actionEditAppliance($id)
+    {
+        $this->data->current = Appliance::findByPK($id);
+        $this->data->offices = Office::findAll(['order' => 'title']);
+        $this->data->vendors = Vendor::findAll(['order' => 'title']);
+        $this->data->platforms = Platform::findAll(['order' => 'title']);
+        $this->data->software = Software::findAll(['order' => 'title']);
+        $this->data->modules = Module::findAll(['order' => 'title']);
+        $this->data->applianceTypes = ApplianceType::findAll(['order' => 'type']);
+    }
+
+    public function actionAddPortType($type)
+    {
+        $this->data->type = $type;
+        $this->data->path = (new Request())->path;
+    }
+
+    public function actionEditPortType($portType)
+    {
+        if ('voice' == $portType->type) {
+            $this->data->portType = VPortType::findByPK($portType->id);
+        } elseif ('data' == $portType->type) {
+            $this->data->portType = DPortType::findByPK($portType->id);
+        }
+        $this->data->type = $portType->type;
+    }
+
+    public function actionAddDataPort($id)
+    {
+        $this->data->current = Appliance::findByPK($id);
+        $this->data->portTypes = DPortType::findAll(['order' => 'type']);
+    }
+
+    public function actionEditDataPort()
+    {
+        $this->data->currentAppliance = Appliance::findByPK($this->app->request->get->deviceId);
+        $this->data->currentPort = DataPort::findByPK($this->app->request->get->portId);
+        $this->data->portTypes = DPortType::findAll(['order' => 'type']);
     }
 }
