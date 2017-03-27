@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 
+use App\Components\Ip;
 use App\Components\Sorter;
 use App\Models\Address;
 use App\Models\ApplianceType;
@@ -22,14 +23,8 @@ class Test extends Controller
 {
     public function actionDefault()
     {
-//        $query = (new Query())
-//            ->select()
-//            ->from(DataPort::getTableName())
-//            ->where('"ipAddress" && :ip')
-//            ->params([':ip' => '192.168.1.1']);
-//        $res = DataPort::countAllByQuery($query);
-        $res = DataPort::countAllByIp('192.168.1.1/23');
-        var_dump($res);die;
+        $ip = new Ip('10.99.256.2');
+        var_dump(Ip::ip2subnet('10.99.254.2/24'));die;
     }
 
     public function actionRegions($region = null)
@@ -45,6 +40,9 @@ class Test extends Controller
     public function actionAddAppliance()
     {
         $this->data->response = 'Hello!';
+        $json = '{"management_ip": "10.10.5.192", "chassis": "CISCO3945-CHASSIS", "modules": [{"serial": "FOC16352NNA", "product_number": "C3900-SPE250/K9"}, {"serial": "QCS1619P38Y", "product_number": "PWR-3900-AC"}, {"serial": "QCS1619P3BE", "product_number": "PWR-3900-AC"}, {"serial": "FOC163772DY", "product_number": "EHWIC-1GE-SFP-CU"}, {"serial": "FOC16382JCK", "product_number": "EHWIC-4ESG"}, {"serial": "FOC16382K39", "product_number": "EHWIC-4ESG"}, {"serial": "FOC16270WUG", "product_number": "SM-D-ES3G-48-P"}], "serial": "FCZ163377FU", "lotus_id": "101"}';
+        $dec = json_decode($json);
+        var_dump($dec);die;
     }
 
     public function actionAddRegion($region = null)
@@ -74,7 +72,6 @@ class Test extends Controller
         } catch (MultiException $e) {
             Region::getDbConnection()->rollbackTransaction();
             $this->data->errors = $e;
-            //var_dump($this->data);die;
         }
     }
 

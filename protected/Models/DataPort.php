@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Components\Ip;
 use T4\Core\Exception;
 use T4\Dbal\Query;
 use T4\Orm\Model;
@@ -35,6 +36,8 @@ class DataPort extends Model
         ]
     ];
 
+    protected $ip;
+
     public static function countAllByIp($ip)
     {
         $query = (new Query())
@@ -57,6 +60,11 @@ class DataPort extends Model
         return DataPort::findAllByQuery($query);
     }
 
+    /**
+     * надо бы избавиться от этого метода. Заменить на использование класса Components\Ip
+     * @param $val
+     * @return bool
+     */
     public static function is_ipAddress($val)
     {
         if (empty($val = trim($val))) {
@@ -100,43 +108,34 @@ class DataPort extends Model
     }
 
 
+    /**
+     * не может быть пустым
+     * адрес должен быть валидным
+     * должна быть явно зада маска
+     * адрес не должен быть адресом сети
+     *
+     * @param $val
+     * @return bool
+     * @throws Exception
+     *
+     */
     protected function validateIpAddress($val)
     {
-        if (empty($val = trim($val))) {
-            throw new Exception('IP адрес не задан');
-        }
-        $val = str_replace('\\', '/', $val); //меняем ошибочные слеши
-        $val = explode('/', $val);
-        if (1 == count($val)) {     //нет маски
-            $ip = array_pop($val);
-        } elseif (2 == count($val)) { //есть маска
-            $mask = array_pop($val);
-            $ip = array_pop($val);
-        } else {
-            throw new Exception('Неверный формат IP адреса');
-        }
-        // class of IP address
-        $is_ipv4 = (false !== filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4));
-        $is_ipv6 = (false !== filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6));
-        if (false === $is_ipv4 && false === $is_ipv6) {
-            throw new Exception('Неверный формат IP адреса');
-        }
-
-        //check mask
-        $maskLengthMax = ($is_ipv4) ? 32 : 128;
-        if (!isset($mask)) {
-            return true; //if empty mask and IP valid
-        }
-        if (!empty($mask) && !is_numeric($mask)) { //if mask is not empty and not numeric
-            throw new Exception('Неверная маска');
-        }
-
-        if (false === ($mask > 0 && $mask <= $maskLengthMax)) {
-            throw new Exception('Неверная маска');
+        $this->ip = new Ip(str_replace('\\', '/', $val)); //меняем ошибочные слеши
+        if (false === $this->ip->is_valid) {
+            throw new Exception(implode('<br>', $this->ip->errors));
         }
         return true;
     }
 
+    /**
+     * не должен быть пустым
+     * должен быть валидным
+     *
+     * @param $val
+     * @return bool
+     * @throws Exception
+     */
     protected function validateMacAddress($val)
     {
         if (empty(trim($val))) {
@@ -171,12 +170,14 @@ class DataPort extends Model
         if (false === $this->portType) {
             throw new Exception('Данный тип порта не найден');
         }
-
-        //ищем записи с таким ip для новой записи
-        if (true === $this->isNew && DataPort::countAllByIp($this->ipAddress) > 0) {
-            throw new Exception('IP адрес ' . $this->ipAddress . ' уже используется.');
+        if (true !== $this->ip->is_hostIp) {
+            throw new Exception($this->ip->address . ' является адресом подсети' );
         }
 
+            //ищем записи с таким ip для новой записи
+        if (true === $this->isNew && DataPort::countAllByIp($this->ip->address) > 0) {
+            throw new Exception('IP адрес ' . $this->ip->address . ' уже используется.');
+        }
         return true;
     }
 }

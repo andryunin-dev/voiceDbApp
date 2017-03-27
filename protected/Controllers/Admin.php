@@ -12,6 +12,7 @@ use App\Models\DataPort;
 use App\Models\DPortType;
 use App\Models\Module;
 use App\Models\ModuleItem;
+use App\Models\Network;
 use App\Models\Office;
 use App\Models\OfficeStatus;
 use App\Models\Platform;
@@ -1252,16 +1253,21 @@ class Admin extends Controller
             if (!is_numeric($data->portTypeId)) {
                 throw new Exception('Тип порта не выбран');
             }
+            $network = (new Network())
+                ->fill([
+                    'address' => $data->ip
+                ])
+                ->save();
             (new DataPort())
                 ->fill([
                     'ipAddress' => $data->ip,
                     'macAddress' => $data->mac,
                     'comment' => $data->comment,
                     'appliance' => $currentAppliance,
-                    'portType' => DPortType::findByPK($data->portTypeId)
+                    'portType' => DPortType::findByPK($data->portTypeId),
+                    'network' => $network
                 ])
                 ->save();
-
             DataPort::getDbConnection()->commitTransaction();
         } catch (MultiException $e) {
             DataPort::getDbConnection()->rollbackTransaction();
