@@ -10,7 +10,10 @@ class m_1490560624_alterDataPortsTable
 
     public function up()
     {
-        $sql['addColumn'] = 'ALTER TABLE equipment."dataPorts" ADD COLUMN __network_id  BIGINT';
+        //BEFORE INSERT COLUMN WITH NOT NULL CONSTRAIN NEED DELETE ALL RECORD FROM TABLE!!!
+        $this->db->execute('DELETE FROM equipment."dataPorts"');
+
+        $sql['addColumn'] = 'ALTER TABLE equipment."dataPorts" ADD COLUMN __network_id  BIGINT NOT NULL ';
         $sql['addConstrain'] = 'ALTER TABLE equipment."dataPorts" ADD CONSTRAINT fk_network_id FOREIGN KEY (__network_id)
               REFERENCES network."networks" (__id)
               ON DELETE RESTRICT
@@ -23,6 +26,8 @@ class m_1490560624_alterDataPortsTable
 
         //for test DB
         $this->setDb('phpUnitTest');
+        $this->db->execute('DELETE FROM equipment."dataPorts"');
+
         foreach ($sql as $key => $query) {
             if (true === $this->db->execute($query)) {
                 echo 'On test DB ' . $key . ' done' . "\n";
