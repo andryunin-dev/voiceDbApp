@@ -9,6 +9,7 @@ use App\Models\Address;
 use App\Models\ApplianceType;
 use App\Models\City;
 use App\Models\DataPort;
+use App\Models\Network;
 use App\Models\Office;
 use App\Models\OfficeStatus;
 use App\Models\Region;
@@ -23,8 +24,22 @@ class Test extends Controller
 {
     public function actionDefault()
     {
-        $ip = new Ip('10.99.256.2');
-        var_dump(Ip::ip2subnet('10.99.254.2/24'));die;
+        /**
+         * @var Network $net
+         */
+
+//        (new Network())->fill(['address' => '192.168.1.0/24'])->save();
+//        (new Network())->fill(['address' => '192.168.1.0/26'])->save();
+//        (new Network())->fill(['address' => '192.168.1.0/25'])->save();
+//        (new Network())->fill(['address' => '192.168.1.64/26'])->save();
+//        (new Network())->fill(['address' => '192.168.1.192/26'])->save();
+
+        $net = Network::findByAddress('192.168.1.0/25');
+        $net->delete();
+//        $net->parent = $net->findParentNetwork();
+//        $net->save();
+//        var_dump($net);
+        var_dump($net);die;
     }
 
     public function actionRegions($region = null)

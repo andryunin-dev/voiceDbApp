@@ -114,6 +114,21 @@ class Ip
         return (new Ip($ip))->network;
     }
 
+    /**
+     * @param Ip $child testing object of Ip class
+     * @return bool true if network of current object is parental for $child
+     *
+     */
+    public function is_parent(Ip $child)
+    {
+        if ($this->network == $child->network) {
+            return $this->masklen < $child->masklen;
+        } else {
+            $mixed = (new Ip(($child->network . '/' . $this->masklen)));
+            return ($mixed->is_hostIp && ($mixed->network == $this->network));
+        }
+    }
+
     public function __set($name, $value)
     {
     }

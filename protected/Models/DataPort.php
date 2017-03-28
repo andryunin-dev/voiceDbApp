@@ -12,6 +12,7 @@ use T4\Orm\Model;
  * @package App\Models
  *
  * @property string $ipAddress
+ * @property Network $network
  * @property string $macAddress
  * @property string $details
  * @property string $comment
@@ -111,7 +112,7 @@ class DataPort extends Model
     /**
      * не может быть пустым
      * адрес должен быть валидным
-     * должна быть явно зада маска
+     * должна быть явно задана маска
      * адрес не должен быть адресом сети
      *
      * @param $val
@@ -172,6 +173,9 @@ class DataPort extends Model
         }
         if (true !== $this->ip->is_hostIp) {
             throw new Exception($this->ip->address . ' является адресом подсети' );
+        }
+        if (false === $this->network) {
+            throw new Exception('Подсеть задана неверно');
         }
 
             //ищем записи с таким ip для новой записи

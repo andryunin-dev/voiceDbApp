@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Components\Ip;
 use App\Components\Parser;
 use App\Components\Publisher;
 use App\Models\Address;
@@ -1238,10 +1239,6 @@ class Admin extends Controller
     {
         $this->data->offices = Office::findAll(['order' => 'title']);
     }
-    public function actionPortInventoryTemplate()
-    {
-
-    }
 
     public function actionAddDataPort($data)
     {
@@ -1253,11 +1250,17 @@ class Admin extends Controller
             if (!is_numeric($data->portTypeId)) {
                 throw new Exception('Тип порта не выбран');
             }
-            $network = (new Network())
-                ->fill([
-                    'address' => $data->ip
-                ])
-                ->save();
+            $ip = new Ip($data->ip);
+            if (false === $ip->is_valid) {
+                throw new Exception('IP адрес задан неверно');
+            }
+            if (false === $network = Network::findByAddress($ip->network . '/' . $ip->masklen)) {
+                $network = (new Network())
+                    ->fill([
+                        'address' => ($ip->network . '/' . $ip->masklen)
+                    ])
+                    ->save();
+            }
             (new DataPort())
                 ->fill([
                     'ipAddress' => $data->ip,
