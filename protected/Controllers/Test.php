@@ -13,6 +13,7 @@ use App\Models\Network;
 use App\Models\Office;
 use App\Models\OfficeStatus;
 use App\Models\Region;
+use T4\Console\Application;
 use T4\Core\Exception;
 use T4\Core\IArrayable;
 use T4\Core\MultiException;
@@ -28,18 +29,42 @@ class Test extends Controller
          * @var Network $net
          */
 
+//
+//        $res = (new Network())->fill(['address' => '192.168.1.0/24'])->save();
+//        $res = (new Network())->fill(['address' => '192.168.1.0/25'])->save();
+//        $res = (new Network())->fill(['address' => '192.168.1.0/26'])->save();
+//        Network::getDbConnection()->beginTransaction();
+        $res = (new Network())->fill(['address' => '192.168.2.0/24'])->save();
+//        Network::getDbConnection()->rollbackTransaction();
+//        $res = (new Network())->fill(['address' => '192.168.1.0/25']);
+        $res = Network::findByAddress('192.168.1.0/25');
+        $res->delete();
+//        $query = (new Query())
+//            ->select()
+//            ->from(Network::getTableName())
+//            ->where('__prt ISNULL');
+
+//        $res = Network::findAllRoots();
+        var_dump($res);die;
+//        $res->deleteFromTree();
+//        $res->fill([
+//            'address' => '192.168.2.0/26'
+//        ])
+//            ->update();
+        var_dump($res->getPk());die;
 //        (new Network())->fill(['address' => '192.168.1.0/24'])->save();
+//        (new Network())->fill(['address' => '192.168.1.32/27'])->save();
 //        (new Network())->fill(['address' => '192.168.1.0/26'])->save();
-//        (new Network())->fill(['address' => '192.168.1.0/25'])->save();
 //        (new Network())->fill(['address' => '192.168.1.64/26'])->save();
+//        (new Network())->fill(['address' => '192.168.1.0/25'])->save();
 //        (new Network())->fill(['address' => '192.168.1.192/26'])->save();
 
         $net = Network::findByAddress('192.168.1.0/25');
-        $net->delete();
+//        $net->delete();
 //        $net->parent = $net->findParentNetwork();
 //        $net->save();
 //        var_dump($net);
-        var_dump($net);die;
+//        var_dump($net);die;
     }
 
     public function actionRegions($region = null)

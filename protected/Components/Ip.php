@@ -24,7 +24,7 @@ class Ip
 
     /**
      * Ip constructor.
-     * mask must pass explicitly in ip addresss with CIDT notation or in mask argument.
+     * mask must pass explicitly in ip addresss with CIDК notation or in mask argument.
      * if mask pass in ip address argument value of mask argument ignore.
      * @param string $ip        IP address with or without mask in CIDR notation (10.10.0.0/24, 10.11.12.13 etc.)
      * @param int|string $mask  mask length (integer or numeric string) or mask like 255.255.0.0 etc.
@@ -96,7 +96,7 @@ class Ip
 
     public static function mask2cidr(string $mask)
     {
-        if (empty($mask) && false === filter_var($mask, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+        if (empty($mask) || false === filter_var($mask, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
             return false;
         }
         $cidr = 1;

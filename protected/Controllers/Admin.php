@@ -1244,13 +1244,16 @@ class Admin extends Controller
     {
         try {
             DataPort::getDbConnection()->beginTransaction();
+
+            $data->ip = DataPort::sanitizeIp($data->ip);
+            $ip = new Ip($data->ip);
+
             if (false === $currentAppliance = Appliance::findByPK($data->id)) {
                 throw new Exception('Неверные данные');
             }
             if (!is_numeric($data->portTypeId)) {
                 throw new Exception('Тип порта не выбран');
             }
-            $ip = new Ip($data->ip);
             if (false === $ip->is_valid) {
                 throw new Exception('IP адрес задан неверно');
             }
