@@ -103,10 +103,6 @@ class DataPort extends Model
         return true;
     }
 
-    public static function sanitizeIp($ip)
-    {
-        return str_replace('\\', '/', trim($ip)); //меняем ошибочные слеши
-    }
 
 
     /**

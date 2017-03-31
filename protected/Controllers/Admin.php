@@ -1245,7 +1245,6 @@ class Admin extends Controller
         try {
             DataPort::getDbConnection()->beginTransaction();
 
-            $data->ip = DataPort::sanitizeIp($data->ip);
             $ip = new Ip($data->ip);
 
             if (false === $currentAppliance = Appliance::findByPK($data->id)) {
@@ -1274,6 +1273,7 @@ class Admin extends Controller
                     'network' => $network
                 ])
                 ->save();
+
             DataPort::getDbConnection()->commitTransaction();
         } catch (MultiException $e) {
             DataPort::getDbConnection()->rollbackTransaction();
@@ -1289,23 +1289,25 @@ class Admin extends Controller
     {
         try {
             DataPort::getDbConnection()->beginTransaction();
+
+            $data->ip = new Ip($data->ip);
+
             if (false === $currentAppliance = Appliance::findByPK($data->applianceId)) {
                 throw new Exception('Неверные данные');
             }
             if (false === $currentDataPort = DataPort::findByPK($data->portId)) {
                 throw new Exception('Неверные данные');
             }
-            $data->ip = DataPort::sanitizeIp($data->ip);
-            if (false === DataPort::is_ipAddress($data->ip)) {
+            if (false === $data->ip->is_valid) {
                 throw new Exception('Неверный формат IP адреса');
             }
-            if ($currentDataPort->ipAddress != $data->ip && DataPort::countAllByIp($data->ip) > 0) {
+            if ($currentDataPort->ipAddress != ($data->ip->address . '/' . $data->ip->masklen) && DataPort::countAllByIp($data->ip->address) > 0) {
                 throw new Exception('IP адрес ' . $data->ip . ' уже используется.');
             }
 
             $currentDataPort
                 ->fill([
-                    'ipAddress' => $data->ip,
+                    'ipAddress' => $data->ip . '/' . $data->ip->masklen,
                     'macAddress' => $data->mac,
                     'comment' => $data->comment,
                     'appliance' => $currentAppliance, //нужен только для валидатора

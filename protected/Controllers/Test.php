@@ -31,14 +31,41 @@ class Test extends Controller
 
 //
 //        $res = (new Network())->fill(['address' => '192.168.1.0/24'])->save();
+//        $res = (new Network())->fill(['address' => '192.168.1.0/26'])->save();
+//        $res = (new Network())->fill(['address' => '192.168.1.64/26'])->save();
+//        $res = (new Network())->fill(['address' => '192.168.1.0/25'])->save();
+//        $res = (new Network())->fill(['address' => '192.168.2.0/25'])->save();
+//
+        $res = Network::findByAddress('192.168.1.0/25');
+        $res->address = '192.168.2.0/24';
+//        $res->save();
+        $res->delete();
+
 //        $res = (new Network())->fill(['address' => '192.168.1.0/25'])->save();
 //        $res = (new Network())->fill(['address' => '192.168.1.0/26'])->save();
 //        Network::getDbConnection()->beginTransaction();
-        $res = (new Network())->fill(['address' => '192.168.2.0/24'])->save();
+//        $res = (new Network())->fill(['address' => '192.168.2.0/24'])->save();
 //        Network::getDbConnection()->rollbackTransaction();
 //        $res = (new Network())->fill(['address' => '192.168.1.0/25']);
-        $res = Network::findByAddress('192.168.1.0/25');
-        $res->delete();
+//        $res = Network::findByAddress('192.168.3.0/24');
+//        var_dump($res);
+//
+//        $res->address = '192.168.1.0/26';
+//        var_dump($res);
+//
+//        $res->save();
+//        var_dump($res);
+
+        /**
+         * @var Network $res
+         */
+//        $res->save();
+//        $res->delete();
+//        $res->fill([
+//            'address' => '192.168.2.0/26'
+//        ])
+//            ->save();
+
 //        $query = (new Query())
 //            ->select()
 //            ->from(Network::getTableName())
@@ -51,7 +78,7 @@ class Test extends Controller
 //            'address' => '192.168.2.0/26'
 //        ])
 //            ->update();
-        var_dump($res->getPk());die;
+//        var_dump($res->getPk());die;
 //        (new Network())->fill(['address' => '192.168.1.0/24'])->save();
 //        (new Network())->fill(['address' => '192.168.1.32/27'])->save();
 //        (new Network())->fill(['address' => '192.168.1.0/26'])->save();
@@ -59,7 +86,7 @@ class Test extends Controller
 //        (new Network())->fill(['address' => '192.168.1.0/25'])->save();
 //        (new Network())->fill(['address' => '192.168.1.192/26'])->save();
 
-        $net = Network::findByAddress('192.168.1.0/25');
+//        $net = Network::findByAddress('192.168.1.0/25');
 //        $net->delete();
 //        $net->parent = $net->findParentNetwork();
 //        $net->save();
