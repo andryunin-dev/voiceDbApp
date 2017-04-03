@@ -175,3 +175,89 @@ table th .th-divider-right {
 /*.cust-table-striped tbody:hover td[rowspan], tr:hover td {*/
     /*background: #c1c1c1;*/
 /*}*/
+
+/*=====================================
+Дерево
+=======================================*/
+
+#multi-derevo a:active, a:focus {
+    color: #666;
+    background-color: #f4f4f4;
+}
+#multi-derevo a.current {
+    color: black;
+    font-weight: bold;
+    background-color: #f4f4f4;
+}
+
+/* Дерево многоуровневое
+-------------------------------- */
+#multi-derevo {
+    width: 320px; /* блок под дерево */
+    border: none; /* границы блока */
+    border-color: silver gray gray silver;
+    border-width: 2px;
+    padding: 0 0 1em 0; /* нижний отступ */
+    font-size: 0.9em;
+}
+#multi-derevo span { /* обертка пункта */
+    text-decoration: none;
+    display: block; /* растянем до правого края блока */
+    margin: 0 0 0 1.2em;
+    background-color: transparent;
+    border: solid silver; /* цвет линий */
+    border-width: 0 0 1px 1px; /* границы: низ и лево */
+}
+#multi-derevo span a {/* тест элемента дерева */
+    display: block;
+    position: relative;
+    top: .95em; /* смещаем узел на середину линии */
+    background-color: #fff; /* закраска в цвет фона обязательна иначе будет видно линию */
+    margin: 0 0 .2em .7em; /* делаем промежуток между узлами, отодвигаем левее  */
+    padding: 0 0.3em; /* небольшой отступ от линии */
+}
+#multi-derevo h4 {/* заголовок дерева */
+    font-size: 1em;
+    font-weight: bold;
+    margin: 0;
+    padding: 0 .25em;
+    border-bottom: 1px solid silver;
+}
+#multi-derevo h4 a {
+    display: block;
+}
+#multi-derevo ul,
+#multi-derevo li {
+    list-style-image:none;
+    list-style-position:outside;
+    list-style-type:none;
+    margin:0;
+    padding:0;
+}
+#multi-derevo ul li {
+    line-height: 1.2em;
+}
+#multi-derevo ul li ul {
+    display: none; /* узлы свернуты */
+}
+#multi-derevo ul li ul li {
+    margin: 0 0 0 1.2em;
+    border-left: 1px solid silver; /* цвет вертикальной линии между узлами */
+}
+#multi-derevo li.last {/* последний узел, соединительную линию к след. узлу убираем */
+    border: none;
+}
+#multi-derevo .marker { /* маркер раскрытия списка в закрытом состоянии */
+    border-color: transparent transparent transparent gray;
+    border-style: solid;
+    border-width: .25em 0 .25em .5em;
+    margin: .35em .25em 0 0;
+    float: left;
+    width: 0px;
+    height: 0px;
+    line-height: 0px;
+}
+#multi-derevo .marker.open {/* маркер раскрытия списка в открытом состоянии */
+    border-color: gray transparent transparent transparent;
+    border-width: .5em .25em 0 .25em;
+}
