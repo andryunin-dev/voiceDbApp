@@ -36,10 +36,10 @@ class Test extends Controller
 //        $res = (new Network())->fill(['address' => '192.168.1.0/25'])->save();
 //        $res = (new Network())->fill(['address' => '192.168.2.0/25'])->save();
 //
-        $res = Network::findByAddress('192.168.1.0/25');
-        $res->address = '192.168.2.0/24';
+//        $res = Network::findByAddress('192.168.1.0/25');
+//        $res->address = '192.168.2.0/24';
 //        $res->save();
-        $res->delete();
+//        $res->delete();
 
 //        $res = (new Network())->fill(['address' => '192.168.1.0/25'])->save();
 //        $res = (new Network())->fill(['address' => '192.168.1.0/26'])->save();

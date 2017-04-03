@@ -37,8 +37,6 @@ class DataPort extends Model
         ]
     ];
 
-    protected $ip;
-
     public static function countAllByIp($ip)
     {
         $query = (new Query())
@@ -61,49 +59,16 @@ class DataPort extends Model
         return DataPort::findAllByQuery($query);
     }
 
-    /**
-     * надо бы избавиться от этого метода. Заменить на использование класса Components\Ip
-     * @param $val
-     * @return bool
-     */
-    public static function is_ipAddress($val)
+     public static function findByIp($ip)
     {
-        if (empty($val = trim($val))) {
-            return false; //IP адрес не задан
-        }
-        //$val = str_replace('\\', '/', $val); //меняем ошибочные слеши
-        $val = explode('/', $val);
-        if (1 == count($val)) {     //нет маски
-            $ip = array_pop($val);
-        } elseif (2 == count($val)) { //есть маска
-            $mask = array_pop($val);
-            $ip = array_pop($val);
-        } else {
-            return false; //Неверный формат IP адреса
-        }
-        // class of IP address
-        $is_ipv4 = (false !== filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4));
-        $is_ipv6 = (false !== filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6));
-        if (false === $is_ipv4 && false === $is_ipv6) {
-            return false; //Неверный формат IP адреса
-        }
+        $query = (new Query())
+            ->select()
+            ->from(DataPort::getTableName())
+            ->where('host("ipAddress") = host(:ip)')
+            ->params([':ip' => $ip]);
 
-        //check mask
-        $masklenMax = ($is_ipv4) ? 32 : 128;
-        if (!isset($mask)) {
-            return true; //if empty mask and IP valid
-        }
-        if (!empty($mask) && !is_numeric($mask)) { //if mask is not empty and not numeric
-            return false; //Неверная маска
-        }
-
-        if (false === ($mask > 0 && $mask <= $masklenMax)) {
-            return false; //Неверная маска
-        }
-        return true;
+        return DataPort::findByQuery($query);
     }
-
-
 
     /**
      * не может быть пустым
@@ -118,11 +83,25 @@ class DataPort extends Model
      */
     protected function validateIpAddress($val)
     {
-        $this->ip = new Ip(str_replace('\\', '/', $val)); //меняем ошибочные слеши
-        if (false === $this->ip->is_valid) {
-            throw new Exception(implode('<br>', $this->ip->errors));
+        $ip = new Ip($val);
+        if (false === $ip->is_valid) {
+            throw new Exception(implode('<br>', $ip->errors));
+        }
+        if (true !== $ip->is_hostIp) {
+            throw new Exception($ip->cidrAddress . ' является адресом подсети' );
         }
         return true;
+    }
+
+    /**
+     * наверное можно убрать санитацию IP
+     *
+     * @param Ip $val
+     * @return mixed
+     */
+    protected function sanitizeIpAddress($val)
+    {
+        return (new Ip($val))->cidrAddress;
     }
 
     /**
@@ -144,10 +123,6 @@ class DataPort extends Model
         return true;
     }
 
-    protected function sanitizeIpAddress($val)
-    {
-        return str_replace('\\', '/', trim($val)); //меняем ошибочные слеши
-    }
 
     protected function sanitizeMacAddress($val)
     {
@@ -161,23 +136,47 @@ class DataPort extends Model
 
     protected function validate()
     {
+        $ip = new Ip($this->ipAddress);
         if (false === $this->appliance) {
             throw new Exception('Устройство не найдено');
         }
         if (false === $this->portType) {
             throw new Exception('Данный тип порта не найден');
         }
-        if (true !== $this->ip->is_hostIp) {
-            throw new Exception($this->ip->address . ' является адресом подсети' );
+
+        //ищем записи с таким ip для новой записи
+        if (true === $this->isNew && DataPort::countAllByIp($this->ipAddress) > 0) {
+            throw new Exception('IP адрес ' . $ip->address . ' уже используется.');
         }
-        if (false === $this->network) {
-            throw new Exception('Подсеть задана неверно');
+        //валидация при изменении существующей записи
+        if (true === $this->isUpdated) {
+            $fromDb = DataPort::findByIp($this->ipAddress);
+            if (false !== $fromDb && $fromDb->getPk() != $this->getPk()) {
+                throw new Exception('IP адрес ' . $ip->address . ' уже используется.');
+            }
         }
 
-            //ищем записи с таким ip для новой записи
-        if (true === $this->isNew && DataPort::countAllByIp($this->ip->address) > 0) {
-            throw new Exception('IP адрес ' . $this->ip->address . ' уже используется.');
-        }
         return true;
+    }
+
+    /**
+     * назначаем подсеть для ip адреса данного порта и сохраняем ее.
+     *
+     * @return bool
+     */
+    protected function beforeSave()
+    {
+        $ip = (new Ip($this->ipAddress));
+        if ($this->isNew || $this->isUpdated) {
+            if (false === $network = Network::findByAddress($ip->cidrNetwork)) {
+                $network = (new Network())
+                    ->fill([
+                        'address' => ($ip->cidrNetwork)
+                    ])
+                    ->save();
+            }
+            $this->network = $network;
+        }
+        return parent::beforeSave();
     }
 }

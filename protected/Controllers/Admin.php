@@ -1245,32 +1245,20 @@ class Admin extends Controller
         try {
             DataPort::getDbConnection()->beginTransaction();
 
-            $ip = new Ip($data->ip);
-
             if (false === $currentAppliance = Appliance::findByPK($data->id)) {
                 throw new Exception('Неверные данные');
             }
             if (!is_numeric($data->portTypeId)) {
                 throw new Exception('Тип порта не выбран');
             }
-            if (false === $ip->is_valid) {
-                throw new Exception('IP адрес задан неверно');
-            }
-            if (false === $network = Network::findByAddress($ip->network . '/' . $ip->masklen)) {
-                $network = (new Network())
-                    ->fill([
-                        'address' => ($ip->network . '/' . $ip->masklen)
-                    ])
-                    ->save();
-            }
+
             (new DataPort())
                 ->fill([
                     'ipAddress' => $data->ip,
                     'macAddress' => $data->mac,
                     'comment' => $data->comment,
                     'appliance' => $currentAppliance,
-                    'portType' => DPortType::findByPK($data->portTypeId),
-                    'network' => $network
+                    'portType' => DPortType::findByPK($data->portTypeId)
                 ])
                 ->save();
 
@@ -1290,24 +1278,16 @@ class Admin extends Controller
         try {
             DataPort::getDbConnection()->beginTransaction();
 
-            $data->ip = new Ip($data->ip);
-
             if (false === $currentAppliance = Appliance::findByPK($data->applianceId)) {
                 throw new Exception('Неверные данные');
             }
             if (false === $currentDataPort = DataPort::findByPK($data->portId)) {
                 throw new Exception('Неверные данные');
             }
-            if (false === $data->ip->is_valid) {
-                throw new Exception('Неверный формат IP адреса');
-            }
-            if ($currentDataPort->ipAddress != ($data->ip->address . '/' . $data->ip->masklen) && DataPort::countAllByIp($data->ip->address) > 0) {
-                throw new Exception('IP адрес ' . $data->ip . ' уже используется.');
-            }
 
             $currentDataPort
                 ->fill([
-                    'ipAddress' => $data->ip . '/' . $data->ip->masklen,
+                    'ipAddress' => $data->ip,
                     'macAddress' => $data->mac,
                     'comment' => $data->comment,
                     'appliance' => $currentAppliance, //нужен только для валидатора
@@ -1330,6 +1310,7 @@ class Admin extends Controller
     {
         try {
             DataPort::getDbConnection()->beginTransaction();
+
             if (false === $currentDataPort = DataPort::findByPK($portId)) {
                 throw new Exception('Неверные данные');
             }
