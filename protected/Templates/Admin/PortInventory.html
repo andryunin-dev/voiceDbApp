@@ -42,7 +42,7 @@
                                                    role="button" data-action="get-popup">
                                                     Изменить
                                                 </a>
-                                                <a class="btn btn-danger btn-xs" href="/admin/delDataPort?portId={{ port.getPK }}&deviceId={{ appliance.getPK }} " role="button"
+                                                <a class="btn btn-danger btn-xs" href="/admin/delDataPort?portId={{ appliance.dataPorts.first.getPK }}&deviceId={{ appliance.getPK }} " role="button"
                                                    data-action="delete">
                                                     Удалить
                                                 </a>

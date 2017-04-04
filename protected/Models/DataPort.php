@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Components\Ip;
 use T4\Core\Exception;
 use T4\Dbal\Query;
 use T4\Orm\Model;
@@ -11,6 +12,7 @@ use T4\Orm\Model;
  * @package App\Models
  *
  * @property string $ipAddress
+ * @property Network $network
  * @property string $macAddress
  * @property string $details
  * @property string $comment
@@ -30,47 +32,10 @@ class DataPort extends Model
         ],
         'relations' => [
             'appliance' => ['type' => self::BELONGS_TO, 'model' => Appliance::class],
-            'portType' => ['type' => self::BELONGS_TO, 'model' => DPortType::class, 'by' => '__type_port_id']
+            'portType' => ['type' => self::BELONGS_TO, 'model' => DPortType::class, 'by' => '__type_port_id'],
+            'network' => ['type' =>self::BELONGS_TO, 'model' => Network::class, 'by' => '__network_id']
         ]
     ];
-
-    public function is_ipValid($val)
-    {
-        if (empty($val = trim($val))) {
-            return false;
-        }
-        $val = str_replace('\\', '/', $val); //меняем ошибочные слеши
-        $val = explode('/', $val);
-        if (1 == count($val)) {     //нет маски
-            $ip = array_pop($val);
-        } elseif (2 == count($val)) { //есть маска
-            $mask = array_pop($val);
-            $ip = array_pop($val);
-        } else {
-            return false;
-        }
-        // class of IP address
-        $is_ipv4 = (false !== filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4));
-        $is_ipv6 = (false !== filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6));
-        if (false === $is_ipv4 && false === $is_ipv6) {
-            return false;
-        }
-
-        //check mask
-        $maskLengthMax = ($is_ipv4) ? 32 : 128;
-        if (!isset($mask)) {
-            return true; //if empty mask and IP valid
-        }
-        if (!empty($mask) && !is_numeric($mask)) { //if mask is not empty and not numeric
-            return false;
-        }
-
-        if (false === ($mask > 0 && $mask <= $maskLengthMax)) {
-            return false;
-        }
-        return true;
-
-    }
 
     public static function countAllByIp($ip)
     {
@@ -94,86 +59,59 @@ class DataPort extends Model
         return DataPort::findAllByQuery($query);
     }
 
-    public static function is_ipAddress($val)
+     public static function findByIp($ip)
     {
-        if (empty($val = trim($val))) {
-            return false; //IP адрес не задан
-        }
-        //$val = str_replace('\\', '/', $val); //меняем ошибочные слеши
-        $val = explode('/', $val);
-        if (1 == count($val)) {     //нет маски
-            $ip = array_pop($val);
-        } elseif (2 == count($val)) { //есть маска
-            $mask = array_pop($val);
-            $ip = array_pop($val);
-        } else {
-            return false; //Неверный формат IP адреса
-        }
-        // class of IP address
-        $is_ipv4 = (false !== filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4));
-        $is_ipv6 = (false !== filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6));
-        if (false === $is_ipv4 && false === $is_ipv6) {
-            return false; //Неверный формат IP адреса
-        }
+        $query = (new Query())
+            ->select()
+            ->from(DataPort::getTableName())
+            ->where('host("ipAddress") = host(:ip)')
+            ->params([':ip' => $ip]);
 
-        //check mask
-        $masklenMax = ($is_ipv4) ? 32 : 128;
-        if (!isset($mask)) {
-            return true; //if empty mask and IP valid
-        }
-        if (!empty($mask) && !is_numeric($mask)) { //if mask is not empty and not numeric
-            return false; //Неверная маска
-        }
-
-        if (false === ($mask > 0 && $mask <= $masklenMax)) {
-            return false; //Неверная маска
-        }
-        return true;
+        return DataPort::findByQuery($query);
     }
 
-    public static function sanitizeIp($ip)
-    {
-        return str_replace('\\', '/', trim($ip)); //меняем ошибочные слеши
-    }
-
-
+    /**
+     * не может быть пустым
+     * адрес должен быть валидным
+     * должна быть явно задана маска
+     * адрес не должен быть адресом сети
+     *
+     * @param $val
+     * @return bool
+     * @throws Exception
+     *
+     */
     protected function validateIpAddress($val)
     {
-        if (empty($val = trim($val))) {
-            throw new Exception('IP адрес не задан');
+        $ip = new Ip($val);
+        if (false === $ip->is_valid) {
+            throw new Exception(implode('<br>', $ip->errors));
         }
-        $val = str_replace('\\', '/', $val); //меняем ошибочные слеши
-        $val = explode('/', $val);
-        if (1 == count($val)) {     //нет маски
-            $ip = array_pop($val);
-        } elseif (2 == count($val)) { //есть маска
-            $mask = array_pop($val);
-            $ip = array_pop($val);
-        } else {
-            throw new Exception('Неверный формат IP адреса');
-        }
-        // class of IP address
-        $is_ipv4 = (false !== filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4));
-        $is_ipv6 = (false !== filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6));
-        if (false === $is_ipv4 && false === $is_ipv6) {
-            throw new Exception('Неверный формат IP адреса');
-        }
-
-        //check mask
-        $maskLengthMax = ($is_ipv4) ? 32 : 128;
-        if (!isset($mask)) {
-            return true; //if empty mask and IP valid
-        }
-        if (!empty($mask) && !is_numeric($mask)) { //if mask is not empty and not numeric
-            throw new Exception('Неверная маска');
-        }
-
-        if (false === ($mask > 0 && $mask <= $maskLengthMax)) {
-            throw new Exception('Неверная маска');
+        if (true !== $ip->is_hostIp) {
+            throw new Exception($ip->cidrAddress . ' является адресом подсети' );
         }
         return true;
     }
 
+    /**
+     * наверное можно убрать санитацию IP
+     *
+     * @param Ip $val
+     * @return mixed
+     */
+    protected function sanitizeIpAddress($val)
+    {
+        return (new Ip($val))->cidrAddress;
+    }
+
+    /**
+     * не должен быть пустым
+     * должен быть валидным
+     *
+     * @param $val
+     * @return bool
+     * @throws Exception
+     */
     protected function validateMacAddress($val)
     {
         if (empty(trim($val))) {
@@ -185,10 +123,6 @@ class DataPort extends Model
         return true;
     }
 
-    protected function sanitizeIpAddress($val)
-    {
-        return str_replace('\\', '/', trim($val)); //меняем ошибочные слеши
-    }
 
     protected function sanitizeMacAddress($val)
     {
@@ -202,6 +136,7 @@ class DataPort extends Model
 
     protected function validate()
     {
+        $ip = new Ip($this->ipAddress);
         if (false === $this->appliance) {
             throw new Exception('Устройство не найдено');
         }
@@ -211,9 +146,37 @@ class DataPort extends Model
 
         //ищем записи с таким ip для новой записи
         if (true === $this->isNew && DataPort::countAllByIp($this->ipAddress) > 0) {
-            throw new Exception('IP адрес ' . $this->ipAddress . ' уже используется.');
+            throw new Exception('IP адрес ' . $ip->address . ' уже используется.');
+        }
+        //валидация при изменении существующей записи
+        if (true === $this->isUpdated) {
+            $fromDb = DataPort::findByIp($this->ipAddress);
+            if (false !== $fromDb && $fromDb->getPk() != $this->getPk()) {
+                throw new Exception('IP адрес ' . $ip->address . ' уже используется.');
+            }
         }
 
         return true;
+    }
+
+    /**
+     * назначаем подсеть для ip адреса данного порта и сохраняем ее.
+     *
+     * @return bool
+     */
+    protected function beforeSave()
+    {
+        $ip = (new Ip($this->ipAddress));
+        if ($this->isNew || $this->isUpdated) {
+            if (false === $network = Network::findByAddress($ip->cidrNetwork)) {
+                $network = (new Network())
+                    ->fill([
+                        'address' => ($ip->cidrNetwork)
+                    ])
+                    ->save();
+            }
+            $this->network = $network;
+        }
+        return parent::beforeSave();
     }
 }
