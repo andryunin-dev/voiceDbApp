@@ -28,10 +28,21 @@ class Test extends Controller
     {
     }
 
+    public function actionNetworks()
+    {
+        $this->data->roots = Network::findAllRoots();
+    }
+
+    public function actionNetworkTree()
+    {
+        $this->data->roots = Network::findAllRoots();
+    }
+
     public function actionTree()
     {
 
     }
+
 
     public function actionRegions($region = null)
     {

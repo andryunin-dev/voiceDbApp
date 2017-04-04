@@ -1,36 +1,39 @@
 {% extends 'Index.html' %}
 
 {% block main %}
+
+    {% macro buildTree(item) %}
+        {% if item.children.count > 0 %}
+            <li><span><a href="#">{{ item.address }}</a></span>
+                <ul>
+                    {% for child in item.children %}
+                        {{ _self.buildTree(child) }}
+                    {% endfor %}
+                    {% for host in item.hosts %}
+                        <li><span><a href="#">{{ host.ipAddress }}</a></span></li>
+                    {% endfor %}
+                </ul>
+            </li>
+        {% else %}
+            <li><span><a href="#">{{ item.address }}</a></span>
+                <ul>
+                    {% for host in item.hosts %}
+                        <li><span><a href="#">{{ host.ipAddress }}</a></span></li>
+                    {% endfor %}
+                </ul>
+            </li>
+        {% endif %}
+    {% endmacro %}
+
     <div id="multi-derevo">
-        <h4><a href="#">Ствол дерева</a></h4>
+        <h4><a href="#">IP planning</a></h4>
         <ul><!-- 1 уровень -->
-            <li><span><a href="#1">1. Ветка</a></span>
-                <ul><!-- 2 уровень -->
-                    <li><span><a href="#11">1.1. Ветка</a></span>
-                        <ul><!-- 3 уровень -->
-                            <li><span><a href="#111">1.1.1. Листик</a></span></li>
-                            <li><span><a href="#112">1.1.2. Цветок </a></span></li>
-                        </ul>
-                    </li>
-                </ul>
-            </li>
-            <!-- 1 уровень -->
-            <li><span><a href="#2">2. Ветка</a></span></li>
-            <li><span><a href="#3">3. Ветка</a></span></li>
-            <li><span><a href="#4">4. Ветка</a></span></li>
-            <li><span><a href="#5" title="Послледняя ветка">5. Ветка, верхушка</a></span>
-                <ul><!-- 2 уровень -->
-                    <li><span><a href="#1">5.1. Ветка</a></span></li>
-                    <li><span><a href="#1">5.2. Ветка</a></span>
-                        <ul><!-- 3 уровень -->
-                            <li><span><a href="#1111">5.2.1.1 Лепесток</a></span></li>
-                            <li><span><a href="#1112">5.2.1.2 Лепесток</a></span></li>
-                        </ul>
-                    </li>
-                </ul>
-            </li>
+            {% for root in roots %}
+                {{ _self.buildTree(root) }}
+            {% endfor %}
         </ul>
     </div><!-- /multi-derevo -->
+
 {% endblock %}
 
 {% block JS %}

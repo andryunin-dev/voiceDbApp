@@ -1,0 +1,24 @@
+{% extends 'Index.html' %}
+
+{% block main %}
+
+    {% macro buildTree(item) %}
+        {% if item.children.count > 0 %}
+            <li>{{ item.address }}
+                <ul>
+                    {% for child in item.children %}
+                        {{ _self.buildTree(child) }}
+                    {% endfor %}
+                </ul>
+            </li>
+        {% else %}
+            <li>{{ item.address }}</li>
+        {% endif %}
+    {% endmacro %}
+
+    <ul>
+        {% for root in roots %}
+            {{ _self.buildTree(root) }}
+        {% endfor %}
+    </ul>
+{% endblock %}
