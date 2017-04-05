@@ -4,55 +4,34 @@
     <div class="row">
         <main class="offices">
             <div class="col-xs-12">
-                <table class="table table-bordered table-hover table-striped">
+                <table class="bg-default table table-bordered table-hover table-striped table-fixed-layout cut-long-text">
                     <thead>
-                    <tr>
-                        <th class="bg-primary col-region">
-                            <span class="th-divider-left">Регион</span>
-                            <span class="th-divider-right">
-                            </span>
-                        </th>
-                        <th class="bg-primary col-city">
-                            <span class="th-divider-left">Город</span>
-                            <span class="th-divider-right">
-                            </span>
-                        </th>
-                        <th class="bg-primary col-address">
-                            <span class="th-divider-left">Адрес</span>
-                        </th>
-                        <th class="bg-primary col-office">
-                            <span class="th-divider-left">Офис</span>
-                            <span class="th-divider-right">
-                                <a class="btn btn-success btn-xs" href="/modal/addOffice" role="button"
-                                   data-action="get-popup">Добавить</a>
-                            </span>
-                        </th>
-                        <th class="bg-primary col-status">
-                            <span class="th-divider-left">Статус</span>
-                        </th>
-                        <th class="bg-primary col-actions">
-                            <span class="th-divider-left">Действия</span>
-                        </th>
-                    </tr>
+                        <tr>
+                            <th class="bg-primary col-10">Регион</th>
+                            <th class="bg-primary col-10">Город</th>
+                            <th class="bg-primary col-30">Адрес</th>
+                            <th class="bg-primary col-30">Офис
+                                <span class="btn-pull-right">
+                                    <a class="btn btn-success btn-xs" href="/modal/addOffice" role="button"
+                                       data-action="get-popup"><span class="glyphicon glyphicon-plus" aria-hidden="true" title="добавить новый офис"></span></a>
+                                </span>
+                            </th>
+                            <th class="bg-primary col-10">Статус</th>
+                            <th class="bg-primary col-10">Действия</th>
+                        </tr>
                     </thead>
                     <tbody>
                     {% for office in offices %}
                         <tr class="office-row" data-action="popup-view" aria-controls="office-detail"
                             data-id="{{ office.getPK }}">
-                            <td class="col-region cut-string">{{ office.address.city.region.title }}</td>
-                            <td class="col-city cut-string">{{ office.address.city.title }}</td>
-                            <td class="col-address cut-string">{{ office.address.address }}</td>
-                            <td class="col-office cut-string">{{ office.title }}</td>
-                            <td class="col-status cut-string">{{ office.status.title }}</td>
-                            <td class="col-actions">
-                                <a class="btn btn-success btn-xs" href="/modal/editOffice?id={{ office.getPK }}"
-                                   role="button" data-action="get-popup">
-                                    Изменить
-                                </a>
-                                <a class="btn btn-danger btn-xs" href="/admin/delOffice?id={{ office.getPK }}" role="button"
-                                   data-action="delete">
-                                    Удалить
-                                </a>
+                            <td>{{ office.address.city.region.title }}</td>
+                            <td>{{ office.address.city.title }}</td>
+                            <td>{{ office.address.address }}</td>
+                            <td>{{ office.title }}</td>
+                            <td>{{ office.status.title }}</td>
+                            <td class="text-center">
+                                <a class="btn btn-success btn-xs" href="/modal/editOffice?id={{ office.getPK }}" role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать офис"></span></a>
+                                <a class="btn btn-danger btn-xs" href="/admin/delOffice?id={{ office.getPK }}" role="button" data-action="delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" title="удалить офис"></span></a>
                             </td>
                         </tr>
                     {% endfor %}

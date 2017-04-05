@@ -1,325 +1,54 @@
 {% extends 'Index.html' %}
 
 {% block main %}
-    <div class="container-fluid">
-        <div class="row">
-            <aside>
-                <div class="col-xs-2 aside-menu">
-                    <div class="section">
-                        <a class="btn btn-default active" href="/admin/offices">Офисы</a>
-                    </div>
-                    <div class="section-title">
-                        <h4 class="text-center">Справочники</h4>
-                    </div>
-                    <div class="section">
-                        <a class="btn btn-default" href="/admin/offices">Офисы</a>
-                        <a class="btn btn-default" href="/admin/regions">Регионы</a>
-                        <a class="btn btn-default" href="/admin/cities">Города</a>
-                        <a class="btn btn-default" href="/admin/officeStatuses">Статусы офисов</a>
-                        <a class="btn btn-default" href="/admin/devices">Оборудование</a>
-                    </div>
-                </div>
-            </aside>
-            <main class="offices">
-                <div class="col-xs-10">
-                    <table class="table table-bordered table-hover table-striped">
-                        <thead>
-                            <tr>
-                            <th class="bg-primary col-region">
-                                <span class="th-divider-left">Регион</span>
-
-                                <span class="th-divider-right">
-                                </span>
-                            </th>
-                            <th class="bg-primary col-city">
-                                <span class="th-divider-left">Город</span>
-                                <span class="th-divider-right">
-                                </span>
-                            </th>
-                            <th class="bg-primary col-address">
-                                <span class="th-divider-left">Адрес</span>
-                            </th>
-                            <th class="bg-primary col-office">
-                                <span class="th-divider-left">Офис</span>
-                                <span class="th-divider-right">
-                                    <button class="btn btn-success btn-xs" type="button"
-                                            role="button" aria-controls="add-office" value="open">Добавить</button>
-                                </span>
-                            </th>
-                                <th class="bg-primary col-status">
-                                    <span class="th-divider-left">Статус</span>
-                                </th>
-                            <th class="bg-primary col-actions">
-                                <span class="th-divider-left">Действия</span>
-                            </th>
+    <div class="row">
+        <main class="offices">
+            <div class="col-xs-12">
+                <table class="test-cut-string test table table-bordered table-hover table-striped">
+                    <thead>
+                    <tr>
+                        <th class="bg-primary col-10">Регион</th>
+                        <th class="bg-primary col-10">Город</th>
+                        <th class="bg-primary col-30">Адрес</th>
+                        <th class="bg-primary col-30">Офис
+                            <span class="btn-pull-right">
+                                <a class="btn btn-success btn-xs" href="/modal/addOffice" role="button"
+                                   data-action="get-popup">Добавить</a>
+                            </span>
+                        </th>
+                        <th class="bg-primary col-10">
+                            <span class="">Статус</span>
+                        </th>
+                        <th class="bg-primary col-10">
+                            <span class="">Действия</span>
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for office in offices %}
+                        <tr class="office-row" data-action="popup-view" aria-controls="office-detail"
+                            data-id="{{ office.getPK }}">
+                            <td class="">{{ office.address.city.region.title }}</td>
+                            <td class="">{{ office.address.city.title }}</td>
+                            <td class="">{{ office.address.address }}</td>
+                            <td class="">{{ office.title }}</td>
+                            <td class="">{{ office.status.title }}</td>
+                            <td class="text-center">
+                                    <a class="btn btn-success btn-xs btn-round" href="/modal/editOffice?id={{ office.getPK }}" role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span></a>
+                                    <a class="btn btn-danger btn-xs btn-round" href="/admin/delOffice?id={{ office.getPK }}" role="button" data-action="delete"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></a>
+                            </td>
                         </tr>
-                        </thead>
-                        <tbody>
-                        {% for office in offices %}
-                            <tr class="office-row"  role="button" aria-controls="office-detail" data-id="{{ address.office.getPK }}">
-                                <td class="col-region cut-string">{{ office.address.city.region.title }}</td>
-                                <td class="col-city cut-string">{{ office.address.city.title }}</td>
-                                <td class="col-address cut-string">{{ office.address.address }}</td>
-                                <td class="col-office cut-string">{{ office.title }}</td>
-                                <td class="col-status cut-string">{{ office.status.title }}</td>
-                                <td class="col-actions">
-                                    <button class="btn btn-warning btn-xs"
-                                            role="button" aria-controls="edit-office"  value="open" data-id="{{
-                                    address.office.getPK }}">
-                                        Изменить
-                                    </button>
-                                    <a href="/admin/delOffice?id={{ office.getPK }}" class="btn btn-danger btn-xs">Удалить</a>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </main>
-
-        </div>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </main>
     </div>
 {% endblock %}
-
-{% block modal %}
-    <div id="add-office" role="dialog" title="Новый офис">
-        <div class="container-fluid">
-            <div class="row">
-                <form class="form-horizontal" action="/admin/addOffice" method="post" role="form">
-                    <!-- выпадающий список регионов-->
-                    <div class="form-group">
-                        <label for="id-region" class="col-sm-4 control-label">Регион</label>
-                        <div class="col-sm-8"><select name="data[regId]" id="id-region" class="form-control">
-                                {% for region in regions %}
-                                    <option value="{{ region.getPK }}">{{ region.title }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- выпадающий список городов-->
-                    <div class="form-group">
-                        <label for="id-city" class="col-sm-4 control-label">Город</label>
-                        <div class="col-sm-8">
-                            <select name="data[cityId]" id="id-city" class="form-control">
-                                {% for region in regions %}
-                                    {% for city in region.cities %}
-                                        <option value="{{ city.getPK }}">{{ city.title }}</option>
-                                    {% endfor %}
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- выпадающий список статусов-->
-                    <div class="form-group">
-                        <label for="id-status" class="col-sm-4 control-label">Статус офиса</label>
-                        <div class="col-sm-8">
-                            <select name="data[statId]" id="id-status" class="form-control">
-                                {% for status in statuses %}
-                                    <option value="{{ status.getPK }}">{{ status.title }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- поле ввода Lotus ID офиса -->
-                    <div class="form-group">
-                        <label for="id-office" class="col-sm-4 control-label">Lotus ID</label>
-                        <div class="col-sm-8">
-                            <input type="number" class="form-control" name="data[lotusId]" id="id-office"
-                                   placeholder="Lotus ID">
-                        </div>
-                    </div>
-
-                    <!-- поле ввода названия офиса -->
-                    <div class="form-group">
-                        <label for="id-office" class="col-sm-4 control-label">Название офиса</label>
-                        <div class="col-sm-8">
-                            <input type="text" class="form-control" name="data[title]" id="id-office"
-                                   placeholder="Название офиса">
-                        </div>
-                    </div>
-
-                    <!-- поле ввода адреса-->
-                    <div class="form-group">
-                        <label for="id-address" class="col-sm-4 control-label">Адрес офиса</label>
-                        <div class="col-sm-8">
-                            <input type="text" class="form-control" name="data[address]" id="id-address"
-                                   placeholder="Адрес офиса">
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="id-offices" class="col-sm-4 control-label">Пакетный ввод</label>
-                        <div class="col-sm-offset-4 col-sm-8">
-                        <textarea name="data[many]"
-                                  id="id-offices"
-                                  cols="40" rows="4"
-                                  placeholder="Регион, город, адрес, офис">
-                        </textarea>
-                        </div>
-                    </div>
-
-                    <!--Checkboxes-->
-                    <div class="form-group">
-                        <div class="checkbox col-sm-offset-4 col-sm-8">
-                            <label>
-                                <input name="data[addNewRegion]" type="checkbox">
-                                <span>Создавать отсутствующие регионы</span>
-                            </label>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="checkbox col-sm-offset-4 col-sm-8">
-                            <label>
-                                <input name="data[addNewCity]" type="checkbox">
-                                <span>Создавать отсутствующие города</span>
-                            </label>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="checkbox col-sm-offset-4 col-sm-8">
-                            <label>
-                                <input name="data[addNewStatus]" type="checkbox">
-                                <span>Создавать отсутствующие статусы</span>
-                            </label>
-                        </div>
-                    </div>
-
-
-                    <div class="col-sm-offset-3 col-sm-8">
-                        <button class="btn btn-success" type="submit">Создать</button>
-                        <button class="btn btn-danger" type="button" role="button" aria-controls="add-office"
-                                value="close">Отмена</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <div id="edit-office" role="dialog" title="Редактирование офиса">
-        <div class="container-fluid">
-            <div class="row">
-                <form class="form-horizontal" action="#" method="post" role="form">
-                    <!-- выпадающий список регионов-->
-                    <div class="form-group">
-                        <label for="id-region" class="col-sm-4 control-label">Регион</label>
-                        <div class="col-sm-8"><select name="data[regId]" id="id-region" class="form-control">
-                                {% for region in regions %}
-                                    <option value="{{ region.getPK }}">{{ region.title }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- выпадающий список городов-->
-                    <div class="form-group">
-                        <label for="id-city" class="col-sm-4 control-label">Город</label>
-                        <div class="col-sm-8">
-                            <select name="data[cityId]" id="id-city" class="form-control">
-                                {% for region in regions %}
-                                    {% for city in region.cities %}
-                                        <option value="{{ city.getPK }}">{{ city.title }}</option>
-                                    {% endfor %}
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- выпадающий список статусов-->
-                    <div class="form-group">
-                        <label for="id-status" class="col-sm-4 control-label">Статус офиса</label>
-                        <div class="col-sm-8">
-                            <select name="data[statId]" id="id-status" class="form-control">
-                                {% for status in statuses %}
-                                    <option value="{{ status.getPK }}">{{ status.title }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- поле ввода Lotus ID офиса -->
-                    <div class="form-group">
-                        <label for="id-office" class="col-sm-4 control-label">Lotus ID</label>
-                        <div class="col-sm-8">
-                            <input type="number" class="form-control" name="data[lotusId]" id="id-office"
-                                   placeholder="Lotus ID">
-                        </div>
-                    </div>
-
-                    <!-- поле ввода названия офиса -->
-                    <div class="form-group">
-                        <label for="id-office" class="col-sm-4 control-label">Название офиса</label>
-                        <div class="col-sm-8">
-                            <input type="text" class="form-control" name="data[title]" id="id-office"
-                                   placeholder="Название офиса">
-                        </div>
-                    </div>
-
-                    <!-- поле ввода адреса-->
-                    <div class="form-group">
-                        <label for="id-address" class="col-sm-4 control-label">Адрес офиса</label>
-                        <div class="col-sm-8">
-                            <input type="text" class="form-control" name="data[address]" id="id-address"
-                                   placeholder="Адрес офиса">
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="id-offices" class="col-sm-4 control-label">Пакетный ввод</label>
-                        <div class="col-sm-8">
-                    <textarea name="data[many]"
-                              id="id-offices"
-                              cols="40" rows="4"
-                              placeholder="Регион, город, адрес, офис">
-                    </textarea>
-                        </div>
-                    </div>
-
-                    <!--Checkboxes-->
-                    <div class="form-group">
-                        <div class="checkbox col-sm-offset-4 col-sm-8">
-                            <label>
-                                <input name="data[addNewRegion]" type="checkbox">
-                                <span>Создавать отсутствующие регионы</span>
-                            </label>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="checkbox col-sm-offset-4 col-sm-8">
-                            <label>
-                                <input name="data[addNewCity]" type="checkbox">
-                                <span>Создавать отсутствующие города</span>
-                            </label>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="checkbox col-sm-offset-4 col-sm-8">
-                            <label>
-                                <input name="data[addNewStatus]" type="checkbox">
-                                <span>Создавать отсутствующие статусы</span>
-                            </label>
-                        </div>
-                    </div>
-
-
-                    <div class="col-sm-offset-3 col-sm-8">
-                        <button class="btn btn-success" type="submit">Создать</button>
-                        <button class="btn btn-danger" type="button" role="button" aria-controls="edit-office"
-                                value="close">Отмена</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-
-    <div id="office-detail" role="dialog" title="Информация по офису">
-        <div class="container-fluid">
-            <div class="row">
-                <h2>Пока в разработке...</h2>
-            </div>
-        </div>
-    </div>
+{% block JS %}
+    <script>
+        var APP = APP || {};
+        APP.navbar = APP.navbar || {};
+        APP.navbar.activeLink = "{{ path }}"
+    </script>
 {% endblock %}

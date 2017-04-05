@@ -4,39 +4,32 @@
     <div class="row">
         <main class="devices">
             <div class="">
-                <table class="table table-bordered cust-table-striped">
+                <table class="bg-default table table-bordered table-hover cust-table-striped table-fixed-layout cut-long-text">
                     <thead>
-                    <tr class="text-middle text-center">
-                        <th class="bg-primary col-office" rowspan="">Офис</th>
-                        <th class="bg-primary col-device" rowspan="">Оборудование<a class="btn btn-success btn-xs btn-custom pull-right" href="/modal/addAppliance" role="button" data-action="get-popup">добавить</a></th>
-                        <th class="bg-primary" rowspan="">ПО</th>
-                        <th class="bg-primary" rowspan="">hostname</th>
-                        <th class="bg-primary" rowspan="">Модуль</th>
-                        <th class="bg-primary" rowspan="">Комментарий</th>
-                        <th class="bg-primary" rowspan="">Действия</th>
-                    </tr>
+                        <tr class="text-middle text-center">
+                            <th class="bg-primary col-20">Офис</th>
+                            <th class="bg-primary col-20">Оборудование<a class="btn btn-success btn-xs btn-custom pull-right" href="/modal/addAppliance" role="button" data-action="get-popup" title="добавить устройство"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></a></th>
+                            <th class="bg-primary col-10">ПО</th>
+                            <th class="bg-primary col-10">hostname</th>
+                            <th class="bg-primary col-10">Модуль</th>
+                            <th class="bg-primary col-20">Комментарий</th>
+                            <th class="bg-primary col-10">Действия</th>
+                        </tr>
                     </thead>
                     {% for office in offices %}
                         {% for appliance in office.appliances %}
                         <tbody>
                             <tr>
-                                <td class="col-office cut-string" rowspan="{{ appliance.modules.count }}">{{ office.title }}</td>
-                                <td class="col-device cut-string" rowspan="{{ appliance.modules.count }}">{{ appliance.platform.platform.vendor.title }} {{ appliance.platform.platform.title }}</td>
+                                <td rowspan="{{ appliance.modules.count }}">{{ office.title }}</td>
+                                <td rowspan="{{ appliance.modules.count }}">{{ appliance.platform.platform.vendor.title }} {{ appliance.platform.platform.title }}</td>
                                 <td rowspan="{{ appliance.modules.count }}">{{ appliance.software.software.title }}</td>
                                 <td rowspan="{{ appliance.modules.count }}">{{ appliance.details.hostname }}</td>
                                 <td rowspan="">{{ appliance.modules.first.module.title }}</td>
                                 <td rowspan="{{ appliance.modules.count }}">{{ appliance.comment }}</td>
-                                <td class="col-actions" rowspan="{{ appliance.modules.count }}">
-                                    <div class="pull-right">
-                                        <a class="btn btn-success btn-xs" href="/modal/editAppliance?id={{ appliance.getPK }}"
-                                           role="button" data-action="get-popup">
-                                            Изменить
-                                        </a>
-                                        <a class="btn btn-danger btn-xs" href="/admin/delAppliance?id={{ appliance.getPK }}" role="button"
-                                           data-action="delete">
-                                            Удалить
-                                        </a>
-                                    </div>
+                                <td class="text-center" rowspan="{{ appliance.modules.count }}">
+                                    <a class="btn btn-success btn-xs" href="/modal/editAppliance?id={{ appliance.getPK }}" role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать устройство"></span></a>
+                                    <a class="btn btn-danger btn-xs" href="/admin/delAppliance?id={{ appliance.getPK }}" role="button"
+                                           data-action="delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" title="удалить устройство"></span></a>
                                 </td>
                             </tr>
                         {% for module in appliance.modules|slice(1) %}
