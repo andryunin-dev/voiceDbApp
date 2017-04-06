@@ -134,6 +134,16 @@ class DataPort extends Model
         return trim($val);
     }
 
+    protected function sanitizeDetails($details)
+    {
+        if (is_array($details)) {
+            foreach ($details as $key => $item) {
+                $details[$key] = trim($item);
+            }
+        }
+        return $details;
+    }
+
     protected function validate()
     {
         $ip = new Ip($this->ipAddress);

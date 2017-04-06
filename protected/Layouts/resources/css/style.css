@@ -42,7 +42,7 @@ Sidebar styles
 /*=====================================
 Table styles
 =======================================*/
-.table-fixed-layout {
+table {
     width: 100%;
     table-layout: fixed;
 }

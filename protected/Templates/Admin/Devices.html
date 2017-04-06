@@ -22,7 +22,7 @@
                             <tr>
                                 <td rowspan="{{ appliance.modules.count }}">{{ office.title }}</td>
                                 <td rowspan="{{ appliance.modules.count }}">{{ appliance.platform.platform.vendor.title }} {{ appliance.platform.platform.title }}</td>
-                                <td rowspan="{{ appliance.modules.count }}">{{ appliance.software.software.title }}</td>
+                                <td rowspan="{{ appliance.modules.count }}">{{ appliance.software.software.title }} {{ appliance.software.version }}</td>
                                 <td rowspan="{{ appliance.modules.count }}">{{ appliance.details.hostname }}</td>
                                 <td rowspan="">{{ appliance.modules.first.module.title }}</td>
                                 <td rowspan="{{ appliance.modules.count }}">{{ appliance.comment }}</td>

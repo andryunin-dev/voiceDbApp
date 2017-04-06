@@ -37,13 +37,13 @@
                             <div class="tab-content">
                                 <!-- Types -->
                                 <div class="tab-pane" role="tabpanel" id="types">
-                                    <table class="table table-bordered table-hover table-striped">
+                                    <table class="bg-default table table-bordered table-hover table-striped table-fixed-layout cut-long-text">
                                         <thead>
                                         <tr>
                                             <th class="bg-primary col-vendor">
                                                 <span class="th-divider-left">Тип(роль)</span>
                                                 <span class="th-divider-right">
-                                                    <a class="btn btn-success btn-xs" href="/modal/addApplianceType" role="button" data-action="get-popup">Добавить</a>
+                                                    <a class="btn btn-success btn-xs" href="/modal/addApplianceType" role="button" data-action="get-popup"><span class="glyphicon glyphicon-plus" aria-hidden="true" title="добавить"></span></a>
                                                 </span>
                                             </th>
                                             <th class="bg-primary col-actions">
@@ -59,8 +59,8 @@
                                                     {{ applianceType }}
                                                 </td>
                                                 <td class="col-actions">
-                                                    <a class="btn btn-success btn-xs" href="/modal/editApplianceType?id={{ applianceType.getPK }}" role="button" data-action="get-popup">Изменить</a>
-                                                    <a class="btn btn-danger btn-xs" href="/admin/delApplianceType?id={{ applianceType.getPK }}" role="button" data-action="delete">Удалить</a>
+                                                    <a class="btn btn-success btn-xs" href="/modal/editApplianceType?id={{ applianceType.getPK }}" role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать"></span></a>
+                                                    <a class="btn btn-danger btn-xs" href="/admin/delApplianceType?id={{ applianceType.getPK }}" role="button" data-action="delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" title="удалить"></span></a>
                                                 </td>
                                             </tr>
                                         {% endfor %}
@@ -69,13 +69,13 @@
                                 </div>
                                 <!-- Platforms -->
                                 <div class="tab-pane active" role="tabpanel" id="platforms">
-                                    <table class="table table-bordered table-hover table-striped">
+                                    <table class="bg-default table table-bordered table-hover table-striped table-fixed-layout cut-long-text">
                                         <thead>
                                         <tr>
                                             <th class="bg-primary col-platform">
                                                 <span class="th-divider-left">Платформа</span>
                                                 <span class="th-divider-right">
-                                                    <a class="btn btn-success btn-xs" href="/modal/addPlatform" role="button" data-action="get-popup">Добавить</a>
+                                                    <a class="btn btn-success btn-xs" href="/modal/addPlatform" role="button" data-action="get-popup"><span class="glyphicon glyphicon-plus" aria-hidden="true" title="добавить"></span></a>
                                                 </span>
                                             </th>
                                             <th class="bg-primary col-vendor">
@@ -94,8 +94,8 @@
                                                 <td class="col-city cut-string">{{ platform.title }}</td>
                                                 <td class="col-region cut-string">{{ platform.vendor.title }}</td>
                                                 <td class="col-actions">
-                                                    <a class="btn btn-success btn-xs" href="/modal/editPlatform?id={{ platform.getPK }}" role="button" data-action="get-popup">Изменить</a>
-                                                    <a class="btn btn-danger btn-xs" href="/admin/delPlatform?id={{ platform.getPK }}" role="button"  data-action="delete">Удалить</a>
+                                                    <a class="btn btn-success btn-xs" href="/modal/editPlatform?id={{ platform.getPK }}" role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать"></span></a>
+                                                    <a class="btn btn-danger btn-xs" href="/admin/delPlatform?id={{ platform.getPK }}" role="button"  data-action="delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" title="удалить"></span></a>
                                                 </td>
                                             </tr>
                                         {% endfor %}
@@ -104,13 +104,13 @@
                                 </div>
                                 <!-- Modules -->
                                 <div class="tab-pane" role="tabpanel" id="modules">
-                                    <table class="table table-bordered table-hover table-striped">
+                                    <table class="bg-default table table-bordered table-hover table-striped table-fixed-layout cut-long-text">
                                         <thead>
                                         <tr>
                                             <th class="bg-primary col-software">
                                                 <span class="th-divider-left">Название</span>
                                                 <span class="th-divider-right">
-                                                    <a class="btn btn-success btn-xs" href="/modal/addModule" role="button" data-action="get-popup">Добавить</a>
+                                                    <a class="btn btn-success btn-xs" href="/modal/addModule" role="button" data-action="get-popup"><span class="glyphicon glyphicon-plus" aria-hidden="true" title="добавить"></span></a>
                                                 </span>
                                             </th>
                                             <th class="bg-primary col-vendor">
@@ -129,8 +129,8 @@
                                                 <td class="col-city cut-string">{{ moduleItem.title }}</td>
                                                 <td class="col-region cut-string">{{ moduleItem.vendor.title }}</td>
                                                 <td class="col-actions">
-                                                    <a class="btn btn-success btn-xs" href="/modal/editModule?id={{ moduleItem.getPK }}" role="button" data-action="get-popup">Изменить</a>
-                                                    <a class="btn btn-danger btn-xs" href="/admin/delModule?id={{ moduleItem.getPK }}" role="button" data-action="delete">Удалить</a>
+                                                    <a class="btn btn-success btn-xs" href="/modal/editModule?id={{ moduleItem.getPK }}" role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать"></span></a>
+                                                    <a class="btn btn-danger btn-xs" href="/admin/delModule?id={{ moduleItem.getPK }}" role="button" data-action="delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" title="удалить"></span></a>
                                                 </td>
                                             </tr>
                                         {% endfor %}
@@ -139,13 +139,13 @@
                                 </div>
                                 <!-- Software -->
                                 <div class="tab-pane" role="tabpanel" id="software">
-                                    <table class="table table-bordered table-hover table-striped">
+                                    <table class="bg-default table table-bordered table-hover table-striped table-fixed-layout cut-long-text">
                                         <thead>
                                         <tr>
                                             <th class="bg-primary col-software">
                                                 <span class="th-divider-left">Тип ПО</span>
                                                 <span class="th-divider-right">
-                                                    <a class="btn btn-success btn-xs" href="/modal/addSoftware" role="button" data-action="get-popup">Добавить</a>
+                                                    <a class="btn btn-success btn-xs" href="/modal/addSoftware" role="button" data-action="get-popup"><span class="glyphicon glyphicon-plus" aria-hidden="true" title="добавить"></span></a>
                                                 </span>
                                             </th>
                                             <th class="bg-primary col-vendor">
@@ -164,8 +164,8 @@
                                                 <td class="col-city cut-string">{{ softItem.title }}</td>
                                                 <td class="col-region cut-string">{{ softItem.vendor.title }}</td>
                                                 <td class="col-actions">
-                                                    <a class="btn btn-success btn-xs" href="/modal/editSoftware?id={{ softItem.getPK }}" role="button" data-action="get-popup">Изменить</a>
-                                                    <a class="btn btn-danger btn-xs" href="/admin/delSoftware?id={{ softItem.getPK }}" role="button" data-action="delete">Удалить</a>
+                                                    <a class="btn btn-success btn-xs" href="/modal/editSoftware?id={{ softItem.getPK }}" role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать"></span></a>
+                                                    <a class="btn btn-danger btn-xs" href="/admin/delSoftware?id={{ softItem.getPK }}" role="button" data-action="delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" title="удалить"></span></a>
                                                 </td>
                                             </tr>
                                         {% endfor %}
@@ -178,13 +178,13 @@
                                 </div>
                                 <!-- Vendors -->
                                 <div class="tab-pane" role="tabpanel" id="vendors">
-                                    <table class="table table-bordered table-hover table-striped">
+                                    <table class="bg-default table table-bordered table-hover table-striped table-fixed-layout cut-long-text">
                                         <thead>
                                         <tr>
                                             <th class="bg-primary col-vendor">
                                                 <span class="th-divider-left">Производитель</span>
                                                 <span class="th-divider-right">
-                                                    <a class="btn btn-success btn-xs" href="/modal/addVendor" role="button" data-action="get-popup">Добавить</a>
+                                                    <a class="btn btn-success btn-xs" href="/modal/addVendor" role="button" data-action="get-popup"><span class="glyphicon glyphicon-plus" aria-hidden="true" title="добавить"></span></a>
                                                 </span>
                                             </th>
                                             <th class="bg-primary col-actions">
@@ -200,8 +200,8 @@
                                                     {{ vendor.title }}
                                                 </td>
                                                 <td class="col-actions">
-                                                    <a class="btn btn-success btn-xs" href="/modal/editVendor?id={{ vendor.getPK }}" role="button" data-action="get-popup">Изменить</a>
-                                                    <a class="btn btn-danger btn-xs" href="/admin/delVendor?id={{ vendor.getPK }}" role="button" data-action="delete">Удалить</a>
+                                                    <a class="btn btn-success btn-xs" href="/modal/editVendor?id={{ vendor.getPK }}" role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать"></span></a>
+                                                    <a class="btn btn-danger btn-xs" href="/admin/delVendor?id={{ vendor.getPK }}" role="button" data-action="delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" title="удалить"></span></a>
                                                 </td>
                                             </tr>
                                         {% endfor %}
