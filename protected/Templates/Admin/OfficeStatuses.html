@@ -3,41 +3,38 @@
 {% block main %}
     <div class="row">
         <main class="cities">
-            <div class="col-xs-5">
-                <table id="regsTable" class="bg-default table table-bordered table-hover table-striped table-fixed-layout cut-long-text">
-                    <thead>
-                    <tr>
-                        <th class="bg-primary col-region">
-                            <span class="th-divider-left">Статус</span>
-                            <span class="th-divider-right">
-                                <a class="btn btn-success btn-xs" href="/modal/addStatus" role="button"
-                                   data-action="get-popup">Добавить</a>
-                            </span>
-                        </th>
-                        <th class="bg-primary col-actions">
-                            <span class="th-divider-left">Действия</span>
-                        </th>
-                    </tr>
-                    </thead>
-                    <!--Данные-->
-                    <tbody>
-                    {% for status in statuses %}
-                        <tr>
-                            <td class="col-region cut-string">{{ status.title }}</td>
-                            <td class="col-actions">
-                                <a class="btn btn-success btn-xs" href="/modal/editStatus?id={{ status.getPK }}"
-                                   role="button" data-action="get-popup">
-                                    Изменить
-                                </a>
-                                <a class="btn btn-danger btn-xs" href="/admin/delStatus?id={{ status.getPK }}"
-                                   role="button" data-action="delete">
-                                    Удалить
-                                </a>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
+            <div class="col-xs-4">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Статусы офисов</h3>
+                    </div>
+                    <div class="panel-body">
+                        <table class="bg-default table table-condensed table-bordered table-hover table-striped cut-long-text">
+                            <thead>
+                            <tr>
+                                <th class="bg-primary">Статус<a class="btn btn-success btn-xs pull-right" href="/modal/addStatus" role="button"
+                                                                         data-action="get-popup"><span class="glyphicon glyphicon-plus" aria-hidden="true" title="добавить"></span></a>
+                                </th>
+                                <th class="bg-primary col-xs-4">Действия</th>
+                            </tr>
+                            </thead>
+                            <!--Данные-->
+                            <tbody>
+                            {% for status in statuses %}
+                                <tr>
+                                    <td>{{ status.title }}</td>
+                                    <td class="text-center">
+                                        <a class="btn btn-success btn-xs" href="/modal/editStatus?id={{ status.getPK }}"
+                                           role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать"></span></a>
+                                        <a class="btn btn-danger btn-xs" href="/admin/delStatus?id={{ status.getPK }}"
+                                           role="button" data-action="delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" title="удалить"></span></a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
