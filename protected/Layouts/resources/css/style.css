@@ -136,6 +136,24 @@ custom striped table
     background: #c1c1c1;
 }
 
+/*===================
+navbar styles
+=====================*/
+/*для заголовков табов*/
+.nav-tabs>li.active>a,
+.nav-tabs>li.active>a:focus
+
+{
+    color: #fff;
+    background-color: #337ab7;
+}
+
+.nav-tabs>li.active>a:hover
+{
+    color: #fff;
+    background-color: #286090;
+}
+
 /*=====================================
 Дерево
 =======================================*/
