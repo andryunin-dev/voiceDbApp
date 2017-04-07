@@ -2,9 +2,9 @@
 
 {% block main %}
     <div class="row">
-        <main class="devices bs3-btn-style" id="bs3-style">
-            <div class="col-xs-12">
-                <div class="panel panel-default col-xs-5">
+        <main class="devices">
+            <div class="col-xs-5">
+                <div class="panel panel-default">
                     <div class="panel-heading">
                         <h3 class="panel-title">Типы портов</h3>
                     </div>
@@ -24,28 +24,22 @@
                             <div class="tab-content">
                                 <!-- Voice port types -->
                                 <div class="tab-pane" role="tabpanel" id="voice">
-                                    <table class="table table-bordered table-hover table-striped">
+                                    <table class="bg-default table table-condensed table-bordered table-hover table-striped cut-long-text">
                                         <thead>
-                                        <tr>
-                                            <th class="bg-primary">
-                                                Тип порта(голос)
-                                                <a class="btn btn-success btn-xs pull-right" href="/modal/addPortType?type=voice" role="button" data-action="get-popup">Добавить</a>
-                                            </th>
-                                            <th class="bg-primary">
-                                                Действия
-                                            </th>
-                                        </tr>
+                                            <tr>
+                                                <th class="bg-primary">Тип порта(голос)<a class="btn btn-success btn-xs pull-right" href="/modal/addPortType?type=voice" role="button" data-action="get-popup"><span class="glyphicon glyphicon-plus" aria-hidden="true" title="добавить"></span></a>
+                                                </th>
+                                                <th class="bg-primary col-xs-3">Действия</th>
+                                            </tr>
                                         </thead>
                                         <!--Данные-->
                                         <tbody>
                                         {% for type in voicePortTypes %}
                                             <tr>
-                                                <td>
-                                                    {{ type.type }}
-                                                </td>
-                                                <td class="col-actions">
-                                                    <a class="btn btn-success btn-xs" href="/modal/editPortType?portType[id]={{ type.getPK }}&portType[type]=voice" role="button" data-action="get-popup">Изменить</a>
-                                                    <a class="btn btn-danger btn-xs" href="/admin/delPortType?portType[id]={{ type.getPK }}&portType[type]=voice" role="button" data-action="delete">Удалить</a>
+                                                <td>{{ type.type }}</td>
+                                                <td class="text-center">
+                                                    <a class="btn btn-success btn-xs" href="/modal/editPortType?portType[id]={{ type.getPK }}&portType[type]=voice" role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать"></span></a>
+                                                    <a class="btn btn-danger btn-xs" href="/admin/delPortType?portType[id]={{ type.getPK }}&portType[type]=voice" role="button" data-action="delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" title="удалить"></span></a>
                                                 </td>
                                             </tr>
                                         {% endfor %}
@@ -54,28 +48,22 @@
                                 </div>
                                 <!-- Data port types -->
                                 <div class="tab-pane active" role="tabpanel" id="data">
-                                    <table class="table table-bordered table-hover table-striped">
+                                    <table class="bg-default table table-condensed table-bordered table-hover table-striped cut-long-text">
                                         <thead>
                                         <tr>
-                                            <th class="bg-primary">
-                                                Тип порта(данные)
-                                                <a class="btn btn-success btn-xs pull-right" href="/modal/addPortType?type=data" role="button" data-action="get-popup">Добавить</a>
+                                            <th class="bg-primary">Тип порта(данные)<a class="btn btn-success btn-xs pull-right" href="/modal/addPortType?type=data" role="button" data-action="get-popup"><span class="glyphicon glyphicon-plus" aria-hidden="true" title="добавить"></span></a>
                                             </th>
-                                            <th class="bg-primary">
-                                                Действия
-                                            </th>
+                                            <th class="bg-primary col-xs-3">Действия</th>
                                         </tr>
                                         </thead>
                                         <!--Данные-->
                                         <tbody>
                                         {% for type in dataPortTypes %}
                                             <tr>
-                                                <td>
-                                                    {{ type.type }}
-                                                </td>
-                                                <td class="col-actions">
-                                                    <a class="btn btn-success btn-xs" href="/modal/editPortType?portType[id]={{ type.getPK }}&portType[type]=data" role="button" data-action="get-popup">Изменить</a>
-                                                    <a class="btn btn-danger btn-xs" href="/admin/delPortType?portType[id]={{ type.getPK }}&portType[type]=data" role="button" data-action="delete">Удалить</a>
+                                                <td>{{ type.type }}</td>
+                                                <td class="text-center">
+                                                    <a class="btn btn-success btn-xs" href="/modal/editPortType?portType[id]={{ type.getPK }}&portType[type]=data" role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать"></span></a>
+                                                    <a class="btn btn-danger btn-xs" href="/admin/delPortType?portType[id]={{ type.getPK }}&portType[type]=data" role="button" data-action="delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" title="удалить"></span></a>
                                                 </td>
                                             </tr>
                                         {% endfor %}

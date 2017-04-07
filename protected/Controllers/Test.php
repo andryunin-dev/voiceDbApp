@@ -2,24 +2,11 @@
 
 namespace App\Controllers;
 
-
-use App\Components\Ip;
-use App\Components\Sorter;
-use App\Models\Address;
-use App\Models\ApplianceType;
-use App\Models\City;
-use App\Models\DataPort;
 use App\Models\Network;
 use App\Models\Office;
-use App\Models\OfficeStatus;
 use App\Models\Region;
-use SebastianBergmann\CodeCoverage\Report\Text;
-use T4\Console\Application;
 use T4\Core\Exception;
-use T4\Core\IArrayable;
 use T4\Core\MultiException;
-use T4\Dbal\Query;
-use T4\Http\Request;
 use T4\Mvc\Controller;
 
 class Test extends Controller
@@ -92,4 +79,13 @@ class Test extends Controller
         }
     }
 
+    public function actionOffices()
+    {
+        $asc = function (Office $office_1, Office $office_2) {
+            return (0 != strnatcmp($office_1->address->city->region->title, $office_2->address->city->region->title)) ?: 1;
+        };
+
+        $this->data->offices = Office::findAll()->uasort($asc);
+        $this->data->activeLink->offices = true;
+    }
 }

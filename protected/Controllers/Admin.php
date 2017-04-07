@@ -1258,7 +1258,10 @@ class Admin extends Controller
                     'macAddress' => $data->mac,
                     'comment' => $data->comment,
                     'appliance' => $currentAppliance,
-                    'portType' => DPortType::findByPK($data->portTypeId)
+                    'portType' => DPortType::findByPK($data->portTypeId),
+                    'details' => [
+                        'portName' => $data->portName
+                    ]
                 ])
                 ->save();
 
@@ -1291,7 +1294,10 @@ class Admin extends Controller
                     'macAddress' => $data->mac,
                     'comment' => $data->comment,
                     'appliance' => $currentAppliance, //нужен только для валидатора
-                    'portType' => DPortType::findByPK($data->portTypeId)
+                    'portType' => DPortType::findByPK($data->portTypeId),
+                    'details' => [
+                        'portName' => $data->portName
+                    ]
                 ])
                 ->save();
 

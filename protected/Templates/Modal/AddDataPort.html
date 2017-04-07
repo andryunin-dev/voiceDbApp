@@ -9,7 +9,6 @@
                     <label for="id-data-port-type" class="col-sm-3 control-label">Тип порта</label>
                     <div class="col-sm-9">
                         <select name="data[portTypeId]" id="id-data-port-type" class="form-control">
-                            <option value="" selected="selected">---------</option>
                             {% for portType in portTypes %}
                                 <option value="{{ portType.getPK }}">{{ portType.type }}</option>
                             {% endfor %}
@@ -36,6 +35,14 @@
                         </div>
                     </div>
                 </div>
+                {#portName#}
+                <div class="form-group">
+                    <label for="id-port-name" class="col-sm-3 control-label">Имя порта</label>
+                    <div class="col-sm-9">
+                        <input id="id-port-name" type="text" class="form-control" name="data[portName]" placeholder="Имя порта (fastEthernet 0/1 и т.д.)">
+                    </div>
+                </div>
+
                 {#comment#}
                 <div class="form-group">
                     <label for="id-comment" class="col-sm-3 control-label">Комментарий</label>
