@@ -4,20 +4,20 @@
     <div class="row">
         <main class="devices">
             <div class="col-xs-12">
-                <table class="table table-bordered cust-table-striped">
+                <table class="bg-default table table-condensed table-bordered table-hover cust-table-striped cut-long-text">
                     <thead>
                         <tr class="text-middle text-center">
-                            <th class="bg-primary col-office" rowspan="2">Офис</th>
-                            <th class="bg-primary col-hardware" rowspan="2">Оборудование</th>
-                            <th class="bg-primary col-software" rowspan="2">ПО</th>
-                            <th class="bg-primary col-software" rowspan="2">hostname</th>
-                            <th class="bg-primary col-port" colspan="3">Порты</th>
-                            <th class="bg-primary col-actions" rowspan="2">Действия</th>
+                            <th class="bg-primary" rowspan="2">Офис</th>
+                            <th class="bg-primary col-15" rowspan="2">Оборудование</th>
+                            <th class="bg-primary col-10" rowspan="2">ПО</th>
+                            <th class="bg-primary col-10" rowspan="2">hostname</th>
+                            <th class="bg-primary col-35" colspan="12">Порты</th>
+                            <th class="bg-primary col-10" rowspan="2">Действия</th>
                         </tr>
                         <tr class="text-center">
-                            <th class="bg-primary col-port-type">Тип</th>
-                            <th class="bg-primary col-port-type">MAC</th>
-                            <th class="bg-primary col-port-type">IP</th>
+                            <th class="bg-primary" colspan="4">IP</th>
+                            <th class="bg-primary" colspan="3">Port Name</th>
+                            <th class="bg-primary" colspan="5">Description</th>
                         </tr>
                     </thead>
 
@@ -28,44 +28,30 @@
                                     <td rowspan="{{ appliance.dataPorts.count }}">{{ office.title }}</td>
                                     <td rowspan="{{ appliance.dataPorts.count }}">
                                         {{ appliance.platform.platform.vendor.title }} {{ appliance.platform.platform.title }}
-                                        <a class="btn btn-success btn-xs btn-custom pull-right" href="/modal/addDataPort?id={{ appliance.getPK }}" role="button" data-action="get-popup"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> IP порт</a>
+                                        <a class="btn btn-success btn-xs btn-custom pull-right" href="/modal/addDataPort?id={{ appliance.getPK }}" role="button" data-action="get-popup"><span class="glyphicon glyphicon-plus" aria-hidden="true" title="добавить порт"></span></a>
                                     </td>
-                                    <td rowspan="{{ appliance.dataPorts.count }}">{{ appliance.software.software.title }}</td>
+                                    <td rowspan="{{ appliance.dataPorts.count }}">{{ appliance.software.software.title }} {{ appliance.software.version }}</td>
                                     <td rowspan="{{ appliance.dataPorts.count }}">{{ appliance.details.hostname }}</td>
-                                    <td>{{ appliance.dataPorts.first.portType.type }}</td>
-                                    <td>{{ appliance.dataPorts.first.macAddress }}</td>
-                                    <td>{{ appliance.dataPorts.first.ipAddress }}</td>
-                                    <td>
+                                    <td colspan="4">{{ appliance.dataPorts.first.ipAddress }}</td>
+                                    <td colspan="3">{{ appliance.dataPorts.first.details.portName }}</td>
+                                    <td colspan="5">{{ appliance.dataPorts.first.comment }}</td>
+                                    <td class="text-center">
                                         {%  if appliance.dataPorts.count > 0 %}
-                                            <div class="pull-right">
                                                 <a class="btn btn-success btn-xs" href="/modal/editDataPort?portId={{ appliance.dataPorts.first.getPK }}&deviceId={{ appliance.getPK }} "
-                                                   role="button" data-action="get-popup">
-                                                    Изменить
-                                                </a>
+                                                   role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать порт"></span></a>
                                                 <a class="btn btn-danger btn-xs" href="/admin/delDataPort?portId={{ appliance.dataPorts.first.getPK }}&deviceId={{ appliance.getPK }} " role="button"
-                                                   data-action="delete">
-                                                    Удалить
-                                                </a>
-                                            </div>
+                                                   data-action="delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" title="удалить порт"></span></a>
                                         {% endif %}
                                     </td>
                                 </tr>
                             {% for port in appliance.dataPorts|slice(1) %}
                                 <tr>
-                                    <td>{{ port.portType.type }}</td>
-                                    <td>{{ port.macAddress }}</td>
-                                    <td>{{ port.ipAddress }}</td>
-                                    <td>
-                                        <div class="pull-right">
-                                            <a class="btn btn-success btn-xs" href="/modal/editDataPort?portId={{ port.getPK }}&deviceId={{ appliance.getPK }} "
-                                               role="button" data-action="get-popup">
-                                                Изменить
-                                            </a>
-                                            <a class="btn btn-danger btn-xs" href="/admin/delDataPort?portId={{ port.getPK }}&deviceId={{ appliance.getPK }} " role="button"
-                                               data-action="delete">
-                                                Удалить
-                                            </a>
-                                        </div>
+                                    <td colspan="4">{{ port.ipAddress }}</td>
+                                    <td colspan="3">{{ port.details.portName }}</td>
+                                    <td colspan="5">{{ port.comment }}</td>
+                                    <td class="text-center">
+                                        <a class="btn btn-success btn-xs" href="/modal/editDataPort?portId={{ port.getPK }}&deviceId={{ appliance.getPK }} " role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать порт"></span></a>
+                                        <a class="btn btn-danger btn-xs" href="/admin/delDataPort?portId={{ port.getPK }}&deviceId={{ appliance.getPK }} " role="button" data-action="delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" title="удалить порт"></span></a>
                                     </td>
                                 </tr>
                             {% endfor %}

@@ -2,9 +2,9 @@
 
 {% block main %}
     <div class="row">
-        <main class="devices bs3-btn-style" id="bs3-style">
-            <div class="col-xs-12">
-                <div class="panel panel-default col-xs-7">
+        <main class="devices">
+            <div class="col-xs-6">
+                <div class="panel panel-default">
                     <div class="panel-heading">
                         <h3 class="panel-title">Vendors, Hardware, Software, Clusters</h3>
                     </div>
@@ -37,30 +37,22 @@
                             <div class="tab-content">
                                 <!-- Types -->
                                 <div class="tab-pane" role="tabpanel" id="types">
-                                    <table class="table table-bordered table-hover table-striped">
+                                    <table class="bg-default table table-condensed table-bordered table-hover table-striped cut-long-text">
                                         <thead>
-                                        <tr>
-                                            <th class="bg-primary col-vendor">
-                                                <span class="th-divider-left">Тип(роль)</span>
-                                                <span class="th-divider-right">
-                                                    <a class="btn btn-success btn-xs" href="/modal/addApplianceType" role="button" data-action="get-popup">Добавить</a>
-                                                </span>
-                                            </th>
-                                            <th class="bg-primary col-actions">
-                                                <span class="th-divider-left">Действия</span>
-                                            </th>
-                                        </tr>
+                                            <tr>
+                                                <th class="bg-primary">Тип(роль)<a class="btn btn-success btn-xs pull-right" href="/modal/addApplianceType" role="button" data-action="get-popup"><span class="glyphicon glyphicon-plus" aria-hidden="true" title="добавить"></span></a>
+                                                </th>
+                                                <th class="bg-primary col-xs-3">Действия</th>
+                                            </tr>
                                         </thead>
                                         <!--Данные-->
                                         <tbody>
                                         {% for applianceType in applianceTypes %}
                                             <tr>
-                                                <td class="col-appliance-type cut-string">
-                                                    {{ applianceType }}
-                                                </td>
-                                                <td class="col-actions">
-                                                    <a class="btn btn-success btn-xs" href="/modal/editApplianceType?id={{ applianceType.getPK }}" role="button" data-action="get-popup">Изменить</a>
-                                                    <a class="btn btn-danger btn-xs" href="/admin/delApplianceType?id={{ applianceType.getPK }}" role="button" data-action="delete">Удалить</a>
+                                                <td>{{ applianceType }}</td>
+                                                <td class="text-center">
+                                                    <a class="btn btn-success btn-xs" href="/modal/editApplianceType?id={{ applianceType.getPK }}" role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать"></span></a>
+                                                    <a class="btn btn-danger btn-xs" href="/admin/delApplianceType?id={{ applianceType.getPK }}" role="button" data-action="delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" title="удалить"></span></a>
                                                 </td>
                                             </tr>
                                         {% endfor %}
@@ -69,33 +61,24 @@
                                 </div>
                                 <!-- Platforms -->
                                 <div class="tab-pane active" role="tabpanel" id="platforms">
-                                    <table class="table table-bordered table-hover table-striped">
+                                    <table class="bg-default table table-condensed table-bordered table-hover table-striped cut-long-text">
                                         <thead>
                                         <tr>
-                                            <th class="bg-primary col-platform">
-                                                <span class="th-divider-left">Платформа</span>
-                                                <span class="th-divider-right">
-                                                    <a class="btn btn-success btn-xs" href="/modal/addPlatform" role="button" data-action="get-popup">Добавить</a>
-                                                </span>
+                                            <th class="bg-primary">Платформа<a class="btn btn-success btn-xs pull-right" href="/modal/addPlatform" role="button" data-action="get-popup"><span class="glyphicon glyphicon-plus" aria-hidden="true" title="добавить"></span></a>
                                             </th>
-                                            <th class="bg-primary col-vendor">
-                                                <span class="th-divider-left">Производитель</span>
-                                                <span class="th-divider-right"></span>
-                                            </th>
-                                            <th class="bg-primary col-actions">
-                                                <span class="th-divider-left">Действия</span>
-                                            </th>
+                                            <th class="bg-primary col-xs-4">Производитель</th>
+                                            <th class="bg-primary col-xs-3">Действия</th>
                                         </tr>
                                         </thead>
                                         <!--Данные-->
                                         <tbody>
                                         {% for platform in platforms %}
                                             <tr>
-                                                <td class="col-city cut-string">{{ platform.title }}</td>
-                                                <td class="col-region cut-string">{{ platform.vendor.title }}</td>
-                                                <td class="col-actions">
-                                                    <a class="btn btn-success btn-xs" href="/modal/editPlatform?id={{ platform.getPK }}" role="button" data-action="get-popup">Изменить</a>
-                                                    <a class="btn btn-danger btn-xs" href="/admin/delPlatform?id={{ platform.getPK }}" role="button"  data-action="delete">Удалить</a>
+                                                <td>{{ platform.title }}</td>
+                                                <td>{{ platform.vendor.title }}</td>
+                                                <td class="text-center">
+                                                    <a class="btn btn-success btn-xs" href="/modal/editPlatform?id={{ platform.getPK }}" role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать"></span></a>
+                                                    <a class="btn btn-danger btn-xs" href="/admin/delPlatform?id={{ platform.getPK }}" role="button"  data-action="delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" title="удалить"></span></a>
                                                 </td>
                                             </tr>
                                         {% endfor %}
@@ -104,33 +87,27 @@
                                 </div>
                                 <!-- Modules -->
                                 <div class="tab-pane" role="tabpanel" id="modules">
-                                    <table class="table table-bordered table-hover table-striped">
+                                    <table class="bg-default table table-condensed table-bordered table-hover table-striped cut-long-text">
                                         <thead>
                                         <tr>
-                                            <th class="bg-primary col-software">
-                                                <span class="th-divider-left">Название</span>
-                                                <span class="th-divider-right">
-                                                    <a class="btn btn-success btn-xs" href="/modal/addModule" role="button" data-action="get-popup">Добавить</a>
-                                                </span>
+                                            <th class="bg-primary">Название<a class="btn btn-success btn-xs pull-right" href="/modal/addModule" role="button" data-action="get-popup"><span class="glyphicon glyphicon-plus" aria-hidden="true" title="добавить"></span></a>
                                             </th>
-                                            <th class="bg-primary col-vendor">
+                                            <th class="bg-primary col-xs-4">
                                                 <span class="th-divider-left">Производитель</span>
                                                 <span class="th-divider-right"></span>
                                             </th>
-                                            <th class="bg-primary col-actions">
-                                                <span class="th-divider-left">Действия</span>
-                                            </th>
+                                            <th class="bg-primary col-xs-3">Действия</th>
                                         </tr>
                                         </thead>
                                         <!--Данные-->
                                         <tbody>
                                         {% for moduleItem in modules %}
                                             <tr>
-                                                <td class="col-city cut-string">{{ moduleItem.title }}</td>
-                                                <td class="col-region cut-string">{{ moduleItem.vendor.title }}</td>
-                                                <td class="col-actions">
-                                                    <a class="btn btn-success btn-xs" href="/modal/editModule?id={{ moduleItem.getPK }}" role="button" data-action="get-popup">Изменить</a>
-                                                    <a class="btn btn-danger btn-xs" href="/admin/delModule?id={{ moduleItem.getPK }}" role="button" data-action="delete">Удалить</a>
+                                                <td>{{ moduleItem.title }}</td>
+                                                <td>{{ moduleItem.vendor.title }}</td>
+                                                <td class="text-center">
+                                                    <a class="btn btn-success btn-xs" href="/modal/editModule?id={{ moduleItem.getPK }}" role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать"></span></a>
+                                                    <a class="btn btn-danger btn-xs" href="/admin/delModule?id={{ moduleItem.getPK }}" role="button" data-action="delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" title="удалить"></span></a>
                                                 </td>
                                             </tr>
                                         {% endfor %}
@@ -139,33 +116,24 @@
                                 </div>
                                 <!-- Software -->
                                 <div class="tab-pane" role="tabpanel" id="software">
-                                    <table class="table table-bordered table-hover table-striped">
+                                    <table class="bg-default table table-condensed table-bordered table-hover table-striped cut-long-text">
                                         <thead>
-                                        <tr>
-                                            <th class="bg-primary col-software">
-                                                <span class="th-divider-left">Тип ПО</span>
-                                                <span class="th-divider-right">
-                                                    <a class="btn btn-success btn-xs" href="/modal/addSoftware" role="button" data-action="get-popup">Добавить</a>
-                                                </span>
-                                            </th>
-                                            <th class="bg-primary col-vendor">
-                                                <span class="th-divider-left">Производитель</span>
-                                                <span class="th-divider-right"></span>
-                                            </th>
-                                            <th class="bg-primary col-actions">
-                                                <span class="th-divider-left">Действия</span>
-                                            </th>
-                                        </tr>
+                                            <tr>
+                                                <th class="bg-primary">Тип ПО<a class="btn btn-success btn-xs pull-right" href="/modal/addSoftware" role="button" data-action="get-popup"><span class="glyphicon glyphicon-plus" aria-hidden="true" title="добавить"></span></a>
+                                                </th>
+                                                <th class="bg-primary col-xs-4">Производитель</th>
+                                                <th class="bg-primary col-xs-3">Действия</th>
+                                            </tr>
                                         </thead>
                                         <!--Данные-->
                                         <tbody>
                                         {% for softItem in software %}
                                             <tr>
-                                                <td class="col-city cut-string">{{ softItem.title }}</td>
-                                                <td class="col-region cut-string">{{ softItem.vendor.title }}</td>
-                                                <td class="col-actions">
-                                                    <a class="btn btn-success btn-xs" href="/modal/editSoftware?id={{ softItem.getPK }}" role="button" data-action="get-popup">Изменить</a>
-                                                    <a class="btn btn-danger btn-xs" href="/admin/delSoftware?id={{ softItem.getPK }}" role="button" data-action="delete">Удалить</a>
+                                                <td>{{ softItem.title }}</td>
+                                                <td>{{ softItem.vendor.title }}</td>
+                                                <td class="text-center">
+                                                    <a class="btn btn-success btn-xs" href="/modal/editSoftware?id={{ softItem.getPK }}" role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать"></span></a>
+                                                    <a class="btn btn-danger btn-xs" href="/admin/delSoftware?id={{ softItem.getPK }}" role="button" data-action="delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" title="удалить"></span></a>
                                                 </td>
                                             </tr>
                                         {% endfor %}
@@ -178,30 +146,22 @@
                                 </div>
                                 <!-- Vendors -->
                                 <div class="tab-pane" role="tabpanel" id="vendors">
-                                    <table class="table table-bordered table-hover table-striped">
+                                    <table class="bg-default table table-condensed table-bordered table-hover table-striped cut-long-text">
                                         <thead>
                                         <tr>
-                                            <th class="bg-primary col-vendor">
-                                                <span class="th-divider-left">Производитель</span>
-                                                <span class="th-divider-right">
-                                                    <a class="btn btn-success btn-xs" href="/modal/addVendor" role="button" data-action="get-popup">Добавить</a>
-                                                </span>
+                                            <th class="bg-primary">Производитель<a class="btn btn-success btn-xs pull-right" href="/modal/addVendor" role="button" data-action="get-popup"><span class="glyphicon glyphicon-plus" aria-hidden="true" title="добавить"></span></a>
                                             </th>
-                                            <th class="bg-primary col-actions">
-                                                <span class="th-divider-left">Действия</span>
-                                            </th>
+                                            <th class="bg-primary col-xs-3">Действия</th>
                                         </tr>
                                         </thead>
                                         <!--Данные-->
                                         <tbody>
                                         {% for vendor in vendors %}
                                             <tr>
-                                                <td class="col-vendor cut-string">
-                                                    {{ vendor.title }}
-                                                </td>
-                                                <td class="col-actions">
-                                                    <a class="btn btn-success btn-xs" href="/modal/editVendor?id={{ vendor.getPK }}" role="button" data-action="get-popup">Изменить</a>
-                                                    <a class="btn btn-danger btn-xs" href="/admin/delVendor?id={{ vendor.getPK }}" role="button" data-action="delete">Удалить</a>
+                                                <td>{{ vendor.title }}</td>
+                                                <td class="text-center">
+                                                    <a class="btn btn-success btn-xs" href="/modal/editVendor?id={{ vendor.getPK }}" role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать"></span></a>
+                                                    <a class="btn btn-danger btn-xs" href="/admin/delVendor?id={{ vendor.getPK }}" role="button" data-action="delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" title="удалить"></span></a>
                                                 </td>
                                             </tr>
                                         {% endfor %}
