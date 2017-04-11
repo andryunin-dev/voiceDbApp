@@ -33,7 +33,7 @@ class DataPort extends Model
         'relations' => [
             'appliance' => ['type' => self::BELONGS_TO, 'model' => Appliance::class],
             'portType' => ['type' => self::BELONGS_TO, 'model' => DPortType::class, 'by' => '__type_port_id'],
-            'network' => ['type' =>self::BELONGS_TO, 'model' => Network::class, 'by' => '__network_id']
+            'network' => ['type' => self::BELONGS_TO, 'model' => Network::class, 'by' => '__network_id']
         ]
     ];
 

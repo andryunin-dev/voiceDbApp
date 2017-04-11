@@ -21,7 +21,10 @@ class Network extends Model
             'address' => ['type' => 'string'], //address in cidr notation i.e. 192.168.1.0/24
         ],
         'relations' => [
-            'hosts' => ['type' => self::HAS_MANY, 'model' => DataPort::class, 'by' => '__network_id']
+            'hosts' => ['type' => self::HAS_MANY, 'model' => DataPort::class, 'by' => '__network_id'],
+            'vlan' => ['type' => self::BELONGS_TO, 'model' => Vlan::class, 'by' => '__vlan_id'],
+            'vrf' => ['type' => self::BELONGS_TO, 'model' => Vrf::class, 'by' => '__vrf_id'],
+            'location' => ['type' => self::BELONGS_TO, 'model' => Office::class, 'by' => '__location_id']
         ]
     ];
 
