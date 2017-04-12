@@ -6,6 +6,10 @@ require __DIR__ . '/../protected/boot.php';
 
 class ModelsTest extends \PHPUnit\Framework\TestCase
 {
+    protected $tableList = [
+
+    ];
+
     public function compareModels($model1, $model2)
     {
         foreach ($model1 as $key => $value) {

@@ -36,6 +36,13 @@
                         </div>
                     </div>
                 </div>
+                {#portName#}
+                <div class="form-group">
+                    <label for="id-port-name" class="col-sm-3 control-label">Имя порта</label>
+                    <div class="col-sm-9">
+                        <input id="id-port-name" type="text" class="form-control" name="data[portName]" value="{{ currentPort.details.portName }}">
+                    </div>
+                </div>
                 {#comment#}
                 <div class="form-group">
                     <label for="id-comment" class="col-sm-3 control-label">Комментарий</label>

@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Components\Ip;
 use App\Components\Parser;
 use App\Components\Publisher;
 use App\Models\Address;
@@ -12,6 +13,7 @@ use App\Models\DataPort;
 use App\Models\DPortType;
 use App\Models\Module;
 use App\Models\ModuleItem;
+use App\Models\Network;
 use App\Models\Office;
 use App\Models\OfficeStatus;
 use App\Models\Platform;
@@ -1237,28 +1239,29 @@ class Admin extends Controller
     {
         $this->data->offices = Office::findAll(['order' => 'title']);
     }
-    public function actionPortInventoryTemplate()
-    {
-
-    }
 
     public function actionAddDataPort($data)
     {
         try {
             DataPort::getDbConnection()->beginTransaction();
+
             if (false === $currentAppliance = Appliance::findByPK($data->id)) {
                 throw new Exception('Неверные данные');
             }
             if (!is_numeric($data->portTypeId)) {
                 throw new Exception('Тип порта не выбран');
             }
+
             (new DataPort())
                 ->fill([
                     'ipAddress' => $data->ip,
                     'macAddress' => $data->mac,
                     'comment' => $data->comment,
                     'appliance' => $currentAppliance,
-                    'portType' => DPortType::findByPK($data->portTypeId)
+                    'portType' => DPortType::findByPK($data->portTypeId),
+                    'details' => [
+                        'portName' => $data->portName
+                    ]
                 ])
                 ->save();
 
@@ -1277,18 +1280,12 @@ class Admin extends Controller
     {
         try {
             DataPort::getDbConnection()->beginTransaction();
+
             if (false === $currentAppliance = Appliance::findByPK($data->applianceId)) {
                 throw new Exception('Неверные данные');
             }
             if (false === $currentDataPort = DataPort::findByPK($data->portId)) {
                 throw new Exception('Неверные данные');
-            }
-            $data->ip = DataPort::sanitizeIp($data->ip);
-            if (false === DataPort::is_ipAddress($data->ip)) {
-                throw new Exception('Неверный формат IP адреса');
-            }
-            if ($currentDataPort->ipAddress != $data->ip && DataPort::countAllByIp($data->ip) > 0) {
-                throw new Exception('IP адрес ' . $data->ip . ' уже используется.');
             }
 
             $currentDataPort
@@ -1297,7 +1294,10 @@ class Admin extends Controller
                     'macAddress' => $data->mac,
                     'comment' => $data->comment,
                     'appliance' => $currentAppliance, //нужен только для валидатора
-                    'portType' => DPortType::findByPK($data->portTypeId)
+                    'portType' => DPortType::findByPK($data->portTypeId),
+                    'details' => [
+                        'portName' => $data->portName
+                    ]
                 ])
                 ->save();
 
@@ -1316,6 +1316,7 @@ class Admin extends Controller
     {
         try {
             DataPort::getDbConnection()->beginTransaction();
+
             if (false === $currentDataPort = DataPort::findByPK($portId)) {
                 throw new Exception('Неверные данные');
             }
