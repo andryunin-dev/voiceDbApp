@@ -1,0 +1,1 @@
+{"description": "Cisco Catalyst c2950 switch with 24 10/100 BaseTX ports", "modules": [], "lotus_id": "219", "management_ip": "10.100.7.5", "chassis": "WS-C2950-24", "serial": "FCZ1016X1K1", "type": "device"}

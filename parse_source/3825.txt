@@ -1,0 +1,84 @@
+Slot 0:
+	C3825 Mother board 1GE(TX,SFP),1GE(TX), integrated VPN and 4W Port adapter, 7 ports
+	Port adapter is analyzed 
+	Port adapter insertion time 14w3d ago
+	Onboard VPN		: FW ver01100200
+	EEPROM contents at hardware discovery:
+	PCB Serial Number        : FOC11215GQ2
+	Hardware Revision        : 1.2
+	Top Assy. Part Number    : 800-23087-04
+	Board Revision           : A0
+	Deviation Number         : 0
+	Fab Version              : 07
+	RMA Test History         : 00
+	RMA Number               : 0-0-0-0
+	RMA History              : 00
+	Processor type           : 61 
+	Hardware date code       : 20070529
+	Chassis Serial Number    : FCZ1126748F
+	Chassis MAC Address      : 001b.d578.daf0
+	MAC Address block size   : 32
+	CLEI Code                : IPMEY10BRA
+	Product (FRU) Number     : CISCO3825
+	Part Number              : 73-4021-09
+	Version Identifier       : V04 
+	EEPROM format version 4
+	EEPROM contents (hex):
+	  0x00: 04 FF C1 8B 46 4F 43 31 31 32 31 35 47 51 32 40
+	  0x10: 04 2A 41 01 02 C0 46 03 20 00 5A 2F 04 42 41 30
+	  0x20: 88 00 00 00 00 02 07 03 00 81 00 00 00 00 04 00
+	  0x30: 09 61 83 01 32 40 81 C2 8B 46 43 5A 31 31 32 36
+	  0x40: 37 34 38 46 C3 06 00 1B D5 78 DA F0 43 00 20 C6
+	  0x50: 8A 49 50 4D 45 59 31 30 42 52 41 CB 89 43 49 53
+	  0x60: 43 4F 33 38 32 35 82 49 0F B5 09 89 56 30 34 20
+	  0x70: D9 02 40 C1 FF FF FF FF FF FF FF FF FF FF FF FF
+
+	PVDM Slot 0:
+	48-channel (G.711) Voice/Fax PVDMII DSP SIMM PVDM daughter card
+	Hardware Revision        : 4.0
+	Part Number              : 73-8540-05
+	Board Revision           : B0
+	Deviation Number         : 0
+	Fab Version              : 04
+	PCB Serial Number        : FOC11223KA3
+	RMA Test History         : 00
+        RMA Number               : 0-0-0-0
+	RMA History              : 00
+	Processor type           : 00 
+	Product (FRU) Number     : PVDM2-48
+	Version Identifier       : V01 
+	EEPROM format version 4
+	EEPROM contents (hex):
+	  0x00: 04 FF 40 03 ED 41 04 00 82 49 21 5C 05 42 42 30
+	  0x10: 88 00 00 00 00 02 04 C1 8B 46 4F 43 31 31 32 32
+	  0x20: 33 4B 41 33 03 00 81 00 00 00 00 04 00 09 00 CB
+	  0x30: 88 50 56 44 4D 32 2D 34 38 89 56 30 31 20 D9 02
+	  0x40: 40 C1 FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+	  0x50: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+	  0x60: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+	  0x70: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+	WIC Slot 0:
+	2nd generation - FXS Voice daughter card (2 port)
+	Hardware Revision        : 3.1
+	Top Assy. Part Number    : 800-21341-01
+	Board Revision           : E0
+	Deviation Number         : 0-0
+	Fab Version              : 01
+	PCB Serial Number        : FOC1008318J
+	RMA Test History         : 00
+	RMA Number               : 0-0-0-0
+	RMA History              : 00
+	Version Identifier       : V
+	Product (FRU) Number     : VIC2-2FXS=
+	EEPROM format version 4
+	EEPROM contents (hex):
+	  0x00: 04 FF 40 00 47 41 03 01 C0 46 03 20 00 53 5D 01
+	  0x10: 42 45 30 80 00 00 00 00 02 01 C1 8B 46 4F 43 31
+	  0x20: 30 30 38 33 31 38 4A 03 00 81 00 00 00 00 04 00
+	  0x30: 89 56 00 00 00 FF FF FF FF FF FF FF FF FF FF FF
+	  0x40: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+	  0x50: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+	  0x60: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+	  0x70: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
