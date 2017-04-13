@@ -30,7 +30,7 @@ class m_1491820532_createVlansVrfsTables
             PRIMARY KEY (__id)
         )';
 
-        $column['__location_id'] = 'ALTER TABLE network."networks" ADD COLUMN __location_id BIGINT NOT NULL ';
+        $column['__location_id'] = 'ALTER TABLE network."networks" ADD COLUMN __location_id BIGINT ';
         $column['__vlan_id'] = 'ALTER TABLE network."networks" ADD COLUMN __vlan_id BIGINT';
         $column['__vrf_id'] = 'ALTER TABLE network."networks" ADD COLUMN __vrf_id BIGINT';
 

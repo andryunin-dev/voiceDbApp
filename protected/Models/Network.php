@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Components\Ip;
+use T4\Core\Collection;
 use T4\Core\Exception;
 use T4\Orm\Model;
 
@@ -11,7 +12,10 @@ use T4\Orm\Model;
  * @package App\Models
  *
  * @property string $address
- * @property DataPort $hosts
+ * @property Collection|DataPort[] $hosts
+ * @property Vlan $vlan
+ * @property Vrf $vrf
+ * @property Office $location
  */
 class Network extends Model
 {
@@ -54,6 +58,9 @@ class Network extends Model
     protected function beforeSave()
     {
         if (true === $this->isNew) {
+            if (empty($this->vrf)) {
+                $this->vrf = Vrf::getGlobalVrf();
+            }
             $this->parent = $this->findParentNetwork();
         }
         if (true === $this->isUpdated) {

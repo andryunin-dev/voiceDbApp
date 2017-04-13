@@ -1,62 +1,43 @@
 <?php
 
-require __DIR__ . '/../protected/autoload.php';
-require __DIR__ . '/../vendor/autoload.php';
-require __DIR__ . '/../protected/boot.php';
+require_once __DIR__ . '/../../protected/autoload.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__ . '/../../protected/boot.php';
+require_once __DIR__ . '/../DbTrait.php';
 
 class ModelsTest extends \PHPUnit\Framework\TestCase
 {
-    protected $schemaList = [
-        ['geolocation'],
-        ['company'],
-        ['telephony'],
-        ['equipment'],
-        ['partners'],
-        ['contact_book'],
-        ['network']
+    use DbTrait;
+
+    const TEST_DB_NAME = 'phpUnitTest';
+
+    protected static $schemaList = [
+        'geolocation',
+        'company',
+        'telephony',
+        'equipment',
+        'partners',
+        'contact_book',
+        'network'
     ];
 
-    public function testInit()
+    public static function setUpBeforeClass()
     {
-        $app = \T4\Console\Application
-            ::instance()
-            ->setConfig(new \T4\Core\Config(ROOT_PATH_PROTECTED . '/config.php'));
-        $app->db->default = $app->db->phpUnitTest;
-        $conn = $app->db->default;
-        \T4\Orm\Model::setConnection($conn);
-        $this->assertInstanceOf('\T4\Dbal\Connection', \T4\Orm\Model::getDbConnection());
-        return $app;
+        self::setDefaultDb(self::TEST_DB_NAME);
+        foreach (self::$schemaList as $schema) {
+            self::truncateTables($schema);
+        }
     }
-
-    public function schemaProvider()
+    public static function tearDownAfterClass()
     {
-        return $this->schemaList;
-    }
-
-    /**
-     * @depends testInit
-     * @dataProvider schemaProvider
-     */
-    public function testTruncateTables($schema, $app)
-    {
-        /**
-         * @var \T4\Dbal\Connection $connection
-         */
-        $connection = $app->db->default;
-        $tables = $connection->query('SELECT table_name FROM information_schema.tables WHERE table_schema = :schemaName', ['schemaName' => $schema])->fetchAll(PDO::FETCH_ASSOC);
-
-        $tables = array_map(function ($item) {return array_pop($item);}, $tables);
-        foreach ($tables as $table) {
-//            echo 'truncate ' . $table . ' table... ';
-            $this->assertTrue($connection->execute('TRUNCATE ' . $schema . '."' . $table . '" CASCADE'));
-//            echo 'Done!' . "\n";
+        self::setDefaultDb(self::TEST_DB_NAME);
+        foreach (self::$schemaList as $schema) {
+            self::truncateTables($schema);
         }
     }
 
     /**
      * GEOLOCATION TESTS
-     *
-     * @depends testInit
      */
     public function testRegion()
     {
@@ -109,8 +90,6 @@ class ModelsTest extends \PHPUnit\Framework\TestCase
 
     /**
      * COMPANY TESTS
-     * @depends testInit
-     *
      */
     public function testOfficeStatus()
     {
@@ -153,7 +132,7 @@ class ModelsTest extends \PHPUnit\Framework\TestCase
 
     /**
      * EQUIPMENT TESTS
-     * @depends testInit
+     *
      */
     public function testCluster()
     {
@@ -170,10 +149,6 @@ class ModelsTest extends \PHPUnit\Framework\TestCase
         return $cluster;
     }
 
-    /**
-     * @depends testInit
-     *
-     */
     public function testVendor()
     {
         $vendor = (new \App\Models\Vendor())
@@ -270,9 +245,6 @@ class ModelsTest extends \PHPUnit\Framework\TestCase
         return $platformItem;
     }
 
-    /**
-     * @depends testInit
-     */
     public function testApplianceType()
     {
         $applianceType = (new \App\Models\ApplianceType())
@@ -371,9 +343,6 @@ class ModelsTest extends \PHPUnit\Framework\TestCase
     }
 
 
-    /**
-     * @depends testInit
-     */
     public function testDPortType()
     {
         $dPortType = (new \App\Models\DPortType())
@@ -416,7 +385,26 @@ class ModelsTest extends \PHPUnit\Framework\TestCase
         $this->assertInstanceOf(\App\Models\Vrf::class, $fromDb);
         $this->assertEquals('test', $fromDb->name);
         $this->assertEquals('10:100', $fromDb->rd);
+        $this->assertInstanceOf(\App\Models\Vrf::class, \App\Models\Vrf::getGlobalVrf());
+        $this->assertEquals(\App\Models\Vrf::GLOBAL_VRF_NAME, \App\Models\Vrf::getGlobalVrf()->name);
         return $vrf;
+    }
+
+    /**
+     * @depends testOffice
+     */
+    public function testNetwork()
+    {
+        $network = (new \App\Models\Network())
+            ->fill([
+                'address' => '10.1.1.0/24'
+            ])
+            ->save();
+        $fromDb = \App\Models\Network::findByPK($network->getPk());
+        $this->assertInstanceOf(\App\Models\Network::class, $fromDb);
+        $this->assertInstanceOf(\App\Models\Vrf::class, $fromDb->vrf);
+        $this->assertEquals(\App\Models\Vrf::GLOBAL_VRF_NAME, $fromDb->vrf->name);
+        $this->assertEquals(\App\Models\Vrf::GLOBAL_VRF_RD, $fromDb->vrf->rd);
     }
 
     /**
@@ -425,7 +413,6 @@ class ModelsTest extends \PHPUnit\Framework\TestCase
      */
     public function testDataPort($dPortType, $appliance)
     {
-        die;
         $dataPort = (new \App\Models\DataPort())
             ->fill([
                 'ipAddress' => '192.168.1.1/24',
@@ -449,12 +436,8 @@ class ModelsTest extends \PHPUnit\Framework\TestCase
         return $dataPort;
     }
 
-    /**
-     * @depends testInit
-     */
     public function testVPortType()
     {
-        die;
         $objectName = 'vPortType';
         $className = '\App\Models\VPortType';
         $$objectName = (new $className())
@@ -463,7 +446,7 @@ class ModelsTest extends \PHPUnit\Framework\TestCase
             ])
             ->save();
         $fromDb = $className::findByPK($$objectName->getPk());
-        $this->assertEquals(true, $this->compareModels($$objectName, $fromDb));
+        $this->assertInstanceOf(\App\Models\VPortType::class, $fromDb);
         return $$objectName;
     }
 
@@ -485,14 +468,11 @@ class ModelsTest extends \PHPUnit\Framework\TestCase
             ->save();
         $fromDb = $className::findByPK($$objectName->getPk());
         $fromDb->details = json_encode($fromDb->details->toArray());
-        $this->assertEquals(true, $this->compareModels($$objectName, $fromDb));
+        $this->assertInstanceOf(\App\Models\VoicePort::class, $fromDb);
         return $$objectName;
     }
 
 
-    /**
-     * @depends testInit
-     */
     public function testOrganisation()
     {
         $objectName = 'organisation';
@@ -503,7 +483,7 @@ class ModelsTest extends \PHPUnit\Framework\TestCase
             ])
             ->save();
         $fromDb = $className::findByPK($$objectName->getPk());
-        $this->assertEquals(true, $this->compareModels($$objectName, $fromDb));
+        $this->assertInstanceOf(\App\Models\Organisation::class, $fromDb);
         return $$objectName;
     }
 
@@ -525,7 +505,7 @@ class ModelsTest extends \PHPUnit\Framework\TestCase
             ->save();
         $fromDb = $className::findByPK($$objectName->getPk());
         $fromDb->details = json_encode($fromDb->details->toArray());
-        $this->assertEquals(true, $this->compareModels($$objectName, $fromDb));
+        $this->assertInstanceOf(\App\Models\PartnerOffice::class, $fromDb);
         return $$objectName;
     }
 
@@ -547,13 +527,10 @@ class ModelsTest extends \PHPUnit\Framework\TestCase
             ->save();
         $fromDb = $className::findByPK($$objectName->getPk());
         $fromDb->details = json_encode($fromDb->details->toArray());
-        $this->assertEquals(true, $this->compareModels($$objectName, $fromDb));
+        $this->assertInstanceOf(\App\Models\Person::class, $fromDb);
         return $$objectName;
     }
 
-    /**
-     * @depends testInit
-     */
     public function testContactType()
     {
         $objectName = 'contactType';
@@ -565,7 +542,7 @@ class ModelsTest extends \PHPUnit\Framework\TestCase
             ->save();
         $fromDb = $className::findByPK($$objectName->getPk());
         //$fromDb->details = json_encode($fromDb->details->toArray());
-        $this->assertEquals(true, $this->compareModels($$objectName, $fromDb));
+        $this->assertInstanceOf(\App\Models\ContactType::class, $fromDb);
         return $$objectName;
     }
 
@@ -579,34 +556,31 @@ class ModelsTest extends \PHPUnit\Framework\TestCase
         $className = '\App\Models\Contact';
         $$objectName = (new $className())
             ->fill([
-                'contact' => 'email or phone number etc.',
-                'extension' => 'extension dialing',
+                'contact' => 'test',
+                'extension' => 'test',
                 'details' => ['propName' => 'propValue'],
-                'comment' => 'contact comment',
+                'comment' => 'test',
                 'type' => $contactType,
                 'person' => $person
             ])
             ->save();
         $fromDb = $className::findByPK($$objectName->getPk());
         $fromDb->details = json_encode($fromDb->details->toArray());
-        $this->assertEquals(true, $this->compareModels($$objectName, $fromDb));
+        $this->assertInstanceOf(\App\Models\Contact::class, $fromDb);
         return $$objectName;
     }
 
-    /**
-     * @depends testInit
-     */
     public function testContractType()
     {
         $objectName = 'contractType';
         $className = '\App\Models\ContractType';
         $$objectName = (new $className())
             ->fill([
-                'title' => 'contract type 1',
+                'title' => 'test',
             ])
             ->save();
         $fromDb = $className::findByPK($$objectName->getPk());
-        $this->assertEquals(true, $this->compareModels($$objectName, $fromDb));
+        $this->assertInstanceOf(\App\Models\ContractType::class, $fromDb);
         return $$objectName;
     }
 
@@ -621,9 +595,9 @@ class ModelsTest extends \PHPUnit\Framework\TestCase
         $className = '\App\Models\Contract';
         $$objectName = (new $className())
             ->fill([
-                'number' => 'contract 1',
+                'number' => 'test',
                 'date' => '2017-02-23',
-                'pathToScan' => '/c/data/scan/договор1.pdf',
+                'pathToScan' => 'test',
                 'contractType' => $contractType,
                 'partnerOffice' => $partnerOffice
             ])
@@ -631,7 +605,7 @@ class ModelsTest extends \PHPUnit\Framework\TestCase
         $$objectName->persons->add($person);
         $$objectName->save();
         $fromDb = $className::findByPK($$objectName->getPk());
-        $this->assertEquals(true, $this->compareModels($$objectName, $fromDb));
+        $this->assertInstanceOf(\App\Models\Contract::class, $fromDb);
         return $$objectName;
     }
 
@@ -645,16 +619,16 @@ class ModelsTest extends \PHPUnit\Framework\TestCase
         $className = '\App\Models\PstnNumber';
         $$objectName = (new $className())
             ->fill([
-                'number' => (string)rand(1000000000, 9999999999),
-                'transferedTo' => (string)rand(1000000000, 9999999999),
-                'comment' => 'pstn number comment',
+                'number' => 'test',
+                'transferedTo' => 'test',
+                'comment' => 'test',
                 'voicePort' => $voicePort
             ])
             ->save();
         $$objectName->contracts->add($contract);
         $$objectName->save();
         $fromDb = $className::findByPK($$objectName->getPk());
-        $this->assertEquals(true, $this->compareModels($$objectName, $fromDb));
+        $this->assertInstanceOf(\App\Models\PstnNumber::class, $fromDb);
         return $$objectName;
     }
 

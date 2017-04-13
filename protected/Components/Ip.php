@@ -10,6 +10,7 @@ namespace App\Components;
  * @property string $address        ip address (i.e. 192.168.1.1) without mask
  * @property string $cidrAddress    ip address in CIDR notation (i.e. 192.168.1.1/24)
  * @property string $network        network address for this IP
+ * @property string $broadcast      broadcast address for this network
  * @property string $networkSize    number of IP addresses in current network (include broadcast and network address)
  * @property string $cidrNetwork    network address for this IP with mask in CIDR notation (i.e 192.168.1.0/24)
  * @property string $mask           mask (i.e. 255.255.255.0, 255.240.0.0 etc.)
@@ -35,7 +36,7 @@ class Ip
     {
         $this->innerSet('is_valid', true);
 
-        str_replace('\\', '/', trim($ip)); // санитация
+        $ip = str_replace('\\', '/', trim($ip)); // санитация
         if (empty($ip)) {
             $this->innerErrorAdd('IP адрес не задан');
             $this->innerSet('is_valid', false);
@@ -84,7 +85,7 @@ class Ip
             }
         $this->innerSet('cidrAddress', $this->innerGet('address') . '/' . $this->innerGet('masklen'));
         $this->innerSet('network', long2ip(ip2long($this->innerGet('address')) & ip2long($this->innerGet('mask'))));
-        $this->innerSet('networkSize', 1 << self::MAX_LEN_MASK_IPV4 - $this->innerGet('masklen'));
+        $this->innerSet('networkSize', 1 << (self::MAX_LEN_MASK_IPV4 - $this->innerGet('masklen')));
         $this->innerSet('cidrNetwork', $this->innerGet('network') . '/' . $this->innerGet('masklen'));
         $this->innerSet('broadcast', long2ip(ip2long($this->innerGet('network')) + $this->innerGet('networkSize') - 1));
         $this->innerSet('is_hostIp', $this->innerGet('address') != $this->innerGet('network'));
