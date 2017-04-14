@@ -42,12 +42,20 @@ class Network extends Model
 
     protected function validateAddress($val)
     {
+        if (!is_string($val)) {
+            throw new Exception('Неверный тип свойства network->address');
+        }
         $ip = new Ip($val);
 
         if (false === $ip->network || false !== $ip->is_hostIp) {
             throw new Exception('Неверный адрес подсети');
         }
         return true;
+    }
+
+    protected function sanitizeAddress($val)
+    {
+        return (new Ip($val))->cidrAddress;
     }
 
     protected function validate()
@@ -59,7 +67,7 @@ class Network extends Model
     {
         if (true === $this->isNew) {
             if (empty($this->vrf)) {
-                $this->vrf = Vrf::getGlobalVrf();
+                $this->vrf = Vrf::findGlobalVrf();
             }
             $this->parent = $this->findParentNetwork();
         }

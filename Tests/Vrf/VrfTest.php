@@ -22,30 +22,48 @@ class VrfTest extends \PHPUnit\Framework\TestCase
             self::truncateTables($schema);
         }
 
-        \App\Models\Vrf::findAll()->delete();
     }
     public static function tearDownAfterClass()
     {
-        self::setDefaultDb(self::TEST_DB_NAME);
-//        foreach (self::$schemaList as $schema) {
-//            self::truncateTables($schema);
-//        }
+        \App\Models\Vrf::findAll()->delete();
     }
 
+
+    public function testSanitizeVrf()
+    {
+        $vrf = (new \App\Models\Vrf())
+            ->fill([
+                'name' => '   test   ',
+                'rd' => '  1 : 1  '
+            ]);
+        $this->assertEquals('test', $vrf->name);
+        $this->assertEquals('1:1', $vrf->rd);
+
+        $vrf = (new \App\Models\Vrf())
+            ->fill([
+                'name' => '   test   ',
+                'rd' => '  1.2.3.4 : 1  '
+            ]);
+        $this->assertEquals('test', $vrf->name);
+        $this->assertEquals('1.2.3.4:1', $vrf->rd);
+    }
 
     public function providerValidVrf()
     {
         return [
             ['test', '1:1', 'test'],
-            ['test', '192.168.1.1:1', 'test'],
-            ['123', '192.168.1.1:1', 'test'],
+            ['test', '2:1', 'test'],
+            ['test', '1.1.1.1:1', 'test'],
+            ['test', '1.1.1.1:2', 'test'],
+            ['test', '1.1.1.2:1', 'test'],
+            ['test', '1.1.1.2:2', 'test'],
         ];
     }
 
     /**
      * @dataProvider providerValidVrf
      */
-    public function testValidVrf($name, $rd, $comment)
+    public function testValidateVrf($name, $rd, $comment)
     {
         $vrf = (new \App\Models\Vrf())
             ->fill([
@@ -77,7 +95,7 @@ class VrfTest extends \PHPUnit\Framework\TestCase
     /**
      * @dataProvider providerInvalidVrf
      */
-    public function testInvalidVrf($name, $rd, $comment)
+    public function testValidateVrfError($name, $rd, $comment)
     {
         $this->expectException(\T4\Core\Exception::class);
         (new \App\Models\Vrf())
@@ -88,19 +106,8 @@ class VrfTest extends \PHPUnit\Framework\TestCase
             ]);
     }
 
-    public function providerVrfSave()
-    {
-        return [
-            ['test', '1:1', 'test'],
-            ['test1', '2:1', 'test'],
-            ['test2', '1.1.1.1:1', 'test'],
-            ['test3', '1.1.1.1:2', 'test'],
-            ['test4', '1.1.1.2:1', 'test'],
-            ['test5', '1.1.1.2:2', 'test'],
-        ];
-    }
     /**
-     * @dataProvider providerVrfSave
+     * @dataProvider providerValidVrf
      */
     public function testVrfSave($name, $rd, $comment)
     {
@@ -119,13 +126,10 @@ class VrfTest extends \PHPUnit\Framework\TestCase
     public function providerVrfSaveError()
     {
         return [
-            'dubleName_1' =>['test', '100:1', 'test'],
-            'dubleName_2' =>['Test', '100:2', 'test'],
-            'dubleName_3' =>['  test', '100:3', 'test'],
-            'dubleRd_1' =>['test100', '1:1', 'test'],
-            'dubleRd_2' =>['test101', '  2:1', 'test'],
-            'dubleRd_3' =>['test102', '1.1.1.1:1', 'test'],
-            'dubleRd_4' =>['test103', '  1.1.1.1:1', 'test'],
+            'dubleRd_1' =>['test', '1:1', 'test'],
+            'dubleRd_2' =>['test', '  2:1', 'test'],
+            'dubleRd_3' =>['test', '1.1.1.1:1', 'test'],
+            'dubleRd_4' =>['test', '  1.1.1.1:1', 'test'],
         ];
     }
     /**

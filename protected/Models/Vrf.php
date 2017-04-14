@@ -121,9 +121,9 @@ class Vrf extends Model
         /**
          * проверка на уникальность имени VRF наверное не нужна
          */
-        if (false !== self::findByColumn('name', $this->name)) {
-            throw new Exception('VRF с именем "' . $this->name . '" уже существует');
-        }
+//        if (false !== self::findByColumn('name', $this->name)) {
+//            throw new Exception('VRF с именем "' . $this->name . '" уже существует');
+//        }
         if (strtolower(self::GLOBAL_VRF_NAME) == $this->name && self::GLOBAL_VRF_RD != $this->rd) {
             throw new Exception('Данное имя зарезервировано для Global VRF');
         }

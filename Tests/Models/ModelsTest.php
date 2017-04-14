@@ -356,57 +356,6 @@ class ModelsTest extends \PHPUnit\Framework\TestCase
         return $dPortType;
     }
 
-    public function testVlan()
-    {
-        $vlan = (new \App\Models\Vlan())
-            ->fill([
-                'id' => 1,
-                'name' => 'test',
-                'comment' => 'test'
-            ])
-            ->save();
-        $fromDb = \App\Models\Vlan::findByPK($vlan->getPk());
-        $this->assertInstanceOf(\App\Models\Vlan::class, $fromDb);
-        $this->assertEquals('test', $fromDb->name);
-        $this->assertEquals('test', $fromDb->comment);
-        return $vlan;
-    }
-
-    public function testVrf()
-    {
-        $vrf = (new \App\Models\Vrf())
-            ->fill([
-                'name' => 'test',
-                'rd' => '10:100',
-                'comment' => 'test'
-            ])
-            ->save();
-        $fromDb = \App\Models\Vrf::findByPK($vrf->getPk());
-        $this->assertInstanceOf(\App\Models\Vrf::class, $fromDb);
-        $this->assertEquals('test', $fromDb->name);
-        $this->assertEquals('10:100', $fromDb->rd);
-        $this->assertInstanceOf(\App\Models\Vrf::class, \App\Models\Vrf::getGlobalVrf());
-        $this->assertEquals(\App\Models\Vrf::GLOBAL_VRF_NAME, \App\Models\Vrf::getGlobalVrf()->name);
-        return $vrf;
-    }
-
-    /**
-     * @depends testOffice
-     */
-    public function testNetwork()
-    {
-        $network = (new \App\Models\Network())
-            ->fill([
-                'address' => '10.1.1.0/24'
-            ])
-            ->save();
-        $fromDb = \App\Models\Network::findByPK($network->getPk());
-        $this->assertInstanceOf(\App\Models\Network::class, $fromDb);
-        $this->assertInstanceOf(\App\Models\Vrf::class, $fromDb->vrf);
-        $this->assertEquals(\App\Models\Vrf::GLOBAL_VRF_NAME, $fromDb->vrf->name);
-        $this->assertEquals(\App\Models\Vrf::GLOBAL_VRF_RD, $fromDb->vrf->rd);
-    }
-
     /**
      * @depends testDPortType
      * @depends testAppliance

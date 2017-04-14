@@ -33,6 +33,27 @@ class NetworkTest extends \PHPUnit\Framework\TestCase
         }
     }
 
+    public function providerValidNetworkForSanitize()
+    {
+        return [
+            ['1.1.1.0/24'],
+            ['  1.1.1.0\24  ']
+        ];
+    }
+
+    /**
+     * @dataProvider providerValidNetworkForSanitize
+     */
+    public function testSanitizeNetworkAddress($address)
+    {
+        $net = (new \App\Models\Network())
+            ->fill([
+                'address' => $address
+            ]);
+        $this->assertInstanceOf(\App\Models\Network::class, $net);
+        $this->assertEquals('1.1.1.0/24', $net->address);
+    }
+
     /**
      * create location(office)
      */
@@ -72,71 +93,6 @@ class NetworkTest extends \PHPUnit\Framework\TestCase
         return $location;
     }
 
-    /**
-     * @depends testCreateLocation
-     */
-    public function testCreateAppliance($location)
-    {
-        $vendor = (new \App\Models\Vendor())->fill(['title' => 'test'])->save();
-        $this->assertInstanceOf(\App\Models\Vendor::class, $vendor);
-
-        $applianceType = (new \App\Models\ApplianceType())
-            ->fill([
-                'type' => 'test'
-            ])
-            ->save();
-        $this->assertInstanceOf(\App\Models\ApplianceType::class, $applianceType);
-
-        $software = (new \App\Models\Software())
-            ->fill([
-                'title' => 'test',
-                'vendor' => $vendor
-            ])
-            ->save();
-        $this->assertInstanceOf(\App\Models\Software::class, $software);
-
-        $swItem = (new \App\Models\SoftwareItem())
-            ->fill([
-                'version' => 'test',
-                'software' => $software
-            ])
-            ->save();
-        $this->assertInstanceOf(\App\Models\SoftwareItem::class, $swItem);
-
-        $platform = (new \App\Models\Platform())
-            ->fill([
-                'title' => 'test',
-                'vendor' => $vendor
-            ])
-            ->save();
-        $this->assertInstanceOf(\App\Models\Platform::class, $platform);
-
-        $platformItem = (new \App\Models\PlatformItem())
-            ->fill([
-                'platform' => $platform
-            ])
-            ->save();
-        $this->assertInstanceOf(\App\Models\PlatformItem::class, $platformItem);
-
-        $appliance = (new \App\Models\Appliance())
-            ->fill([
-                'comment' => 'test',
-                'type' => $applianceType,
-                'vendor' => $vendor,
-                'platform' => $platformItem,
-                'software' => $swItem,
-                'location' => $location
-            ])
-            ->save();
-        $this->assertInstanceOf(\App\Models\Appliance::class, $appliance);
-        $this->assertInstanceOf(\App\Models\ApplianceType::class, $appliance->type);
-        $this->assertInstanceOf(\App\Models\Vendor::class, $appliance->vendor);
-        $this->assertInstanceOf(\App\Models\PlatformItem::class, $appliance->platform);
-        $this->assertInstanceOf(\App\Models\SoftwareItem::class, $appliance->software);
-        $this->assertInstanceOf(\App\Models\Office::class, $appliance->location);
-        return $appliance;
-    }
-
     public function testCreateVlan()
     {
         $vlan = (new \App\Models\Vlan())
@@ -162,15 +118,38 @@ class NetworkTest extends \PHPUnit\Framework\TestCase
         $this->assertInstanceOf(\App\Models\Vrf::class, $vrf);
         return $vrf;
     }
+
     /**
+     * @param $location
+     * @param $vrf
+     * @param $vlan
+     *
+     * @return array
+     *
      * @depends testCreateLocation
+     * @depends testCreateVrf
+     * @depends testCreateVlan
      */
-    public function testNetwork($location)
+    public function providerNetworkComplex($location, $vrf, $vlan)
+    {
+        return [
+            ['1.1.1.0/24',$location,$vrf, $vlan],
+            ['1.1.1.0/24',$location,$vrf],
+            ['1.1.1.0/24',$location],
+            ['1.1.1.0/24'],
+        ];
+    }
+    /**
+     * @depends providerNetworkComplex
+     */
+    public function testNetwork($network, $location, $vrf, $vlan)
     {
         $network = (new \App\Models\Network())
             ->fill([
-                'address' => '10.1.1.0/24',
-                'location' => $location
+                'address' => $network,
+                'location' => $location,
+                'vrf' => $vrf,
+                'vlan' => $vlan
             ])
             ->save();
         $this->assertEquals(1, \App\Models\Network::findAll()->count());
