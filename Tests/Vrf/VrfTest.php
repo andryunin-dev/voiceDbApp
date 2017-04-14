@@ -119,17 +119,18 @@ class VrfTest extends \PHPUnit\Framework\TestCase
     public function providerVrfSaveError()
     {
         return [
-            ['test', '1:10', 'test'],
-            ['Test', '1:11', 'test'],
-            ['  test', '1:12', 'test'],
-            ['test10', '2:1', 'test'],
-            ['test11', '  2:1', 'test'],
-            ['test20', '1.1.1.1:1', 'test'],
-            ['test21', '  1.1.1.1:1', 'test'],
+            'dubleName_1' =>['test', '100:1', 'test'],
+            'dubleName_2' =>['Test', '100:2', 'test'],
+            'dubleName_3' =>['  test', '100:3', 'test'],
+            'dubleRd_1' =>['test100', '1:1', 'test'],
+            'dubleRd_2' =>['test101', '  2:1', 'test'],
+            'dubleRd_3' =>['test102', '1.1.1.1:1', 'test'],
+            'dubleRd_4' =>['test103', '  1.1.1.1:1', 'test'],
         ];
     }
     /**
      * @dataProvider providerVrfSaveError
+     * @depends testVrfSave
      */
     public function testVrfSaveError($name, $rd, $comment)
     {

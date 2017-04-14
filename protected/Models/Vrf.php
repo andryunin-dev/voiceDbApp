@@ -22,8 +22,8 @@ class Vrf extends Model
     protected static $schema = [
         'table' => 'network.vrfs',
         'columns' => [
-            'name' => ['type' => 'string'],
-            'rd' => ['type' => 'string'],
+            'name' => ['type' => 'string'], //VRF name in lower case
+            'rd' => ['type' => 'string'], //RD (i.e '123:12', '10.1.1.2:125')
             'comment' => ['type' => 'string']
         ],
         'relations' => [
@@ -60,7 +60,7 @@ class Vrf extends Model
 
     protected function sanitizeName($val)
     {
-        return trim($val);
+        return strtolower(trim($val));
     }
 
     /**
@@ -104,7 +104,11 @@ class Vrf extends Model
 
     protected function sanitizeRd($val)
     {
-        return trim($val);
+        $rdArray = explode(':', $val);
+        foreach ($rdArray as $key => $rdValue) {
+            $rdArray[$key] = trim($rdValue);
+        }
+        return implode(':', $rdArray);
     }
 
 
@@ -114,6 +118,9 @@ class Vrf extends Model
         if (false !== self::findByColumn('rd', $this->rd)) {
             throw new Exception('VRF с данным RD уже существует');
         }
+        /**
+         * проверка на уникальность имени VRF наверное не нужна
+         */
         if (false !== self::findByColumn('name', $this->name)) {
             throw new Exception('VRF с именем "' . $this->name . '" уже существует');
         }
