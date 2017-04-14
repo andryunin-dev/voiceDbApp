@@ -33,6 +33,10 @@ class Parser extends Std
             if (count($item) != count($fieldNames)) {
                 continue; // если кол-во полей не совпадает - неправильная запись
             }
+            //удаляем переводы строк
+            foreach ($item as $key => $data) {
+                $item[$key] = trim($data);
+            }
             $assocArray = array_combine($fieldNames, $item);
             if (false === $assocArray) {
                 continue;
