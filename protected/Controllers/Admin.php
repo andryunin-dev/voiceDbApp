@@ -373,8 +373,9 @@ class Admin extends Controller
                             'status' => $status
                         ])
                         ->save();
-                    Office::getDbConnection()->commitTransaction();
                 }
+                Office::getDbConnection()->commitTransaction();
+
             } catch (MultiException $e) {
                 Office::getDbConnection()->rollbackTransaction();
                 $e->prepend(new Exception('Ошибка пакетного ввода'));
