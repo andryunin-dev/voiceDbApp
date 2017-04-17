@@ -1022,37 +1022,6 @@ class Admin extends Controller
             VPortType::getDbConnection()->rollbackTransaction();
             $this->data->errors = (new MultiException())->add($e);
         }
-        try {
-            VPortType::getDbConnection()->beginTransaction();
-            if ('voice' == $portType->type) {
-                if (false === $currentPort = VPortType::findByPK($portType->id)) {
-                    throw new Exception('Порт не найден');
-                }
-                if ($currentPort->ports->count() > 0) {
-                    throw new Exception('Удаление не возможно. Данный тип используется.');
-                }
-                $currentPort->delete();
-            } elseif ('data' == $portType->type) {
-                if (false === $currentPort = DPortType::findByPK($portType->id)) {
-                    throw new Exception('Порт не найден');
-                }
-                if ($currentPort->ports->count() > 0) {
-                    throw new Exception('Удаление не возможно. Данный тип используется.');
-                }
-                $currentPort->delete();
-
-            } else {
-                throw new Exception('Неизвестный тип порта');
-            }
-
-            VPortType::getDbConnection()->commitTransaction();
-        } catch (MultiException $e) {
-            VPortType::getDbConnection()->rollbackTransaction();
-            $this->data->errors = $e;
-        } catch (Exception $e) {
-            VPortType::getDbConnection()->rollbackTransaction();
-            $this->data->errors = (new MultiException())->add($e);
-        }
     }
 
 
