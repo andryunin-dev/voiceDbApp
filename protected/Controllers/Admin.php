@@ -306,7 +306,7 @@ class Admin extends Controller
     public function actionOffices()
     {
         $asc = function (Office $office_1, Office $office_2) {
-            return (0 != strnatcmp($office_1->address->city->region->title, $office_2->address->city->region->title)) ?: 1;
+            return (0 != $compareRes = strnatcmp($office_1->address->city->region->title, $office_2->address->city->region->title)) ? $compareRes : 1;
         };
 
         $this->data->offices = Office::findAll()->uasort($asc);
@@ -373,8 +373,9 @@ class Admin extends Controller
                             'status' => $status
                         ])
                         ->save();
-                    Office::getDbConnection()->commitTransaction();
                 }
+                Office::getDbConnection()->commitTransaction();
+
             } catch (MultiException $e) {
                 Office::getDbConnection()->rollbackTransaction();
                 $e->prepend(new Exception('Ошибка пакетного ввода'));
