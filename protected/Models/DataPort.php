@@ -87,7 +87,7 @@ class DataPort extends Model
         if (false === $ip->is_valid) {
             throw new Exception(implode('<br>', $ip->errors));
         }
-        if (true !== $ip->is_hostIp) {
+        if (false === $ip->is_hostIp) {
             throw new Exception($ip->cidrAddress . ' является адресом подсети' );
         }
         return true;

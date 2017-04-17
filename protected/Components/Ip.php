@@ -16,7 +16,10 @@ namespace App\Components;
  * @property string $mask           mask (i.e. 255.255.255.0, 255.240.0.0 etc.)
  * @property int $masklen           length of mask (1-32)
  * @property bool $is_valid         valid or not this object
- * @property bool $is_hostIp        current address is host IP (not network address)
+ *
+ * if masklen == 32 then $is_hostIp == true AND $is_networkIp == true
+ * @property bool $is_hostIp        current address is host IP
+ * @property bool $is_networkIp     current address is network IP
  * @property array $errors          errors
  */
 class Ip
@@ -88,7 +91,8 @@ class Ip
         $this->innerSet('networkSize', 1 << (self::MAX_LEN_MASK_IPV4 - $this->innerGet('masklen')));
         $this->innerSet('cidrNetwork', $this->innerGet('network') . '/' . $this->innerGet('masklen'));
         $this->innerSet('broadcast', long2ip(ip2long($this->innerGet('network')) + $this->innerGet('networkSize') - 1));
-        $this->innerSet('is_hostIp', $this->innerGet('address') != $this->innerGet('network'));
+        $this->innerSet('is_hostIp', (32 == $this->innerGet('masklen')) || ($this->innerGet('address') != $this->innerGet('network')));
+        $this->innerSet('is_networkIp', (32 == $this->innerGet('masklen')) || ($this->innerGet('address') == $this->innerGet('network')));
     }
 
     public static function cidr2mask($cidr)

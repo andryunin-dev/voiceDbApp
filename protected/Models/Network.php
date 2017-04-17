@@ -47,7 +47,7 @@ class Network extends Model
         }
         $ip = new Ip($val);
 
-        if (false === $ip->network || false !== $ip->is_hostIp) {
+        if (false === $ip->network || false === $ip->is_networkIp) {
             throw new Exception('Неверный адрес подсети');
         }
         return true;
