@@ -3,6 +3,9 @@
 namespace App\Models;
 
 use T4\Core\Collection;
+use T4\Core\Exception;
+use T4\Core\MultiException;
+use T4\Dbal\Query;
 use T4\Orm\Model;
 
 /**
@@ -18,6 +21,8 @@ use T4\Orm\Model;
  */
 class SoftwareItem extends Model
 {
+    const NO_NUMBER = 'NO_NUMBER';
+
     protected static $schema = [
         'table' => 'equipment.softwareItems',
         'columns' => [
@@ -37,5 +42,46 @@ class SoftwareItem extends Model
             return false;
         }
         return true;
+    }
+
+    public static function getBySoftware(Software $software, string $version)
+    {
+        if (empty($version)) {
+            $version = self::NO_NUMBER;
+        }
+
+        $softwareItem = self::findBySoftwareVersion($software, $version);
+
+        if (false == $softwareItem) {
+            try {
+                self::getDbConnection()->beginTransaction();
+                (new self())
+                    ->fill([
+                        'version' => $version,
+                        'software' => $software
+                    ])
+                    ->save();
+                self::getDbConnection()->commitTransaction();
+            } catch (MultiException $e) {
+                self::getDbConnection()->rollbackTransaction();
+            } catch (Exception $e) {
+                self::getDbConnection()->rollbackTransaction();
+            }
+
+            return self::findBySoftwareVersion($software, $version);
+        }
+
+        return $softwareItem;
+    }
+
+    public static function findBySoftwareVersion(Software $software, string $version)
+    {
+        $query = (new Query())
+            ->select()
+            ->from(self::getTableName())
+            ->where('version = :version AND "__software_id" = :__software_id')
+            ->params([':version' => $version, ':__software_id' => $software->getPk()]);
+
+        return self::findByQuery($query);
     }
 }

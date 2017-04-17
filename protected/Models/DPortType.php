@@ -4,6 +4,7 @@ namespace App\Models;
 
 use T4\Core\Collection;
 use T4\Core\Exception;
+use T4\Core\MultiException;
 use T4\Orm\Model;
 
 /**
@@ -16,6 +17,8 @@ use T4\Orm\Model;
  */
 class DPortType extends Model
 {
+    const NO_TYPE = 'NO_TYPE';
+
     protected static $schema = [
         'table' => 'equipment.dataPortTypes',
         'columns' => [
@@ -47,5 +50,30 @@ class DPortType extends Model
             throw new Exception('Такой тип существует');
         }
         return true;
+    }
+
+    public static function getDefaultType()
+    {
+        $portType = self::findByColumn('type', self::NO_TYPE);
+
+        if (false == $portType) {
+            try {
+                self::getDbConnection()->beginTransaction();
+                (new self())
+                    ->fill([
+                        'type' => self::NO_TYPE
+                    ])
+                    ->save();
+                self::getDbConnection()->commitTransaction();
+            } catch (MultiException $e) {
+                self::getDbConnection()->rollbackTransaction();
+            } catch (Exception $e) {
+                self::getDbConnection()->rollbackTransaction();
+            }
+
+            return self::findByColumn('type', self::NO_TYPE);
+        }
+
+        return $portType;
     }
 }
