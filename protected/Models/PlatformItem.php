@@ -22,8 +22,6 @@ use T4\Orm\Model;
  */
 class PlatformItem extends Model
 {
-    const NO_NUMBER = 'NO_NUMBER';
-
     protected static $schema = [
         'table' => 'equipment.platformItems',
         'columns' => [
@@ -41,6 +39,9 @@ class PlatformItem extends Model
 
     protected function validateSerialNumber($val)
     {
+        if (empty(trim($val))) {
+            throw new Exception('Отсутствует серийный номер платформы');
+        }
         return trim($val);
     }
 
@@ -59,29 +60,15 @@ class PlatformItem extends Model
 
     public static function getByPlatform(Platform $platform, string $serial)
     {
-        if (empty($serial)) {
-            $serial = self::NO_NUMBER;
-        }
-
         $platformItem = self::findByPlatformSerial($platform, $serial);
 
         if (false == $platformItem) {
-            try {
-                self::getDbConnection()->beginTransaction();
-                (new self())
-                    ->fill([
-                        'serialNumber' => $serial,
-                        'platform' => $platform
-                    ])
-                    ->save();
-                self::getDbConnection()->commitTransaction();
-            } catch (MultiException $e) {
-                self::getDbConnection()->rollbackTransaction();
-            } catch (Exception $e) {
-                self::getDbConnection()->rollbackTransaction();
-            }
-
-            return self::findByPlatformSerial($platform, $serial);
+            $platformItem = (new self())
+                ->fill([
+                    'serialNumber' => $serial,
+                    'platform' => $platform
+                ])
+                ->save();
         }
 
         return $platformItem;

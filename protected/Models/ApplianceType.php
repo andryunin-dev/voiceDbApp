@@ -17,8 +17,6 @@ use T4\Orm\Model;
  */
 class ApplianceType extends Model
 {
-    const NO_TYPE = 'NO_TYPE';
-
     protected static $schema = [
         'table' => 'equipment.applianceTypes',
         'columns' => [
@@ -60,30 +58,17 @@ class ApplianceType extends Model
 
     public static function getByType(string $type)
     {
-        if (empty($type)) {
-            $type = self::NO_TYPE;
-        }
-
         $applianceType = self::findByType($type);
 
         if (false == $applianceType) {
-            try {
-                self::getDbConnection()->beginTransaction();
-                (new self())
-                    ->fill([
-                        'type' => $type
-                    ])
-                    ->save();
-                self::getDbConnection()->commitTransaction();
-            } catch (MultiException $e) {
-                self::getDbConnection()->rollbackTransaction();
-            } catch (Exception $e) {
-                self::getDbConnection()->rollbackTransaction();
-            }
-
-            return self::findByType($type);
+            $applianceType = (new self())
+                ->fill([
+                    'type' => $type
+                ])
+                ->save();
         }
 
         return $applianceType;
     }
 }
+

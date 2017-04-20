@@ -17,6 +17,7 @@ use App\Models\PlatformItem;
 use App\Models\Software;
 use App\Models\SoftwareItem;
 use App\Models\Vendor;
+use T4\Core\Collection;
 use T4\Core\Std;
 use T4\Dbal\Query;
 use T4\Mvc\Controller;
@@ -59,7 +60,7 @@ class RServer extends Controller
 
     public function actionShow()
     {
-        $rawdata = (new Std())->fill(json_decode(file_get_contents('C:\\OpenServer\\domains\\voice.loc\\protected\\Test_JSON\\item_201704139214578446000.json')));
+        $rawdata = (new Std())->fill(json_decode(file_get_contents('C:\\OpenServer\\domains\\voice.loc\\protected\\Test_JSON\\item_2017041712054414798300.json')));
         var_dump($rawdata);
 
         var_dump(json_last_error_msg());
@@ -67,15 +68,6 @@ class RServer extends Controller
         die();
     }
 
-    public function actionShowSoftware()
-    {
-        $rawdata = (new Std())->fill(json_decode(file_get_contents('C:\\OpenServer\\domains\\voice.loc\\protected\\Test_JSON\\item_2017041011131081254400.json')));
-
-        $software = CiscoParser::getSoftware($rawdata->software);
-
-        var_dump($software);
-        die();
-    }
 
 
     /*
@@ -83,10 +75,10 @@ class RServer extends Controller
      */
     public function actionDP()
     {
+
         $rawData = (new Std())->fill(json_decode(file_get_contents('php://input')));
 
         $srcData = new Std();
-//        $srcData->ip = '192.168.12.1/24';
         $srcData->ip = $rawData->ip;
         $srcData->LotusId = $rawData->LotusId;
         $srcData->platformVendor = $rawData->platformVendor;
@@ -98,152 +90,222 @@ class RServer extends Controller
         $srcData->applianceModules = $rawData->applianceModules;
         $srcData->hostname = $rawData->hostname;
 
-//        var_dump($srcData);
-//        die;
+        $query = (new Query())
+            ->select()
+            ->from(PlatformItem::getTableName())
+            ->where('"serialNumber" = :serialNumber')
+            ->params([':serialNumber' => $srcData->platformSerial]);
 
-//        $srcData = (new Std())->fill(json_decode('{
-//            "ip" : "192.168.10.1/24",
-//            "officeLotusId" : "2",
-//            "platformVendor" : "vend 433455",
-//            "platformTitle" : "platform233233dgf111",
-//            "platformSerial" : "w*Kjh4444-111",
-//            "applianceSoft" : "sofftt 9993",
-//            "softwareVersion" : "3kjHK45Illh",
-//            "applianceType" : "Role3",
-//            "hostname" : "hostname"
-//        }'));
+        $appliance = (PlatformItem::findByQuery($query))->appliance;
 
-        // В БД ОТСУТСТВУЕТ устройство с заданым IP адресом
-        echo 'Create new Appliance';
+        /*
+         * Известное устройство - обновляем его данные в БД
+         */
+        if (false != $appliance) {
+            echo 'Current Appliance   ';
 
-        try {
-            $office = Office::findByLotusId($srcData->LotusId);
-            if (empty($office)) {
-                throw new Exception('Неверный Lotus ID');
-                die;
-            }
-
-            $vendor = Vendor::getByTitle($srcData->platformVendor);
-            $platform = Platform::getByVendor($vendor, $srcData->platformTitle);
-            $platformItem = PlatformItem::getByPlatform($platform, $srcData->platformSerial);
-            $software = Software::getByVendor($vendor, $srcData->applianceSoft);
-            $softwareItem = SoftwareItem::getBySoftware($software, $srcData->softwareVersion);
-            $applianceType = ApplianceType::getByType($srcData->applianceType);
-
-//            var_dump(DPortType::findByPK(2));
-//            die;
-//            var_dump($srcData->ip);
-//            die;
-
-//            $p = (new DataPort())
-//                ->fill([
-//                    'appliance' => Appliance::findByPK(40),
-//                    'ipAddress' => $srcData->ip,
-//                    'portType' => DPortType::findByPK(2),
-//                ]);
-//            var_dump($p);
-//            die;
-
-
-//            DataPort::getDbConnection()->beginTransaction();
-//            $p = (new DataPort())
-//                ->fill([
-//                    'appliance' => Appliance::findByPK(40),
-//                    'ipAddress' => $srcData->ip,
-//                    'portType' => DPortType::findByPK(2),
-//                ])
-////            var_dump($p);
-////            die;
-//                ->save();
-//            DataPort::getDbConnection()->commitTransaction();
-//
-//            die;
-
-            Appliance::getDbConnection()->beginTransaction();
-            $appliance = (new Appliance())
-                ->fill([
-                    'location' => $office,
-                    'vendor' => $vendor,
-                    'platform' => $platformItem,
-                    'software' => $softwareItem,
-                    'type' => $applianceType,
-                    'details' => [
-                        'hostname' => $srcData->hostname
-                    ]
-                ])
-                ->save();
-            Appliance::getDbConnection()->commitTransaction();
-
-
-            ModuleItem::getDbConnection()->beginTransaction();
+            // Добавляем новые модули
             if (!empty($srcData->applianceModules)) {
-                foreach ($srcData->applianceModules as $module) {
+                try {
+                    ModuleItem::getDbConnection()->beginTransaction();
+                    foreach ($srcData->applianceModules as $newModule) {
 
-                    $moduleTitle = Module::getByVendorAndTitle($vendor, $module->product_number, $module->description);
-                    (new ModuleItem())
-                        ->fill([
-                            'appliance' => $appliance,
-                            'module' => $moduleTitle,
-                            'serialNumber' => $module->serial,
-                            'details' => [
-                                'slot' => $module->slot
-                            ],
-                        ])
-                        ->save();
+                        if (
+                            !empty($newModule->serial) &&
+                            !empty($newModule->product_number) &&
+                            !$appliance->modules->existsElement(['serialNumber' => $newModule->serial])
+                        ) {
+
+                            $module = Module::getByVendorAndTitle($appliance->vendor, $newModule->product_number, $newModule->description);
+
+                            // TODO: Добавить проверку на существование ModuleItem в БД - если ЕСТЬ, то меняем ему Appliance
+
+                            (new ModuleItem())
+                                ->fill([
+                                    'appliance' => $appliance,
+                                    'module' => $module,
+                                    'serialNumber' => $newModule->serial,
+                                ])
+                                ->save();
+                        }
+                    }
+
+                    // TODO: Удаление из БД удаленных модулей
+
+                    ModuleItem::getDbConnection()->commitTransaction();
+
+                } catch (MultiException $e) {
+                    ModuleItem::getDbConnection()->rollbackTransaction();
+                } catch (Exception $e) {
+                    ModuleItem::getDbConnection()->rollbackTransaction();
                 }
             }
-            ModuleItem::getDbConnection()->commitTransaction();
 
-            DataPort::getDbConnection()->beginTransaction();
-            (new DataPort())
-                ->fill([
-                    'appliance' => $appliance,
-                    'ipAddress' => $srcData->ip,
-                    'portType' => DPortType::findByPK(5),
-                ])
-                ->save();
-            DataPort::getDbConnection()->commitTransaction();
+            // Обновляем software
+            if (
+                !empty($srcData->applianceSoft) &&
+                !empty($srcData->softwareVersion) &&
+                $appliance->software->version != $srcData->softwareVersion
+            ) {
+                try {
+                    Appliance::getDbConnection()->beginTransaction();
+                    $software = Software::getByVendor($appliance->vendor, $srcData->applianceSoft);
+                    $appliance->software = SoftwareItem::getBySoftware($software, $srcData->softwareVersion);
 
+                    $appliance->fill([
+                        'software' => $appliance->software,
+                    ])
+                        ->save();
+                    Appliance::getDbConnection()->commitTransaction();
 
+                } catch (MultiException $e) {
+                    Appliance::getDbConnection()->rollbackTransaction();
+                } catch (Exception $e) {
+                    Appliance::getDbConnection()->rollbackTransaction();
+                }
+            }
 
-        } catch (MultiException $e) {
-            Appliance::getDbConnection()->rollbackTransaction();
-        } catch (Exception $e) {
-            Appliance::getDbConnection()->rollbackTransaction();
+            // Обновляем месторасположения
+            if (
+                false != ($office = Office::findByLotusId($srcData->LotusId)) &&
+                $appliance->location->lotusId != $srcData->LotusId
+            ) {
+                try {
+                    Appliance::getDbConnection()->beginTransaction();
+                    $appliance->fill([
+                        'location' => $office,
+                    ])
+                        ->save();
+                    Appliance::getDbConnection()->commitTransaction();
+
+                } catch (MultiException $e) {
+                    Appliance::getDbConnection()->rollbackTransaction();
+                } catch (Exception $e) {
+                    Appliance::getDbConnection()->rollbackTransaction();
+                }
+            }
+
+            // Обновляем HOSTNAME
+            if (
+                !empty($srcData->hostname) &&
+                $appliance->details->hostname != $srcData->hostname
+            ) {
+                try {
+                    Appliance::getDbConnection()->beginTransaction();
+                    $appliance->fill([
+                        'details' => [
+                            'hostname' => $srcData->hostname
+                        ]
+                    ])
+                        ->save();
+                    Appliance::getDbConnection()->commitTransaction();
+
+                } catch (MultiException $e) {
+                    Appliance::getDbConnection()->rollbackTransaction();
+                } catch (Exception $e) {
+                    Appliance::getDbConnection()->rollbackTransaction();
+                }
+            }
+
+            // TODO: Change or Add Data Port
+
+            die();
         }
 
-        die;
 
+        /*
+         * Неизвестное устройство - создадим и сохраним его в БД
+         */
+        if (false == $appliance) {
+            echo 'Create new Appliance    ';
 
-// Начало логики обработки
-//        $dataPort = DataPort::findByIp($srcData->ip);
+            // Создать Appliance
+            try {
+                Appliance::getDbConnection()->beginTransaction();
+                $office = Office::findByLotusId($srcData->LotusId);
+                $vendor = Vendor::getByTitle($srcData->platformVendor);
+                $platform = Platform::getByVendor($vendor, $srcData->platformTitle);
+                $platformItem = PlatformItem::getByPlatform($platform, $srcData->platformSerial);
+                $software = Software::getByVendor($vendor, $srcData->applianceSoft);
+                $softwareItem = SoftwareItem::getBySoftware($software, $srcData->softwareVersion);
+                $applianceType = ApplianceType::getByType($srcData->applianceType);
 
-//        var_dump($dataPort);
-//        die;
+                $appliance = (new Appliance())
+                    ->fill([
+                        'location' => $office,
+                        'vendor' => $vendor,
+                        'platform' => $platformItem,
+                        'software' => $softwareItem,
+                        'type' => $applianceType,
+                        'details' => [
+                            'hostname' => $srcData->hostname
+                        ]
+                    ])
+                    ->save();
+                Appliance::getDbConnection()->commitTransaction();
 
-//        // В БД ЕСТЬ устройство с заданым IP адресом
-//        if (!empty($dataPort)) {
-//
-//            $appliance = (DataPort::findByIp($srcData->ip))->appliance;
-//
-//            // Это ТЕКУЩЕЕ устройство связанное с IP адресом в БД
-//            if ($srcData->platformSerial == $appliance->platform->serialNumber) {
-//                echo 'Current Appliance';
-//                // Обновим данные устройства в БД
-//
-//                var_dump($appliance);
-//
-//                die();
-//            }
-//
-//            // Это ДРУГОЕ устройство, не связанное с этим IP адресом, но существующее в БД
-//            echo 'Another Appliance';
-//            // Удалить IP адрес у Current Appliance (определить его по текущему IP адресу)
-//            // Изменить IP адрес для Another Appliance
-//            // Изменить Office по IP адресу для Another Appliance
-//
-//            die();
-//        }
+            } catch (MultiException $e) {
+                Appliance::getDbConnection()->rollbackTransaction();
+            } catch (Exception $e) {
+                Appliance::getDbConnection()->rollbackTransaction();
+            }
+
+            // Добавить к Appliance Data Port
+            try {
+                // TODO: Сделать получение $portType со значением по умолчанию "Eth"
+                $portTypeID = 5;
+                $portType = DPortType::findByPK($portTypeID);
+
+                DataPort::getDbConnection()->beginTransaction();
+                (new DataPort())
+                    ->fill([
+                        'appliance' => $appliance,
+                        'ipAddress' => $srcData->ip,
+                        'portType' => $portType,
+                    ])
+                    ->save();
+                DataPort::getDbConnection()->commitTransaction();
+
+            } catch (MultiException $e) {
+                DataPort::getDbConnection()->rollbackTransaction();
+            } catch (Exception $e) {
+                DataPort::getDbConnection()->rollbackTransaction();
+            }
+
+            // Добавить новые модули к Appliance
+            if (!empty($srcData->applianceModules)) {
+                try {
+                    ModuleItem::getDbConnection()->beginTransaction();
+                    foreach ($srcData->applianceModules as $newModule) {
+
+                        if (
+                            !empty($newModule->serial) &&
+                            !empty($newModule->product_number)
+                        ) {
+
+                            $module = Module::getByVendorAndTitle($appliance->vendor, $newModule->product_number, $newModule->description);
+
+                            (new ModuleItem())
+                                ->fill([
+                                    'appliance' => $appliance,
+                                    'module' => $module,
+                                    'serialNumber' => $newModule->serial,
+                                ])
+                                ->save();
+                        }
+                    }
+
+                    ModuleItem::getDbConnection()->commitTransaction();
+
+                } catch (MultiException $e) {
+                    ModuleItem::getDbConnection()->rollbackTransaction();
+                } catch (Exception $e) {
+                    ModuleItem::getDbConnection()->rollbackTransaction();
+                }
+            }
+
+            die;
+        }
     }
-
 }
+

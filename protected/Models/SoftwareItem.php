@@ -21,8 +21,6 @@ use T4\Orm\Model;
  */
 class SoftwareItem extends Model
 {
-    const NO_NUMBER = 'NO_NUMBER';
-
     protected static $schema = [
         'table' => 'equipment.softwareItems',
         'columns' => [
@@ -46,29 +44,15 @@ class SoftwareItem extends Model
 
     public static function getBySoftware(Software $software, string $version)
     {
-        if (empty($version)) {
-            $version = self::NO_NUMBER;
-        }
-
         $softwareItem = self::findBySoftwareVersion($software, $version);
 
         if (false == $softwareItem) {
-            try {
-                self::getDbConnection()->beginTransaction();
-                (new self())
-                    ->fill([
-                        'version' => $version,
-                        'software' => $software
-                    ])
-                    ->save();
-                self::getDbConnection()->commitTransaction();
-            } catch (MultiException $e) {
-                self::getDbConnection()->rollbackTransaction();
-            } catch (Exception $e) {
-                self::getDbConnection()->rollbackTransaction();
-            }
-
-            return self::findBySoftwareVersion($software, $version);
+            $softwareItem = (new self())
+                ->fill([
+                    'version' => $version,
+                    'software' => $software
+                ])
+                ->save();
         }
 
         return $softwareItem;

@@ -19,9 +19,6 @@ use T4\Orm\Model;
  */
 class Platform extends Model
 {
-
-    const NO_NAME = 'NO_NAME';
-
     protected static $schema = [
         'table' => 'equipment.platforms',
         'columns' => [
@@ -59,29 +56,15 @@ class Platform extends Model
 
     public static function getByVendor(Vendor $vendor, string $platformTitle)
     {
-        if (empty($platformTitle)) {
-            $platformTitle = self::NO_NAME;
-        }
-
         $platform = self::findByVendorPlatform($vendor, $platformTitle);
 
         if (false == $platform) {
-            try {
-                self::getDbConnection()->beginTransaction();
-                (new self())
-                    ->fill([
-                        'title' => $platformTitle,
-                        'vendor' => $vendor
-                    ])
-                    ->save();
-                self::getDbConnection()->commitTransaction();
-            } catch (MultiException $e) {
-                self::getDbConnection()->rollbackTransaction();
-            } catch (Exception $e) {
-                self::getDbConnection()->rollbackTransaction();
-            }
-
-            return self::findByVendorPlatform($vendor, $platformTitle);
+            $platform = (new self())
+                ->fill([
+                    'title' => $platformTitle,
+                    'vendor' => $vendor
+                ])
+                ->save();
         }
 
         return $platform;

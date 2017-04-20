@@ -35,6 +35,7 @@ class ModuleItem extends Model
 
     protected function validateSerialNumber($val)
     {
+        return true;
     }
 
     protected function sanitizeSerialNumber($val)

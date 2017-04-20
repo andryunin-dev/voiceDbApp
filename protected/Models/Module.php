@@ -21,9 +21,6 @@ use T4\Orm\Model;
  */
 class Module extends Model
 {
-    const NO_NAME = 'NO_NAME';
-    const NO_DESCRIPTION = 'NO_DESCRIPTION';
-
     const MOTHERBOARD = 'motherboard'; // motherboard name in modules
 
     protected static $schema = [
@@ -65,34 +62,16 @@ class Module extends Model
 
     public static function getByVendorAndTitle(Vendor $vendor, string $title, string $description)
     {
-        if (empty($title)) {
-            $title = self::NO_NAME;
-        }
-
-        if (empty($description)) {
-            $description = self::NO_DESCRIPTION;
-        }
-
         $module = self::findByVendorAndTitle($vendor, $title);
 
         if (false == $module) {
-            try {
-                self::getDbConnection()->beginTransaction();
-                (new self())
-                    ->fill([
-                        'title' => $title,
-                        'description' => $description,
-                        'vendor' => $vendor
-                    ])
-                    ->save();
-                self::getDbConnection()->commitTransaction();
-            } catch (MultiException $e) {
-                self::getDbConnection()->rollbackTransaction();
-            } catch (Exception $e) {
-                self::getDbConnection()->rollbackTransaction();
-            }
-
-            return self::findByVendorAndTitle($vendor, $title);
+            $module = (new self())
+                ->fill([
+                    'title' => $title,
+                    'description' => $description,
+                    'vendor' => $vendor
+                ])
+                ->save();
         }
 
         return $module;

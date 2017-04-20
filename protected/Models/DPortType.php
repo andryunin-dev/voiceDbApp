@@ -51,29 +51,4 @@ class DPortType extends Model
         }
         return true;
     }
-
-    public static function getDefaultType()
-    {
-        $portType = self::findByColumn('type', self::NO_TYPE);
-
-        if (false == $portType) {
-            try {
-                self::getDbConnection()->beginTransaction();
-                (new self())
-                    ->fill([
-                        'type' => self::NO_TYPE
-                    ])
-                    ->save();
-                self::getDbConnection()->commitTransaction();
-            } catch (MultiException $e) {
-                self::getDbConnection()->rollbackTransaction();
-            } catch (Exception $e) {
-                self::getDbConnection()->rollbackTransaction();
-            }
-
-            return self::findByColumn('type', self::NO_TYPE);
-        }
-
-        return $portType;
-    }
 }

@@ -20,9 +20,6 @@ use T4\Orm\Model;
  */
 class Vendor extends Model
 {
-
-    const NO_NAME = 'NO_NAME';
-
     protected static $schema = [
         'table' => 'equipment.vendors',
         'columns' => [
@@ -58,28 +55,14 @@ class Vendor extends Model
 
     public static function getByTitle(string $title)
     {
-        if (empty($title)) {
-            $title = self::NO_NAME;
-        }
-
         $vendor = self::findByTitle($title);
 
         if (false == $vendor) {
-            try {
-                self::getDbConnection()->beginTransaction();
-                (new self())
-                    ->fill([
-                        'title' => $title
-                    ])
-                    ->save();
-                self::getDbConnection()->commitTransaction();
-            } catch (MultiException $e) {
-                self::getDbConnection()->rollbackTransaction();
-            } catch (Exception $e) {
-                self::getDbConnection()->rollbackTransaction();
-            }
-
-            return self::findByTitle($title);
+            $vendor = (new self())
+                ->fill([
+                    'title' => $title
+                ])
+                ->save();
         }
 
         return $vendor;

@@ -19,8 +19,6 @@ use T4\Orm\Model;
  */
 class Software extends Model
 {
-    const NO_NAME = 'NO_NAME';
-
     protected static $schema = [
         'table' => 'equipment.software',
         'columns' => [
@@ -58,29 +56,15 @@ class Software extends Model
 
     public static function getByVendor(Vendor $vendor, string $applianceSoft)
     {
-        if (empty($applianceSoft)) {
-            $applianceSoft = self::NO_NAME;
-        }
-
         $software = self::findByVendorPlatform($vendor, $applianceSoft);
 
         if (false == $software) {
-            try {
-                self::getDbConnection()->beginTransaction();
-                (new self())
-                    ->fill([
-                        'title' => $applianceSoft,
-                        'vendor' => $vendor
-                    ])
-                    ->save();
-                self::getDbConnection()->commitTransaction();
-            } catch (MultiException $e) {
-                self::getDbConnection()->rollbackTransaction();
-            } catch (Exception $e) {
-                self::getDbConnection()->rollbackTransaction();
-            }
-
-            return self::findByVendorPlatform($vendor, $applianceSoft);
+            $software = (new self())
+                ->fill([
+                    'title' => $applianceSoft,
+                    'vendor' => $vendor
+                ])
+                ->save();
         }
 
         return $software;
