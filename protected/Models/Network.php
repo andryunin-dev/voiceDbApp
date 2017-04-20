@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Components\Ip;
 use T4\Core\Collection;
 use T4\Core\Exception;
+use T4\Dbal\Query;
 use T4\Orm\Model;
 
 /**
@@ -34,12 +35,6 @@ class Network extends Model
 
     protected static $extensions = ['tree'];
 
-    public function findParentNetwork()
-    {
-        $query = 'WITH parents AS (SELECT DISTINCT * FROM network.networks WHERE address >> :subnet) SELECT * FROM parents WHERE address=(SELECT max(address) FROM parents)';
-        return static::findByQuery($query, [':subnet' => $this->address]);
-    }
-
     protected function validateAddress($val)
     {
         if (!is_string($val)) {
@@ -60,18 +55,20 @@ class Network extends Model
 
     protected function validate()
     {
+        if (! $this->vrf instanceof Vrf) {
+            throw new Exception('VRF не найден');
+        }
+        if ((true === $this->isNew || true === $this->isUpdated) && false !== self::findByAddressVrf($this->address, $this->vrf)) {
+            throw new Exception('Сеть с адресом ' . $this->address . '(VRF: ' . $this->vrf . ') уже существует');
+        }
         return true;
     }
 
     protected function beforeSave()
     {
         if (true === $this->isNew) {
-            if (empty($this->vrf)) {
-                $this->vrf = Vrf::findGlobalVrf();
-            }
             $this->parent = $this->findParentNetwork();
-        }
-        if (true === $this->isUpdated) {
+        } elseif (true === $this->isUpdated) {
             foreach ($this->children as $child) {
                 $child->parent = $this->parent;
                 $child->save();
@@ -113,5 +110,20 @@ class Network extends Model
             }
         }
         return parent::beforeDelete();
+    }
+
+    public function findParentNetwork()
+    {
+        $query = 'WITH parents AS (SELECT DISTINCT * FROM network.networks WHERE address >> :subnet) SELECT * FROM parents WHERE address=(SELECT max(address) FROM parents)';
+        return static::findByQuery($query, [':subnet' => $this->address]);
+    }
+
+    public static function findByAddressVrf($address, Vrf $vrf)
+    {
+        $result = Network::findAllByColumn('address', $address)->filter(function (Network $network) use ($vrf) {
+            return ($network->vrf->getPk() == $vrf->getPk());
+        });
+        $result = $result->first();
+        return ($result) ?: false;
     }
 }

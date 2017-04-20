@@ -35,21 +35,6 @@ class Vrf extends Model
     const GLOBAL_VRF_RD = '0:0';
     const GLOBAL_VRF_COMMENT = 'global VRF';
 
-    public static function findGlobalVrf()
-    {
-        $gVrf = self::findByColumn('name', self::GLOBAL_VRF_NAME);
-        if (false === $gVrf) {
-            $gVrf = (new self())
-                ->fill([
-                    'name' => self::GLOBAL_VRF_NAME,
-                    'rd' => self::GLOBAL_VRF_RD,
-                    'comment' => self::GLOBAL_VRF_COMMENT
-                ])
-                ->save();
-        }
-        return $gVrf;
-    }
-
     protected function validateName($val)
     {
         if (!is_string($val)) {
@@ -118,18 +103,32 @@ class Vrf extends Model
         if (false !== self::findByColumn('rd', $this->rd)) {
             throw new Exception('VRF с данным RD уже существует');
         }
-        /**
-         * проверка на уникальность имени VRF наверное не нужна
-         */
-//        if (false !== self::findByColumn('name', $this->name)) {
-//            throw new Exception('VRF с именем "' . $this->name . '" уже существует');
-//        }
-        if (strtolower(self::GLOBAL_VRF_NAME) == $this->name && self::GLOBAL_VRF_RD != $this->rd) {
+        if (strtolower(self::GLOBAL_VRF_NAME) == strtolower($this->name) && self::GLOBAL_VRF_RD != $this->rd) {
             throw new Exception('Данное имя зарезервировано для Global VRF');
         }
         if (self::GLOBAL_VRF_RD == $this->rd && self::GLOBAL_VRF_NAME != strtolower($this->name)) {
             throw new Exception('Данное RD зарезервировано для Global VRF');
         }
         return true;
+    }
+
+    public function __toString()
+    {
+        return $this->name . (self::GLOBAL_VRF_RD != $this->rd) ? '(' . $this->rd . ')' : '';
+    }
+
+    public static function findGlobalVrf()
+    {
+        $gVrf = self::findByColumn('name', self::GLOBAL_VRF_NAME);
+        if (false === $gVrf) {
+            $gVrf = (new self())
+                ->fill([
+                    'name' => self::GLOBAL_VRF_NAME,
+                    'rd' => self::GLOBAL_VRF_RD,
+                    'comment' => self::GLOBAL_VRF_COMMENT
+                ])
+                ->save();
+        }
+        return $gVrf;
     }
 }

@@ -37,37 +37,11 @@ class DataPort extends Model
         ]
     ];
 
-    public static function countAllByIp($ip)
+    protected function getIpAddress()
     {
-        $query = (new Query())
-            ->select()
-            ->from(DataPort::getTableName())
-            ->where('host("ipAddress") = host(:ip)')
-            ->params([':ip' => $ip]);
-
-        return DataPort::countAllByQuery($query);
-    }
-
-    public static function findAllByIp($ip)
-    {
-        $query = (new Query())
-            ->select()
-            ->from(DataPort::getTableName())
-            ->where('host("ipAddress") = host(:ip)')
-            ->params([':ip' => $ip]);
-
-        return DataPort::findAllByQuery($query);
-    }
-
-     public static function findByIp($ip)
-    {
-        $query = (new Query())
-            ->select()
-            ->from(DataPort::getTableName())
-            ->where('host("ipAddress") = host(:ip)')
-            ->params([':ip' => $ip]);
-
-        return DataPort::findByQuery($query);
+        $key = 'ipAddress';
+        $currentIpAddress = isset($this->__data[$key]) ? $this->__data[$key] : null;
+        return (new Ip($currentIpAddress, 32))->cidrAddress;
     }
 
     /**
@@ -88,7 +62,7 @@ class DataPort extends Model
             throw new Exception(implode('<br>', $ip->errors));
         }
         if (false === $ip->is_hostIp) {
-            throw new Exception($ip->cidrAddress . ' является адресом подсети' );
+            throw new Exception($ip->cidrAddress . ' не является адресом хоста' );
         }
         return true;
     }
@@ -155,12 +129,12 @@ class DataPort extends Model
         }
 
         //ищем записи с таким ip для новой записи
-        if (true === $this->isNew && DataPort::countAllByIp($this->ipAddress) > 0) {
+        if (true === $this->isNew && self::countAllByIp($this->ipAddress) > 0) {
             throw new Exception('IP адрес ' . $ip->address . ' уже используется.');
         }
         //валидация при изменении существующей записи
         if (true === $this->isUpdated) {
-            $fromDb = DataPort::findByIp($this->ipAddress);
+            $fromDb = self::findByIp($this->ipAddress);
             if (false !== $fromDb && $fromDb->getPk() != $this->getPk()) {
                 throw new Exception('IP адрес ' . $ip->address . ' уже используется.');
             }
@@ -189,4 +163,38 @@ class DataPort extends Model
         }
         return parent::beforeSave();
     }
+
+    public static function countAllByIp($ip)
+    {
+        $query = (new Query())
+            ->select()
+            ->from(DataPort::getTableName())
+            ->where('host("ipAddress") = host(:ip)')
+            ->params([':ip' => $ip]);
+
+        return DataPort::countAllByQuery($query);
+    }
+
+    public static function findAllByIp($ip)
+    {
+        $query = (new Query())
+            ->select()
+            ->from(DataPort::getTableName())
+            ->where('host("ipAddress") = host(:ip)')
+            ->params([':ip' => $ip]);
+
+        return DataPort::findAllByQuery($query);
+    }
+
+     public static function findByIp($ip)
+    {
+        $query = (new Query())
+            ->select()
+            ->from(DataPort::getTableName())
+            ->where('host("ipAddress") = host(:ip)')
+            ->params([':ip' => $ip]);
+
+        return DataPort::findByQuery($query);
+    }
+
 }

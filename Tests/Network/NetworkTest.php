@@ -119,30 +119,60 @@ class NetworkTest extends \PHPUnit\Framework\TestCase
         return $vrf;
     }
 
-    /**
-     * @param $location
-     * @param $vrf
-     * @param $vlan
-     *
-     * @return array
-     *
-     * @depends testCreateLocation
-     * @depends testCreateVrf
-     * @depends testCreateVlan
-     */
-    public function providerNetworkComplex($location, $vrf, $vlan)
+    public function providerInvalidNetwork()
     {
         return [
-            ['1.1.1.0/24',$location,$vrf, $vlan],
-            ['1.1.1.0/24',$location,$vrf],
-            ['1.1.1.0/24',$location],
-            ['1.1.1.0/24'],
+            ['1.1.1.1/24'],
+            [1234],
+            ['1.1.1.1/33']
         ];
     }
     /**
-     * @depends providerNetworkComplex
+     * @dataProvider providerInvalidNetwork
+     * @depends testCreateVrf
      */
-    public function testNetwork($network, $location, $vrf, $vlan)
+    public function testInvalidNetwork($address, $vrf)
+    {
+        $this->expectException(\T4\Core\Exception::class);
+        (new \App\Models\Network())
+            ->fill([
+                'address' => $address,
+                'vrf' => $vrf
+            ]);
+    }
+
+
+    public function providerValidNetwork()
+    {
+        return [
+            ['1.1.1.0/24'],
+            ['1.1.1.0/26'],
+            ['1.1.1.64/26'],
+            ['1.1.1.0/25'],
+            ['1.1.1.128/25'],
+            ['1.1.2.0/24']
+        ];
+    }
+
+    /**
+     * after test in DB we have:
+     * 1.1.1.0/24
+     *   1.1.1.0/25
+     *     1.1.1.0/26
+     *     1.1.1.64/26
+     *   1.1.1.128/25
+     * 1.1.2.0/24
+     *
+     * @dataProvider  providerValidNetwork
+     * @depends testCreateLocation
+     * @depends testCreateVrf
+     * @depends testCreateVlan
+     * @param string $network
+     * @param \App\Models\Office $location
+     * @param \App\Models\Vrf $vrf
+     * @param \App\Models\Vlan $vlan
+     */
+    public function testAppendNetwork($network, $location, $vrf, $vlan)
     {
         $network = (new \App\Models\Network())
             ->fill([
@@ -152,17 +182,16 @@ class NetworkTest extends \PHPUnit\Framework\TestCase
                 'vlan' => $vlan
             ])
             ->save();
-        $this->assertEquals(1, \App\Models\Network::findAll()->count());
         $fromDb = \App\Models\Network::findByPK($network->getPk());
         $this->assertInstanceOf(\App\Models\Network::class, $fromDb);
         $this->assertInstanceOf(\App\Models\Vrf::class, $fromDb->vrf);
         $this->assertInstanceOf(\App\Models\Office::class, $fromDb->location);
-        $this->assertEquals(\App\Models\Vrf::GLOBAL_VRF_NAME, $fromDb->vrf->name);
-        $this->assertEquals(\App\Models\Vrf::GLOBAL_VRF_RD, $fromDb->vrf->rd);
+        $this->assertEquals($vrf->name, $fromDb->vrf->name);
+        $this->assertEquals($vrf->rd, $fromDb->vrf->rd);
 
         //Drop all networks
-        \App\Models\Network::findAll()->delete();
-        $this->assertEquals(0, \App\Models\Network::findAll()->count());
+//        \App\Models\Network::findAll()->delete();
+//        $this->assertEquals(0, \App\Models\Network::findAll()->count());
     }
 
 }

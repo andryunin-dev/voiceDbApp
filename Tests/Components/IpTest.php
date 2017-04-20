@@ -7,11 +7,12 @@ require_once __DIR__ . '/../DbTrait.php';
 
 class IpTest extends \PHPUnit\Framework\TestCase
 {
-    public function validateTestProvider()
+    public function providerValidateTest()
     {
         return [
             ['1.1.1.1/24', true],
             ['1.1.1.1/32', true],
+            ['1.1.1.1', false],
             ['1.1.1.0/24', true],
             ['256.0.0.0/24', false],
             ['1.1.1.1/33', false],
@@ -21,13 +22,37 @@ class IpTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @dataProvider validateTestProvider
+     * @dataProvider providerValidateTest
      */
     public function testValidate($ip, $is_valid)
     {
         $ip = new \App\Components\Ip($ip);
         $this->assertEquals($is_valid, $ip->is_valid);
     }
+
+    public function providerValidateTest2()
+    {
+        return [
+            ['1.1.1.1', 24, true],
+            ['1.1.1.1', '24', true],
+            ['1.1.1.1', 32, true],
+            ['1.1.1.1', '32', true],
+            ['1.1.1.1', 33, false],
+            ['1.1.1.1', '33', false],
+            ['1.1.1.1', '', false]
+         ];
+    }
+
+    /**
+     * @dataProvider providerValidateTest2
+     */
+    public function testValidate2($ip, $masklen, $is_valid)
+    {
+        $ip = new \App\Components\Ip($ip, $masklen);
+        $this->assertEquals($is_valid, $ip->is_valid);
+    }
+
+
 
     public function testSanitize()
     {
