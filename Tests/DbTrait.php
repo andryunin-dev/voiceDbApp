@@ -14,11 +14,6 @@ trait DbTrait
                 throw new \T4\Core\Exception('Ошибка инициализации БД');
             }
             self::$app->db->default = self::$app->db->$dbName;
-            $conn = self::$app->db->default;
-            \T4\Orm\Model::setConnection($conn);
-            if (!(\T4\Orm\Model::getDbConnection() instanceof \T4\Dbal\Connection)) {
-                throw new \T4\Core\Exception('Ошибка инициализации БД');
-            }
         } catch (\Exception $e) {
             throw new \PHPUnit\Framework\Exception($e->getMessage());
         }
