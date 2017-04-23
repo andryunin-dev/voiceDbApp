@@ -26,7 +26,7 @@ class m_1492972687_alterApplianceModuleItemsTables
             throw new Exception('Before apply this migration you need delete all records from equipment."moduleItems" table in main DB.' . "\n");
         }
 
-        $sqlAddColumn = 'ALTER TABLE equipment."moduleItems" ADD COLUMN "__location_id" BIGINT';
+        $sqlAddColumn = 'ALTER TABLE equipment."moduleItems" ADD COLUMN "__location_id" BIGINT NOT NULL ';
         $sqlAddConstraint = 'ALTER TABLE equipment."moduleItems" ADD 
           CONSTRAINT fk_location_id FOREIGN KEY (__location_id)
           REFERENCES company.offices (__id)
