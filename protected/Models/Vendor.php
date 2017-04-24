@@ -52,19 +52,4 @@ class Vendor extends Model
         }
         return true;
     }
-
-    public static function getByTitle(string $title)
-    {
-        $vendor = self::findByTitle($title);
-
-        if (false == $vendor) {
-            $vendor = (new self())
-                ->fill([
-                    'title' => $title
-                ])
-                ->save();
-        }
-
-        return $vendor;
-    }
 }

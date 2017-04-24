@@ -5,6 +5,8 @@ namespace App\Controllers;
 use App\Models\Appliance;
 use App\Models\Office;
 use App\Models\Platform;
+use App\Models\PlatformItem;
+use App\Models\Software;
 use App\Models\Vendor;
 use T4\Core\Collection;
 use T4\Core\Exception;
@@ -27,38 +29,46 @@ class Rsapl extends Controller
                 throw new Exception('Empty an input dataset or Not a valid JSON');
             }
 
+            $errors = new MultiException();
+
             // Determine the validity of the input data format
             $srcData = (new Std())->fill($jsonData);
 
             if (!isset($srcData->LotusId)) {
-                throw new Exception('No field or Empty: LotusId');
+                $errors->add(new Exception('No field: LotusId'));
+            }
+            if (empty($srcData->LotusId) || !is_numeric($srcData->LotusId)) {
+                $errors->add(new Exception('LotusId is not valid'));
             }
             if (!isset($srcData->platformVendor)) {
-                throw new Exception('No field: platformVendor');
+                $errors->add(new Exception('No field: platformVendor'));
             }
             if (!isset($srcData->platformTitle)) {
-                throw new Exception('No field: platformTitle');
+                $errors->add(new Exception('No field: platformTitle'));
             }
             if (!isset($srcData->platformSerial)) {
-                throw new Exception('No field: platformSerial');
+                $errors->add(new Exception('No field: platformSerial'));
             }
             if (!isset($srcData->applianceType)) {
-                throw new Exception('No field: applianceType');
+                $errors->add(new Exception('No field: applianceType'));
             }
             if (!isset($srcData->applianceModules)) {
-                throw new Exception('No field: applianceModules');
+                $errors->add(new Exception('No field: applianceModules'));
             }
             if (!isset($srcData->applianceSoft)) {
-                throw new Exception('No field: applianceSoft');
+                $errors->add(new Exception('No field: applianceSoft'));
             }
             if (!isset($srcData->softwareVersion)) {
-                throw new Exception('No field: softwareVersion');
+                $errors->add(new Exception('No field: softwareVersion'));
             }
             if (!isset($srcData->hostname)) {
-                throw new Exception('No field: hostname');
+                $errors->add(new Exception('No field: hostname'));
             }
             if (!isset($srcData->ip)) {
-                throw new Exception('No field: ip');
+                $errors->add(new Exception('No field: ip'));
+            }
+            if (0 < $errors->count()) {
+                throw $errors;
             }
 
             // Determine "Location"
@@ -73,38 +83,101 @@ class Rsapl extends Controller
                 $vendor = (new Vendor())
                     ->fill([
                         'title' => $srcData->platformVendor
-                    ]);
+                    ])
+                    ->save();
             }
 
             // Determine "Platform"
-            $platformTitle = $srcData->platformTitle;
+            $requestPlatformTitle = $srcData->platformTitle;
             $platform = $vendor->platforms->filter(
-                function () use ($platformTitle) {
-                    if ($platformTitle == $this->title) {
+                function ($platform) use ($requestPlatformTitle) {
+                    if ($requestPlatformTitle == $platform->title) {
                         return true;
                     }
+                    return false;
                 }
-            );
+            )->first();
+            if (false == $platform) {
+                $platform = (new Platform())
+                    ->fill([
+                        'vendor' => $vendor,
+                        'title' => $srcData->platformTitle
+                    ])
+                    ->save();
+            }
 
-//            if (false == $platform) {
-//                $platform = (new Platform())
-//                    ->fill([
-//                        'vendor' => $vendor,
-//                        'title' => $srcData->platformTitle
-//                    ]);
-//            }
+            // Determine "PlatformItem"
+            $requestPlatformSerial = $srcData->platformSerial;
+            $platformItem = $platform->platformItems->filter(
+                function ($platformItem) use ($requestPlatformSerial) {
+                    if ($requestPlatformSerial == $platformItem->serialNumber) {
+                        return true;
+                    }
+                    return false;
+                }
+            )->first();
+            if (false == $platformItem) {
+                $platformItem = (new PlatformItem())
+                    ->fill([
+                        'platform' => $platform,
+                        'serialNumber' => $srcData->platformSerial
+                    ])
+                    ->save();
+            }
+
+            // Determine "Software"
+            $requestApplianceSoft = $srcData->applianceSoft;
+            $software = $vendor->software->filter(
+                function ($software) use ($requestApplianceSoft) {
+                    if ($requestApplianceSoft == $software->title) {
+                        return true;
+                    }
+                    return false;
+                }
+            )->first();
+            if (false == $software) {
+                $software = (new Software())
+                    ->fill([
+                        'vendor' => $vendor,
+                        'title' => $srcData->applianceSoft
+                    ])
+                    ->save();
+            }
+
+            // Determine "SoftwareItem"
+            $requestSoftwareVersion = $srcData->softwareVersion;
+            $platformItem = $platform->platformItems->filter(
+                function ($platformItem) use ($requestPlatformSerial) {
+                    if ($requestPlatformSerial == $platformItem->serialNumber) {
+                        return true;
+                    }
+                    return false;
+                }
+            )->first();
+            if (false == $platformItem) {
+                $platformItem = (new PlatformItem())
+                    ->fill([
+                        'platform' => $platform,
+                        'serialNumber' => $srcData->platformSerial
+                    ])
+                    ->save();
+            }
 
 
-            var_dump($platform);
+
+            var_dump($software);
 
             Appliance::getDbConnection()->commitTransaction();
-        } catch (MultiException $e) {
+        } catch (MultiException $errors) {
             Appliance::getDbConnection()->rollbackTransaction();
-            var_dump($e);
-        }
-        catch (Exception $e) {
+
+            foreach ($errors as $error) {
+                var_dump($error->getMessage());
+            }
+        } catch (Exception $e) {
             Appliance::getDbConnection()->rollbackTransaction();
-            echo $e->getMessage();
+
+            var_dump($e->getMessage());
         }
 
 

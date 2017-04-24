@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Models\Office;
 use T4\Core\Exception;
 use T4\Core\MultiException;
 use T4\Core\Std;
