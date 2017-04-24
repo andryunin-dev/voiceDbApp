@@ -13,7 +13,7 @@ use T4\Orm\Model;
  * @package App\Models
  *
  * @property string $version
- * @property string $detail
+ * @property string $details
  * @property string $comment
  *
  * @property Software $software

@@ -13,16 +13,14 @@ use T4\Orm\Model;
  * Class Module
  * @package App\Models
  *
- * @property string $partNumber
- * @property string $comment
+ * @property string $title
+ * @property string $description
  *
  * @property Vendor $vendor
  * @property Collection|ModuleItem[] $moduleItems
  */
 class Module extends Model
 {
-    const MOTHERBOARD = 'motherboard'; // motherboard name in modules
-
     protected static $schema = [
         'table' => 'equipment.modules',
         'columns' => [

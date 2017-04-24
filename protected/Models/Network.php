@@ -3,7 +3,9 @@
 namespace App\Models;
 
 use App\Components\Ip;
+use T4\Core\Collection;
 use T4\Core\Exception;
+use T4\Dbal\Query;
 use T4\Orm\Model;
 
 /**
@@ -11,7 +13,10 @@ use T4\Orm\Model;
  * @package App\Models
  *
  * @property string $address
- * @property DataPort $hosts
+ * @property Collection|DataPort[] $hosts
+ * @property Vlan $vlan
+ * @property Vrf $vrf
+ * @property Office $location
  */
 class Network extends Model
 {
@@ -21,30 +26,41 @@ class Network extends Model
             'address' => ['type' => 'string'], //address in cidr notation i.e. 192.168.1.0/24
         ],
         'relations' => [
-            'hosts' => ['type' => self::HAS_MANY, 'model' => DataPort::class, 'by' => '__network_id']
+            'hosts' => ['type' => self::HAS_MANY, 'model' => DataPort::class, 'by' => '__network_id'],
+            'vlan' => ['type' => self::BELONGS_TO, 'model' => Vlan::class, 'by' => '__vlan_id'],
+            'vrf' => ['type' => self::BELONGS_TO, 'model' => Vrf::class, 'by' => '__vrf_id'],
+            'location' => ['type' => self::BELONGS_TO, 'model' => Office::class, 'by' => '__location_id']
         ]
     ];
 
     protected static $extensions = ['tree'];
 
-    public function findParentNetwork()
-    {
-        $query = 'WITH parents AS (SELECT DISTINCT * FROM network.networks WHERE address >> :subnet) SELECT * FROM parents WHERE address=(SELECT max(address) FROM parents)';
-        return static::findByQuery($query, [':subnet' => $this->address]);
-    }
-
     protected function validateAddress($val)
     {
+        if (!is_string($val)) {
+            throw new Exception('Неверный тип свойства network->address');
+        }
         $ip = new Ip($val);
 
-        if (false === $ip->network || false !== $ip->is_hostIp) {
+        if (false === $ip->network || false === $ip->is_networkIp) {
             throw new Exception('Неверный адрес подсети');
         }
         return true;
     }
 
+    protected function sanitizeAddress($val)
+    {
+        return (new Ip($val))->cidrAddress;
+    }
+
     protected function validate()
     {
+        if (! $this->vrf instanceof Vrf) {
+            throw new Exception('VRF не найден');
+        }
+        if ((true === $this->isNew || true === $this->isUpdated) && false !== self::findByAddressVrf($this->address, $this->vrf)) {
+            throw new Exception('Сеть с адресом ' . $this->address . '(VRF: ' . $this->vrf . ') уже существует');
+        }
         return true;
     }
 
@@ -52,8 +68,7 @@ class Network extends Model
     {
         if (true === $this->isNew) {
             $this->parent = $this->findParentNetwork();
-        }
-        if (true === $this->isUpdated) {
+        } elseif (true === $this->isUpdated) {
             foreach ($this->children as $child) {
                 $child->parent = $this->parent;
                 $child->save();
@@ -95,5 +110,20 @@ class Network extends Model
             }
         }
         return parent::beforeDelete();
+    }
+
+    public function findParentNetwork()
+    {
+        $query = 'WITH parents AS (SELECT DISTINCT * FROM network.networks WHERE address >> :subnet) SELECT * FROM parents WHERE address=(SELECT max(address) FROM parents)';
+        return static::findByQuery($query, [':subnet' => $this->address]);
+    }
+
+    public static function findByAddressVrf($address, Vrf $vrf)
+    {
+        $result = Network::findAllByColumn('address', $address)->filter(function (Network $network) use ($vrf) {
+            return ($network->vrf->getPk() == $vrf->getPk());
+        });
+        $result = $result->first();
+        return ($result) ?: false;
     }
 }

@@ -2,17 +2,36 @@
 
 namespace App\Controllers;
 
+use App\Models\City;
 use App\Models\Network;
 use App\Models\Office;
 use App\Models\Region;
+use App\Models\Vrf;
 use T4\Core\Exception;
 use T4\Core\MultiException;
 use T4\Mvc\Controller;
+use T4\Orm\Model;
 
 class Test extends Controller
 {
     public function actionDefault()
     {
+
+//        var_dump(Region::getDbConnection());
+//        var_dump(City::getDbConnection());
+        var_dump($this->app->db->default = $this->app->db->phpUnitTest);
+//        City::setConnection('phpUnitTest');
+        var_dump(Region::getDbConnection());
+        var_dump(City::getDbConnection());
+        die;
+
+    }
+
+    public function actionDp()
+    {
+        $var = file_get_contents('php://input');
+        var_dump($var);
+        die;
     }
 
     public function actionNetworks()
