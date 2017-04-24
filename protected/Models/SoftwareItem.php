@@ -34,28 +34,21 @@ class SoftwareItem extends Model
         ]
     ];
 
+    public function validateVersion($val)
+    {
+        if (empty(trim($val))) {
+            throw new Exception('Пустое значение ver. ПО');
+        }
+        return true;
+
+    }
+
     public function validate()
     {
         if (false === $this->software) {
             return false;
         }
         return true;
-    }
-
-    public static function getBySoftware(Software $software, string $version)
-    {
-        $softwareItem = self::findBySoftwareVersion($software, $version);
-
-        if (false == $softwareItem) {
-            $softwareItem = (new self())
-                ->fill([
-                    'version' => $version,
-                    'software' => $software
-                ])
-                ->save();
-        }
-
-        return $softwareItem;
     }
 
     public static function findBySoftwareVersion(Software $software, string $version)

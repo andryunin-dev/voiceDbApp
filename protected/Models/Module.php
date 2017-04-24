@@ -57,24 +57,6 @@ class Module extends Model
         return true;
     }
 
-
-    public static function getByVendorAndTitle(Vendor $vendor, string $title, string $description)
-    {
-        $module = self::findByVendorAndTitle($vendor, $title);
-
-        if (false == $module) {
-            $module = (new self())
-                ->fill([
-                    'title' => $title,
-                    'description' => $description,
-                    'vendor' => $vendor
-                ])
-                ->save();
-        }
-
-        return $module;
-    }
-
     public static function findByVendorAndTitle(Vendor $vendor, string $title)
     {
         $query = (new Query())

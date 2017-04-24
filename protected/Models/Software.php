@@ -54,22 +54,6 @@ class Software extends Model
         return true;
     }
 
-    public static function getByVendor(Vendor $vendor, string $applianceSoft)
-    {
-        $software = self::findByVendorPlatform($vendor, $applianceSoft);
-
-        if (false == $software) {
-            $software = (new self())
-                ->fill([
-                    'title' => $applianceSoft,
-                    'vendor' => $vendor
-                ])
-                ->save();
-        }
-
-        return $software;
-    }
-
     public static function findByVendorPlatform(Vendor $vendor, string $applianceSoft)
     {
         $query = (new Query())

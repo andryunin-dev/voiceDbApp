@@ -3,10 +3,14 @@
 namespace App\Controllers;
 
 use App\Models\Appliance;
+use App\Models\ApplianceType;
+use App\Models\Module;
+use App\Models\ModuleItem;
 use App\Models\Office;
 use App\Models\Platform;
 use App\Models\PlatformItem;
 use App\Models\Software;
+use App\Models\SoftwareItem;
 use App\Models\Vendor;
 use T4\Core\Collection;
 use T4\Core\Exception;
@@ -55,6 +59,16 @@ class Rsapl extends Controller
             if (!isset($srcData->applianceModules)) {
                 $errors->add(new Exception('No field: applianceModules'));
             }
+            if (!empty($srcData->applianceModules)) {
+                foreach ($srcData->applianceModules as $moduleDataset) {
+                    if (empty($moduleDataset->product_number) || empty($moduleDataset->serial)) {
+                        $errors->add(new Exception('ApplianceModule Dataset is not valid'));
+                    }
+                    if (!isset($moduleDataset->description)) {
+                        $errors->add(new Exception('No field: applianceModule->description'));
+                    }
+                }
+            }
             if (!isset($srcData->applianceSoft)) {
                 $errors->add(new Exception('No field: applianceSoft'));
             }
@@ -67,6 +81,8 @@ class Rsapl extends Controller
             if (!isset($srcData->ip)) {
                 $errors->add(new Exception('No field: ip'));
             }
+
+            // Если DataSet не валидный, то заканчиваем работу
             if (0 < $errors->count()) {
                 throw $errors;
             }
@@ -146,26 +162,97 @@ class Rsapl extends Controller
 
             // Determine "SoftwareItem"
             $requestSoftwareVersion = $srcData->softwareVersion;
-            $platformItem = $platform->platformItems->filter(
-                function ($platformItem) use ($requestPlatformSerial) {
-                    if ($requestPlatformSerial == $platformItem->serialNumber) {
+            $softwareItem = $software->softwareItems->filter(
+                function ($softwareItem) use ($requestSoftwareVersion) {
+                    if ($requestSoftwareVersion == $softwareItem->version) {
                         return true;
                     }
                     return false;
                 }
             )->first();
-            if (false == $platformItem) {
-                $platformItem = (new PlatformItem())
+            if (false == $softwareItem) {
+                $softwareItem = (new SoftwareItem())
                     ->fill([
-                        'platform' => $platform,
-                        'serialNumber' => $srcData->platformSerial
+                        'software' => $software,
+                        'version' => $srcData->softwareVersion
                     ])
                     ->save();
             }
 
+            // Determine "Appliance Type"
+            $applianceType = ApplianceType::findByType($srcData->applianceType);
+            if (false == $applianceType) {
+                $applianceType = (new ApplianceType())
+                    ->fill([
+                        'type' => $srcData->applianceType
+                    ])
+                    ->save();
+            }
+
+            // Determine "Appliance"
+            $appliance = $platformItem->appliance;
+            if (false == $appliance) {
+                $appliance = (new Appliance())
+                    ->fill([
+                        'location' => $office,
+                        'type' => $applianceType,
+                        'vendor' => $vendor,
+                        'platform' => $platformItem,
+                        'software' => $softwareItem,
+                    ])
+                    ->save();
+            }
+            $appliance->fill([
+                'details' => [
+                    'hostname' => $srcData->hostname,
+                ]
+            ])
+            ->save();
+
+            // Determine "Modules"
+            foreach ($srcData->applianceModules as $moduleDataset) {
+                // Determine "Module"
+                $module = Module::findByVendorAndTitle($vendor, $moduleDataset->product_number);
+                if (false == $module) {
+                    $module = (new Module())
+                        ->fill([
+                            'vendor' => $vendor,
+                            'title' => $moduleDataset->product_number,
+                            'description' => $moduleDataset->description,
+                        ])
+                        ->save();
+                }
 
 
-            var_dump($software);
+                var_dump($module);
+
+//                // Determine "ModuleItem"
+//                $moduleItemSerial = $moduleDataset->serial;
+//                $moduleItem = $module->moduleItems->filter(
+//                    function ($moduleItem) use ($moduleItemSerial) {
+//                        if ($moduleItemSerial == $moduleItem->serialNumber) {
+//                            return true;
+//                        }
+//                        return false;
+//                    }
+//                )->first();
+//                if (false == $moduleItem) {
+//                    $moduleItem = (new ModuleItem())
+//                        ->fill([
+//                            'module' => $module,
+//                            'serialNumber' => $moduleItem->serialNumber,
+//                            'appliance' => $appliance,
+//                        ])
+//                        ->save();
+//                }
+//
+//                var_dump($moduleItem);
+            }
+
+
+
+
+//            var_dump($appliance);
 
             Appliance::getDbConnection()->commitTransaction();
         } catch (MultiException $errors) {

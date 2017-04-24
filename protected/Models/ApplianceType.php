@@ -55,20 +55,5 @@ class ApplianceType extends Model
         }
         return true;
     }
-
-    public static function getByType(string $type)
-    {
-        $applianceType = self::findByType($type);
-
-        if (false == $applianceType) {
-            $applianceType = (new self())
-                ->fill([
-                    'type' => $type
-                ])
-                ->save();
-        }
-
-        return $applianceType;
-    }
 }
 
