@@ -16,6 +16,7 @@ use T4\Orm\Model;
  *
  * @property Module $module
  * @property Appliance $appliance
+ * @property Office $location
  */
 class ModuleItem extends Model
 {
@@ -29,7 +30,8 @@ class ModuleItem extends Model
         ],
         'relations' => [
             'module' => ['type' => self::BELONGS_TO, 'model' => Module::class],
-            'appliance' => ['type' => self::BELONGS_TO, 'model' => Appliance::class]
+            'appliance' => ['type' => self::BELONGS_TO, 'model' => Appliance::class],
+            'location' => ['type' => self::BELONGS_TO, 'model' => Office::class]
         ]
     ];
 
@@ -49,9 +51,21 @@ class ModuleItem extends Model
             throw new Exception('модуль не найден');
         }
 
-        if (! $this->appliance instanceof Appliance) {
-            throw new Exception('устройство не найдено');
+        if (! ($this->appliance instanceof Appliance || false)) {
+            throw new Exception('Неверный тип Appliance');
         }
+
+        if (! ($this->appliance instanceof Appliance || $this->location instanceof Office)) {
+            throw new Exception('Необходимо задать метоположение для офиса или модуля');
+        }
+
         return true;
+    }
+
+    protected function beforeSave()
+    {
+        if ($this->appliance instanceof Appliance) {
+            $this->location = $this->appliance->location;
+        }
     }
 }
