@@ -172,17 +172,32 @@ class DataPort extends Model
 
     /**
      * назначаем подсеть для ip адреса данного порта и сохраняем ее.
+     * если именяемый порт имел сетку с 32 маской - удаляем ее
      *
      * @return bool
      */
     protected function beforeSave()
     {
         $ip = (new Ip($this->ipAddress));
-        if ($this->isNew || $this->isUpdated) {
-            if (false === $network = Network::findByAddress($ip->cidrNetwork)) {
+        if ($this->isNew) {
+            if (false === $network = Network::findByAddressVrf($ip->cidrNetwork, $this->vrf)) {
                 $network = (new Network())
                     ->fill([
-                        'address' => ($ip->cidrNetwork)
+                        'address' => ($ip->cidrNetwork),
+                        'vrf' => $this->vrf
+                    ])
+                    ->save();
+            }
+            $this->network = $network;
+        } elseif ($this->isUpdated) {
+            if (32 == (new Ip($this->network->address))->masklen) {
+                $this->network->delete();
+            }
+            if (false === $network = Network::findByAddressVrf($ip->cidrNetwork, $this->vrf)) {
+                $network = (new Network())
+                    ->fill([
+                        'address' => ($ip->cidrNetwork),
+                        'vrf' => $this->vrf
                     ])
                     ->save();
             }
