@@ -68,6 +68,14 @@ class RServer extends Controller
         die();
     }
 
+    public function actionTest()
+    {
+        $appliance = new Appliance();
+
+        var_dump($appliance);
+
+        die;
+    }
 
 
     /*
