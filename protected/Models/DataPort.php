@@ -3,7 +3,9 @@
 namespace App\Models;
 
 use App\Components\Ip;
+use T4\Core\Collection;
 use T4\Core\Exception;
+use T4\Core\IArrayable;
 use T4\Dbal\Query;
 use T4\Orm\Model;
 
@@ -19,6 +21,7 @@ use T4\Orm\Model;
  *
  * @property Appliance $appliance
  * @property DPortType $portType
+ * @property Vrf $vrf
  */
 class DataPort extends Model
 {
@@ -37,12 +40,36 @@ class DataPort extends Model
         ]
     ];
 
+    protected $vrf;
+
     protected function getIpAddress()
     {
         $key = 'ipAddress';
         $currentIpAddress = isset($this->__data[$key]) ? $this->__data[$key] : null;
         return (new Ip($currentIpAddress, 32))->cidrAddress;
     }
+
+    protected function getVrf()
+    {
+        return empty($this->vrf) ? $this->vrf = $this->network->vrf : $this->vrf;
+    }
+
+    public function fill($data)
+    {
+        if ($data instanceof IArrayable) {
+            $data = $data->toArray();
+        } else {
+            $data = (array)$data;
+        }
+        if (array_key_exists('vrf', $data) && $data['vrf'] instanceof Vrf) {
+            $this->vrf = $data['vrf'];
+            unset($data['vrf']);
+        } else {
+            throw new Exception('Неверно задан VRF');
+        }
+        return parent::fill($data);
+    }
+
 
     /**
      * не может быть пустым
@@ -129,12 +156,12 @@ class DataPort extends Model
         }
 
         //ищем записи с таким ip для новой записи
-        if (true === $this->isNew && self::countAllByIp($this->ipAddress) > 0) {
+        if (true === $this->isNew && self::countAllByIpVrf($this->ipAddress, $this->vrf) > 0) {
             throw new Exception('IP адрес ' . $ip->address . ' уже используется.');
         }
         //валидация при изменении существующей записи
         if (true === $this->isUpdated) {
-            $fromDb = self::findByIp($this->ipAddress);
+            $fromDb = self::findByIpVrf($this->ipAddress, $this->vrf);
             if (false !== $fromDb && $fromDb->getPk() != $this->getPk()) {
                 throw new Exception('IP адрес ' . $ip->address . ' уже используется.');
             }
@@ -145,17 +172,32 @@ class DataPort extends Model
 
     /**
      * назначаем подсеть для ip адреса данного порта и сохраняем ее.
+     * если именяемый порт имел сетку с 32 маской - удаляем ее
      *
      * @return bool
      */
     protected function beforeSave()
     {
         $ip = (new Ip($this->ipAddress));
-        if ($this->isNew || $this->isUpdated) {
-            if (false === $network = Network::findByAddress($ip->cidrNetwork)) {
+        if ($this->isNew) {
+            if (false === $network = Network::findByAddressVrf($ip->cidrNetwork, $this->vrf)) {
                 $network = (new Network())
                     ->fill([
-                        'address' => ($ip->cidrNetwork)
+                        'address' => ($ip->cidrNetwork),
+                        'vrf' => $this->vrf
+                    ])
+                    ->save();
+            }
+            $this->network = $network;
+        } elseif ($this->isUpdated) {
+            if (32 == (new Ip($this->network->address))->masklen) {
+                $this->network->delete();
+            }
+            if (false === $network = Network::findByAddressVrf($ip->cidrNetwork, $this->vrf)) {
+                $network = (new Network())
+                    ->fill([
+                        'address' => ($ip->cidrNetwork),
+                        'vrf' => $this->vrf
                     ])
                     ->save();
             }
@@ -164,18 +206,12 @@ class DataPort extends Model
         return parent::beforeSave();
     }
 
-    public static function countAllByIp($ip)
+    public static function countAllByIpVrf($ip, $vrf)
     {
-        $query = (new Query())
-            ->select()
-            ->from(DataPort::getTableName())
-            ->where('host("ipAddress") = host(:ip)')
-            ->params([':ip' => $ip]);
-
-        return DataPort::countAllByQuery($query);
+        return self::findAllByIpVrf($ip, $vrf)->count();
     }
 
-    public static function findAllByIp($ip)
+    public static function findAllByIpVrf($ip, $vrf)
     {
         $query = (new Query())
             ->select()
@@ -183,18 +219,23 @@ class DataPort extends Model
             ->where('host("ipAddress") = host(:ip)')
             ->params([':ip' => $ip]);
 
-        return DataPort::findAllByQuery($query);
+        /**
+         * @var Collection|bool $result
+         */
+        $result = DataPort::findAllByQuery($query);
+        $result = $result->filter(function ($dPort) use ($vrf) {
+            /**
+             * @var DataPort $dPort
+             * @var Vrf $vrf
+             */
+            return ($dPort->network->vrf->rd == $vrf->rd);
+        });
+        return $result;
     }
 
-     public static function findByIp($ip)
+     public static function findByIpVrf($ip, $vrf)
     {
-        $query = (new Query())
-            ->select()
-            ->from(DataPort::getTableName())
-            ->where('host("ipAddress") = host(:ip)')
-            ->params([':ip' => $ip]);
-
-        return DataPort::findByQuery($query);
+         return self::findAllByIpVrf($ip, $vrf)->first();
     }
 
 }
