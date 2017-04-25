@@ -4,34 +4,33 @@ require_once __DIR__ . '/../../protected/autoload.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
 require_once __DIR__ . '/../../protected/boot.php';
 require_once __DIR__ . '/../DbTrait.php';
+require_once __DIR__ . '/../EnvironmentTrait.php';
 
 class NetworkTest extends \PHPUnit\Framework\TestCase
 {
     use DbTrait;
+    use EnvironmentTrait;
 
-    const TEST_DB_NAME = 'phpUnitTest';
 
-    protected static $schemaList = [
-        'geolocation',
-        'equipment',
-        'company',
-        'network'
-    ];
-
-    public static function setUpBeforeClass()
+    /**
+     * create environment
+     */
+    public function testCreateLocation()
     {
-        self::setDefaultDb(self::TEST_DB_NAME);
-        foreach (self::$schemaList as $schema) {
-            self::truncateTables($schema);
-        }
+        return $this->createLocation();
     }
-    public static function tearDownAfterClass()
+
+    public function testCreateVlan()
     {
-        self::setDefaultDb(self::TEST_DB_NAME);
-        foreach (self::$schemaList as $schema) {
-            self::truncateTables($schema);
-        }
+        return $this->createVlan();
     }
+
+    public function testCreateVrf()
+    {
+        return $this->createVrf();
+    }
+    //*********end create environment*************
+
 
     public function providerValidNetworkForSanitize()
     {
@@ -52,71 +51,6 @@ class NetworkTest extends \PHPUnit\Framework\TestCase
             ]);
         $this->assertInstanceOf(\App\Models\Network::class, $net);
         $this->assertEquals('1.1.1.0/24', $net->address);
-    }
-
-    /**
-     * create location(office)
-     */
-    public function testCreateLocation()
-    {
-        $region = (new \App\Models\Region())->fill(['title' => 'test'])->save();
-        $this->assertInstanceOf(\App\Models\Region::class, $region);
-
-        $city = (new \App\Models\City())
-            ->fill([
-                'title' => 'test',
-                'region' => $region
-            ])
-            ->save();
-        $this->assertInstanceOf(\App\Models\City::class, $city);
-
-        $address = (new \App\Models\Address())
-            ->fill([
-                'address' => 'test',
-                'city' => $city
-            ])
-            ->save();
-        $this->assertInstanceOf(\App\Models\Address::class, $address);
-
-        $status = (new \App\Models\OfficeStatus())->fill(['title' => 'test'])->save();
-        $this->assertInstanceOf(\App\Models\OfficeStatus::class, $status);
-
-        $location = $office = (new \App\Models\Office())
-            ->fill([
-                'title' => 'test',
-                'status' => $status,
-                'address' => $address
-            ])
-            ->save();
-        $this->assertInstanceOf(\App\Models\Office::class, $location);
-
-        return $location;
-    }
-
-    public function testCreateVlan()
-    {
-        $vlan = (new \App\Models\Vlan())
-            ->fill([
-                'id' => 1,
-                'name' => 'test',
-                'comment' => 'test'
-            ])
-            ->save();
-        $this->assertInstanceOf(\App\Models\Vlan::class, $vlan);
-        return $vlan;
-    }
-
-    public function testCreateVrf()
-    {
-        $vrf = (new \App\Models\Vrf())
-            ->fill([
-                'name' => 'test',
-                'rd' => '10:100',
-                'comment' => 'test'
-            ])
-            ->save();
-        $this->assertInstanceOf(\App\Models\Vrf::class, $vrf);
-        return $vrf;
     }
 
     public function providerInvalidNetwork()
@@ -189,9 +123,6 @@ class NetworkTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($vrf->name, $fromDb->vrf->name);
         $this->assertEquals($vrf->rd, $fromDb->vrf->rd);
 
-        //Drop all networks
-//        \App\Models\Network::findAll()->delete();
-//        $this->assertEquals(0, \App\Models\Network::findAll()->count());
     }
 
 }
