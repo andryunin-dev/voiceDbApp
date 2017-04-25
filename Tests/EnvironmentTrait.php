@@ -90,13 +90,15 @@ trait EnvironmentTrait
 
     public function createVrf($name = 'test', $rd = '10:100')
     {
-        $vrf = (new \App\Models\Vrf())
-            ->fill([
-                'name' => $name,
-                'rd' => $rd,
-                'comment' => 'test'
-            ])
-            ->save();
+        if (false === $vrf = \App\Models\Vrf::findByRd($rd)) {
+            $vrf = (new \App\Models\Vrf())
+                ->fill([
+                    'name' => $name,
+                    'rd' => $rd,
+                    'comment' => 'test'
+                ])
+                ->save();
+        }
         $this->assertInstanceOf(\App\Models\Vrf::class, $vrf);
         return $vrf;
     }
@@ -137,15 +139,17 @@ trait EnvironmentTrait
         $platform = null
     ) {
         $platform = $platform ?? $this->createPlatform();
-        $platformItem = (new \App\Models\PlatformItem())
-            ->fill([
-                'version' => $version,
-                'inventoryNumber' => $invNumber,
-                'serialNumber' => $serialNumber,
-                'details' => $details,
-                'platform' => $platform
-            ])
-            ->save();
+        if (false === $platformItem = \App\Models\PlatformItem::findByColumn('serialNumber', $serialNumber)) {
+            $platformItem = (new \App\Models\PlatformItem())
+                ->fill([
+                    'version' => $version,
+                    'inventoryNumber' => $invNumber,
+                    'serialNumber' => $serialNumber,
+                    'details' => $details,
+                    'platform' => $platform
+                ])
+                ->save();
+        }
         $this->assertInstanceOf(\App\Models\PlatformItem::class, $platformItem);
         return $platformItem;
     }
@@ -171,13 +175,15 @@ trait EnvironmentTrait
         $software = null
     ) {
         $software = $software ?? $this->createSoftware();
-        $softwareItem = (new \App\Models\SoftwareItem())
-            ->fill([
-                'version' => $version,
-                'details' => $details,
-                'software' => $software
-            ])
-            ->save();
+        if (false === $softwareItem = \App\Models\SoftwareItem::findByVersion($version)) {
+            $softwareItem = (new \App\Models\SoftwareItem())
+                ->fill([
+                    'version' => $version,
+                    'details' => $details,
+                    'software' => $software
+                ])
+                ->save();
+        }
         $this->assertInstanceOf(\App\Models\SoftwareItem::class, $softwareItem);
         return $softwareItem;
     }
@@ -240,12 +246,14 @@ trait EnvironmentTrait
     public function createModule($title = 'test', $vendor = null)
     {
         $vendor = $vendor ?? $this->createVendor();
-        $module = (new \App\Models\Module())
-            ->fill([
-                'title' => $title,
-                'vendor' => $vendor
-            ])
-            ->save();
+        if (false === $module = \App\Models\Module::findByTitle($title)) {
+            $module = (new \App\Models\Module())
+                ->fill([
+                    'title' => $title,
+                    'vendor' => $vendor
+                ])
+                ->save();
+        }
         $this->assertInstanceOf(\App\Models\Module::class, $module);
         return $module;
     }
@@ -273,5 +281,18 @@ trait EnvironmentTrait
             ->save();
         $this->assertInstanceOf(\App\Models\ModuleItem::class, $moduleItem);
         return $moduleItem;
+    }
+
+    public function createDataPortType($type = 'test')
+    {
+        if (false === $dPortType = \App\Models\DPortType::findByType($type)) {
+            $dPortType = (new \App\Models\DPortType())
+                ->fill([
+                    'type' => 'test'
+                ])
+                ->save();
+        }
+        $this->assertInstanceOf(\App\Models\DPortType::class, $dPortType);
+        return $dPortType;
     }
 }
