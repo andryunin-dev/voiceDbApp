@@ -2,7 +2,32 @@
 
 trait DbTrait
 {
+    protected static $schemaList = [
+        'geolocation',
+        'company',
+        'equipment',
+        'network',
+        'telephony',
+        'contact_book',
+        'partners'
+    ];
     protected static $app;
+    protected static $testDb = 'phpUnitTest';
+
+    public static function setUpBeforeClass()
+    {
+        self::setDefaultDb(self::$testDb);
+        foreach (self::$schemaList as $schema) {
+            self::truncateTables($schema);
+        }
+    }
+    public static function tearDownAfterClass()
+    {
+        self::setDefaultDb(self::$testDb);
+        foreach (self::$schemaList as $schema) {
+            self::truncateTables($schema);
+        }
+    }
 
     protected static function setDefaultDb($dbName)
     {
