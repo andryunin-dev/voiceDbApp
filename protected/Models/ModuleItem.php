@@ -31,7 +31,7 @@ class ModuleItem extends Model
         'relations' => [
             'module' => ['type' => self::BELONGS_TO, 'model' => Module::class],
             'appliance' => ['type' => self::BELONGS_TO, 'model' => Appliance::class],
-            'location' => ['type' => self::BELONGS_TO, 'model' => Office::class]
+            'location' => ['type' => self::BELONGS_TO, 'model' => Office::class, 'by' => '__location_id']
         ]
     ];
 
@@ -47,16 +47,17 @@ class ModuleItem extends Model
 
     protected function validate()
     {
-        if (false === $this->module) {
-            throw new Exception('модуль не найден');
+        if (empty($this->serialNumber)) {
+            throw new Exception('ModuleItem: Пустой SerialNumber');
         }
-
+        if (! ($this->module instanceof Module)) {
+            throw new Exception('ModuleItem: Неверный тип Module');
+        }
         if (! ($this->appliance instanceof Appliance || false)) {
-            throw new Exception('Неверный тип Appliance');
+            throw new Exception('ModuleItem: Неверный тип Appliance');
         }
-
-        if (! ($this->appliance instanceof Appliance || $this->location instanceof Office)) {
-            throw new Exception('Необходимо задать метоположение для офиса или модуля');
+        if (! ($this->location instanceof Office)) {
+            throw new Exception('ModuleItem: Неверный тип Office');
         }
 
         return true;
@@ -67,5 +68,7 @@ class ModuleItem extends Model
         if ($this->appliance instanceof Appliance) {
             $this->location = $this->appliance->location;
         }
+
+        return parent::beforeSave();
     }
 }

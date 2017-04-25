@@ -39,7 +39,6 @@ class Module extends Model
             throw new Exception('Пустое название модуля');
         }
         return true;
-
     }
 
     protected function validate()

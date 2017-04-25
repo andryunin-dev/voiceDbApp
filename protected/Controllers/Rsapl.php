@@ -30,7 +30,7 @@ class Rsapl extends Controller
             // Getting Datasets in JSON format from php://input
             $jsonData = json_decode(file_get_contents('php://input'));
             if (null == $jsonData) {
-                throw new Exception('Empty an input dataset or Not a valid JSON');
+                throw new Exception('DATASET: Empty an input dataset or Not a valid JSON');
             }
 
             $errors = new MultiException();
@@ -39,47 +39,51 @@ class Rsapl extends Controller
             $srcData = (new Std())->fill($jsonData);
 
             if (!isset($srcData->LotusId)) {
-                $errors->add(new Exception('No field: LotusId'));
+                $errors->add(new Exception('DATASET: No field LotusId'));
             }
             if (empty($srcData->LotusId) || !is_numeric($srcData->LotusId)) {
-                $errors->add(new Exception('LotusId is not valid'));
+                $errors->add(new Exception('DATASET: LotusId is not valid'));
             }
             if (!isset($srcData->platformVendor)) {
-                $errors->add(new Exception('No field: platformVendor'));
+                $errors->add(new Exception('DATASET: No field platformVendor'));
             }
             if (!isset($srcData->platformTitle)) {
-                $errors->add(new Exception('No field: platformTitle'));
+                $errors->add(new Exception('DATASET: No field platformTitle'));
             }
             if (!isset($srcData->platformSerial)) {
-                $errors->add(new Exception('No field: platformSerial'));
+                $errors->add(new Exception('DATASET: No field platformSerial'));
             }
             if (!isset($srcData->applianceType)) {
-                $errors->add(new Exception('No field: applianceType'));
+                $errors->add(new Exception('DATASET: No field applianceType'));
             }
             if (!isset($srcData->applianceModules)) {
-                $errors->add(new Exception('No field: applianceModules'));
+                $errors->add(new Exception('DATASET: No field applianceModules'));
             }
             if (!empty($srcData->applianceModules)) {
                 foreach ($srcData->applianceModules as $moduleDataset) {
-                    if (empty($moduleDataset->product_number) || empty($moduleDataset->serial)) {
-                        $errors->add(new Exception('ApplianceModule Dataset is not valid'));
+
+                    if (!isset($moduleDataset->product_number)) {
+                        $errors->add(new Exception('DATASET: No field applianceModule->product_number'));
+                    }
+                    if (!isset($moduleDataset->serial)) {
+                        $errors->add(new Exception('DATASET: No field applianceModule->serial'));
                     }
                     if (!isset($moduleDataset->description)) {
-                        $errors->add(new Exception('No field: applianceModule->description'));
+                        $errors->add(new Exception('DATASET: No field applianceModule->description'));
                     }
                 }
             }
             if (!isset($srcData->applianceSoft)) {
-                $errors->add(new Exception('No field: applianceSoft'));
+                $errors->add(new Exception('DATASET: No field applianceSoft'));
             }
             if (!isset($srcData->softwareVersion)) {
-                $errors->add(new Exception('No field: softwareVersion'));
+                $errors->add(new Exception('DATASET: No field softwareVersion'));
             }
             if (!isset($srcData->hostname)) {
-                $errors->add(new Exception('No field: hostname'));
+                $errors->add(new Exception('DATASET: No field hostname'));
             }
             if (!isset($srcData->ip)) {
-                $errors->add(new Exception('No field: ip'));
+                $errors->add(new Exception('DATASET: No field ip'));
             }
 
             // Если DataSet не валидный, то заканчиваем работу
@@ -90,7 +94,7 @@ class Rsapl extends Controller
             // Determine "Location"
             $office = Office::findByLotusId($srcData->LotusId);
             if (false == $office) {
-                throw new Exception('Location not found');
+                throw new Exception('ERROR: Location not found');
             }
 
             // Determine "Vendor"
@@ -107,10 +111,7 @@ class Rsapl extends Controller
             $requestPlatformTitle = $srcData->platformTitle;
             $platform = $vendor->platforms->filter(
                 function ($platform) use ($requestPlatformTitle) {
-                    if ($requestPlatformTitle == $platform->title) {
-                        return true;
-                    }
-                    return false;
+                    return $requestPlatformTitle == $platform->title;
                 }
             )->first();
             if (false == $platform) {
@@ -126,10 +127,7 @@ class Rsapl extends Controller
             $requestPlatformSerial = $srcData->platformSerial;
             $platformItem = $platform->platformItems->filter(
                 function ($platformItem) use ($requestPlatformSerial) {
-                    if ($requestPlatformSerial == $platformItem->serialNumber) {
-                        return true;
-                    }
-                    return false;
+                    return $requestPlatformSerial == $platformItem->serialNumber;
                 }
             )->first();
             if (false == $platformItem) {
@@ -145,10 +143,7 @@ class Rsapl extends Controller
             $requestApplianceSoft = $srcData->applianceSoft;
             $software = $vendor->software->filter(
                 function ($software) use ($requestApplianceSoft) {
-                    if ($requestApplianceSoft == $software->title) {
-                        return true;
-                    }
-                    return false;
+                    return $requestApplianceSoft == $software->title;
                 }
             )->first();
             if (false == $software) {
@@ -164,10 +159,7 @@ class Rsapl extends Controller
             $requestSoftwareVersion = $srcData->softwareVersion;
             $softwareItem = $software->softwareItems->filter(
                 function ($softwareItem) use ($requestSoftwareVersion) {
-                    if ($requestSoftwareVersion == $softwareItem->version) {
-                        return true;
-                    }
-                    return false;
+                    return $requestSoftwareVersion == $softwareItem->version;
                 }
             )->first();
             if (false == $softwareItem) {
@@ -190,27 +182,25 @@ class Rsapl extends Controller
             }
 
             // Determine "Appliance"
-            $appliance = $platformItem->appliance;
-            if (false == $appliance) {
-                $appliance = (new Appliance())
-                    ->fill([
-                        'location' => $office,
-                        'type' => $applianceType,
-                        'vendor' => $vendor,
-                        'platform' => $platformItem,
-                        'software' => $softwareItem,
-                    ])
-                    ->save();
-            }
+            $appliance = (false !== $platformItem->appliance) ? $platformItem->appliance : new Appliance();
             $appliance->fill([
+                'location' => $office,
+                'type' => $applianceType,
+                'vendor' => $vendor,
+                'platform' => $platformItem,
+                'software' => $softwareItem,
                 'details' => [
                     'hostname' => $srcData->hostname,
                 ]
-            ])
-            ->save();
+            ])->save();
+            if (false == $appliance) {
+                throw new Exception('ERROR: The appliance is not created');
+            }
 
-            // Determine "Modules"
+            // Determine the USED "Modules"
+            $usedModules = new Collection();
             foreach ($srcData->applianceModules as $moduleDataset) {
+
                 // Determine "Module"
                 $module = Module::findByVendorAndTitle($vendor, $moduleDataset->product_number);
                 if (false == $module) {
@@ -223,36 +213,41 @@ class Rsapl extends Controller
                         ->save();
                 }
 
+                // Determine "ModuleItem"
+                $moduleItemSerial = $moduleDataset->serial;
+                $moduleItem = $module->moduleItems->filter(
+                    function ($moduleItem) use ($moduleItemSerial) {
+                        return $moduleItemSerial == $moduleItem->serialNumber;
+                    }
+                )->first();
+                if (false == $moduleItem) {
+                    $moduleItem = (new ModuleItem())
+                        ->fill([
+                            'module' => $module,
+                            'serialNumber' => $moduleItemSerial,
+                            'appliance' => $appliance,
+                            'location' => $appliance->location,
+                        ])
+                        ->save();
+                }
 
-                var_dump($module);
+                $usedModules->add($moduleItem);
+            }
 
-//                // Determine "ModuleItem"
-//                $moduleItemSerial = $moduleDataset->serial;
-//                $moduleItem = $module->moduleItems->filter(
-//                    function ($moduleItem) use ($moduleItemSerial) {
-//                        if ($moduleItemSerial == $moduleItem->serialNumber) {
-//                            return true;
-//                        }
-//                        return false;
-//                    }
-//                )->first();
-//                if (false == $moduleItem) {
-//                    $moduleItem = (new ModuleItem())
-//                        ->fill([
-//                            'module' => $module,
-//                            'serialNumber' => $moduleItem->serialNumber,
-//                            'appliance' => $appliance,
-//                        ])
-//                        ->save();
-//                }
-//
-//                var_dump($moduleItem);
+//            var_dump($usedModules);
+
+            // Determine the UNUSED "Modules"
+            foreach ($appliance->modules as $dbModule) {
+                if (!$usedModules->existsElement(['serialNumber' => $dbModule->serialNumber])) {
+                    $dbModule->fill([
+                        'appliance' => 2,
+                    ])->save();
+
+                    var_dump($dbModule);
+                }
             }
 
 
-
-
-//            var_dump($appliance);
 
             Appliance::getDbConnection()->commitTransaction();
         } catch (MultiException $errors) {

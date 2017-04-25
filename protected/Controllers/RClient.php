@@ -48,7 +48,7 @@ class RClient extends Controller
     public function actionOne()
     {
 
-        $rawdata = json_decode(file_get_contents('C:\\OpenServer\\domains\\voice.loc\\protected\\Test_JSON_min\\item_2017041816031761079000.json'));
+        $rawdata = json_decode(file_get_contents('C:\\OpenServer\\domains\\voice.loc\\protected\\Test_JSON_min\\original-item_2017041816031761079000.json'));
         $jsondata = json_encode($rawdata);
 //        $jsondata = '{"platformSerial":"FOC10475AWV","product_number":"VIC2-2FXS"}';
 
