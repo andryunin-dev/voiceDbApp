@@ -31,7 +31,7 @@ class ModuleItem extends Model
         'relations' => [
             'module' => ['type' => self::BELONGS_TO, 'model' => Module::class],
             'appliance' => ['type' => self::BELONGS_TO, 'model' => Appliance::class],
-            'location' => ['type' => self::BELONGS_TO, 'model' => Office::class]
+            'location' => ['type' => self::BELONGS_TO, 'model' => Office::class,  'by' => '__location_id']
         ]
     ];
 
@@ -66,5 +66,6 @@ class ModuleItem extends Model
         if ($this->appliance instanceof Appliance) {
             $this->location = $this->appliance->location;
         }
+        return parent::beforeSave();
     }
 }
