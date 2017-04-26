@@ -206,12 +206,30 @@ class DataPort extends Model
         return parent::beforeSave();
     }
 
-    public static function countAllByIpVrf($ip, $vrf)
+    protected function afterDelete()
+    {
+        if (32 == (new Ip($this->network->address))->masklen) {
+            $this->network->delete();
+        }
+        return parent::afterDelete();
+    }
+
+    /**
+     * @param $ip
+     * @param Vrf $vrf
+     * @return int
+     */
+    public static function countAllByIpVrf($ip, Vrf $vrf)
     {
         return self::findAllByIpVrf($ip, $vrf)->count();
     }
 
-    public static function findAllByIpVrf($ip, $vrf)
+    /**
+     * @param $ip
+     * @param Vrf $vrf
+     * @return bool|Collection|DataPort[]
+     */
+    public static function findAllByIpVrf($ip, Vrf $vrf)
     {
         $query = (new Query())
             ->select()
@@ -230,10 +248,15 @@ class DataPort extends Model
              */
             return ($dPort->network->vrf->rd == $vrf->rd);
         });
-        return $result;
+        return (null === $result) ? false : $result;
     }
 
-     public static function findByIpVrf($ip, $vrf)
+    /**
+     * @param $ip
+     * @param Vrf $vrf
+     * @return DataPort|bool
+     */
+    public static function findByIpVrf($ip, $vrf)
     {
          return self::findAllByIpVrf($ip, $vrf)->first();
     }

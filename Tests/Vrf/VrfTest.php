@@ -4,48 +4,19 @@ require_once __DIR__ . '/../../protected/autoload.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
 require_once __DIR__ . '/../../protected/boot.php';
 require_once __DIR__ . '/../DbTrait.php';
+require_once __DIR__ . '/../EnvironmentTrait.php';
 
 class VrfTest extends \PHPUnit\Framework\TestCase
 {
     use DbTrait;
+    use EnvironmentTrait;
 
-    const TEST_DB_NAME = 'phpUnitTest';
-
-    protected static $schemaList = [
-        'network'
-    ];
-
-    public static function setUpBeforeClass()
+    public function providerSanitizeVrf()
     {
-        self::setDefaultDb(self::TEST_DB_NAME);
-        foreach (self::$schemaList as $schema) {
-            self::truncateTables($schema);
-        }
-
-    }
-    public static function tearDownAfterClass()
-    {
-        \App\Models\Vrf::findAll()->delete();
-    }
-
-
-    public function testSanitizeVrf()
-    {
-        $vrf = (new \App\Models\Vrf())
-            ->fill([
-                'name' => '   test   ',
-                'rd' => '  1 : 1  '
-            ]);
-        $this->assertEquals('test', $vrf->name);
-        $this->assertEquals('1:1', $vrf->rd);
-
-        $vrf = (new \App\Models\Vrf())
-            ->fill([
-                'name' => '   test   ',
-                'rd' => '  1.2.3.4 : 1  '
-            ]);
-        $this->assertEquals('test', $vrf->name);
-        $this->assertEquals('1.2.3.4:1', $vrf->rd);
+        return [
+            ['  test  ', 'test', '  1:1', '1:1', 'test', 'test'],
+            ['  test  ', 'test', '  1.2.3.4   : 1  ', '1.2.3.4:1', 'test', 'test'],
+        ];
     }
 
     public function providerValidVrf()
@@ -60,10 +31,32 @@ class VrfTest extends \PHPUnit\Framework\TestCase
         ];
     }
 
+    public function providerInvalidVrf()
+    {
+        return [
+            'invalidName_1' => [true, '1:1', 'test'],
+            'invalidName_2' => [123, '1:1', 'test'],
+            'invalidRd_1' => ['test', ':', 'test'],
+            'invalidRd_2' => ['test', 1, 'test'],
+            'invalidRd_3' => ['test', 'wrongRd', 'test'],
+            'invalidRd_4' => ['test', '192.168.1.1', 'test'],
+            'invalidRd_5' => ['test', '192.168.1.1:', 'test'],
+            'invalidRd_6' => ['test', '1', 'test'],
+            'invalidRd_7' => ['test', ':1', 'test']
+        ];
+    }
+
     /**
-     * @dataProvider providerValidVrf
+     * @param string $name
+     * @param string $expectedName
+     * @param string $rd
+     * @param string $expectedRd
+     * @param string $comment
+     * @param string $expectedComment
+     *
+     * @dataProvider providerSanitizeVrf
      */
-    public function testValidateVrf($name, $rd, $comment)
+    public function testSanitizeVrf($name, $expectedName, $rd, $expectedRd, $comment, $expectedComment)
     {
         $vrf = (new \App\Models\Vrf())
             ->fill([
@@ -71,31 +64,61 @@ class VrfTest extends \PHPUnit\Framework\TestCase
                 'rd' => $rd,
                 'comment' => $comment
             ]);
+        $this->assertEquals($expectedName, $vrf->name);
+        $this->assertEquals($expectedRd, $vrf->rd);
+        $this->assertEquals($expectedComment, $vrf->comment);
+    }
+
+
+    /**
+     * @param $name
+     * @param $rd
+     * @param $comment
+     *
+     * @dataProvider providerValidVrf
+     */
+    public function testValidVrf($name, $rd, $comment)
+    {
+        $vrf = (new \App\Models\Vrf())
+            ->fill([
+                'name' => $name,
+                'rd' => $rd,
+                'comment' => $comment
+            ])
+            ->save();
         $this->assertInstanceOf(\App\Models\Vrf::class, $vrf);
         $this->assertEquals($name, $vrf->name);
         $this->assertEquals($rd, $vrf->rd);
         $this->assertEquals($comment, $vrf->comment);
     }
 
-    public function providerInvalidVrf()
+    /**
+     * @param $name
+     * @param $rd
+     * @param $comment
+     *
+     * @dataProvider providerValidVrf
+     */
+    public function testDoubleVrfError($name, $rd, $comment)
     {
-        return [
-            [true, '1:1', 'test'],
-            [123, '1:1', 'test'],
-            ['test', ':', 'test'],
-            ['test', 1, 'test'],
-            ['test', 'wrongRd', 'test'],
-            ['test', '192.168.1.1', 'test'],
-            ['test', '192.168.1.1:', 'test'],
-            ['test', '1', 'test'],
-            ['test', ':1', 'test']
-        ];
+        $this->expectException(\T4\Core\Exception::class);
+        (new \App\Models\Vrf())
+            ->fill([
+                'name' => $name,
+                'rd' => $rd,
+                'comment' => $comment
+            ])
+            ->save();
     }
 
     /**
+     * @param $name
+     * @param $rd
+     * @param $comment
+     *
      * @dataProvider providerInvalidVrf
      */
-    public function testValidateVrfError($name, $rd, $comment)
+    public function testInvalidVrf($name, $rd, $comment)
     {
         $this->expectException(\T4\Core\Exception::class);
         (new \App\Models\Vrf())
@@ -104,49 +127,6 @@ class VrfTest extends \PHPUnit\Framework\TestCase
                 'rd' => $rd,
                 'comment' => $comment
             ]);
-    }
-
-    /**
-     * @dataProvider providerValidVrf
-     */
-    public function testVrfSave($name, $rd, $comment)
-    {
-        $vrf = (new \App\Models\Vrf())
-            ->fill([
-                'name' => $name,
-                'rd' => $rd,
-                'comment' => $comment
-            ])
-            ->save();
-        $this->assertInstanceOf(\App\Models\Vrf::class, $vrf);
-    }
-
-
-
-    public function providerVrfSaveError()
-    {
-        return [
-            'dubleRd_1' =>['test', '1:1', 'test'],
-            'dubleRd_2' =>['test', '  2:1', 'test'],
-            'dubleRd_3' =>['test', '1.1.1.1:1', 'test'],
-            'dubleRd_4' =>['test', '  1.1.1.1:1', 'test'],
-        ];
-    }
-    /**
-     * @dataProvider providerVrfSaveError
-     * @depends testVrfSave
-     */
-    public function testVrfSaveError($name, $rd, $comment)
-    {
-        $this->expectException(\T4\Core\Exception::class);
-        (new \App\Models\Vrf())
-            ->fill([
-                'name' => $name,
-                'rd' => $rd,
-                'comment' => $comment
-            ])
-            ->save();
-
     }
 
     public function testGlobalVrf()

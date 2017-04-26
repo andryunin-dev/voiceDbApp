@@ -138,6 +138,6 @@ class Network extends Model
             return ($network->vrf->getPk() == $vrf->getPk());
         });
         $result = $result->first();
-        return ($result) ?: false;
+        return (null === $result) ? false : $result;
     }
 }

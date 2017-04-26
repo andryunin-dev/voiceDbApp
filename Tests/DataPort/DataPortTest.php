@@ -39,39 +39,59 @@ class DataPortTest extends \PHPUnit\Framework\TestCase
      * tests DataPort
      */
 
-    public function provider_Valid_IpMac_Address()
+    public function providerValid_IpMacVrf()
     {
         return [
-            ['1.1.1.1/24', '00-11-22-33-44-55'],
-            ['1.1.1.1/32', '00-11-22-33-44-55'],
+            ['1.1.1.1/24', '1.1.1.0/24', '00-11-22-33-44-55', \App\Models\Vrf::GLOBAL_VRF_NAME, \App\Models\Vrf::GLOBAL_VRF_RD],
+            ['1.1.1.2/25', '1.1.1.0/25', '00-11-22-33-44-55', \App\Models\Vrf::GLOBAL_VRF_NAME, \App\Models\Vrf::GLOBAL_VRF_RD],
+            ['1.1.1.3/25', '1.1.1.0/25', '00-11-22-33-44-55', \App\Models\Vrf::GLOBAL_VRF_NAME, \App\Models\Vrf::GLOBAL_VRF_RD],
+            ['1.1.1.4/32', '1.1.1.4/32', '00-11-22-33-44-55', \App\Models\Vrf::GLOBAL_VRF_NAME, \App\Models\Vrf::GLOBAL_VRF_RD],
+            ['1.1.1.1/24', '1.1.1.0/24', '00-11-22-33-44-55', 'test', '10:10'],
+            ['1.1.1.2/25', '1.1.1.0/25', '00-11-22-33-44-55', 'test', '10:10'],
+            ['1.1.1.3/25', '1.1.1.0/25', '00-11-22-33-44-55', 'test', '10:10'],
+            ['1.1.1.4/32', '1.1.1.4/32', '00-11-22-33-44-55', 'test', '10:10'],
         ];
     }
 
-    public function provider_Invalid_IpMac_Address()
+    public function provider_Invalid_IpMacVrf()
     {
         return [
-            ['2.1.1.0/24', '00-11-22-33-44-55'],
-            ['2.1.1.1', '00-11-22-33-44-55'],
-            ['2.1.1.1/24', '00-11-22-33'],
+            'invalidIp_1' => ['2.1.1.0/24', '00-11-22-33-44-55', \App\Models\Vrf::GLOBAL_VRF_NAME],
+            'invalidIp_2' => ['2.1.1.1/33', '00-11-22-33-44-55', \App\Models\Vrf::GLOBAL_VRF_NAME],
+            'invalidIp_3' => ['2.1.1.1', '00-11-22-33-44-55', \App\Models\Vrf::GLOBAL_VRF_NAME],
+            'invalidMac' => ['2.1.1.1/24', '00-11-22-33', \App\Models\Vrf::GLOBAL_VRF_NAME],
+            'invalidVrfRd_1' => ['2.1.1.2/25', '00-11-22-33-44-55', 'test'],
+            'invalidVrfRd_2' => ['2.1.1.2/25', '00-11-22-33-44-55', 'test'],
+            'invalidVrfRd_3' => ['2.1.1.2/25', '00-11-22-33-44-55', 'test'],
+            'invalidVrfRd_4' => ['2.1.1.2/25', '00-11-22-33-44-55', 'test'],
+            'invalidVrfRd_5' => ['2.1.1.2/25', '00-11-22-33-44-55', 'test'],
+            'invalidVrfName_1' => ['2.1.1.2/25', '00-11-22-33-44-55', false],
+            'invalidVrfName_2' => ['2.1.1.2/25', '00-11-22-33-44-55', null],
+            'invalidVrfName_3' => ['2.1.1.2/25', '00-11-22-33-44-55', ''],
         ];
     }
 
     /**
-     * test validator of DataPort
-     *
      * @param string $ipAddress
+     * @param string $network
      * @param string $macAddress
-     * @param \App\Models\Vrf $vrf
+     * @param string $vrfName
+     * @param string $vrfRd
      * @param \App\Models\Appliance $appliance
      * @param \App\Models\DPortType $portType
      *
-     * @dataProvider provider_Valid_IpMac_Address
-     * @depends testCreateVrf
+     * @dataProvider providerValid_IpMacVrf
      * @depends testCreateAppliance
      * @depends testCreateDataPortType
      */
-    public function testValidIpMacAddress($ipAddress, $macAddress, $vrf, $appliance, $portType)
+    public function testValidDataPort($ipAddress, $network, $macAddress, $vrfName, $vrfRd, $appliance, $portType)
     {
+        if ($vrfName == \App\Models\Vrf::GLOBAL_VRF_NAME) {
+            $vrf = \App\Models\Vrf::findGlobalVrf();
+        } else {
+            $vrf = (\App\Models\Vrf::findByRd($vrfRd)) ?: (new \App\Models\Vrf(['name' => $vrfName, 'rd' => $vrfRd]))->save();
+        }
+
         $newDataPort = (new \App\Models\DataPort())
             ->fill([
                 'ipAddress' => $ipAddress,
@@ -79,9 +99,11 @@ class DataPortTest extends \PHPUnit\Framework\TestCase
                 'macAddress' => $macAddress,
                 'portType' => $portType,
                 'appliance' => $appliance,
-            ]);
+            ])
+            ->save();
         $this->assertInstanceOf(\App\Models\DataPort::class, $newDataPort);
         $this->assertEquals($ipAddress, $newDataPort->ipAddress);
+        $this->assertEquals($network, $newDataPort->network->address);
         $this->assertInstanceOf(\App\Models\DPortType::class, $newDataPort->portType);
         $this->assertInstanceOf(\App\Models\Appliance::class, $newDataPort->appliance);
     }
@@ -89,19 +111,27 @@ class DataPortTest extends \PHPUnit\Framework\TestCase
     /**
      * @param string $ipAddress
      * @param string $macAddress
-     * @param \App\Models\Vrf $vrf
+     * @param string $vrfName
+     * @param string $vrfRd
      * @param \App\Models\Appliance $appliance
      * @param \App\Models\DPortType $portType
      *
-     * @dataProvider provider_Invalid_IpMac_Address
-     * @depends testCreateVrf
+     * @dataProvider providerValid_IpMacVrf
      * @depends testCreateAppliance
      * @depends testCreateDataPortType
-
+     *
+     * @depends testValidDataPort
      */
-    public function testInvalidDataPortIpAddress($ipAddress, $macAddress, $vrf, $appliance, $portType)
+    public function testDoubleDataPortError($ipAddress, $macAddress, $vrfName, $vrfRd, $appliance, $portType)
     {
         $this->expectException(\T4\Core\Exception::class);
+
+        if ($vrfName == \App\Models\Vrf::GLOBAL_VRF_NAME) {
+            $vrf = \App\Models\Vrf::findGlobalVrf();
+        } else {
+            $vrf = (\App\Models\Vrf::findByRd($vrfRd)) ?: (new \App\Models\Vrf(['name' => $vrfName, 'rd' => $vrfRd]))->save();
+        }
+
         (new \App\Models\DataPort())
             ->fill([
                 'ipAddress' => $ipAddress,
@@ -109,60 +139,33 @@ class DataPortTest extends \PHPUnit\Framework\TestCase
                 'macAddress' => $macAddress,
                 'portType' => $portType,
                 'appliance' => $appliance,
-            ]);
+            ])
+            ->save();
     }
 
     /**
      * @param string $ipAddress
-     * @param \App\Models\Vrf $vrf
+     * @param string $macAddress
+     * @param string $vrf
      * @param \App\Models\Appliance $appliance
      * @param \App\Models\DPortType $portType
      *
-     * @dataProvider provider_Valid_IpMac_Address
+     * @dataProvider provider_Invalid_IpMacVrf
      * @depends testCreateVrf
      * @depends testCreateAppliance
      * @depends testCreateDataPortType
+     *
+     * @depends testValidDataPort
      */
-    public function testInvalidDataPortRelations($ipAddress, $vrf, $appliance, $portType)
+    public function testInvalidDataPort($ipAddress, $macAddress, $vrf, $appliance, $portType)
     {
         $this->expectException(\T4\Core\Exception::class);
-        (new \App\Models\DataPort())
-            ->fill([
-                'ipAddress' => $ipAddress,
-                'vrf' => false,
-                'portType' => $portType,
-                'appliance' => $appliance,
-            ])
-            ->save();
-        (new \App\Models\DataPort())
-            ->fill([
-                'ipAddress' => '3.1.1.1/24',
-                'vrf' => $vrf,
-                'portType' => false,
-                'appliance' => $appliance,
-            ])
-            ->save();
-        (new \App\Models\DataPort())
-            ->fill([
-                'ipAddress' => '3.1.1.1/24',
-                'vrf' => $vrf,
-                'portType' => $portType,
-                'appliance' => false,
-            ])
-            ->save();
-    }
 
-    /**
-     * test save valid DataPort
-     *
-     * @dataProvider provider_Valid_IpMac_Address
-     * @depends testCreateVrf
-     * @depends testCreateAppliance
-     * @depends testCreateDataPortType
-     */
-    public function testValidDataPortSave($ipAddress, $macAddress, $vrf, $appliance, $portType)
-    {
-        $dataPort = (new \App\Models\DataPort())
+        if (is_string($vrf) && !empty($vrf)) {
+            $vrf = \App\Models\Vrf::findByName($vrf);
+        }
+
+        (new \App\Models\DataPort())
             ->fill([
                 'ipAddress' => $ipAddress,
                 'vrf' => $vrf,
@@ -171,42 +174,42 @@ class DataPortTest extends \PHPUnit\Framework\TestCase
                 'appliance' => $appliance,
             ])
             ->save();
-        $this->assertInstanceOf(\App\Models\DataPort::class, $dataPort);
-        $this->assertEquals($ipAddress, $dataPort->ipAddress);
-        $this->assertInstanceOf(\App\Models\DPortType::class, $dataPort->portType);
-        $this->assertInstanceOf(\App\Models\Appliance::class, $dataPort->appliance);
-    }
-
-    public function providerDataPortNetwork()
-    {
-        return [
-            ['5.1.1.1/24', '5.1.1.0/24'],
-            ['5.1.2.1/32', '5.1.2.1/32'],
-        ];
     }
 
     /**
-     * @dataProvider providerDataPortNetwork
-     * @depends testCreateVrf
+     * @param string $ipAddress
+     * @param string $network
+     * @param string $macAddress
+     * @param string $vrfName
+     * @param string $vrfRd
+     * @param \App\Models\Appliance $appliance
+     * @param \App\Models\DPortType $portType
+     *
+     * @dataProvider providerValid_IpMacVrf
      * @depends testCreateAppliance
      * @depends testCreateDataPortType
+     * @depends testValidDataPort
      */
-    public function testDataPortNetwork($ipAddress, $network, $vrf, $appliance, $portType)
+    public function testDeleteDataPort($ipAddress, $network, $macAddress, $vrfName, $vrfRd, $appliance, $portType)
     {
-        $newDataPort = (new \App\Models\DataPort())
-            ->fill([
-                'ipAddress' => $ipAddress,
-                'vrf' => $vrf,
-                'portType' => $portType,
-                'appliance' => $appliance,
-            ])
-            ->save();
-        $fromDb = \App\Models\DataPort::findByPK($newDataPort->getPk());
-        $this->assertInstanceOf(\App\Models\DataPort::class, $fromDb);
-        $this->assertEquals($ipAddress, $fromDb->ipAddress);
-        $this->assertInstanceOf(\App\Models\Network::class, $fromDb->network);
-        $this->assertEquals($network, $fromDb->network->address);
+        $vrf = \App\Models\Vrf::findByRd($vrfRd);
+        $this->assertInstanceOf(\App\Models\Vrf::class, $vrf);
+
+        $ports = \App\Models\DataPort::findAllByIpVrf($ipAddress,$vrf);
+        $this->assertEquals(1, $ports->count());
+
+        /**
+         * @var \App\Models\DataPort $port
+         */
+        $port = $ports->first();
+        $this->assertInstanceOf(\App\Models\DataPort::class, $port);
+
+        $port->delete();
+        if (32 == (new \App\Components\Ip($port->network->address))->masklen) {
+            $this->assertFalse(\App\Models\Network::findByAddressVrf($network, $vrf));
+        } else {
+            $networkFromDb = \App\Models\Network::findByAddressVrf($network, $vrf);
+            $this->assertEquals($network, $networkFromDb->address);
+        }
     }
-
-
 }
