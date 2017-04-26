@@ -29,7 +29,10 @@ class Network extends Model
             'hosts' => ['type' => self::HAS_MANY, 'model' => DataPort::class, 'by' => '__network_id'],
             'vlan' => ['type' => self::BELONGS_TO, 'model' => Vlan::class, 'by' => '__vlan_id'],
             'vrf' => ['type' => self::BELONGS_TO, 'model' => Vrf::class, 'by' => '__vrf_id'],
-            'location' => ['type' => self::BELONGS_TO, 'model' => Office::class, 'by' => '__location_id']
+            'location' => ['type' => self::BELONGS_TO, 'model' => Office::class, 'by' => '__location_id'],
+            'parent' => ['type' =>self::BELONGS_TO, 'model' => Network::class, 'by' => '__prt'],
+            'children' => ['type' =>self::HAS_MANY, 'model' => Network::class, 'by' => '__prt'],
+
         ]
     ];
 
@@ -58,8 +61,11 @@ class Network extends Model
         if (! $this->vrf instanceof Vrf) {
             throw new Exception('VRF не найден');
         }
-        if ((true === $this->isNew || true === $this->isUpdated) && false !== self::findByAddressVrf($this->address, $this->vrf)) {
+        if (true === $this->isNew && false !== self::findByAddressVrf($this->address, $this->vrf)) {
             throw new Exception('Сеть с адресом ' . $this->address . '(VRF: ' . $this->vrf . ') уже существует');
+        }
+        if (true === $this->isUpdated && false !== $existedNet = self::findByAddressVrf($this->address, $this->vrf)) {
+            return ($existedNet->getPk() === $this->getPk());
         }
         return true;
     }
@@ -84,14 +90,14 @@ class Network extends Model
         if (true === $this->wasUpdated || true === $this->wasNew) {
             if (false !== $this->parent) {
                 foreach ($this->parent->children as $child) {
-                    if (true === (new Ip($this->address))->is_parent(new Ip($child->address))) {
+                    if (true === (new Ip($this->address))->is_parent(new Ip($child->address)) && $this->vrf->getPk() == $child->vrf->getPk()) {
                         $child->parent = $this;
                         $child->save();
                     }
                 }
             } else {
                 foreach (self::__callStatic('findAllRoots', []) as $rootItem) {
-                    if (true === (new Ip($this->address))->is_parent(new Ip($rootItem->address))) {
+                    if (true === (new Ip($this->address))->is_parent(new Ip($rootItem->address)) && $this->vrf->getPk() == $rootItem->vrf->getPk()) {
                         $rootItem->parent = $this;
                         $rootItem->save();
                     }
@@ -112,18 +118,26 @@ class Network extends Model
         return parent::beforeDelete();
     }
 
+    /**
+     * @return Network|bool
+     */
     public function findParentNetwork()
     {
-        $query = 'WITH parents AS (SELECT DISTINCT * FROM network.networks WHERE address >> :subnet) SELECT * FROM parents WHERE address=(SELECT max(address) FROM parents)';
-        return static::findByQuery($query, [':subnet' => $this->address]);
+        $query = 'WITH parents AS (SELECT DISTINCT * FROM network.networks WHERE address >> :subnet) SELECT * FROM parents WHERE address=(SELECT max(address) FROM parents) AND __vrf_id = :vrf';
+        return static::findByQuery($query, [':subnet' => $this->address, ':vrf' => $this->vrf->getPk()]);
     }
 
+    /**
+     * @param $address
+     * @param Vrf $vrf
+     * @return Network|bool
+     */
     public static function findByAddressVrf($address, Vrf $vrf)
     {
         $result = Network::findAllByColumn('address', $address)->filter(function (Network $network) use ($vrf) {
             return ($network->vrf->getPk() == $vrf->getPk());
         });
         $result = $result->first();
-        return ($result) ?: false;
+        return (null === $result) ? false : $result;
     }
 }

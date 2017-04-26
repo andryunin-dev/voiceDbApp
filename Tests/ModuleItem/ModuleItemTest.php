@@ -37,9 +37,9 @@ class ModuleItemTest extends \PHPUnit\Framework\TestCase
     {
         return [
             ['sn1', 'inv1', ['name' => 'value']],
-            ['sn1', '', ['name' => 'value']],
-            ['sn1', 'inv1', ''],
-            ['sn1', '', ''],
+            ['sn2', '', ['name' => 'value']],
+            ['sn3', 'inv1', ''],
+            ['sn4', '', ''],
         ];
     }
 

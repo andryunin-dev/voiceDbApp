@@ -22,7 +22,7 @@ class Vrf extends Model
     protected static $schema = [
         'table' => 'network.vrfs',
         'columns' => [
-            'name' => ['type' => 'string'], //VRF name in lower case
+            'name' => ['type' => 'string'], //VRF name in lower case (not unique)
             'rd' => ['type' => 'string'], //RD (i.e '123:12', '10.1.1.2:125')
             'comment' => ['type' => 'string']
         ],

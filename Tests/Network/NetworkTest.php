@@ -122,7 +122,98 @@ class NetworkTest extends \PHPUnit\Framework\TestCase
         $this->assertInstanceOf(\App\Models\Office::class, $fromDb->location);
         $this->assertEquals($vrf->name, $fromDb->vrf->name);
         $this->assertEquals($vrf->rd, $fromDb->vrf->rd);
-
     }
+
+    public function providerGlobalVrfNetworks()
+    {
+        return [
+            ['1.1.1.192/27'],
+            ['1.1.1.192/26']
+        ];
+    }
+
+    /**
+     * create network '1.1.1.0/26' with Global Vrf and save()
+     * It have to not have parent and children
+     * @param $location
+     * @param $vlan
+     *
+     * @dataProvider providerGlobalVrfNetworks
+     * @depends testCreateLocation
+     * @depends testCreateVlan
+     * @depends testAppendNetwork
+     */
+    public function testAppendGlobalVrfNetworks($network, $location, $vlan)
+    {
+        $network = (new \App\Models\Network())
+            ->fill([
+                'address' => $network,
+                'location' => $location,
+                'vrf' => \App\Models\Vrf::findGlobalVrf(),
+                'vlan' => $vlan
+            ])
+            ->save();
+        $this->assertInstanceOf(\App\Models\Network::class, $network);
+    }
+
+    /**
+     * for custom Vrf
+     * @return array
+     *
+     */
+    public function providerNetworksAndParents_1()
+    {
+        return [
+            ['1.1.1.0/24', false, 2],
+            ['1.1.1.0/26', '1.1.1.0/25', 0],
+            ['1.1.1.64/26', '1.1.1.0/25', 0],
+            ['1.1.1.0/25', '1.1.1.0/24', 2],
+            ['1.1.1.128/25', '1.1.1.0/24', 0],
+            ['1.1.2.0/24', false, 0]
+        ];
+    }
+
+    /**
+     *
+     * @dataProvider providerNetworksAndParents_1
+     * @depends testCreateVrf
+     *
+     * @depends testAppendNetwork
+     * @depends testAppendGlobalVrfNetworks
+     */
+    public function testNetworkParentAndChildren($network, $parent, $childrenNumbers, $vrf)
+    {
+        $existedNet = \App\Models\Network::findByAddressVrf($network, $vrf);
+        $this->assertEquals($parent, $existedNet->parent->address);
+        $this->assertEquals($childrenNumbers, $existedNet->children->count());
+    }
+
+    /**
+     * for Global Vrf
+     * @return array
+     */
+    public function providerNetworksAndParents_2()
+    {
+        return [
+            ['1.1.1.192/26', false, 1],
+            ['1.1.1.192/27', '1.1.1.192/26', 0]
+        ];
+    }
+
+    /**
+     * for Global Vrf Networks
+     *
+     * @dataProvider providerNetworksAndParents_2
+     * @depends testAppendNetwork
+     * @depends testAppendGlobalVrfNetworks
+     *
+     */
+    public function testNetworkParentAndChildren_2($network, $parent, $childrenNumbers)
+    {
+        $existedNet = \App\Models\Network::findByAddressVrf($network, \App\Models\Vrf::findGlobalVrf());
+        $this->assertEquals($parent, $existedNet->parent->address);
+        $this->assertEquals($childrenNumbers, $existedNet->children->count());
+    }
+
 
 }
