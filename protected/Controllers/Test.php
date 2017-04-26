@@ -7,8 +7,10 @@ use App\Models\Network;
 use App\Models\Office;
 use App\Models\Region;
 use App\Models\Vrf;
+use T4\Core\Collection;
 use T4\Core\Exception;
 use T4\Core\MultiException;
+use T4\Core\Std;
 use T4\Mvc\Controller;
 use T4\Orm\Model;
 
@@ -16,15 +18,20 @@ class Test extends Controller
 {
     public function actionDefault()
     {
+        $a = [];
+        $a[2] = 'v1';
+        $a[''] = 'v0';
+        $a[4] = 'v2';
 
-//        var_dump(Region::getDbConnection());
-//        var_dump(City::getDbConnection());
-        var_dump($this->app->db->default = $this->app->db->phpUnitTest);
-//        City::setConnection('phpUnitTest');
-        var_dump(Region::getDbConnection());
-        var_dump(City::getDbConnection());
+        var_dump($a); //3 элемента в массиве
+
+        $coll = new Std();
+        $coll[1] = 'c1';
+        $coll[0] = 'c0';
+        $coll[2] = 'c2';
+        var_dump($coll);
+        var_dump(new Collection($coll)); // 2 элемента в коллекции.
         die;
-
     }
 
     public function actionDp()
