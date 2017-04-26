@@ -37,7 +37,11 @@ class ModuleItem extends Model
 
     protected function validateSerialNumber($val)
     {
-        return true;
+        if (empty(trim($val))) {
+            throw new Exception('Отсутствует серийный номер модуля');
+        }
+
+        return trim($val);
     }
 
     protected function sanitizeSerialNumber($val)
@@ -47,9 +51,6 @@ class ModuleItem extends Model
 
     protected function validate()
     {
-        if (empty($this->serialNumber)) {
-            throw new Exception('ModuleItem: Пустой SerialNumber');
-        }
         if (! ($this->module instanceof Module)) {
             throw new Exception('ModuleItem: Неверный тип Module');
         }
@@ -58,6 +59,22 @@ class ModuleItem extends Model
         }
         if (! ($this->location instanceof Office)) {
             throw new Exception('ModuleItem: Неверный тип Office');
+        }
+
+        $serialNumber = $this->serialNumber;
+
+        $moduleItem = $this->module->moduleItems->filter(
+            function ($moduleItem) use ($serialNumber) {
+                return $serialNumber == $moduleItem->serialNumber;
+            }
+        )->first();
+
+        if (true === $this->isNew && ($moduleItem instanceof ModuleItem)) {
+            throw new Exception('Такой ModuleItem уже существует');
+        }
+
+        if (true === $this->isUpdated && ($moduleItem instanceof ModuleItem) && ($moduleItem->getPk() != $this->getPk())) {
+            throw new Exception('Такой ModuleItem уже существует');
         }
 
         return true;

@@ -35,49 +35,32 @@ class Platform extends Model
         if (empty(trim($val))) {
             throw new Exception('Пустое название платформы');
         }
-        return true;
 
+        return true;
     }
 
     public function validate()
     {
-        if (false === $this->isNew()) {
-            return true;
+        if (! ($this->vendor instanceof Vendor)) {
+            throw new Exception('Platform: Неверный тип Vendor');
         }
 
-        if ((false !== $existed = self::findByColumn('title', $this->title)) &&
-            $this->vendor->getPk() == $existed->vendor->getPk()
-        ) {
+        $title = $this->title;
+
+        $platform = $this->vendor->platforms->filter(
+            function ($platform) use ($title) {
+                return $title == $platform->title;
+            }
+        )->first();
+
+        if (true === $this->isNew && ($platform instanceof Platform)) {
+            throw new Exception('Такая платформа уже существует');
+        }
+
+        if (true === $this->isUpdated && ($platform instanceof Platform) && ($platform->getPk() != $this->getPk())) {
             throw new Exception('Такая платформа уже существует');
         }
 
         return true;
-    }
-
-    public static function getByVendor(Vendor $vendor, string $platformTitle)
-    {
-        $platform = self::findByVendorPlatform($vendor, $platformTitle);
-
-        if (false == $platform) {
-            $platform = (new self())
-                ->fill([
-                    'title' => $platformTitle,
-                    'vendor' => $vendor
-                ])
-                ->save();
-        }
-
-        return $platform;
-    }
-
-    public static function findByVendorPlatform(Vendor $vendor, string $platformTitle)
-    {
-        $query = (new Query())
-            ->select()
-            ->from(self::getTableName())
-            ->where('title = :title AND __vendor_id = :__vendor_id')
-            ->params([':title' => $platformTitle, ':__vendor_id' => $vendor->getPk()]);
-
-        return self::findByQuery($query);
     }
 }

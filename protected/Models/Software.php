@@ -35,33 +35,32 @@ class Software extends Model
         if (empty(trim($val))) {
             throw new Exception('Пустое название ПО');
         }
-        return true;
 
+        return true;
     }
 
     public function validate()
     {
-        if (false === $this->isNew()) {
-            return true;
+        if (! ($this->vendor instanceof Vendor)) {
+            throw new Exception('Software: Неверный тип Vendor');
         }
 
-        if ((false !== $existed = self::findByColumn('title', $this->title)) &&
-            $this->vendor->getPk() == $existed->vendor->getPk()
-        ) {
+        $title = $this->title;
+
+        $software = $this->vendor->software->filter(
+            function ($software) use ($title) {
+                return $title == $software->title;
+            }
+        )->first();
+
+        if (true === $this->isNew && ($software instanceof Software)) {
+            throw new Exception('Такое ПО уже существует');
+        }
+
+        if (true === $this->isUpdated && ($software instanceof Software) && ($software->getPk() != $this->getPk())) {
             throw new Exception('Такое ПО уже существует');
         }
 
         return true;
-    }
-
-    public static function findByVendorPlatform(Vendor $vendor, string $applianceSoft)
-    {
-        $query = (new Query())
-            ->select()
-            ->from(self::getTableName())
-            ->where('title = :title AND __vendor_id = :__vendor_id')
-            ->params([':title' => $applianceSoft, ':__vendor_id' => $vendor->getPk()]);
-
-        return self::findByQuery($query);
     }
 }

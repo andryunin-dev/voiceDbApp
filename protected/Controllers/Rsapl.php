@@ -29,7 +29,7 @@ class Rsapl extends Controller
 
             // Getting Datasets in JSON format from php://input
             $jsonData = json_decode(file_get_contents('php://input'));
-            if (null == $jsonData) {
+            if (null === $jsonData) {
                 throw new Exception('DATASET: Empty an input dataset or Not a valid JSON');
             }
 
@@ -93,13 +93,13 @@ class Rsapl extends Controller
 
             // Determine "Location"
             $office = Office::findByLotusId($srcData->LotusId);
-            if (false == $office) {
+            if (!($office instanceof Office)) {
                 throw new Exception('ERROR: Location not found');
             }
 
             // Determine "Vendor"
             $vendor = Vendor::findByTitle($srcData->platformVendor);
-            if (false == $vendor) {
+            if (!($vendor instanceof Vendor)) {
                 $vendor = (new Vendor())
                     ->fill([
                         'title' => $srcData->platformVendor
@@ -114,7 +114,7 @@ class Rsapl extends Controller
                     return $requestPlatformTitle == $platform->title;
                 }
             )->first();
-            if (false == $platform) {
+            if (!($platform instanceof Platform)) {
                 $platform = (new Platform())
                     ->fill([
                         'vendor' => $vendor,
@@ -130,7 +130,7 @@ class Rsapl extends Controller
                     return $requestPlatformSerial == $platformItem->serialNumber;
                 }
             )->first();
-            if (false == $platformItem) {
+            if (!($platformItem instanceof PlatformItem)) {
                 $platformItem = (new PlatformItem())
                     ->fill([
                         'platform' => $platform,
@@ -146,7 +146,7 @@ class Rsapl extends Controller
                     return $requestApplianceSoft == $software->title;
                 }
             )->first();
-            if (false == $software) {
+            if (!($software instanceof Software)) {
                 $software = (new Software())
                     ->fill([
                         'vendor' => $vendor,
@@ -162,7 +162,7 @@ class Rsapl extends Controller
                     return $requestSoftwareVersion == $softwareItem->version;
                 }
             )->first();
-            if (false == $softwareItem) {
+            if (!($softwareItem instanceof SoftwareItem)) {
                 $softwareItem = (new SoftwareItem())
                     ->fill([
                         'software' => $software,
@@ -173,7 +173,7 @@ class Rsapl extends Controller
 
             // Determine "Appliance Type"
             $applianceType = ApplianceType::findByType($srcData->applianceType);
-            if (false == $applianceType) {
+            if (!($applianceType instanceof ApplianceType)) {
                 $applianceType = (new ApplianceType())
                     ->fill([
                         'type' => $srcData->applianceType
@@ -182,7 +182,7 @@ class Rsapl extends Controller
             }
 
             // Determine "Appliance"
-            $appliance = (false !== $platformItem->appliance) ? $platformItem->appliance : new Appliance();
+            $appliance = ($platformItem->appliance instanceof Appliance) ? $platformItem->appliance : (new Appliance());
             $appliance->fill([
                 'location' => $office,
                 'type' => $applianceType,
@@ -193,7 +193,7 @@ class Rsapl extends Controller
                     'hostname' => $srcData->hostname,
                 ]
             ])->save();
-            if (false == $appliance) {
+            if (!($appliance instanceof Appliance)) {
                 throw new Exception('ERROR: The appliance is not created');
             }
 
@@ -202,8 +202,13 @@ class Rsapl extends Controller
             foreach ($srcData->applianceModules as $moduleDataset) {
 
                 // Determine "Module"
-                $module = Module::findByVendorAndTitle($vendor, $moduleDataset->product_number);
-                if (false == $module) {
+                $requestModuleTitle = $moduleDataset->product_number;
+                $module = $vendor->modules->filter(
+                    function ($module) use ($requestModuleTitle) {
+                        return $requestModuleTitle == $module->title;
+                    }
+                )->first();
+                if (!($module instanceof Module)) {
                     $module = (new Module())
                         ->fill([
                             'vendor' => $vendor,
@@ -215,37 +220,38 @@ class Rsapl extends Controller
 
                 // Determine "ModuleItem"
                 $moduleItemSerial = $moduleDataset->serial;
-                $moduleItem = $module->moduleItems->filter(
+                $result = $module->moduleItems->filter(
                     function ($moduleItem) use ($moduleItemSerial) {
                         return $moduleItemSerial == $moduleItem->serialNumber;
                     }
                 )->first();
-                if (false == $moduleItem) {
-                    $moduleItem = (new ModuleItem())
-                        ->fill([
-                            'module' => $module,
-                            'serialNumber' => $moduleItemSerial,
-                            'appliance' => $appliance,
-                            'location' => $appliance->location,
-                        ])
-                        ->save();
-                }
+                $moduleItem = ($result instanceof ModuleItem) ? $result : (new ModuleItem());
+                $moduleItem->fill([
+                    'module' => $module,
+                    'serialNumber' => $moduleItemSerial,
+                    'appliance' => $appliance,
+                    'location' => $appliance->location,
+                ])->save();
 
                 $usedModules->add($moduleItem);
             }
+            if (0 === $usedModules->count()) {
+                throw new Exception('ERROR: The modules is not created');
+            }
 
-//            var_dump($usedModules);
+
 
             // Determine the UNUSED "Modules"
-            foreach ($appliance->modules as $dbModule) {
-                if (!$usedModules->existsElement(['serialNumber' => $dbModule->serialNumber])) {
-                    $dbModule->fill([
-                        'appliance' => 2,
-                    ])->save();
-
-                    var_dump($dbModule);
-                }
-            }
+            // Рабочий код - решить по значению NULL for Appliance
+//            foreach ($appliance->modules as $dbModule) {
+//                if (!$usedModules->existsElement(['serialNumber' => $dbModule->serialNumber])) {
+//                    $dbModule->fill([
+//                        'appliance' => null,
+//                    ])->save();
+//
+//                    var_dump($dbModule);
+//                }
+//            }
 
 
 

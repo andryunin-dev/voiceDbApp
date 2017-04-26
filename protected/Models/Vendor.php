@@ -38,18 +38,22 @@ class Vendor extends Model
         if (empty(trim($val))) {
             throw new Exception('Пустое название производителя');
         }
-        return true;
 
+        return true;
     }
 
     public function validate()
     {
-        if (false === $this->isNew()) {
-            return true;
-        }
-        if (false !== Vendor::findByColumn('title', $this->title)) {
+        $vendor = Vendor::findByColumn('title', $this->title);
+
+        if (true === $this->isNew && ($vendor instanceof Vendor)) {
             throw new Exception('Такой производитель уже существует');
         }
+
+        if (true === $this->isUpdated && ($vendor instanceof Vendor) && ($vendor->getPk() != $this->getPk())) {
+            throw new Exception('Такой производитель уже существует');
+        }
+
         return true;
     }
 }

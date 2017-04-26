@@ -42,6 +42,7 @@ class PlatformItem extends Model
         if (empty(trim($val))) {
             throw new Exception('Отсутствует серийный номер платформы');
         }
+
         return trim($val);
     }
 
@@ -52,36 +53,26 @@ class PlatformItem extends Model
 
     protected function validate()
     {
-        if (false === $this->platform) {
-            return false;
+        if (! ($this->platform instanceof Platform)) {
+            throw new Exception('PlatformItem: Неверный тип Platform');
         }
+
+        $serialNumber = $this->serialNumber;
+
+        $platformItem = $this->platform->platformItems->filter(
+            function ($platformItem) use ($serialNumber) {
+                return $serialNumber == $platformItem->serialNumber;
+            }
+        )->first();
+
+        if (true === $this->isNew && ($platformItem instanceof PlatformItem)) {
+            throw new Exception('Такой PlatformItem уже существует');
+        }
+
+        if (true === $this->isUpdated && ($platformItem instanceof PlatformItem) && ($platformItem->getPk() != $this->getPk())) {
+            throw new Exception('Такой PlatformItem уже существует');
+        }
+
         return true;
-    }
-
-    public static function getByPlatform(Platform $platform, string $serial)
-    {
-        $platformItem = self::findByPlatformSerial($platform, $serial);
-
-        if (false == $platformItem) {
-            $platformItem = (new self())
-                ->fill([
-                    'serialNumber' => $serial,
-                    'platform' => $platform
-                ])
-                ->save();
-        }
-
-        return $platformItem;
-    }
-
-    public static function findByPlatformSerial(Platform $platform, string $serial)
-    {
-        $query = (new Query())
-            ->select()
-            ->from(self::getTableName())
-            ->where('"serialNumber" = :serialNumber AND "__platform_id" = :__platform_id')
-            ->params([':serialNumber' => $serial, ':__platform_id' => $platform->getPk()]);
-
-        return self::findByQuery($query);
     }
 }

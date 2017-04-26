@@ -46,22 +46,41 @@ class Appliance extends Model
 
     protected function validate()
     {
-        if (false === $this->location) {
-            throw new Exception("офис не найден");
+        if (! ($this->location instanceof Office)) {
+            throw new Exception('Appliance: Неверный тип Office');
         }
-        if (false === $this->vendor) {
-            throw new Exception('Производитель не найден');
+        if (! ($this->vendor instanceof Vendor)) {
+            throw new Exception('Appliance: Неверный тип Vendor');
         }
-        if (false === $this->platform) {
-            throw new Exception('Ошибка при сохранении платформы');
+        if (! ($this->platform instanceof PlatformItem)) {
+            throw new Exception('Appliance: Неверный тип Platform');
         }
-        if (false === $this->software) {
-            throw new Exception('Ошибка при сохранении ПО');
+        if (! ($this->software instanceof SoftwareItem)) {
+            throw new Exception('Appliance: Неверный тип Software');
         }
-        if (false === $this->type) {
-            throw new Exception('Тип оборудования не найден');
+        if (! ($this->type instanceof ApplianceType)) {
+            throw new Exception('Appliance: Неверный тип ApplianceType');
         }
+
+        // TODO: Доделать для cluster
+
+
+        $platform = $this->platform;
+
+        $appliance = $this->vendor->appliances->filter(
+            function ($appliance) use ($platform) {
+                return $platform == $appliance->platform;
+            }
+        )->first();
+
+        if (true === $this->isNew && ($appliance instanceof Appliance)) {
+            throw new Exception('Такой Appliance уже существует');
+        }
+
+        if (true === $this->isUpdated && ($appliance instanceof Appliance) && ($appliance->getPk() != $this->getPk())) {
+            throw new Exception('Такой Appliance уже существует');
+        }
+
         return true;
     }
-
 }

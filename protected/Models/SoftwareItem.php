@@ -39,26 +39,32 @@ class SoftwareItem extends Model
         if (empty(trim($val))) {
             throw new Exception('Пустое значение ver. ПО');
         }
-        return true;
 
+        return true;
     }
 
     public function validate()
     {
-        if (false === $this->software) {
-            return false;
+        if (! ($this->software instanceof Software)) {
+            throw new Exception('SoftwareItem: Неверный тип Software');
         }
+
+        $version = $this->version;
+
+        $softwareItem = $this->software->softwareItems->filter(
+            function ($softwareItem) use ($version) {
+                return $version == $softwareItem->version;
+            }
+        )->first();
+
+        if (true === $this->isNew && ($softwareItem instanceof SoftwareItem)) {
+            throw new Exception('Такой SoftwareItem уже существует');
+        }
+
+        if (true === $this->isUpdated && ($softwareItem instanceof SoftwareItem) && ($softwareItem->getPk() != $this->getPk())) {
+            throw new Exception('Такой SoftwareItem уже существует');
+        }
+
         return true;
-    }
-
-    public static function findBySoftwareVersion(Software $software, string $version)
-    {
-        $query = (new Query())
-            ->select()
-            ->from(self::getTableName())
-            ->where('version = :version AND "__software_id" = :__software_id')
-            ->params([':version' => $version, ':__software_id' => $software->getPk()]);
-
-        return self::findByQuery($query);
     }
 }

@@ -38,32 +38,32 @@ class Module extends Model
         if (empty(trim($val))) {
             throw new Exception('Пустое название модуля');
         }
+
         return true;
     }
 
     protected function validate()
     {
-        if (false === $this->isNew()) {
-            return true;
+        if (! ($this->vendor instanceof Vendor)) {
+            throw new Exception('Module: Неверный тип Vendor');
         }
 
-        if ((false !== $existed = self::findByColumn('title', $this->title)) &&
-            $this->vendor->getPk() == $existed->vendor->getPk()
-        ) {
-            throw new Exception('Такой модуль уже существует');
+        $title = $this->title;
+
+        $module = $this->vendor->modules->filter(
+            function ($module) use ($title) {
+                return $title == $module->title;
+            }
+        )->first();
+
+        if (true === $this->isNew && ($module instanceof Module)) {
+            throw new Exception('Такой Module уже существует');
+        }
+
+        if (true === $this->isUpdated && ($module instanceof Module) && ($module->getPk() != $this->getPk())) {
+            throw new Exception('Такой Module уже существует');
         }
 
         return true;
-    }
-
-    public static function findByVendorAndTitle(Vendor $vendor, string $title)
-    {
-        $query = (new Query())
-            ->select()
-            ->from(self::getTableName())
-            ->where('title = :title AND __vendor_id = :__vendor_id')
-            ->params([':title' => $title, ':__vendor_id' => $vendor->getPk()]);
-
-        return self::findByQuery($query);
     }
 }
