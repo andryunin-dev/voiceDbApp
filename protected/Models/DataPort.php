@@ -190,9 +190,9 @@ class DataPort extends Model
             }
             $this->network = $network;
         } elseif ($this->isUpdated) {
-            if (32 == (new Ip($this->network->address))->masklen) {
-                $this->network->delete();
-            }
+//            if (32 == (new Ip($this->network->address))->masklen) {
+//                $this->network->delete();
+//            }
             if (false === $network = Network::findByAddressVrf($ip->cidrNetwork, $this->vrf)) {
                 $network = (new Network())
                     ->fill([
@@ -204,6 +204,20 @@ class DataPort extends Model
             $this->network = $network;
         }
         return parent::beforeSave();
+    }
+
+    public function save()
+    {
+        if ($this->isUpdated) {
+            $oldNetwork = (DataPort::findByPK($this->getPk()))->network;
+            $saveResult = parent::save();
+            if (false !== $saveResult && 32 == (new Ip($oldNetwork->address))->masklen) {
+                $oldNetwork->delete();
+            }
+            return $saveResult;
+        } else {
+            return parent::save();
+        }
     }
 
     protected function afterDelete()
@@ -258,7 +272,8 @@ class DataPort extends Model
      */
     public static function findByIpVrf($ip, $vrf)
     {
-         return self::findAllByIpVrf($ip, $vrf)->first();
+        $result = self::findAllByIpVrf($ip, $vrf)->first();
+        return (null === $result) ? false : $result;
     }
 
 }

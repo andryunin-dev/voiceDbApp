@@ -25,6 +25,20 @@
                         </div>
                     </div>
                 </div>
+                {#VRF#}
+                <div class="form-group">
+                    <label for="id-vrf" class="col-sm-3 control-label">VRF</label>
+                    <div class="col-sm-9">
+                        <select name="data[vrfId]" id="id-vrf" class="form-control">
+                            {% for vrf in vrfs %}
+                                <option value="{{ vrf.getPK }}" {% if vrf.getPk == gvrf.getPk %} selected {% endif %}>
+                                    {{ vrf.name }}{% if vrf.getPk != gvrf.getPk %} ({{ vrf.rd }}){% endif %}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
                 {#MAC address#}
                 <div class="form-group">
                     <div class="col-sm-9 col-sm-offset-3">
