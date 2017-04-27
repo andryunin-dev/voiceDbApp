@@ -10,8 +10,10 @@ use App\Models\Office;
 use App\Models\Region;
 use App\Models\Vendor;
 use App\Models\Vrf;
+use T4\Core\Collection;
 use T4\Core\Exception;
 use T4\Core\MultiException;
+use T4\Core\Std;
 use T4\Mvc\Controller;
 use T4\Orm\Model;
 
@@ -19,90 +21,6 @@ class Test extends Controller
 {
     public function actionDefault()
     {
-
-    }
-
-    public function actionCreateAppliance()
-    {
-        $region = (new \App\Models\Region())
-            ->fill(['title' => 'test'])
-            ->save();
-        $city = (new \App\Models\City())
-            ->fill([
-                'title' => 'test',
-                'region' => $region
-            ])
-            ->save();
-        $status = (new \App\Models\OfficeStatus())
-            ->fill([
-                'title' => 'test'
-            ])
-            ->save();
-        $address = (new \App\Models\Address())
-            ->fill([
-                'address' => 'test',
-                'city' => $city
-            ])
-            ->save();
-        $office = (new \App\Models\Office())
-            ->fill([
-                'title' => 'test',
-                'status' => $status,
-                'lotusId' => 9999,
-                'address' => $address
-            ]);
-        $office->save();
-
-        $vendor = (new \App\Models\Vendor())
-            ->fill([
-                'title' => 'test'
-            ])
-            ->save();
-
-        $platform = (new \App\Models\Platform())
-            ->fill([
-                'title' => 'test',
-                'vendor' => $vendor
-            ])
-            ->save();
-
-        $platformItem = (new \App\Models\PlatformItem())
-            ->fill([
-                'serialNumber' => 'sn1',
-                'platform' => $platform
-            ])
-            ->save();
-
-        $software = (new \App\Models\Software())
-            ->fill([
-                'title' => 'test',
-                'vendor' => $vendor
-            ])
-            ->save();
-
-        $softwareItem = (new \App\Models\SoftwareItem())
-            ->fill([
-                'software' => $software
-            ])
-            ->save();
-
-        $applianceType = (new \App\Models\ApplianceType())
-            ->fill([
-                'type' => 'test'
-            ])
-            ->save();
-
-        $appliance = (new \App\Models\Appliance())
-            ->fill([
-                'type' => $applianceType,
-                'vendor' => $vendor,
-                'platform' => $platformItem,
-                'software' => $softwareItem,
-                'location' => $office
-            ])
-            ->save();
-        var_dump($appliance);die;
-
     }
 
     public function actionTestModule()
