@@ -58,6 +58,7 @@ class PlatformItem extends Model
         }
 
         $serialNumber = $this->serialNumber;
+        $this->platform->refresh();
 
         $platformItem = $this->platform->platformItems->filter(
             function ($platformItem) use ($serialNumber) {

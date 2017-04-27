@@ -46,6 +46,7 @@ class Platform extends Model
         }
 
         $title = $this->title;
+        $this->vendor->refresh();
 
         $platform = $this->vendor->platforms->filter(
             function ($platform) use ($title) {

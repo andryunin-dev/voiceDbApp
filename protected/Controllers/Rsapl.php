@@ -234,7 +234,7 @@ class Rsapl extends Controller
                 ])->save();
 
                 $usedModules->add($moduleItem);
-            }
+
             if (0 === $usedModules->count()) {
                 throw new Exception('ERROR: The modules is not created');
             }

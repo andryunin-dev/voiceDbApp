@@ -46,6 +46,7 @@ class Software extends Model
         }
 
         $title = $this->title;
+        $this->vendor->refresh();
 
         $software = $this->vendor->software->filter(
             function ($software) use ($title) {

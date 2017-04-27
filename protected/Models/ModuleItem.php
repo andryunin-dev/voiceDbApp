@@ -62,6 +62,7 @@ class ModuleItem extends Model
         }
 
         $serialNumber = $this->serialNumber;
+        $this->module->refresh();
 
         $moduleItem = $this->module->moduleItems->filter(
             function ($moduleItem) use ($serialNumber) {

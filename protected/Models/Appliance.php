@@ -66,6 +66,7 @@ class Appliance extends Model
 
 
         $platform = $this->platform;
+        $this->vendor->refresh();
 
         $appliance = $this->vendor->appliances->filter(
             function ($appliance) use ($platform) {

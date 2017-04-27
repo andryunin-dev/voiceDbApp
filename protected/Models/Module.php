@@ -49,6 +49,7 @@ class Module extends Model
         }
 
         $title = $this->title;
+        $this->vendor->refresh();
 
         $module = $this->vendor->modules->filter(
             function ($module) use ($title) {

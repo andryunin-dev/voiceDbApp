@@ -50,6 +50,7 @@ class SoftwareItem extends Model
         }
 
         $version = $this->version;
+        $this->software->refresh();
 
         $softwareItem = $this->software->softwareItems->filter(
             function ($softwareItem) use ($version) {
