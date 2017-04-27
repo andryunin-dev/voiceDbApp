@@ -117,7 +117,7 @@ class Vrf extends Model
         return $this->name . (self::GLOBAL_VRF_RD != $this->rd) ? '(' . $this->rd . ')' : '';
     }
 
-    public static function findGlobalVrf()
+    public static function instanceGlobalVrf()
     {
         $gVrf = self::findByColumn('name', self::GLOBAL_VRF_NAME);
         if (false === $gVrf) {

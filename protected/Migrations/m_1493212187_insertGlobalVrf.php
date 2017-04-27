@@ -21,7 +21,7 @@ class m_1493212187_insertGlobalVrf
         if (false !== Vrf::findByQuery($query)) {
             throw new Exception('Global Vrf already exists!');
         }
-        if (false !== Vrf::findGlobalVrf()) {
+        if (false !== Vrf::instanceGlobalVrf()) {
             echo 'main DB: inserted Global VRF (name =  ' . Vrf::GLOBAL_VRF_NAME . ', rd = ' . Vrf::GLOBAL_VRF_RD . ' )' . "\n";
         }
     }

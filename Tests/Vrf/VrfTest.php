@@ -131,12 +131,12 @@ class VrfTest extends \PHPUnit\Framework\TestCase
 
     public function testGlobalVrf()
     {
-        $globalVrf = \App\Models\Vrf::findGlobalVrf();
+        $globalVrf = \App\Models\Vrf::instanceGlobalVrf();
         $this->assertInstanceOf(\App\Models\Vrf::class, $globalVrf);
         $this->assertEquals(\App\Models\Vrf::GLOBAL_VRF_NAME, $globalVrf->name);
         $this->assertEquals(\App\Models\Vrf::GLOBAL_VRF_RD, $globalVrf->rd);
         $this->assertEquals(\App\Models\Vrf::GLOBAL_VRF_COMMENT, $globalVrf->comment);
-        $globalVrf_2 = \App\Models\Vrf::findGlobalVrf();
+        $globalVrf_2 = \App\Models\Vrf::instanceGlobalVrf();
         $this->assertEquals($globalVrf->getPk(), $globalVrf_2->getPk());
     }
 }
