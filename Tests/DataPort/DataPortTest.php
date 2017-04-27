@@ -87,7 +87,7 @@ class DataPortTest extends \PHPUnit\Framework\TestCase
     public function testValidDataPort($ipAddress, $network, $macAddress, $vrfName, $vrfRd, $appliance, $portType)
     {
         if ($vrfName == \App\Models\Vrf::GLOBAL_VRF_NAME) {
-            $vrf = \App\Models\Vrf::findGlobalVrf();
+            $vrf = \App\Models\Vrf::instanceGlobalVrf();
         } else {
             $vrf = (\App\Models\Vrf::findByRd($vrfRd)) ?: (new \App\Models\Vrf(['name' => $vrfName, 'rd' => $vrfRd]))->save();
         }
@@ -127,7 +127,7 @@ class DataPortTest extends \PHPUnit\Framework\TestCase
         $this->expectException(\T4\Core\Exception::class);
 
         if ($vrfName == \App\Models\Vrf::GLOBAL_VRF_NAME) {
-            $vrf = \App\Models\Vrf::findGlobalVrf();
+            $vrf = \App\Models\Vrf::instanceGlobalVrf();
         } else {
             $vrf = (\App\Models\Vrf::findByRd($vrfRd)) ?: (new \App\Models\Vrf(['name' => $vrfName, 'rd' => $vrfRd]))->save();
         }

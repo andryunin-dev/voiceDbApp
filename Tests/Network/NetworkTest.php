@@ -149,7 +149,7 @@ class NetworkTest extends \PHPUnit\Framework\TestCase
             ->fill([
                 'address' => $network,
                 'location' => $location,
-                'vrf' => \App\Models\Vrf::findGlobalVrf(),
+                'vrf' => \App\Models\Vrf::instanceGlobalVrf(),
                 'vlan' => $vlan
             ])
             ->save();
@@ -210,7 +210,7 @@ class NetworkTest extends \PHPUnit\Framework\TestCase
      */
     public function testNetworkParentAndChildren_2($network, $parent, $childrenNumbers)
     {
-        $existedNet = \App\Models\Network::findByAddressVrf($network, \App\Models\Vrf::findGlobalVrf());
+        $existedNet = \App\Models\Network::findByAddressVrf($network, \App\Models\Vrf::instanceGlobalVrf());
         $this->assertEquals($parent, $existedNet->parent->address);
         $this->assertEquals($childrenNumbers, $existedNet->children->count());
     }
