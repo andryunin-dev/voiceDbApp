@@ -3,6 +3,9 @@
 namespace App\Models;
 
 use T4\Core\Collection;
+use T4\Core\Exception;
+use T4\Core\MultiException;
+use T4\Dbal\Query;
 use T4\Orm\Model;
 
 /**
@@ -31,11 +34,38 @@ class SoftwareItem extends Model
         ]
     ];
 
+    public function validateVersion($val)
+    {
+        if (empty(trim($val))) {
+            throw new Exception('Пустое значение ver. ПО');
+        }
+
+        return true;
+    }
+
     public function validate()
     {
-        if (false === $this->software) {
-            return false;
+        if (! ($this->software instanceof Software)) {
+            throw new Exception('SoftwareItem: Неверный тип Software');
         }
+
+        $version = $this->version;
+        $this->software->refresh();
+
+        $softwareItem = $this->software->softwareItems->filter(
+            function ($softwareItem) use ($version) {
+                return $version == $softwareItem->version;
+            }
+        )->first();
+
+        if (true === $this->isNew && ($softwareItem instanceof SoftwareItem)) {
+            throw new Exception('Такой SoftwareItem уже существует');
+        }
+
+        if (true === $this->isUpdated && ($softwareItem instanceof SoftwareItem) && ($softwareItem->getPk() != $this->getPk())) {
+            throw new Exception('Такой SoftwareItem уже существует');
+        }
+
         return true;
     }
 }

@@ -5,6 +5,7 @@ namespace App\Models;
 
 use T4\Core\Collection;
 use T4\Core\Exception;
+use T4\Core\MultiException;
 use T4\Orm\Model;
 
 /**
@@ -36,6 +37,7 @@ class ApplianceType extends Model
         if (empty(trim($val))) {
             throw new Exception('Пустое название типа(роли)');
         }
+
         return true;
     }
 
@@ -46,12 +48,16 @@ class ApplianceType extends Model
 
     protected function validate()
     {
-        if (false === $this->isNew()) {
-            return true;
+        $applianceType = ApplianceType::findByColumn('type', $this->type);
+
+        if (true === $this->isNew && ($applianceType instanceof ApplianceType)) {
+            throw new Exception('Такой ApplianceType уже существует');
         }
-        if (false !== ApplianceType::findByColumn('type', $this->type)) {
-            throw new Exception('Такой тип уже существует');
+
+        if (true === $this->isUpdated && ($applianceType instanceof ApplianceType) && ($applianceType->getPk() != $this->getPk())) {
+            throw new Exception('Такой ApplianceType уже существует');
         }
+
         return true;
     }
 }

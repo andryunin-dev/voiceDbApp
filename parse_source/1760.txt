@@ -1,0 +1,87 @@
+Slot 0:
+	C1760 1FE VE 4SLOT DV Mainboard Port adapter, 5 ports
+	Port adapter is analyzed 
+	Port adapter insertion time unknown
+	EEPROM contents at hardware discovery:
+	Hardware Revision        : 8.81
+	PCB Serial Number        : FOC102854NE
+	Part Number              : 73-7167-08
+	Board Revision           : A0
+	Fab Version              : 04
+	Product (FRU) Number     : CISCO1760
+	EEPROM format version 4
+	EEPROM contents (hex):
+	  0x00: 04 FF 40 03 16 41 08 51 C1 8B 46 4F 43 31 30 32
+	  0x10: 38 35 34 4E 45 82 49 1B FF 08 42 41 30 02 04 FF
+	  0x20: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+	  0x30: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+	  0x40: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+	  0x50: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+	  0x60: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+	  0x70: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+	Packet Voice DSP Module Slot 0:
+	Hardware Revision        : 3.2
+	Part Number              : 73-6726-01
+	Board Revision           : A0
+	Deviation Number         : 0-0
+	Fab Version              : 03
+	PCB Serial Number        : VIC1041019N
+	RMA Test History         : 00
+	RMA Number               : 0-0-0-0
+	RMA History              : 00
+	Processor type           : 02 
+	Number of DSP's          : 1
+	DSP memory size(in kwords): 256
+	Type of DSP              : TMS320C549
+	Product (FRU) Number     : PVDM-256K-4=
+	EEPROM format version 4
+	EEPROM contents (hex):
+	0x00:	04 FF 40 02 AC 41 03 02 82 49 1A 46 01 42 41 30 
+	0x10:	80 00 00 00 00 02 03 C1 8B 56 49 43 31 30 34 31 
+	0x20:	30 31 39 4E 03 00 81 00 00 00 00 04 00 09 02 FF 
+
+	Packet Voice DSP Module Slot 1:
+        Not populated
+
+	WIC/VIC Slot 0:
+	Serial 1T
+	Hardware revision 1.0	Board revision B0
+	Serial number     0033399307	Part number    800-01514-02
+	FRU Part Number   WIC-1T=
+
+	Test history      0x00		RMA number     00-00-00
+	Connector type    WAN Module
+	EEPROM format version 1
+	EEPROM contents (hex):
+	0x20:	01 02 01 00 01 FD A2 0B 50 05 EA 02 00 00 00 00 
+	0x30:	58 00 00 00 05 04 10 01 FF FF FF FF FF FF FF FF 
+
+	WIC/VIC Slot 1:
+	Two Port Modem WIC
+	Hardware revision 1.0	Board revision G0
+	Serial number     0031931044	Part number    800-08283-01
+	FRU Part Number   WIC-2AM=
+
+	Test history      0x00		RMA number     00-00-00
+	Connector type    WAN Module
+	EEPROM format version 1
+	EEPROM contents (hex):
+	0x20:	01 37 01 00 01 E7 3A A4 50 20 5B 01 00 00 00 00 
+	0x30:	80 00 00 00 04 03 25 01 FF FF FF FF FF FF FF FF 
+
+	VIC Slot 2:
+	Dual FXS Voice Interface Card
+	Daughter card-Version 4 TLV Cookie Format
+	Hardware Revision        : 3.1
+	Top Assy. Part Number    : 800-21341-02
+	Board Revision           : A0
+	Deviation Number         : 0-0
+	Fab Version              : 01
+	PCB Serial Number        : FOC10353TCC
+	RMA Test History         : 00
+	RMA Number               : 0-0-0-0
+	RMA History              : 00
+	Product (FRU) Number     : VIC2-2FXS
+	Version Identifier       : V01 
+	CLEI Code                : CNUIAPPAAA

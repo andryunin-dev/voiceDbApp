@@ -2,10 +2,13 @@
 
 namespace App\Controllers;
 
+use App\Models\Appliance;
 use App\Models\City;
+use App\Models\ModuleItem;
 use App\Models\Network;
 use App\Models\Office;
 use App\Models\Region;
+use App\Models\Vendor;
 use App\Models\Vrf;
 use T4\Core\Collection;
 use T4\Core\Exception;
@@ -18,27 +21,29 @@ class Test extends Controller
 {
     public function actionDefault()
     {
-        $a = [];
-        $a[2] = 'v1';
-        $a[''] = 'v0';
-        $a[4] = 'v2';
-
-        var_dump($a); //3 элемента в массиве
-
-        $coll = new Std();
-        $coll[1] = 'c1';
-        $coll[0] = 'c0';
-        $coll[2] = 'c2';
-        var_dump($coll);
-        var_dump(new Collection($coll)); // 2 элемента в коллекции.
-        die;
     }
 
-    public function actionDp()
+    public function actionTestModule()
     {
-        $var = file_get_contents('php://input');
-        var_dump($var);
+        $module = (new \App\Models\Module())
+            ->fill([
+                'title' => 'test',
+                'vendor' => Vendor::findByTitle('test')
+            ])
+            ->save();
+        $item1 = (new ModuleItem())
+            ->fill([
+                'serialNumber' => 'sn1',
+                'appliance' => Appliance::findAll()->first(),
+                'location' => Office::findAll()->first(),
+                'module' => $module
+            ])
+            ->save();
+        var_dump($module->moduleItems);
+        $item1->delete();
+        $module->delete();
         die;
+
     }
 
     public function actionNetworks()

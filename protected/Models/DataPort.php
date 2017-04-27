@@ -190,9 +190,9 @@ class DataPort extends Model
             }
             $this->network = $network;
         } elseif ($this->isUpdated) {
-            if (32 == (new Ip($this->network->address))->masklen) {
-                $this->network->delete();
-            }
+//            if (32 == (new Ip($this->network->address))->masklen) {
+//                $this->network->delete();
+//            }
             if (false === $network = Network::findByAddressVrf($ip->cidrNetwork, $this->vrf)) {
                 $network = (new Network())
                     ->fill([
@@ -206,12 +206,44 @@ class DataPort extends Model
         return parent::beforeSave();
     }
 
-    public static function countAllByIpVrf($ip, $vrf)
+    public function save()
+    {
+        if ($this->isUpdated) {
+            $oldNetwork = (DataPort::findByPK($this->getPk()))->network;
+            $saveResult = parent::save();
+            if (false !== $saveResult && 32 == (new Ip($oldNetwork->address))->masklen) {
+                $oldNetwork->delete();
+            }
+            return $saveResult;
+        } else {
+            return parent::save();
+        }
+    }
+
+    protected function afterDelete()
+    {
+        if (32 == (new Ip($this->network->address))->masklen) {
+            $this->network->delete();
+        }
+        return parent::afterDelete();
+    }
+
+    /**
+     * @param $ip
+     * @param Vrf $vrf
+     * @return int
+     */
+    public static function countAllByIpVrf($ip, Vrf $vrf)
     {
         return self::findAllByIpVrf($ip, $vrf)->count();
     }
 
-    public static function findAllByIpVrf($ip, $vrf)
+    /**
+     * @param $ip
+     * @param Vrf $vrf
+     * @return bool|Collection|DataPort[]
+     */
+    public static function findAllByIpVrf($ip, Vrf $vrf)
     {
         $query = (new Query())
             ->select()
@@ -230,12 +262,18 @@ class DataPort extends Model
              */
             return ($dPort->network->vrf->rd == $vrf->rd);
         });
-        return $result;
+        return (null === $result) ? false : $result;
     }
 
-     public static function findByIpVrf($ip, $vrf)
+    /**
+     * @param $ip
+     * @param Vrf $vrf
+     * @return DataPort|bool
+     */
+    public static function findByIpVrf($ip, $vrf)
     {
-         return self::findAllByIpVrf($ip, $vrf)->first();
+        $result = self::findAllByIpVrf($ip, $vrf)->first();
+        return (null === $result) ? false : $result;
     }
 
 }

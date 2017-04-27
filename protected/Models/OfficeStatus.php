@@ -58,5 +58,4 @@ class OfficeStatus extends Model
         }
         return true;
     }
-
 }

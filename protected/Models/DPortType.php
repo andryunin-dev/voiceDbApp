@@ -4,6 +4,7 @@ namespace App\Models;
 
 use T4\Core\Collection;
 use T4\Core\Exception;
+use T4\Core\MultiException;
 use T4\Orm\Model;
 
 /**
@@ -16,6 +17,8 @@ use T4\Orm\Model;
  */
 class DPortType extends Model
 {
+    const NO_TYPE = 'NO_TYPE';
+
     protected static $schema = [
         'table' => 'equipment.dataPortTypes',
         'columns' => [

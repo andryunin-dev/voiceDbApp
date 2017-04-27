@@ -31,12 +31,17 @@ class ModuleItem extends Model
         'relations' => [
             'module' => ['type' => self::BELONGS_TO, 'model' => Module::class],
             'appliance' => ['type' => self::BELONGS_TO, 'model' => Appliance::class],
-            'location' => ['type' => self::BELONGS_TO, 'model' => Office::class,  'by' => '__location_id']
+            'location' => ['type' => self::BELONGS_TO, 'model' => Office::class, 'by' => '__location_id']
         ]
     ];
 
     protected function validateSerialNumber($val)
     {
+        if (empty(trim($val))) {
+            throw new Exception('Отсутствует серийный номер модуля');
+        }
+
+        return trim($val);
     }
 
     protected function sanitizeSerialNumber($val)
@@ -46,16 +51,31 @@ class ModuleItem extends Model
 
     protected function validate()
     {
-        if (false === $this->module) {
-            throw new Exception('модуль не найден');
+        if (! ($this->module instanceof Module)) {
+            throw new Exception('ModuleItem: Неверный тип Module');
         }
-
         if (! ($this->appliance instanceof Appliance || false)) {
-            throw new Exception('Неверный тип Appliance');
+            throw new Exception('ModuleItem: Неверный тип Appliance');
+        }
+        if (! ($this->location instanceof Office)) {
+            throw new Exception('ModuleItem: Неверный тип Office');
         }
 
-        if (! ($this->appliance instanceof Appliance || $this->location instanceof Office)) {
-            throw new Exception('Необходимо задать метоположение для офиса или модуля');
+        $serialNumber = $this->serialNumber;
+        $this->module->refresh();
+
+        $moduleItem = $this->module->moduleItems->filter(
+            function ($moduleItem) use ($serialNumber) {
+                return $serialNumber == $moduleItem->serialNumber;
+            }
+        )->first();
+
+        if (true === $this->isNew && ($moduleItem instanceof ModuleItem)) {
+            throw new Exception('Такой ModuleItem уже существует');
+        }
+
+        if (true === $this->isUpdated && ($moduleItem instanceof ModuleItem) && ($moduleItem->getPk() != $this->getPk())) {
+            throw new Exception('Такой ModuleItem уже существует');
         }
 
         return true;
@@ -66,6 +86,7 @@ class ModuleItem extends Model
         if ($this->appliance instanceof Appliance) {
             $this->location = $this->appliance->location;
         }
+
         return parent::beforeSave();
     }
 }

@@ -4,6 +4,8 @@ namespace App\Models;
 
 use T4\Core\Collection;
 use T4\Core\Exception;
+use T4\Core\MultiException;
+use T4\Dbal\Query;
 use T4\Orm\Model;
 
 /**
@@ -33,18 +35,33 @@ class Platform extends Model
         if (empty(trim($val))) {
             throw new Exception('Пустое название платформы');
         }
-        return true;
 
+        return true;
     }
 
     public function validate()
     {
-        if (false === $this->isNew()) {
-            return true;
+        if (! ($this->vendor instanceof Vendor)) {
+            throw new Exception('Platform: Неверный тип Vendor');
         }
-        if (false !== Platform::findByColumn('title', $this->title)) {
+
+        $title = $this->title;
+        $this->vendor->refresh();
+
+        $platform = $this->vendor->platforms->filter(
+            function ($platform) use ($title) {
+                return $title == $platform->title;
+            }
+        )->first();
+
+        if (true === $this->isNew && ($platform instanceof Platform)) {
             throw new Exception('Такая платформа уже существует');
         }
+
+        if (true === $this->isUpdated && ($platform instanceof Platform) && ($platform->getPk() != $this->getPk())) {
+            throw new Exception('Такая платформа уже существует');
+        }
+
         return true;
     }
 }

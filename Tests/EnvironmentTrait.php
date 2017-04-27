@@ -90,6 +90,13 @@ trait EnvironmentTrait
 
     public function createVrf($name = 'test', $rd = '10:100')
     {
+        if (\App\Models\Vrf::GLOBAL_VRF_NAME == $name) {
+            return \App\Models\Vrf::instanceGlobalVrf();
+        }
+        if (\App\Models\Vrf::GLOBAL_VRF_RD == $rd) {
+            return \App\Models\Vrf::instanceGlobalVrf();
+        }
+
         if (false === $vrf = \App\Models\Vrf::findByRd($rd)) {
             $vrf = (new \App\Models\Vrf())
                 ->fill([
@@ -294,5 +301,31 @@ trait EnvironmentTrait
         }
         $this->assertInstanceOf(\App\Models\DPortType::class, $dPortType);
         return $dPortType;
+    }
+
+    public function createDataPort(
+        $ipAddress = '1.1.1.1/24',
+        $vrf = null,
+        $macAddress = '00-11-22-33-44-55',
+        $appliance = null,
+        $portType = null
+    ) {
+        $vrf = $vrf ?? $this->createVrf();
+        $appliance = $appliance ?? $this->createAppliance();
+        $portType = $portType ?? $this->createDataPortType();
+
+        if (false === $dataPort = \App\Models\DataPort::findByIpVrf($ipAddress, $vrf)) {
+            $dataPort = (new \App\Models\DataPort())
+                ->fill([
+                    'ipAddress' => $ipAddress,
+                    'macAddress' => $macAddress,
+                    'appliance' => $appliance,
+                    'portType' => $portType,
+                    'vrf' => $vrf
+                ])
+                ->save();
+        }
+        $this->assertInstanceOf(\App\Models\DataPort::class, $dataPort);
+        return $dataPort;
     }
 }

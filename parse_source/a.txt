@@ -1,0 +1,263 @@
+RegOmsk_Maslen#sh diag
+Slot 0:
+                C2811 Motherboard with 2FE and integrated VPN Port adapter, 2 ports
+                Port adapter is analyzed
+                Port adapter insertion time unknown
+                EEPROM contents at hardware discovery:
+                PCB Serial Number        : FOC10333WSU
+                Hardware Revision        : 1.0
+                Top Assy. Part Number    : 800-26920-02
+                Board Revision           : A0
+                Deviation Number         : 0
+                Fab Version              : 03
+                RMA Test History         : 00
+                RMA Number               : 0-0-0-0
+                RMA History              : 00
+                Processor type           : 87
+                Hardware date code       : 20060817
+                Chassis Serial Number    : FCZ10387201
+                Chassis MAC Address      : 0018.ba5e.4a60
+                MAC Address block size   : 24
+                CLEI Code                : COM3C00BRA
+                Product (FRU) Number     : CISCO2811     
+                Part Number              : 73-10258-04
+                Version Identifier       : V03
+                EEPROM format version 4
+                EEPROM contents (hex):
+                  0x00: 04 FF C1 8B 46 4F 43 31 30 33 33 33 57 53 55 40
+                  0x10: 03 E7 41 01 00 C0 46 03 20 00 69 28 02 42 41 30
+                  0x20: 88 00 00 00 00 02 03 03 00 81 00 00 00 00 04 00
+                  0x30: 09 87 83 01 32 1A 91 C2 8B 46 43 5A 31 30 33 38
+                  0x40: 37 32 30 31 C3 06 00 18 BA 5E 4A 60 43 00 18 C6
+                  0x50: 8A 43 4F 4D 33 43 30 30 42 52 41 CB 8F 43 49 53
+                  0x60: 43 4F 32 38 31 31 20 20 20 20 20 20 82 49 28 12
+                  0x70: 04 89 56 30 33 20 D9 02 40 C1 FF FF FF FF FF FF
+ 
+                PVDM Slot 0:
+                8-channel (G.711) Voice/Fax PVDMII DSP SIMM PVDM daughter card
+                Hardware Revision        : 4.0
+                Part Number              : 73-8848-05
+                Board Revision           : A0
+                Deviation Number         : 0
+                Fab Version              : 04
+                PCB Serial Number        : FOC11031WJP
+                RMA Test History         : 00
+                RMA Number               : 0-0-0-0
+        RMA History              : 00
+                Processor type           : 00
+                Product (FRU) Number     : PVDM2-8
+                Version Identifier       : V01
+                EEPROM format version 4
+                EEPROM contents (hex):
+                  0x00: 04 FF 40 04 30 41 04 00 82 49 22 90 05 42 41 30
+                  0x10: 88 00 00 00 00 02 04 C1 8B 46 4F 43 31 31 30 33
+                  0x20: 31 57 4A 50 03 00 81 00 00 00 00 04 00 09 00 CB
+                  0x30: 87 50 56 44 4D 32 2D 38 89 56 30 31 20 D9 02 40
+                  0x40: C1 FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+                  0x50: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+                  0x60: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+                  0x70: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+ 
+                PVDM Slot 1:
+                8-channel (G.711) Voice/Fax PVDMII DSP SIMM PVDM daughter card
+                Hardware Revision        : 3.2
+                Part Number              : 73-8848-04
+                Board Revision           : A0
+                Deviation Number         : 0
+                Fab Version              : 03
+                PCB Serial Number        : FOC0928068X
+                RMA Test History         : 00
+                RMA Number               : 0-0-0-0
+                RMA History              : 00
+                Processor type           : 00
+                Product (FRU) Number     : PVDM2-8
+                Version Identifier       : NA 
+                EEPROM format version 4
+                EEPROM contents (hex):
+                  0x00: 04 FF 40 04 30 41 03 02 82 49 22 90 04 42 41 30
+                  0x10: 88 00 00 00 00 02 03 C1 8B 46 4F 43 30 39 32 38
+                  0x20: 30 36 38 58 03 00 81 00 00 00 00 04 00 09 00 CB
+                  0x30: 87 50 56 44 4D 32 2D 38 89 4E 41 20 20 D9 02 40
+                  0x40: C1 FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+                  0x50: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+                  0x60: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+                  0x70: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+ 
+                WIC Slot 0:
+                Serial 1T WAN daughter card
+                Hardware revision 1.0                   Board revision J0
+                Serial number     31882545           Part number    800-01514-01
+        FRU Part Number     WIC-1T=          
+                Test history      0x0         RMA number     00-00-00
+                Connector type    Wan Module
+                EEPROM format version 1
+                EEPROM contents (hex):
+                  0x20: 01 02 01 00 01 E6 7D 31 50 05 EA 01 00 00 00 00
+                  0x30: 98 00 00 00 11 11 26 01 FF FF FF FF FF FF FF FF
+ 
+                WIC Slot 1:
+                Two Port Modem WIC(Version 2)
+                Hardware Revision        : 1.0
+                Top Assy. Part Number    : 800-25306-07
+                Board Revision           : D0
+                Deviation Number         : 0
+                Fab Version              : 07
+                PCB Serial Number        : FOC11231QUJ
+                RMA Test History         : 00
+                RMA Number               : 0-0-0-0
+                RMA History              : 00
+                Product (FRU) Number     : WIC-2AM-V2
+                Version Identifier       : V01
+                CLEI Code                : CNUIAHDAAA
+                EEPROM format version 4
+                EEPROM contents (hex):
+                  0x00: 04 FF 40 04 8B 41 01 00 C0 46 03 20 00 62 DA 07
+                  0x10: 42 44 30 88 00 00 00 00 02 07 C1 8B 46 4F 43 31
+                  0x20: 31 32 33 31 51 55 4A 03 00 81 00 00 00 00 04 00
+                  0x30: CB 8A 57 49 43 2D 32 41 4D 2D 56 32 89 56 30 31
+                  0x40: 20 D9 02 40 C1 C6 8A 43 4E 55 49 41 48 44 41 41
+                  0x50: 41 FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+                  0x60: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+                  0x70: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+ 
+                WIC Slot 2:
+                2nd generation - FXS Voice daughter card (2 port)
+                Hardware Revision        : 3.1
+                Top Assy. Part Number    : 800-21341-02
+                Board Revision           : B0
+                Deviation Number         : 0-0
+                Fab Version              : 01
+                PCB Serial Number        : FOC11250627
+                RMA Test History         : 00
+                RMA Number               : 0-0-0-0
+                RMA History              : 00
+        Product (FRU) Number     : VIC2-2FXS
+                Version Identifier       : V01
+                CLEI Code                : CNUIAPPAAA
+                EEPROM format version 4
+                EEPROM contents (hex):
+                  0x00: 04 FF 40 00 47 41 03 01 C0 46 03 20 00 53 5D 02
+                  0x10: 42 42 30 80 00 00 00 00 02 01 C1 8B 46 4F 43 31
+                  0x20: 31 32 35 30 36 32 37 03 00 81 00 00 00 00 04 00
+                  0x30: CB 89 56 49 43 32 2D 32 46 58 53 89 56 30 31 20
+                  0x40: C6 8A 43 4E 55 49 41 50 50 41 41 41 FF FF FF FF
+                  0x50: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+                  0x60: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+                  0x70: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+ 
+                WIC Slot 3:
+                2nd generation - FXO Voice daughter card (4 port)
+                Hardware Revision        : 5.0
+                Top Assy. Part Number    : 800-21589-01
+                Board Revision           : E0
+                Deviation Number         : 0-0
+                Fab Version              : 04
+                PCB Serial Number        : FOC09202F8X
+                RMA Test History         : 00
+                RMA Number               : 0-0-0-0
+                RMA History              : 00
+                Version Identifier       : V
+                Product (FRU) Number     : VIC2-4FXO=
+                EEPROM format version 4
+                EEPROM contents (hex):
+                  0x00: 04 FF 40 00 4C 41 05 00 C0 46 03 20 00 54 55 01
+                  0x10: 42 45 30 80 00 00 00 00 02 04 C1 8B 46 4F 43 30
+                  0x20: 39 32 30 32 46 38 58 03 00 81 00 00 00 00 04 00
+                  0x30: 89 56 00 00 00 FF FF FF FF FF FF FF FF FF FF FF
+                  0x40: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+                  0x50: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+                  0x60: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+                  0x70: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+ 
+Slot 1:
+                High Density Voice Port adapter
+                Port adapter is analyzed
+                Port adapter insertion time unknown
+                EEPROM contents at hardware discovery:
+                Hardware Revision        : 1.1
+        Top Assy. Part Number    : 800-03567-01
+                Board Revision           : K0
+                Deviation Number         : 0-0
+                Fab Version              : 02
+                PCB Serial Number        : FOC084739NQ
+                RMA Test History         : 00
+                RMA Number               : 0-0-0-0
+                RMA History              : 00
+                Product (FRU) Number     : NM-HDV=
+                EEPROM format version 4
+                EEPROM contents (hex):
+                  0x00: 04 FF 40 00 CC 41 01 01 C0 46 03 20 00 0D EF 01
+                  0x10: 42 4B 30 80 00 00 00 00 02 02 C1 8B 46 4F 43 30
+                  0x20: 38 34 37 33 39 4E 51 03 00 81 00 00 00 00 04 00
+                  0x30: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+                  0x40: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+                  0x50: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+                  0x60: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+                  0x70: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+ 
+                HDV SIMMs: Product (FRU) Number: PVDM-12=
+                SIMM slot 0: PVDM-12 SIMM present.
+                SIMM slot 1: PVDM-12 SIMM present.
+                SIMM slot 2: PVDM-12 SIMM present.
+                SIMM slot 3: PVDM-12 SIMM present.
+                SIMM slot 4: PVDM-12 SIMM present.
+ 
+                WIC Slot 0:
+                E1 (2 Port) Multi-Flex Trunk (Drop&Insert) WAN Daughter Card
+                Hardware revision 1.0                   Board revision D0
+                Serial number     32944406           Part number    800-04615-03
+                FRU Part Number     VWIC-2MFT-E1-DI= 
+                Test history      0x0         RMA number     00-00-00
+                Connector type    PCI
+                EEPROM format version 1
+                EEPROM contents (hex):
+                  0x20: 01 25 01 00 01 F6 B1 16 50 12 07 03 00 00 00 00
+                  0x30: 68 00 00 00 04 11 08 00 FF FF FF FF FF FF FF FF
+ 
+                HDV firmware: Compiled Fri 19-Nov-04 14:23 by michen
+                HDV memory size 524280 heap free 141761
+ 
+ 
+RegOmsk_Maslen#sh ver
+Cisco IOS Software, 2800 Software (C2800NM-IPVOICEK9-M), Version 12.4(11)T4, RELEASE SOFTWARE (fc3)
+Technical Support: http://www.cisco.com/techsupport
+Copyright (c) 1986-2007 by Cisco Systems, Inc.
+Compiled Fri 26-Oct-07 19:38 by prod_rel_team
+ 
+ROM: System Bootstrap, Version 12.4(1r) [hqluong 1r], RELEASE SOFTWARE (fc1)
+ 
+RegOmsk_Maslen uptime is 1 day, 22 hours, 48 minutes
+System returned to ROM by power-on
+System restarted at 12:48:22 MSK Wed Apr 5 2017
+System image file is "flash:c2800nm-ipvoicek9-mz.124-11.T4.bin"
+ 
+ 
+This product contains cryptographic features and is subject to United
+States and local country laws governing import, export, transfer and
+use. Delivery of Cisco cryptographic products does not imply
+third-party authority to import, export, distribute or use encryption.
+Importers, exporters, distributors and users are responsible for
+compliance with U.S. and local country laws. By using this product you
+agree to comply with applicable laws and regulations. If you are unable
+to comply with U.S. and local laws, return this product immediately.
+ 
+A summary of U.S. laws governing Cisco cryptographic products may be found at:
+http://www.cisco.com/wwl/export/crypto/tool/stqrg.html
+ 
+If you require further assistance please contact us by sending email to
+export@cisco.com.
+ 
+Cisco 2811 (revision 53.51) with 249856K/12288K bytes of memory.
+Processor board ID FCZ10387201
+2 FastEthernet interfaces
+64 Serial interfaces
+1 Serial(sync/async) interface
+2 terminal lines
+2 Channelized E1/PRI ports
+4 Voice FXO interfaces
+2 Voice FXS interfaces
+DRAM configuration is 64 bits wide with parity enabled.
+239K bytes of non-volatile configuration memory.
+62720K bytes of ATA CompactFlash (Read/Write)
+ 
+Configuration register is 0x2102

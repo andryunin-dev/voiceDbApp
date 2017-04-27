@@ -8,6 +8,8 @@
 
   "require": {
     "pr-of-it/t4": "dev-fixes",
-    "phpunit/phpunit": "*"
+    "phpunit/phpunit": "*",
+    "monolog/monolog": "^1.22",
+    "theorchard/monolog-cascade": "^0.4.1"
   }
 }

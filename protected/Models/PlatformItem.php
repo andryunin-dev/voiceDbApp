@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use T4\Core\Exception;
+use T4\Core\MultiException;
+use T4\Dbal\Query;
 use T4\Orm\Model;
 
 /**
@@ -36,6 +39,10 @@ class PlatformItem extends Model
 
     protected function validateSerialNumber($val)
     {
+        if (empty(trim($val))) {
+            throw new Exception('Отсутствует серийный номер платформы');
+        }
+
         return trim($val);
     }
 
@@ -46,9 +53,27 @@ class PlatformItem extends Model
 
     protected function validate()
     {
-        if (false === $this->platform) {
-            return false;
+        if (! ($this->platform instanceof Platform)) {
+            throw new Exception('PlatformItem: Неверный тип Platform');
         }
+
+        $serialNumber = $this->serialNumber;
+        $this->platform->refresh();
+
+        $platformItem = $this->platform->platformItems->filter(
+            function ($platformItem) use ($serialNumber) {
+                return $serialNumber == $platformItem->serialNumber;
+            }
+        )->first();
+
+        if (true === $this->isNew && ($platformItem instanceof PlatformItem)) {
+            throw new Exception('Такой PlatformItem уже существует');
+        }
+
+        if (true === $this->isUpdated && ($platformItem instanceof PlatformItem) && ($platformItem->getPk() != $this->getPk())) {
+            throw new Exception('Такой PlatformItem уже существует');
+        }
+
         return true;
     }
 }
