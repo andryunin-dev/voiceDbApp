@@ -2,13 +2,18 @@
 
 namespace App\Controllers;
 
+use App\Models\Appliance;
 use App\Models\City;
+use App\Models\ModuleItem;
 use App\Models\Network;
 use App\Models\Office;
 use App\Models\Region;
+use App\Models\Vendor;
 use App\Models\Vrf;
+use T4\Core\Collection;
 use T4\Core\Exception;
 use T4\Core\MultiException;
+use T4\Core\Std;
 use T4\Mvc\Controller;
 use T4\Orm\Model;
 
@@ -16,22 +21,29 @@ class Test extends Controller
 {
     public function actionDefault()
     {
-
-//        var_dump(Region::getDbConnection());
-//        var_dump(City::getDbConnection());
-        var_dump($this->app->db->default = $this->app->db->phpUnitTest);
-//        City::setConnection('phpUnitTest');
-        var_dump(Region::getDbConnection());
-        var_dump(City::getDbConnection());
-        die;
-
     }
 
-    public function actionDp()
+    public function actionTestModule()
     {
-        $var = file_get_contents('php://input');
-        var_dump($var);
+        $module = (new \App\Models\Module())
+            ->fill([
+                'title' => 'test',
+                'vendor' => Vendor::findByTitle('test')
+            ])
+            ->save();
+        $item1 = (new ModuleItem())
+            ->fill([
+                'serialNumber' => 'sn1',
+                'appliance' => Appliance::findAll()->first(),
+                'location' => Office::findAll()->first(),
+                'module' => $module
+            ])
+            ->save();
+        var_dump($module->moduleItems);
+        $item1->delete();
+        $module->delete();
         die;
+
     }
 
     public function actionNetworks()

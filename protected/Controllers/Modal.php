@@ -16,6 +16,7 @@ use App\Models\Region;
 use App\Models\Software;
 use App\Models\Vendor;
 use App\Models\VPortType;
+use App\Models\Vrf;
 use T4\Core\Exception;
 use T4\Core\MultiException;
 use T4\Http\Request;
@@ -197,6 +198,8 @@ class Modal extends Controller
     {
         $this->data->current = Appliance::findByPK($id);
         $this->data->portTypes = DPortType::findAll(['order' => 'type']);
+        $this->data->vrfs = Vrf::findAll();
+        $this->data->gvrf = Vrf::instanceGlobalVrf();
     }
 
     public function actionEditDataPort()
@@ -204,5 +207,7 @@ class Modal extends Controller
         $this->data->currentAppliance = Appliance::findByPK($this->app->request->get->deviceId);
         $this->data->currentPort = DataPort::findByPK($this->app->request->get->portId);
         $this->data->portTypes = DPortType::findAll(['order' => 'type']);
+        $this->data->vrfs = Vrf::findAll();
+        $this->data->gvrf = Vrf::instanceGlobalVrf();
     }
 }

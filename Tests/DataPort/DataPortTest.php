@@ -53,6 +53,17 @@ class DataPortTest extends \PHPUnit\Framework\TestCase
         ];
     }
 
+    public function providerChangeDataPort()
+    {
+        return [
+            'change Ip on same Net' => ['2.1.1.1/24', '2.1.1.0/24', 'gvrf', '2.1.1.2/24', '2.1.1.0/24', 'gvrf'],
+            'changeIp on another Net' => ['2.1.1.1/24', '2.1.1.0/24', 'gvrf', '2.1.2.1/24', '2.1.2.0/24', 'gvrf'],
+            'change loopback IP' => ['2.1.1.1/32', '2.1.1.1/32', 'gvrf', '2.1.1.2/32', '2.1.1.2/32', 'gvrf'],
+            'change masklen' => ['2.1.1.129/24', '2.1.1.0/24', 'gvrf', '2.1.1.129/25', '2.1.1.128/25', 'gvrf'],
+            'change vrf' => ['2.1.1.1/24', '2.1.1.0/24', 'gvrf', '2.1.1.1/24', '2.1.1.0/24', 'vrf'],
+        ];
+    }
+
     public function provider_Invalid_IpMacVrf()
     {
         return [
@@ -210,6 +221,69 @@ class DataPortTest extends \PHPUnit\Framework\TestCase
         } else {
             $networkFromDb = \App\Models\Network::findByAddressVrf($network, $vrf);
             $this->assertEquals($network, $networkFromDb->address);
+        }
+    }
+
+    /**
+     * @param string $ipAddressOld
+     * @param string $networkOld
+     * @param \App\Models\Vrf $vrfOld
+     * @param string $ipAddressNew
+     * @param string $networkNew
+     * @param \App\Models\Vrf $vrfNew
+     * @param \App\Models\Appliance $appliance
+     * @param \App\Models\DPortType $portType
+     * @param \App\Models\Vrf $vrf
+     *
+     * @dataProvider providerChangeDataPort
+     * @depends testCreateAppliance
+     * @depends testCreateDataPortType
+     * @depends testCreateVrf
+     */
+    public function testChangeDataPort(
+        $ipAddressOld,
+        $networkOld,
+        $vrfOld,
+        $ipAddressNew,
+        $networkNew,
+        $vrfNew,
+        $appliance,
+        $portType,
+        $vrf
+    ) {
+        \App\Models\DataPort::findAll()->delete();
+        $vrfOld = ('gvrf' == $vrfOld) ? \App\Models\Vrf::instanceGlobalVrf() : $vrf;
+        $vrfNew = ('gvrf' == $vrfNew) ? \App\Models\Vrf::instanceGlobalVrf() : $vrf;
+
+        $port = (new \App\Models\DataPort())
+            ->fill([
+                'ipAddress' => $ipAddressOld,
+                'vrf' => $vrfOld,
+                'portType' => $portType,
+                'appliance' => $appliance,
+            ])
+            ->save();
+        $this->assertInstanceOf(\App\Models\DataPort::class, $port);
+        $this->assertEquals($networkOld, $port->network->address);
+        $this->assertEquals($vrfOld->rd, $port->network->vrf->rd);
+
+        //change port
+        $port
+            ->fill([
+                'ipAddress' => $ipAddressNew,
+                'vrf' => $vrfNew,
+                'portType' => $portType,
+                'appliance' => $appliance,
+            ])
+            ->save();
+        $this->assertInstanceOf(\App\Models\DataPort::class, $port);
+        $this->assertEquals($networkNew, $port->network->address);
+        $this->assertEquals($vrfNew->rd, $port->network->vrf->rd);
+        if (32 == (new \App\Components\Ip($ipAddressOld))->masklen) {
+            $this->assertFalse(\App\Models\Network::findByAddressVrf($networkOld, $vrfOld));
+        } else {
+            $networkFromDb = \App\Models\Network::findByAddressVrf($networkOld, $vrfOld);
+            $this->assertEquals($networkOld, $networkFromDb->address);
         }
     }
 }

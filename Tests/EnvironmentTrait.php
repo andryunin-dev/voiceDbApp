@@ -2,27 +2,6 @@
 
 trait EnvironmentTrait
 {
-    public $region;
-    public $city;
-    public $officeStatus;
-    public $office;
-    public $vendor;
-    public $cluster;
-    public $appliance;
-    public $applianceType;
-    public $platform;
-    public $platformItem;
-    public $software;
-    public $softwareItem;
-    public $module;
-    public $moduleItem;
-    public $vlan;
-    public $vrf;
-    public $network;
-    public $dPortType;
-    public $dataPort;
-
-
     public function createRegion($title = 'test')
     {
         if (false === $region = \App\Models\Region::findByTitle($title)) {
@@ -31,7 +10,7 @@ trait EnvironmentTrait
                 ->save();
         }
         $this->assertInstanceOf(\App\Models\Region::class, $region);
-        return $this->region = $region;
+        return $region;
     }
 
     public function createCity($title = 'test')
@@ -45,7 +24,7 @@ trait EnvironmentTrait
                 ->save();
         }
         $this->assertInstanceOf(\App\Models\City::class, $city);
-        return $this->city = $city;
+        return $city;
     }
 
     public function createOfficeStatus($title = 'test')
@@ -58,7 +37,7 @@ trait EnvironmentTrait
                 ->save();
         }
         $this->assertInstanceOf(\App\Models\OfficeStatus::class, $status);
-        return $this->officeStatus = $status;
+        return $status;
     }
 
     public function createLocation($lotusId = 1, $title = 'test')
@@ -88,7 +67,7 @@ trait EnvironmentTrait
             ]);
             $office->save();
         $this->assertInstanceOf(\App\Models\Office::class, $office);
-        return $this->office = $office;
+        return $office;
     }
 
     public function createOffice()
@@ -106,11 +85,18 @@ trait EnvironmentTrait
             ])
             ->save();
         $this->assertInstanceOf(\App\Models\Vlan::class, $vlan);
-        return $this->vlan = $vlan;
+        return $vlan;
     }
 
     public function createVrf($name = 'test', $rd = '10:100')
     {
+        if (\App\Models\Vrf::GLOBAL_VRF_NAME == $name) {
+            return \App\Models\Vrf::instanceGlobalVrf();
+        }
+        if (\App\Models\Vrf::GLOBAL_VRF_RD == $rd) {
+            return \App\Models\Vrf::instanceGlobalVrf();
+        }
+
         if (false === $vrf = \App\Models\Vrf::findByRd($rd)) {
             $vrf = (new \App\Models\Vrf())
                 ->fill([
@@ -121,7 +107,7 @@ trait EnvironmentTrait
                 ->save();
         }
         $this->assertInstanceOf(\App\Models\Vrf::class, $vrf);
-        return $this->vrf = $vrf;
+        return $vrf;
     }
 
     public function createVendor($title = 'test')
@@ -134,7 +120,7 @@ trait EnvironmentTrait
                 ->save();
         }
         $this->assertInstanceOf(\App\Models\Vendor::class, $vendor);
-        return $this->vendor = $vendor;
+        return $vendor;
     }
 
     public function createPlatform($title = 'test', $vendor = null)
@@ -149,7 +135,7 @@ trait EnvironmentTrait
                 ->save();
         }
         $this->assertInstanceOf(\App\Models\Platform::class, $platform);
-        return $this->platform = $platform;
+        return $platform;
     }
 
     public function createPlatformItem(
@@ -172,7 +158,7 @@ trait EnvironmentTrait
                 ->save();
         }
         $this->assertInstanceOf(\App\Models\PlatformItem::class, $platformItem);
-        return $this->platformItem = $platformItem;
+        return $platformItem;
     }
 
     public function createSoftware($title = 'test', $vendor = null)
@@ -187,7 +173,7 @@ trait EnvironmentTrait
                 ->save();
         }
         $this->assertInstanceOf(\App\Models\Software::class, $software);
-        return $this->software = $software;
+        return $software;
     }
 
     public function createSoftwareItem(
@@ -206,7 +192,7 @@ trait EnvironmentTrait
                 ->save();
         }
         $this->assertInstanceOf(\App\Models\SoftwareItem::class, $softwareItem);
-        return $this->softwareItem = $softwareItem;
+        return $softwareItem;
     }
 
     public function createApplianceType($type = 'test')
@@ -219,7 +205,7 @@ trait EnvironmentTrait
                 ->save();
         }
         $this->assertInstanceOf(\App\Models\ApplianceType::class, $applianceType);
-        return $this->applianceType = $applianceType;
+        return $applianceType;
     }
 
     public function createCluster($title = 'test')
@@ -233,7 +219,7 @@ trait EnvironmentTrait
         }
         $this->assertInstanceOf(\App\Models\Cluster::class, $cluster);
 
-        return $this->cluster = $cluster;
+        return $cluster;
     }
 
     public function createAppliance(
@@ -261,7 +247,7 @@ trait EnvironmentTrait
             ])
             ->save();
         $this->assertInstanceOf(\App\Models\Appliance::class, $appliance);
-        return $this->appliance = $appliance;
+        return $appliance;
     }
 
     public function createModule($title = 'test', $vendor = null)
@@ -276,7 +262,7 @@ trait EnvironmentTrait
                 ->save();
         }
         $this->assertInstanceOf(\App\Models\Module::class, $module);
-        return $this->module = $module;
+        return $module;
     }
 
     public function createModuleItem(
@@ -301,7 +287,7 @@ trait EnvironmentTrait
             ])
             ->save();
         $this->assertInstanceOf(\App\Models\ModuleItem::class, $moduleItem);
-        return $this->moduleItem = $moduleItem;
+        return $moduleItem;
     }
 
     public function createDataPortType($type = 'test')
@@ -314,7 +300,7 @@ trait EnvironmentTrait
                 ->save();
         }
         $this->assertInstanceOf(\App\Models\DPortType::class, $dPortType);
-        return $this->dPortType = $dPortType;
+        return $dPortType;
     }
 
     public function createDataPort(
@@ -338,9 +324,8 @@ trait EnvironmentTrait
                     'vrf' => $vrf
                 ])
                 ->save();
-
-            $this->assertInstanceOf(\App\Models\DataPort::class, $dataPort);
-            return $this->dataPort = $dataPort;
         }
+        $this->assertInstanceOf(\App\Models\DataPort::class, $dataPort);
+        return $dataPort;
     }
 }

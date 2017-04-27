@@ -2,9 +2,7 @@
 
 namespace App\Controllers;
 
-use App\Components\Ip;
 use App\Components\Parser;
-use App\Components\Publisher;
 use App\Models\Address;
 use App\Models\Appliance;
 use App\Models\ApplianceType;
@@ -13,7 +11,6 @@ use App\Models\DataPort;
 use App\Models\DPortType;
 use App\Models\Module;
 use App\Models\ModuleItem;
-use App\Models\Network;
 use App\Models\Office;
 use App\Models\OfficeStatus;
 use App\Models\Platform;
@@ -23,6 +20,7 @@ use App\Models\Software;
 use App\Models\SoftwareItem;
 use App\Models\Vendor;
 use App\Models\VPortType;
+use App\Models\Vrf;
 use T4\Core\Exception;
 use T4\Core\MultiException;
 use T4\Core\Std;
@@ -1222,9 +1220,14 @@ class Admin extends Controller
                 throw new Exception('Тип порта не выбран');
             }
 
+            if (!is_numeric($data->vrfId)) {
+                throw new Exception('VRF не выбран');
+            }
+
             (new DataPort())
                 ->fill([
                     'ipAddress' => $data->ip,
+                    'vrf' => Vrf::findByPK($data->vrfId),
                     'macAddress' => $data->mac,
                     'comment' => $data->comment,
                     'appliance' => $currentAppliance,
@@ -1258,9 +1261,14 @@ class Admin extends Controller
                 throw new Exception('Неверные данные');
             }
 
+            if (!is_numeric($data->vrfId)) {
+                throw new Exception('VRF не выбран');
+            }
+
             $currentDataPort
                 ->fill([
                     'ipAddress' => $data->ip,
+                    'vrf' => Vrf::findByPK($data->vrfId),
                     'macAddress' => $data->mac,
                     'comment' => $data->comment,
                     'appliance' => $currentAppliance, //нужен только для валидатора
