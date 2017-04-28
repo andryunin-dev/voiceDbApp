@@ -1313,4 +1313,70 @@ class Admin extends Controller
 
     }
 
+    public function actionVrf()
+    {
+        $this->data->vrfs = Vrf::findAll();
+        $this->data->gvrf = Vrf::instanceGlobalVrf();
+        $this->data->activeLink->ipPlanning = true;
+    }
+
+    public function actionAddVrf($vrf)
+    {
+        try {
+            Vrf::getDbConnection()->beginTransaction();
+            (new Vrf())
+                ->fill($vrf)
+                ->save();
+
+            Vrf::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Vrf::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Vrf::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
+    }
+
+    public function actionEditVrf($vrf)
+    {
+        try {
+            Vrf::getDbConnection()->beginTransaction();
+            if (false === $currentVrf = Vrf::findByPK($vrf->id)) {
+                throw new Exception('Неверные данные');
+            }
+            unset($vrf->id);
+            $currentVrf
+                ->fill($vrf)
+                ->save();
+
+            Vrf::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Vrf::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Vrf::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
+    }
+
+    public function actionDelVrf($id)
+    {
+        try {
+            Vrf::getDbConnection()->beginTransaction();
+            if (false === $currentVrf = Vrf::findByPK($id)) {
+                throw new Exception('Неверные данные');
+            }
+            $currentVrf->delete();
+
+            Vrf::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Vrf::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Vrf::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
+    }
+
 }

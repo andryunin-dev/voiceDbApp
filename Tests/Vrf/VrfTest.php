@@ -22,12 +22,10 @@ class VrfTest extends \PHPUnit\Framework\TestCase
     public function providerValidVrf()
     {
         return [
-            ['test', '1:1', 'test'],
-            ['test', '2:1', 'test'],
-            ['test', '1.1.1.1:1', 'test'],
-            ['test', '1.1.1.1:2', 'test'],
-            ['test', '1.1.1.2:1', 'test'],
-            ['test', '1.1.1.2:2', 'test'],
+            ['test 1', 'test 2', '1:1', '2:1', 'test'],
+            ['test 2', 'test 3', '2:1', '1.1.1.1:1', 'test'],
+            ['test 3', 'test 4', '1.1.1.1:1', '1.1.1.1:2', 'test'],
+            ['test 4', 'test 1', '1.1.1.1:2', '1:1', 'test'],
         ];
     }
 
@@ -71,42 +69,72 @@ class VrfTest extends \PHPUnit\Framework\TestCase
 
 
     /**
-     * @param $name
-     * @param $rd
+     * @param $nameOld
+     * @param $nameNew
+     * @param $rdOld
+     * @param $rdNew
      * @param $comment
      *
      * @dataProvider providerValidVrf
      */
-    public function testValidVrf($name, $rd, $comment)
+    public function testValidVrf($nameOld, $nameNew, $rdOld, $rdNew, $comment)
     {
         $vrf = (new \App\Models\Vrf())
             ->fill([
-                'name' => $name,
-                'rd' => $rd,
+                'name' => $nameOld,
+                'rd' => $rdOld,
                 'comment' => $comment
             ])
             ->save();
         $this->assertInstanceOf(\App\Models\Vrf::class, $vrf);
-        $this->assertEquals($name, $vrf->name);
-        $this->assertEquals($rd, $vrf->rd);
+        $this->assertEquals($nameOld, $vrf->name);
+        $this->assertEquals($rdOld, $vrf->rd);
         $this->assertEquals($comment, $vrf->comment);
     }
 
     /**
-     * @param $name
-     * @param $rd
+     * @param $nameOld
+     * @param $nameNew
+     * @param $rdOld
+     * @param $rdNew
      * @param $comment
      *
      * @dataProvider providerValidVrf
      */
-    public function testDoubleVrfError($name, $rd, $comment)
+    public function testDoubleVrfError($nameOld, $nameNew, $rdOld, $rdNew, $comment)
     {
         $this->expectException(\T4\Core\Exception::class);
         (new \App\Models\Vrf())
             ->fill([
-                'name' => $name,
-                'rd' => $rd,
+                'name' => $nameOld,
+                'rd' => $rdOld,
                 'comment' => $comment
+            ])
+            ->save();
+    }
+
+    /**
+     * @param $nameOld
+     * @param $nameNew
+     * @param $rdOld
+     * @param $rdNew
+     * @param $comment
+     *
+     * @dataProvider providerValidVrf
+     * @depends testValidVrf
+     */
+    public function testUpdateVrfError($nameOld, $nameNew, $rdOld, $rdNew, $comment)
+    {
+        $this->expectException(\T4\Core\Exception::class);
+        $fromDb = \App\Models\Vrf::findByRd($rdOld);
+        $fromDb
+            ->fill([
+                'name' => $nameNew,
+            ])
+            ->save();
+        $fromDb
+            ->fill([
+                'rd' => $rdNew,
             ])
             ->save();
     }

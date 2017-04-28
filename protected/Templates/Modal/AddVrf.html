@@ -1,0 +1,42 @@
+<div id="add-vrf" role="dialog" title="Новый VRF">
+    <div class="container-fluid">
+    	<div class="row">
+            <form class="form-horizontal" action="/admin/addVrf" method="post" role="form">
+                <div class="form-group">
+                    <label for="id-vrf-name" class="col-sm-3 control-label">Name</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" name="vrf[name]" id="id-region" placeholder="VRF name">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="id-vrf-rd" class="col-sm-3 control-label">RD</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" name="vrf[rd]" id="id-region" placeholder="VRF Route Distinguisher ">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="id-vrf-rd" class="col-sm-3 control-label">Комментарий</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" name="vrf[comment]" id="id-region" placeholder="Комментарий">
+                    </div>
+                </div>
+
+                <div class="col-sm-offset-3 col-sm-9">
+                    <button class="btn btn-success" type="submit">Создать</button>
+                    <button class="btn btn-danger" type="button" role="button" data-action="close">Отмена</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        var APP = APP || {};
+        APP.popups = APP.popups || [];
+        APP.popups.push({
+            path: "{{ path }}",
+            popupSelector: "#add-vrf",
+            width: "500"
+        });
+    </script>
+</div>
+
