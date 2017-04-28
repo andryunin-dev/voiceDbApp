@@ -54,7 +54,7 @@ class ModuleItem extends Model
         if (! ($this->module instanceof Module)) {
             throw new Exception('ModuleItem: Неверный тип Module');
         }
-        if (! ($this->appliance instanceof Appliance || false)) {
+        if (! ($this->appliance instanceof Appliance || null === $this->appliance)) {
             throw new Exception('ModuleItem: Неверный тип Appliance');
         }
         if (! ($this->location instanceof Office)) {
@@ -88,5 +88,10 @@ class ModuleItem extends Model
         }
 
         return parent::beforeSave();
+    }
+
+    public function unlinkAppliance()
+    {
+        $this->appliance = null;
     }
 }
