@@ -16,6 +16,8 @@ use App\Models\Software;
 use App\Models\SoftwareItem;
 use App\Models\Vendor;
 use App\Models\Vrf;
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
 use T4\Core\Collection;
 use T4\Core\Exception;
 use T4\Core\MultiException;
@@ -36,6 +38,9 @@ class RServer extends Controller
 
     public function actionDefault()
     {
+        $logger = new Logger('Survey of Appliances');
+        $logger->pushHandler(new StreamHandler(ROOT_PATH . '/Logs/surveyOfAppliances.log', Logger::DEBUG));
+
         $response = new Collection();
 
         try {
@@ -108,7 +113,7 @@ class RServer extends Controller
             // Determine "Location"
             $office = Office::findByLotusId($srcData->LotusId);
             if (!($office instanceof Office)) {
-                throw new Exception('ERROR: Location not found');
+                throw new Exception('Location not found');
             }
 
             // Determine "Vendor"
@@ -208,7 +213,7 @@ class RServer extends Controller
                 ]
             ])->save();
             if (!($appliance instanceof Appliance)) {
-                throw new Exception('ERROR: The appliance is not created');
+                throw new Exception('The appliance is not created');
             }
 
             // Determine the USED "Modules"
@@ -217,7 +222,7 @@ class RServer extends Controller
 
                 // Проверка на отсутствие ключевых данных по модулю == отсутствие модуля у Appliance
 // TODO: Выяснить - при отсутсвии модулей у Appliance будет ли присутствувать в входящих данных $srcData поле applianceModules
-                if (empty($moduleDataset->serial) && empty($moduleDataset->product_number)) {
+                if (empty($moduleDataset->serial) || empty($moduleDataset->product_number)) {
                     continue;
                 }
 
@@ -301,7 +306,7 @@ class RServer extends Controller
                     ->save();
             }
             if (!($dataPort instanceof DataPort)) {
-                throw new Exception('ERROR: The DataPort is not created');
+                throw new Exception('The DataPort is not created');
             }
 
             Appliance::getDbConnection()->commitTransaction();
@@ -311,11 +316,13 @@ class RServer extends Controller
             $errors = [];
             foreach ($e as $error) {
                 $errors['errors'][] = $error->getMessage();
+                $logger->error($srcData->ip . '-> ' . $error->getMessage());
             }
 
         } catch (Exception $e) {
             Appliance::getDbConnection()->rollbackTransaction();
             $errors['errors'] = $e->getMessage();
+            $logger->error($srcData->ip . '-> ' . $e->getMessage());
         }
 
         $httpStatusCode = (0 < count($errors['errors'])) ? 400 : 202; // Bad Request OR Accepted
@@ -324,5 +331,14 @@ class RServer extends Controller
         echo(json_encode($response->toArray()));
 
         die;
+    }
+
+    public function actionLog()
+    {
+        $logFile = ROOT_PATH . '/Logs/surveyOfAppliances.log';
+
+        $logs = file($logFile,FILE_IGNORE_NEW_LINES);
+        $this->data->logs = $logs;
+//        var_dump($this->data->logs);
     }
 }

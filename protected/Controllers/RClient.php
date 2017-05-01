@@ -38,9 +38,6 @@ class RClient extends Controller
             $result =  curl_exec($curl);
             var_dump($result);
             curl_close($curl);
-
-//            var_dump($file);
-//            var_dump($data);
         }
 
         die;
@@ -50,11 +47,12 @@ class RClient extends Controller
     public function actionOne()
     {
 
-        $rawdata = json_decode(file_get_contents('C:\\OpenServer\\domains\\voice.loc\\Tmp\\Test_JSON_min\\item_2017041816031761079000.json'));
+//        $rawdata = json_decode(file_get_contents('C:\\OpenServer\\domains\\voice.loc\\Tmp\\Test_JSON_min\\item_2017041816031761079000.json'));
+        $rawdata = json_decode(file_get_contents('C:\\OpenServer\\domains\\voiceDbApp\\Tmp\\Test_JSON_min\\item_2017041816031761079000.json'));
         $jsondata = json_encode($rawdata);
 
-        $url = "http://10.99.120.170/rserver";
 //        $url = "http://10.99.120.170/rserver";
+        $url = "http://voicedbapp/rserver";
 
 
         $curl = curl_init($url);
