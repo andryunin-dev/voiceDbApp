@@ -252,21 +252,18 @@ class RServer extends Controller
 
                 // Determine "ModuleItem"
                 $moduleItemSerial = $moduleDataset->serial;
-                $moduleItem = $module->moduleItems->filter(
+                $result = $module->moduleItems->filter(
                     function($moduleItem) use ($moduleItemSerial) {
                         return $moduleItemSerial == $moduleItem->serialNumber;
                     }
                 )->first();
-                if (!($moduleItem instanceof ModuleItem)) {
-                    $moduleItem = (new ModuleItem())
-                        ->fill([
-                            'module' => $module,
-                            'serialNumber' => $moduleItemSerial,
-                            'appliance' => $appliance,
-                            'location' => $appliance->location,
-                        ])
-                        ->save();
-                }
+                $moduleItem = ($result instanceof ModuleItem) ? $result : (new ModuleItem());
+                $moduleItem->fill([
+                    'module' => $module,
+                    'serialNumber' => $moduleItemSerial,
+                    'appliance' => $appliance,
+                    'location' => $appliance->location,
+                ])->save();
 
                 $usedModules->add($moduleItem);
             }

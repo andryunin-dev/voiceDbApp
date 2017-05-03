@@ -608,4 +608,148 @@ class RServerTest extends \PHPUnit\Framework\TestCase
             }
         }
     }
+
+
+
+    public function providerAddNewModulesDataSet()
+    {
+        return [
+            [
+                '{
+                    "platformSerial":"testPS",
+                    "applianceModules":
+                    [
+                        {
+                            "serial":"sn 1",
+                            "product_number":"pr_num 1",
+                            "description":"desc 1"
+                        },
+                        {
+                            "serial":"sn 2",
+                            "product_number":"pr_num 2",
+                            "description":"desc 2"
+                        },
+                        {
+                            "serial":"sn 3",
+                            "product_number":"pr_num 3",
+                            "description":"desc 3"
+                        },
+                        {
+                            "serial":"sn 4",
+                            "product_number":"pr_num 4",
+                            "description":"desc 4"
+                        },
+                        {
+                            "serial":"sn 5",
+                            "product_number":"pr_num 5",
+                            "description":"desc 5"
+                        },
+                        {
+                            "serial":"sn 6",
+                            "product_number":"pr_num 6",
+                            "description":"desc 6"
+                        },
+                        {
+                            "serial":"sn 7",
+                            "product_number":"pr_num 7",
+                            "description":"desc 7"
+                        }
+                    ],
+                    "LotusId":"1",
+                    "hostname":"host",
+                    "applianceType":"device",
+                    "softwareVersion":"ver soft",
+                    "chassis":"ch 1",
+                    "platformTitle":"pl_title 1",
+                    "ip":"10.100.240.195/24",
+                    "applianceSoft":"soft",
+                    "platformVendor":"CISCO"
+                }',
+                202
+            ]
+        ];
+    }
+
+    /**
+     * @param $jdataSet
+     * @param $codeResult
+     *
+     * @dataProvider providerAddNewModulesDataSet
+     *
+     * @depends testDelUnUsedModules
+     */
+    public function testAddNewModules($jdataSet, $codeResult)
+    {
+        $appliances = \App\Models\Appliance::findAll();
+        $this->assertEquals(1, $appliances->count());
+        $appliance = $appliances->first();
+        $this->assertInstanceOf(\App\Models\Appliance::class, $appliance);
+
+        // Find "ModuleItem" before Request
+        $query = (new \T4\Dbal\Query())
+            ->select()
+            ->from(\App\Models\ModuleItem::getTableName())
+            ->where('
+                "__appliance_id" = :__appliance_id
+            ')
+            ->params([
+                ':__appliance_id' => $appliance->__id,
+            ]);
+        $dbModuleItems = \App\Models\ModuleItem::findAllByQuery($query);
+        $this->assertEquals(3, $dbModuleItems->count());
+
+        // Send Request for update Appliance's data
+        $resultRequest = $this->pushData($jdataSet);
+        $this->assertEquals($codeResult, $resultRequest->httpStatusCode);
+
+        // Find "ModuleItem" after Request
+        $usedModuleItems = \App\Models\ModuleItem::findAllByQuery($query);
+        $this->assertEquals(7, $usedModuleItems->count());
+
+        // Find "Vendor"
+        $dataSet = json_decode($jdataSet);
+        $query = (new \T4\Dbal\Query())
+            ->select()
+            ->from(\App\Models\Vendor::getTableName())
+            ->where('"title" = :title')
+            ->params([':title' => $dataSet->platformVendor]);
+        $vendors = \App\Models\Vendor::findAllByQuery($query);
+        $this->assertEquals(1, $vendors->count());
+        $vendor = $vendors->first();
+        $this->assertInstanceOf(\App\Models\Vendor::class, $vendor);
+
+        // Find the USED "Modules"
+        foreach ($dataSet->applianceModules as $moduleDataset) {
+
+            // Find "Module"
+            $query = (new \T4\Dbal\Query())
+                ->select()
+                ->from(\App\Models\Module::getTableName())
+                ->where('"__vendor_id" = :__vendor_id AND "title" = :title')
+                ->params([':__vendor_id' => $vendor->__id, ':title' => $moduleDataset->product_number]);
+            $modules = \App\Models\Module::findAllByQuery($query);
+            $this->assertEquals(1, $modules->count());
+            $module = $modules->first();
+            $this->assertInstanceOf(\App\Models\Module::class, $module);
+
+            // Find "ModuleItem"
+            $query = (new \T4\Dbal\Query())
+                ->select()
+                ->from(\App\Models\ModuleItem::getTableName())
+                ->where('
+                "serialNumber" = :serialNumber AND
+                "__module_id" = :__module_id AND
+                "__appliance_id" = :__appliance_id
+            ')
+                ->params([
+                    ':serialNumber' => $moduleDataset->serial,
+                    ':__module_id' => $module->__id,
+                    ':__appliance_id' => $appliance->__id,
+                ]);
+            $moduleItems = \App\Models\ModuleItem::findAllByQuery($query);
+            $this->assertEquals(1, $moduleItems->count());
+            $moduleItem = $moduleItems->first();
+            $this->assertInstanceOf(\App\Models\ModuleItem::class, $moduleItem);
+        }
+    }
 }
