@@ -29,6 +29,21 @@ class RServerTest extends \PHPUnit\Framework\TestCase
                             "serial":"sn 2",
                             "product_number":"pr_num 2",
                             "description":"desc 2"
+                        },
+                        {
+                            "serial":"sn 3",
+                            "product_number":"pr_num 3",
+                            "description":"desc 3"
+                        },
+                        {
+                            "serial":"sn 4",
+                            "product_number":"pr_num 4",
+                            "description":"desc 4"
+                        },
+                        {
+                            "serial":"sn 5",
+                            "product_number":"pr_num 5",
+                            "description":"desc 5"
                         }
                     ],
                     "LotusId":"1",
@@ -177,7 +192,7 @@ class RServerTest extends \PHPUnit\Framework\TestCase
                 ->where('"__vendor_id" = :__vendor_id AND "title" = :title')
                 ->params([':__vendor_id' => $vendor->__id, ':title' => $moduleDataset->product_number]);
             $modules = \App\Models\Module::findAllByQuery($query);
-            $this->assertEquals(1, $softwares->count());
+            $this->assertEquals(1, $modules->count());
             $module = $modules->first();
             $this->assertInstanceOf(\App\Models\Module::class, $module);
 
@@ -196,7 +211,7 @@ class RServerTest extends \PHPUnit\Framework\TestCase
                     ':__appliance_id' => $appliance->__id,
                 ]);
             $moduleItems = \App\Models\ModuleItem::findAllByQuery($query);
-            $this->assertEquals(1, $appliances->count());
+            $this->assertEquals(1, $moduleItems->count());
             $moduleItem = $moduleItems->first();
             $this->assertInstanceOf(\App\Models\ModuleItem::class, $moduleItem);
         }
@@ -376,7 +391,7 @@ class RServerTest extends \PHPUnit\Framework\TestCase
                 ->where('"__vendor_id" = :__vendor_id AND "title" = :title')
                 ->params([':__vendor_id' => $vendor->__id, ':title' => $moduleDataset->product_number]);
             $modules = \App\Models\Module::findAllByQuery($query);
-            $this->assertEquals(1, $softwares->count());
+            $this->assertEquals(1, $modules->count());
             $module = $modules->first();
             $this->assertInstanceOf(\App\Models\Module::class, $module);
 
@@ -395,7 +410,7 @@ class RServerTest extends \PHPUnit\Framework\TestCase
                     ':__appliance_id' => $appliance->__id,
                 ]);
             $moduleItems = \App\Models\ModuleItem::findAllByQuery($query);
-            $this->assertEquals(1, $appliances->count());
+            $this->assertEquals(1, $moduleItems->count());
             $moduleItem = $moduleItems->first();
             $this->assertInstanceOf(\App\Models\ModuleItem::class, $moduleItem);
         }
@@ -499,5 +514,98 @@ class RServerTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($codeResult, $resultRequest->httpStatusCode);
 
         $this->assertEquals(17, count($resultRequest->errors));
+    }
+
+
+
+    public function providerDelUnUsedModulesDataSet()
+    {
+        return [
+            [
+                '{
+                    "platformSerial":"testPS",
+                    "applianceModules":
+                    [
+                        {
+                            "serial":"sn 1",
+                            "product_number":"pr_num 1",
+                            "description":"desc 1"
+                        },
+                        {
+                            "serial":"sn 3",
+                            "product_number":"pr_num 3",
+                            "description":"desc 3"
+                        },
+                        {
+                            "serial":"sn 4",
+                            "product_number":"pr_num 4",
+                            "description":"desc 4"
+                        }
+                    ],
+                    "LotusId":"1",
+                    "hostname":"host",
+                    "applianceType":"device",
+                    "softwareVersion":"ver soft",
+                    "chassis":"ch 1",
+                    "platformTitle":"pl_title 1",
+                    "ip":"10.100.240.195/24",
+                    "applianceSoft":"soft",
+                    "platformVendor":"CISCO"
+                }',
+                202
+            ]
+        ];
+    }
+
+    /**
+     * @param $jdataSet
+     * @param $codeResult
+     *
+     * @dataProvider providerDelUnUsedModulesDataSet
+     *
+     * @depends testValidAppliance
+     */
+    public function testDelUnUsedModules($jdataSet, $codeResult)
+    {
+        $appliances = \App\Models\Appliance::findAll();
+        $this->assertEquals(1, $appliances->count());
+        $appliance = $appliances->first();
+        $this->assertInstanceOf(\App\Models\Appliance::class, $appliance);
+
+        // Find "ModuleItem" before Request
+        $query = (new \T4\Dbal\Query())
+            ->select()
+            ->from(\App\Models\ModuleItem::getTableName())
+            ->where('
+                "__appliance_id" = :__appliance_id
+            ')
+            ->params([
+                ':__appliance_id' => $appliance->__id,
+            ]);
+        $dbModuleItems = \App\Models\ModuleItem::findAllByQuery($query);
+        $this->assertEquals(5, $dbModuleItems->count());
+
+        // Send Request for update Appliance's data
+        $resultRequest = $this->pushData($jdataSet);
+        $this->assertEquals($codeResult, $resultRequest->httpStatusCode);
+
+        // Find "ModuleItem" after Request
+        $useModuleItems = \App\Models\ModuleItem::findAllByQuery($query);
+        $this->assertEquals(3, $useModuleItems->count());
+
+        // Determine the UNUSED "Modules"
+        foreach ($dbModuleItems as $dbModule) {
+            if (!$useModuleItems->existsElement(['serialNumber' => $dbModule->serialNumber])) {
+                $query = (new \T4\Dbal\Query())
+                    ->select()
+                    ->from(\App\Models\ModuleItem::getTableName())
+                    ->where('"serialNumber" = :serialNumber')
+                    ->params([':serialNumber' => $dbModule->serialNumber]);
+                $unUsedModuleItems = \App\Models\ModuleItem::findAllByQuery($query);
+                $this->assertEquals(1, $unUsedModuleItems->count());
+                $unUsedModuleItem = $unUsedModuleItems->first();
+                $this->assertEquals(null, $unUsedModuleItem->__appliance_id);
+            }
+        }
     }
 }

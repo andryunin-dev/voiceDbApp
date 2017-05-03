@@ -272,19 +272,17 @@ class RServer extends Controller
             }
 
             // Determine the UNUSED "Modules"
-            // Рабочий код - решить по значению NULL for Appliance
-//            $dbModules = $appliance->modules;
-//            if (0 < $dbModules->count()) {
-//                foreach ($appliance->modules as $dbModule) {
-//                    if (!$usedModules->existsElement(['serialNumber' => $dbModule->serialNumber])) {
-//                        $dbModule->fill([
-//                            'appliance' => false,
-//                        ])->save();
-//
-//                        var_dump($dbModule);
-//                    }
-//                }
-//            }
+            $appliance->refresh();
+            $dbModules = $appliance->modules;
+            if (0 < $dbModules->count()) {
+                foreach ($appliance->modules as $dbModule) {
+                    if (!$usedModules->existsElement(['serialNumber' => $dbModule->serialNumber])) {
+                        $dbModule->fill([
+                            'appliance' => null,
+                        ])->save();
+                    }
+                }
+            }
 
             // Determine "DataPort"
             $ip = $srcData->ip;

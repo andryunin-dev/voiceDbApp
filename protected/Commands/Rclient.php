@@ -41,13 +41,13 @@ class Rclient extends Command
 
             curl_close($curl);
 
-            if (400 == $result->httpStatusCode){
-                rename($filePath, $errDir . '\\' . $file);
-            }
-
-            if (202 == $result->httpStatusCode){
-                rename($filePath, $okDir . '\\' . $file);
-            }
+//            if (400 == $result->httpStatusCode){
+//                rename($filePath, $errDir . '\\' . $file);
+//            }
+//
+//            if (202 == $result->httpStatusCode){
+//                rename($filePath, $okDir . '\\' . $file);
+//            }
         }
     }
 
