@@ -58,11 +58,11 @@ class Module extends Model
         )->first();
 
         if (true === $this->isNew && ($module instanceof Module)) {
-            throw new Exception('Такой Module уже существует');
+            throw new Exception('Такой Module уже существует-> ' . $title);
         }
 
         if (true === $this->isUpdated && ($module instanceof Module) && ($module->getPk() != $this->getPk())) {
-            throw new Exception('Такой Module уже существует');
+            throw new Exception('Такой Module уже существует-> ' . $title);
         }
 
         return true;

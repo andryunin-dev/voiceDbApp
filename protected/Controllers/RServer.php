@@ -32,13 +32,12 @@ class RServer extends Controller
     public function actionTest()
     {
         $this->app->db->default = $this->app->db->phpUnitTest;
-        $this->actionDefault();die;
+        $this->actionDefault();
     }
-
 
     public function actionDefault()
     {
-        $logger = new Logger('Survey of Appliances');
+        $logger = new Logger('RServer');
         $logger->pushHandler(new StreamHandler(ROOT_PATH . '/Logs/surveyOfAppliances.log', Logger::DEBUG));
 
         $response = new Collection();
@@ -48,19 +47,25 @@ class RServer extends Controller
 
             // Getting Datasets in JSON format from php://input
             $jsonData = json_decode(file_get_contents('php://input'));
+            $srcData = (new Std())->fill($jsonData);
+
+            // Determine the validity of the input data format
             if (null === $jsonData) {
-                throw new Exception('DATASET: Empty an input dataset or Not a valid JSON');
+                throw new Exception('DATASET: Not a valid JSON input dataset');
+            }
+            if (0 == count($srcData)) {
+                throw new Exception('DATASET: Empty an input dataset');
             }
 
             $errors = new MultiException();
 
-            // Determine the validity of the input data format
-            $srcData = (new Std())->fill($jsonData);
-
             if (!isset($srcData->LotusId)) {
                 $errors->add(new Exception('DATASET: No field LotusId'));
             }
-            if (empty($srcData->LotusId) || !is_numeric($srcData->LotusId)) {
+            if (empty($srcData->LotusId)) {
+                $errors->add(new Exception('DATASET: Empty LotusId'));
+            }
+            if (!is_numeric($srcData->LotusId)) {
                 $errors->add(new Exception('DATASET: LotusId is not valid'));
             }
             if (!isset($srcData->platformVendor)) {
@@ -113,7 +118,7 @@ class RServer extends Controller
             // Determine "Location"
             $office = Office::findByLotusId($srcData->LotusId);
             if (!($office instanceof Office)) {
-                throw new Exception('Location not found');
+                throw new Exception('Location not found, LotusId = ' . $srcData->LotusId);
             }
 
             // Determine "Vendor"
@@ -233,6 +238,7 @@ class RServer extends Controller
                         return $requestModuleTitle == $module->title;
                     }
                 )->first();
+
                 if (!($module instanceof Module)) {
                     $module = (new Module())
                         ->fill([
@@ -241,6 +247,7 @@ class RServer extends Controller
                             'description' => $moduleDataset->description,
                         ])
                         ->save();
+                    $vendor->refresh();
                 }
 
                 // Determine "ModuleItem"
@@ -287,6 +294,7 @@ class RServer extends Controller
             $dataPort = DataPort::findByIpVrf($ip, $vrf);
 
             if (!($dataPort instanceof DataPort)) {
+
                 $portType = DPortType::findByType($portTypeDefault);
                 if (!($portType instanceof DPortType)) {
                     $portType = (new DPortType())
@@ -325,9 +333,13 @@ class RServer extends Controller
             $logger->error($srcData->ip . '-> ' . $e->getMessage());
         }
 
-        $httpStatusCode = (0 < count($errors['errors'])) ? 400 : 202; // Bad Request OR Accepted
+        $httpStatusCode = (isset($errors['errors'])) ? 400 : 202; // Bad Request OR Accepted
+        $response->merge(['ip' => $srcData->ip]);
         $response->merge(['httpStatusCode' => $httpStatusCode]);
-        $response->merge($errors);
+        if (400 == $httpStatusCode) {
+            $response->merge($errors);
+        }
+
         echo(json_encode($response->toArray()));
 
         die;
@@ -336,9 +348,6 @@ class RServer extends Controller
     public function actionLog()
     {
         $logFile = ROOT_PATH . '/Logs/surveyOfAppliances.log';
-
-        $logs = file($logFile,FILE_IGNORE_NEW_LINES);
-        $this->data->logs = $logs;
-//        var_dump($this->data->logs);
+        $this->data->logs = file($logFile,FILE_IGNORE_NEW_LINES);
     }
 }

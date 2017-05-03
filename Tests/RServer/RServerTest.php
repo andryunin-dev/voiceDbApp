@@ -15,14 +15,40 @@ class RServerTest extends \PHPUnit\Framework\TestCase
     public function providerValidDataSetAppliance()
     {
         return [
-            ['{"platformSerial":"testPS","applianceModules":[{"serial":"sn 1","product_number":"pr_num 1","description":"desc 1"},{"serial":"sn 2","product_number":"pr_num 2","description":"desc 2"}],"LotusId":"1","hostname":"host","applianceType":"device","softwareVersion":"ver soft","chassis":"ch 1","platformTitle":"pl_title 1","ip":"10.100.240.195/24","applianceSoft":"soft","platformVendor":"CISCO"}',202]
+            [
+                '{
+                    "platformSerial":"testPS",
+                    "applianceModules":
+                    [
+                        {
+                            "serial":"sn 1",
+                            "product_number":"pr_num 1",
+                            "description":"desc 1"
+                        },
+                        {
+                            "serial":"sn 2",
+                            "product_number":"pr_num 2",
+                            "description":"desc 2"
+                        }
+                    ],
+                    "LotusId":"1",
+                    "hostname":"host",
+                    "applianceType":"device",
+                    "softwareVersion":"ver soft",
+                    "chassis":"ch 1",
+                    "platformTitle":"pl_title 1",
+                    "ip":"10.100.240.195/24",
+                    "applianceSoft":"soft",
+                    "platformVendor":"CISCO"
+                }',
+                202
+            ]
         ];
     }
 
     public function pushData($jsonDataSet)
     {
-//        $url = "http://10.99.120.170/rserver/test";
-        $url = "http://voiceDbApp/rserver/test";
+        $url = "http://10.99.120.170/rserver/test";
         $curl = curl_init($url);
         curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
         curl_setopt($curl, CURLOPT_POSTFIELDS, $jsonDataSet);
@@ -449,7 +475,7 @@ class RServerTest extends \PHPUnit\Framework\TestCase
         $resultRequest = $this->pushData($jdataSet);
         $this->assertEquals($codeResult, $resultRequest->httpStatusCode);
 
-        $this->assertEquals('DATASET: Empty an input dataset or Not a valid JSON', $resultRequest->errors);
+        $this->assertEquals('DATASET: Not a valid JSON input dataset', $resultRequest->errors);
     }
 
 
@@ -472,6 +498,6 @@ class RServerTest extends \PHPUnit\Framework\TestCase
         $resultRequest = $this->pushData($jdataSet);
         $this->assertEquals($codeResult, $resultRequest->httpStatusCode);
 
-        $this->assertEquals(16, count($resultRequest->errors));
+        $this->assertEquals(17, count($resultRequest->errors));
     }
 }
