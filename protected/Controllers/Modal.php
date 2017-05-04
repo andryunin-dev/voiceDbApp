@@ -220,4 +220,10 @@ class Modal extends Controller
     {
         $this->data->vrf = Vrf::findByPK($id);
     }
+
+    public function actionAddNetwork()
+    {
+        $this->data->vrfs = Vrf::findAll();
+        $this->data->gvrf = Vrf::instanceGlobalVrf();
+    }
 }

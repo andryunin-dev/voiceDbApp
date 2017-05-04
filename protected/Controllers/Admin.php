@@ -11,6 +11,7 @@ use App\Models\DataPort;
 use App\Models\DPortType;
 use App\Models\Module;
 use App\Models\ModuleItem;
+use App\Models\Network;
 use App\Models\Office;
 use App\Models\OfficeStatus;
 use App\Models\Platform;
@@ -912,10 +913,6 @@ class Admin extends Controller
     public function actionDevices()
     {
         $this->data->offices = Office::findAll(['order' => 'title']);
-
-        foreach ($this->data->offices as $office) {
-
-        }
         $this->data->activeLink->devices = true;
     }
 
@@ -1379,4 +1376,54 @@ class Admin extends Controller
         }
     }
 
+    public function actionNetworksTab()
+    {
+        $this->data->networks = Network::findAll();
+    }
+
+    public function actionAddNetwork($network)
+    {
+        try {
+            Network::getDbConnection()->beginTransaction();
+            (new Network())
+                ->fill([
+                    'address' => $network->address,
+                    'comment' => $network->comment,
+                    'vrf' => Vrf::findByPK($network->vrfId)
+                ])
+                ->save();
+
+            Network::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Vrf::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Vrf::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
+    }
+
+    public function actionDelNetwork($id)
+    {
+        try {
+            Network::getDbConnection()->beginTransaction();
+            if (false === $currentNetwork = Network::findByPK($id)) {
+                throw new Exception('Неверные данные');
+            }
+            $currentNetwork->delete();
+
+            Network::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Vrf::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Vrf::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
+    }
+
+    public function actionNetworksTree()
+    {
+        $this->data->roots = Network::findAllRoots();
+    }
 }

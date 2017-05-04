@@ -118,7 +118,7 @@ class Vrf extends Model
 
     public function __toString()
     {
-        return $this->name . (self::GLOBAL_VRF_RD != $this->rd) ? '(' . $this->rd . ')' : '';
+        return $this->name . ((self::GLOBAL_VRF_RD != $this->rd) ? '(' . $this->rd . ')' : '');
     }
 
     protected function beforeDelete()

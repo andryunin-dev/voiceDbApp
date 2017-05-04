@@ -24,6 +24,7 @@ class Network extends Model
         'table' => 'network.networks',
         'columns' => [
             'address' => ['type' => 'string'], //address in cidr notation i.e. 192.168.1.0/24
+            'comment' => ['type' => 'string']
         ],
         'relations' => [
             'hosts' => ['type' => self::HAS_MANY, 'model' => DataPort::class, 'by' => '__network_id'],
@@ -109,6 +110,9 @@ class Network extends Model
 
     protected function beforeDelete()
     {
+        if ($this->hosts->count() > 0) {
+            throw new Exception('Подсеть содержит хостовые IP. Удаление невозможно');
+        }
         if (false === $this->isNew) {
             foreach ($this->children as $child) {
                 $child->parent = $this->parent;

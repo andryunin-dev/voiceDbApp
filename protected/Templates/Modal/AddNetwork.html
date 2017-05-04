@@ -1,0 +1,52 @@
+<div id="add-network" role="dialog" title="Новая сеть">
+    <div class="container-fluid">
+    	<div class="row">
+            <form class="form-horizontal" action="/admin/addNetwork" method="post" role="form">
+                {#Network address#}
+                <div class="form-group">
+                    <label for="id-address" class="col-sm-3 control-label">Адрес</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" name="network[address]" id="id-address" placeholder="1.1.1.0/24">
+                    </div>
+                </div>
+                {#VRF#}
+                <div class="form-group">
+                    <label for="id-vrf" class="col-sm-3 control-label">VRF</label>
+                    <div class="col-sm-9">
+                        <select name="network[vrfId]" id="id-vrf" class="form-control">
+                            {% for vrf in vrfs %}
+                                <option value="{{ vrf.getPK }}" {% if vrf.getPk == gvrf.getPk %} selected {% endif %}>
+                                    {{ vrf.name }}{% if vrf.getPk != gvrf.getPk %} ({{ vrf.rd }}){% endif %}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                {#Comment#}
+                <div class="form-group">
+                    <label for="id-comment" class="col-sm-3 control-label">Комментарий</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" name="network[comment]" id="id-comment" placeholder="Комментарий">
+                    </div>
+                </div>
+
+                <div class="col-sm-offset-3 col-sm-9">
+                    <button class="btn btn-success" type="submit">Создать</button>
+                    <button class="btn btn-danger" type="button" role="button" data-action="close">Отмена</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        var APP = APP || {};
+        APP.popups = APP.popups || [];
+        APP.popups.push({
+            path: "{{ path }}",
+            popupSelector: "#add-network",
+            width: "500"
+        });
+    </script>
+</div>
+

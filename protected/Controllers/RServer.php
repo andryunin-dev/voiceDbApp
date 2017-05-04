@@ -26,6 +26,10 @@ use T4\Core\MultiException;
 
 class RServer extends Controller
 {
+    public function actionTestServer()
+    {
+        $this->data->result = 'test';
+    }
     public function actionDefault()
     {
         try {
