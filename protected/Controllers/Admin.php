@@ -22,6 +22,7 @@ use App\Models\SoftwareItem;
 use App\Models\Vendor;
 use App\Models\VPortType;
 use App\Models\Vrf;
+use T4\Core\Collection;
 use T4\Core\Exception;
 use T4\Core\MultiException;
 use T4\Core\Std;
@@ -1424,6 +1425,12 @@ class Admin extends Controller
 
     public function actionNetworksTree()
     {
-        $this->data->roots = Network::findAllRoots();
+        $allVrf = Vrf::findAll();
+        $vrfs = new Collection();
+        foreach ($allVrf as $vrf) {
+            $vrf->rootNetworks = Network::findAllRootsByVrf($vrf);
+            $vrfs->append($vrf);
+        }
+        $this->data->vrfs = $vrfs;
     }
 }

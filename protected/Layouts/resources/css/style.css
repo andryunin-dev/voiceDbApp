@@ -166,6 +166,9 @@ navbar styles
     font-weight: bold;
     background-color: #f4f4f4;
 }
+#multi-tree .vrf-container {
+    padding-bottom: 3em;
+}
 
 /* Дерево многоуровневое
 -------------------------------- */

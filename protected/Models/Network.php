@@ -144,4 +144,21 @@ class Network extends Model
         $result = $result->first();
         return (null === $result) ? false : $result;
     }
+
+    public static function findAllRootsByVrf($vrf = null)
+    {
+        if (null ===  $vrf) {
+            return self::findAllRoots();
+        }
+        if ($vrf instanceof Vrf) {
+            /**
+             * @var Collection|Network[] $roots
+             */
+            $roots = self::findAllRoots();
+            return $roots->filter(function (Network $network) use ($vrf) {
+                return $network->vrf->getPk() == $vrf->getPk();
+            });
+        }
+        return false;
+    }
 }

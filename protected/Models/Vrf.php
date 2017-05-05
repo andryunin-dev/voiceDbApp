@@ -124,7 +124,7 @@ class Vrf extends Model
     protected function beforeDelete()
     {
         if ($this->networks->count() > 0) {
-            throw new Exception('Данный VRF используется');
+            throw new Exception('Данный VRF используется.<br> Удаление невозможно.');
         }
         return parent::beforeDelete();
     }

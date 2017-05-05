@@ -248,6 +248,8 @@ class NetworkTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
+     * Delete Network and check parents and children
+     *
      * @param $networkForDelete
      * @param $parent
      * @param $childrenNumbersBefore
@@ -287,6 +289,8 @@ class NetworkTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
+     * Delete Network which consists host IP
+     *
      * @param $networkAddress
      * @param $hostAddress
      *

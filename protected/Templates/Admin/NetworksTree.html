@@ -25,7 +25,7 @@
     {% endmacro %}
 
     <div class="row">
-        <main class="networks-tab">
+        <main class="networks-tree">
             <div class="col-xs-6">
                 <div class="panel panel-default">
                     <div class="panel-heading">
@@ -33,12 +33,17 @@
                     </div>
                     <div class="panel-body">
                         <div id="multi-tree">
-                            <h4><a href="#">IP planning</a></h4>
-                            <ul><!-- 1 уровень -->
-                                {% for root in roots %}
-                                    {{ _self.buildTree(root) }}
-                                {% endfor %}
-                            </ul>
+                            {% for vrf in vrfs %}
+                                <div class="vrf-container">
+                                    <h4><a href="#">VRF {{ vrf }}</a></h4>
+                                    <ul><!-- 1 уровень -->
+                                        {% for root in vrf.rootNetworks %}
+                                            {{ _self.buildTree(root) }}
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            {% endfor %}
+
                         </div><!-- /multi-tree -->
                     </div>
                 </div>
@@ -104,9 +109,13 @@
                 // Выделяем выбранный узел
                 toggleNode(this.parentNode);
             });
+            $('li span', root).contextmenu(function () {
+                alert("The paragraph was double-clicked");
+            });
+
 //postLoad(); // функция раскрытия по текущему url
             openNodes(); // открыть по данным cookie
-        })
+        });
 
         //---------------------------------------------------------------------------------
         // Выделил функцию разворачивания дерева в отдельную
