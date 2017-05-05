@@ -8,6 +8,7 @@ class Rclient extends Command
 {
     public function actionDefault()
     {
+//        $url = "http://10.99.120.170/rserver/infile";
         $url = "http://10.99.120.170/rserver";
         $srcDir = realpath(ROOT_PATH . '/Tmp/Test_src');
         $errDir = realpath(ROOT_PATH . '/Tmp/Test_err');
@@ -22,9 +23,7 @@ class Rclient extends Command
             }
 
             $filePath = realpath($srcDir . '\\' . $file);
-
-            $rawdata = json_decode(file_get_contents($filePath));
-            $jsondata = json_encode($rawdata);
+            $jsondata = file_get_contents($filePath);
 
             $curl = curl_init($url);
             curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
@@ -35,9 +34,6 @@ class Rclient extends Command
 
             $statusCode = (400 == $result->httpStatusCode) ? ' Bad Request' : ' Accepted';
             echo ' request ' . $n++ . '  ->  ' . $result->httpStatusCode  . $statusCode . PHP_EOL;
-
-//            $result =  curl_exec($curl);
-//            var_dump($result);
 
             curl_close($curl);
 
@@ -78,5 +74,12 @@ class Rclient extends Command
         }
 
         echo 'OK';
+    }
+
+    public function actionTest()
+    {
+//        exec('ls');
+        var_dump(exec('ls'));
+//        system('ls');
     }
 }

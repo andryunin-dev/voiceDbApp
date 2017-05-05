@@ -345,4 +345,27 @@ class RServer extends Controller
         $logFile = ROOT_PATH . '/Logs/surveyOfAppliances.log';
         $this->data->logs = file($logFile,FILE_IGNORE_NEW_LINES);
     }
+
+    public function actionInfile()
+    {
+        $rawdata = file_get_contents('php://input');
+
+        $fileName = function () {
+            $cacheDir = realpath(ROOT_PATH . '/Tmp/Test_test/');
+
+            $mt = microtime();
+            $mt = explode(' ', $mt);
+            $rawmc = explode('.', $mt[0]);
+
+            $datetime = date('YmdGis', $mt[1]);
+            $mc = $rawmc[1];
+            $fileName = 'item_' . $datetime . $mc . '.json';
+
+            return  $cacheDir . '\\' . $fileName;
+        };
+
+        $file = fopen($fileName(), 'w+');
+        fwrite($file,$rawdata);
+        fclose($file);
+    }
 }
