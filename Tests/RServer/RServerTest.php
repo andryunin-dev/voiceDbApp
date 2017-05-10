@@ -215,6 +215,7 @@ class RServerTest extends \PHPUnit\Framework\TestCase
             $moduleItem = $moduleItems->first();
             $this->assertInstanceOf(\App\Models\ModuleItem::class, $moduleItem);
         }
+        $this->assertEquals(count($dataSet->applianceModules), $appliance->modules->count());
 
         // Find "DataPortType"
         $portTypeDefault = 'Ethernet';
@@ -414,6 +415,7 @@ class RServerTest extends \PHPUnit\Framework\TestCase
             $moduleItem = $moduleItems->first();
             $this->assertInstanceOf(\App\Models\ModuleItem::class, $moduleItem);
         }
+        $this->assertEquals(count($dataSet->applianceModules), $appliance->modules->count());
 
         // Find "DataPortType"
         $portTypeDefault = 'Ethernet';

@@ -37,6 +37,35 @@ class RServer extends Controller
 
     public function actionDefault()
     {
+
+//-------------------------------------------------
+
+
+        // Заблокировать appliance.lock файл
+        $n = 10; // Кол-во попыток блокировки файла
+        $fl = false;
+
+        while (false === $fl && 0 !== $n--) {
+            $fp = fopen(ROOT_PATH_PROTECTED . '/db.lock', 'w');
+
+            if (false !== $fp) {
+                $fl = flock($fp, LOCK_EX);
+                continue;
+            }
+
+            usleep(200);
+        }
+
+        if (false === $fl) {
+            throw new Exception('Can not block file');
+        }
+        unset($n);
+
+
+//-------------------------------------------------------
+
+
+
         $logger = new Logger('RServer');
         $logger->pushHandler(new StreamHandler(ROOT_PATH . '/Logs/surveyOfAppliances.log', Logger::DEBUG));
 
@@ -328,6 +357,11 @@ class RServer extends Controller
             $logger->error($srcData->ip . '-> ' . $e->getMessage());
         }
 
+        // Снять блокировку файлв db.lock
+        flock($fp, LOCK_UN);
+        fclose($fp);
+
+        // Подготовить и вернуть ответ
         $httpStatusCode = (isset($errors['errors'])) ? 400 : 202; // Bad Request OR Accepted
         $response->merge(['ip' => $srcData->ip]);
         $response->merge(['httpStatusCode' => $httpStatusCode]);
@@ -350,21 +384,14 @@ class RServer extends Controller
     {
         $rawdata = file_get_contents('php://input');
 
-        $fileName = function () {
-            $cacheDir = realpath(ROOT_PATH . '/Tmp/Test_test/');
+        $cacheDir = realpath(ROOT_PATH . '/Tmp/Test_test/');
+        $mt = explode(' ', microtime());
+        $rawmc = explode('.', $mt[0]);
+        $mc = $rawmc[1];
+        $datetime = date('YmdGis', $mt[1]);
+        $fileName = $cacheDir . '\\' . 'item_' . $datetime . $mc . '.json';
 
-            $mt = microtime();
-            $mt = explode(' ', $mt);
-            $rawmc = explode('.', $mt[0]);
-
-            $datetime = date('YmdGis', $mt[1]);
-            $mc = $rawmc[1];
-            $fileName = 'item_' . $datetime . $mc . '.json';
-
-            return  $cacheDir . '\\' . $fileName;
-        };
-
-        $file = fopen($fileName(), 'w+');
+        $file = fopen($fileName, 'w+');
         fwrite($file,$rawdata);
         fclose($file);
     }
