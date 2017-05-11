@@ -78,8 +78,29 @@ class Rclient extends Command
 
     public function actionTest()
     {
-//        exec('ls');
-        var_dump(exec('ls'));
-//        system('ls');
+        $fp = fopen(ROOT_PATH_PROTECTED . '/db.lock', 'w');
+        flock($fp, LOCK_EX);
+
+        $url = "http://10.99.120.170/rserver";
+        $okDir = realpath(ROOT_PATH . '/Tmp/Test_ok');
+
+        $filePath = realpath($okDir . '\\item_2017050511124264561700.json');
+        $jsondata = file_get_contents($filePath);
+
+        $curl = curl_init($url);
+        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
+        curl_setopt($curl, CURLOPT_HEADER, false);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, $jsondata);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        $result =  curl_exec($curl);
+        curl_close($curl);
+
+        var_dump($result);
+
+        flock($fp, LOCK_UN);
+        fclose($fp);
+
+
+        die;
     }
 }

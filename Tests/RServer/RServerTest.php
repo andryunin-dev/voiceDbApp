@@ -754,4 +754,77 @@ class RServerTest extends \PHPUnit\Framework\TestCase
             $this->assertInstanceOf(\App\Models\ModuleItem::class, $moduleItem);
         }
     }
+
+    public function providerDbLockedDataSetAppliance()
+    {
+        return [
+            [
+                '{
+                    "platformSerial":"testPS",
+                    "applianceModules":
+                    [
+                        {
+                            "serial":"sn 1",
+                            "product_number":"pr_num 1",
+                            "description":"desc 1"
+                        },
+                        {
+                            "serial":"sn 2",
+                            "product_number":"pr_num 2",
+                            "description":"desc 2"
+                        },
+                        {
+                            "serial":"sn 3",
+                            "product_number":"pr_num 3",
+                            "description":"desc 3"
+                        },
+                        {
+                            "serial":"sn 4",
+                            "product_number":"pr_num 4",
+                            "description":"desc 4"
+                        },
+                        {
+                            "serial":"sn 5",
+                            "product_number":"pr_num 5",
+                            "description":"desc 5"
+                        }
+                    ],
+                    "LotusId":"1",
+                    "hostname":"host",
+                    "applianceType":"device",
+                    "softwareVersion":"ver soft",
+                    "chassis":"ch 1",
+                    "platformTitle":"pl_title 1",
+                    "ip":"10.100.240.195/24",
+                    "applianceSoft":"soft",
+                    "platformVendor":"CISCO"
+                }',
+                400
+            ]
+        ];
+    }
+
+
+    /**
+     * @param $jdataSet
+     * @param $codeResult
+     *
+     * @dataProvider providerDbLockedDataSetAppliance
+     */
+//    public function testDbLockedError($jdataSet, $codeResult)
+//    {
+//        $fp = fopen(ROOT_PATH_PROTECTED . '/db.lock', 'w');
+//        flock($fp, LOCK_EX);
+//
+//        // Determine "Location"
+//        $this->createOffice();
+//
+//        $resultRequest = $this->pushData($jdataSet);
+////        var_dump($resultRequest);die;
+//
+//        $this->assertEquals($codeResult, $resultRequest->httpStatusCode);
+//
+//        flock($fp, LOCK_UN);
+//        fclose($fp);
+//    }
 }
