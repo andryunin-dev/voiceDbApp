@@ -75,6 +75,12 @@ class Network extends Model
     {
         if (true === $this->isNew) {
             $this->parent = $this->findParentNetwork();
+            if (false === $this->parent) {
+                return parent::beforeSave();
+            }
+            if ($this->parent->hosts->count() > 0) {
+                throw new Exception('Родительская подсеть содержит IP хостов.<br>Разбиение на подсети невозможно');
+            }
         } elseif (true === $this->isUpdated) {
             foreach ($this->children as $child) {
                 $child->parent = $this->parent;
@@ -160,5 +166,18 @@ class Network extends Model
             });
         }
         return false;
+    }
+
+    public function hostIpNumbers()
+    {
+        $netObj = new Ip($this->address);
+        if (false !== $netObj->is_networkIp) {
+            return false;
+        }
+        $netSize = $netObj->networkSize;
+        if ($netObj->masklen != 32) {
+            $netSize -=2;
+        }
+        return $netSize;
     }
 }

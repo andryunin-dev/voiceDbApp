@@ -11,7 +11,7 @@ namespace App\Components;
  * @property string $cidrAddress    ip address in CIDR notation (i.e. 192.168.1.1/24)
  * @property string $network        network address for this IP
  * @property string $broadcast      broadcast address for this network
- * @property string $networkSize    number of IP addresses in current network (include broadcast and network address)
+ * @property integer $networkSize    number of IP addresses in current network (include broadcast and network address)
  * @property string $cidrNetwork    network address for this IP with mask in CIDR notation (i.e 192.168.1.0/24)
  * @property string $mask           mask (i.e. 255.255.255.0, 255.240.0.0 etc.)
  * @property int $masklen           length of mask (1-32)

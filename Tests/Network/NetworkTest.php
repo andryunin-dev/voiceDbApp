@@ -316,4 +316,28 @@ class NetworkTest extends \PHPUnit\Framework\TestCase
         $net->refresh();
         $net->delete();
     }
+
+    public function providerDivideNetworkError()
+    {
+        return [
+            ['2.1.1.0/25']
+        ];
+    }
+
+    /**
+     * Divide Network (add subnet) that contains host IP
+     * after previous test we have in DB network 2.1.1.0/24 and host 2.1.1.1/24
+     *
+     * @param $subnet
+     *
+     * @dataProvider providerDivideNetworkError
+     * @depends testDelNetworkError
+     */
+    public function testDivideNetworkError($subnet)
+    {
+        $this->expectException(\T4\Core\Exception::class);
+        (new \App\Models\Network())
+            ->fill($subnet)
+            ->save();
+    }
 }
