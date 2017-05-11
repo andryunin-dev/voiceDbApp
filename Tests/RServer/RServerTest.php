@@ -63,7 +63,8 @@ class RServerTest extends \PHPUnit\Framework\TestCase
 
     public function pushData($jsonDataSet)
     {
-        $url = "http://10.99.120.170/rserver/test";
+//        $url = "http://10.99.120.208/rserver/test";
+        $url = "http://voice.loc/rserver/test";
         $curl = curl_init($url);
         curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
         curl_setopt($curl, CURLOPT_POSTFIELDS, $jsonDataSet);
@@ -85,7 +86,6 @@ class RServerTest extends \PHPUnit\Framework\TestCase
     {
         // Determine "Location"
         $this->createOffice();
-
         $resultRequest = $this->pushData($jdataSet);
         $this->assertEquals($codeResult, $resultRequest->httpStatusCode);
 

@@ -8,8 +8,8 @@ class Rclient extends Command
 {
     public function actionDefault()
     {
-//        $url = "http://10.99.120.170/rserver/infile";
-        $url = "http://10.99.120.170/rserver";
+//        $url = "http://voice.loc/rserver/infile";
+        $url = "http://voice.loc/rserver";
         $srcDir = realpath(ROOT_PATH . '/Tmp/Test_src');
         $errDir = realpath(ROOT_PATH . '/Tmp/Test_err');
         $okDir = realpath(ROOT_PATH . '/Tmp/Test_ok');
@@ -81,7 +81,8 @@ class Rclient extends Command
         $fp = fopen(ROOT_PATH_PROTECTED . '/db.lock', 'w');
         flock($fp, LOCK_EX);
 
-        $url = "http://10.99.120.170/rserver";
+//        $url = "http://10.99.120.170/rserver";
+        $url = "http://voice.loc/rserver";
         $okDir = realpath(ROOT_PATH . '/Tmp/Test_ok');
 
         $filePath = realpath($okDir . '\\item_2017050511124264561700.json');
