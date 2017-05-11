@@ -100,7 +100,11 @@ class Vrf extends Model
 
     protected function validate()
     {
-        if (false !== self::findByColumn('rd', $this->rd)) {
+        $fromDb = self::findByColumn('rd', $this->rd);
+        if ($this->isNew && false !== $fromDb) {
+            throw new Exception('VRF с данным RD уже существует');
+        }
+        if ($this->isUpdated && false !== $fromDb && $this->getPk() != $fromDb->getPk()) {
             throw new Exception('VRF с данным RD уже существует');
         }
         if (strtolower(self::GLOBAL_VRF_NAME) == strtolower($this->name) && self::GLOBAL_VRF_RD != $this->rd) {
@@ -114,7 +118,15 @@ class Vrf extends Model
 
     public function __toString()
     {
-        return $this->name . (self::GLOBAL_VRF_RD != $this->rd) ? '(' . $this->rd . ')' : '';
+        return $this->name . ((self::GLOBAL_VRF_RD != $this->rd) ? '(' . $this->rd . ')' : '');
+    }
+
+    protected function beforeDelete()
+    {
+        if ($this->networks->count() > 0) {
+            throw new Exception('Данный VRF используется.<br> Удаление невозможно.');
+        }
+        return parent::beforeDelete();
     }
 
     /**

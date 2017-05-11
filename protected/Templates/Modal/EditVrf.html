@@ -1,0 +1,43 @@
+<div id="edit-vrf" role="dialog" title="Новый VRF">
+    <div class="container-fluid">
+    	<div class="row">
+            <form class="form-horizontal" action="/admin/editVrf" method="post" role="form">
+                <input type="hidden" class="form-control" name="vrf[id]" id="id-region" value="{{ vrf.getPk }}">
+                <div class="form-group">
+                    <label for="id-vrf-name" class="col-sm-3 control-label">Name</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" name="vrf[name]" id="id-region" value="{{ vrf.name }}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="id-vrf-rd" class="col-sm-3 control-label">RD</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" name="vrf[rd]" id="id-region" value="{{ vrf.rd }}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="id-vrf-rd" class="col-sm-3 control-label">Комментарий</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" name="vrf[comment]" id="id-region" value="{{ vrf.comment }}">
+                    </div>
+                </div>
+
+                <div class="col-sm-offset-3 col-sm-9">
+                    <button class="btn btn-success" type="submit">Сохранить</button>
+                    <button class="btn btn-danger" type="button" role="button" data-action="close">Отмена</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        var APP = APP || {};
+        APP.popups = APP.popups || [];
+        APP.popups.push({
+            path: "{{ path }}",
+            popupSelector: "#edit-vrf",
+            width: "500"
+        });
+    </script>
+</div>
+

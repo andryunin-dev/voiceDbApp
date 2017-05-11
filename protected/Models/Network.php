@@ -24,6 +24,7 @@ class Network extends Model
         'table' => 'network.networks',
         'columns' => [
             'address' => ['type' => 'string'], //address in cidr notation i.e. 192.168.1.0/24
+            'comment' => ['type' => 'string']
         ],
         'relations' => [
             'hosts' => ['type' => self::HAS_MANY, 'model' => DataPort::class, 'by' => '__network_id'],
@@ -74,6 +75,12 @@ class Network extends Model
     {
         if (true === $this->isNew) {
             $this->parent = $this->findParentNetwork();
+            if (false === $this->parent) {
+                return parent::beforeSave();
+            }
+            if ($this->parent->hosts->count() > 0) {
+                throw new Exception('Родительская подсеть содержит IP хостов.<br>Разбиение на подсети невозможно');
+            }
         } elseif (true === $this->isUpdated) {
             foreach ($this->children as $child) {
                 $child->parent = $this->parent;
@@ -109,6 +116,9 @@ class Network extends Model
 
     protected function beforeDelete()
     {
+        if ($this->hosts->count() > 0) {
+            throw new Exception('Подсеть содержит хостовые IP. Удаление невозможно');
+        }
         if (false === $this->isNew) {
             foreach ($this->children as $child) {
                 $child->parent = $this->parent;
@@ -139,5 +149,35 @@ class Network extends Model
         });
         $result = $result->first();
         return (null === $result) ? false : $result;
+    }
+
+    public static function findAllRootsByVrf($vrf = null)
+    {
+        if (null ===  $vrf) {
+            return self::findAllRoots();
+        }
+        if ($vrf instanceof Vrf) {
+            /**
+             * @var Collection|Network[] $roots
+             */
+            $roots = self::findAllRoots();
+            return $roots->filter(function (Network $network) use ($vrf) {
+                return $network->vrf->getPk() == $vrf->getPk();
+            });
+        }
+        return false;
+    }
+
+    public function hostIpNumbers()
+    {
+        $netObj = new Ip($this->address);
+        if (false !== $netObj->is_networkIp) {
+            return false;
+        }
+        $netSize = $netObj->networkSize;
+        if ($netObj->masklen != 32) {
+            $netSize -=2;
+        }
+        return $netSize;
     }
 }

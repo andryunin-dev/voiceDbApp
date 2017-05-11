@@ -173,8 +173,8 @@ class DataPort extends Model
     /**
      * назначаем подсеть для ip адреса данного порта и сохраняем ее.
      * если именяемый порт имел сетку с 32 маской - удаляем ее
-     *
      * @return bool
+     * @throws Exception
      */
     protected function beforeSave()
     {
@@ -187,21 +187,38 @@ class DataPort extends Model
                         'vrf' => $this->vrf
                     ])
                     ->save();
+            } elseif ($network->children->count() > 0) {
+                throw new Exception('Данная сеть разбита на подсети. Использование для хостовых IP невозможно.');
             }
             $this->network = $network;
         } elseif ($this->isUpdated) {
-//            if (32 == (new Ip($this->network->address))->masklen) {
-//                $this->network->delete();
-//            }
-            if (false === $network = Network::findByAddressVrf($ip->cidrNetwork, $this->vrf)) {
+            if (false !== $network = Network::findByAddressVrf($ip->cidrNetwork, $this->vrf)) {
+                //if net for new IP exists, it must not contain subnets.
+                if ($network->children->count() > 0) {
+                    throw new Exception('Данная сеть разбита на подсети. Использование для хостовых IP невозможно.');
+                }
+                $this->network = $network;
+            } else {
+                //network for new IP not found. Create it
                 $network = (new Network())
                     ->fill([
                         'address' => ($ip->cidrNetwork),
                         'vrf' => $this->vrf
-                    ])
-                    ->save();
+                    ]);
+                //delete old DataPort
+                DataPort::findByPK($this->getPk())->delete();
+                //change current updated Data Port like new object
+                $this->isUpdated = false;
+                $this->isNew = true;
+                //try save new network
+                $network->save();
+                $network->refresh();
+                //new network must not contain any subnets
+                if ($network->children->count() > 0) {
+                    throw new Exception('Данная сеть разбита на подсети. Использование для хостовых IP невозможно.');
+                }
+                $this->network = $network;
             }
-            $this->network = $network;
         }
         return parent::beforeSave();
     }
@@ -275,5 +292,4 @@ class DataPort extends Model
         $result = self::findAllByIpVrf($ip, $vrf)->first();
         return (null === $result) ? false : $result;
     }
-
 }

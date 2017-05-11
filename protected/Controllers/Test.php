@@ -21,6 +21,24 @@ class Test extends Controller
 {
     public function actionDefault()
     {
+        $url = "http://voice.loc/rServer/testServer.json";
+//        $url = "http://10.99.120.170/rServer/serverTest.json";
+//        $url = "http://voice.loc/rServer/serverTest";
+
+        $files= [1,2,3,4,5,6];
+        $result = [];
+
+        foreach ($files as $file) {
+            $curl = curl_init($url);
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+            $result[] =  curl_exec($curl);
+            if (curl_error($curl)) {
+                echo curl_error($curl);die;
+            }
+            curl_close($curl);
+        }
+        var_dump($result);
+        die;
     }
 
     public function actionTestModule()

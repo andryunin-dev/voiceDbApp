@@ -403,15 +403,4 @@ class RServer extends Controller
         fwrite($file,$rawdata);
         fclose($file);
     }
-
-    public function actionTTTest()
-    {
-        $request = new WebRequest('http://10.99.120.208/rserver/log');
-
-        if ($request->start()) {
-            $request->join();
-            var_dump($request->response);
-        }
-    }
 }
-

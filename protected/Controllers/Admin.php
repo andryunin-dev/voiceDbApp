@@ -11,6 +11,7 @@ use App\Models\DataPort;
 use App\Models\DPortType;
 use App\Models\Module;
 use App\Models\ModuleItem;
+use App\Models\Network;
 use App\Models\Office;
 use App\Models\OfficeStatus;
 use App\Models\Platform;
@@ -21,6 +22,7 @@ use App\Models\SoftwareItem;
 use App\Models\Vendor;
 use App\Models\VPortType;
 use App\Models\Vrf;
+use T4\Core\Collection;
 use T4\Core\Exception;
 use T4\Core\MultiException;
 use T4\Core\Std;
@@ -912,10 +914,6 @@ class Admin extends Controller
     public function actionDevices()
     {
         $this->data->offices = Office::findAll(['order' => 'title']);
-
-        foreach ($this->data->offices as $office) {
-
-        }
         $this->data->activeLink->devices = true;
     }
 
@@ -1313,4 +1311,126 @@ class Admin extends Controller
 
     }
 
+    public function actionVrf()
+    {
+        $this->data->vrfs = Vrf::findAll();
+        $this->data->gvrf = Vrf::instanceGlobalVrf();
+        $this->data->activeLink->ipPlanning = true;
+    }
+
+    public function actionAddVrf($vrf)
+    {
+        try {
+            Vrf::getDbConnection()->beginTransaction();
+            (new Vrf())
+                ->fill($vrf)
+                ->save();
+
+            Vrf::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Vrf::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Vrf::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
+    }
+
+    public function actionEditVrf($vrf)
+    {
+        try {
+            Vrf::getDbConnection()->beginTransaction();
+            if (false === $currentVrf = Vrf::findByPK($vrf->id)) {
+                throw new Exception('Неверные данные');
+            }
+            unset($vrf->id);
+            $currentVrf
+                ->fill($vrf)
+                ->save();
+
+            Vrf::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Vrf::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Vrf::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
+    }
+
+    public function actionDelVrf($id)
+    {
+        try {
+            Vrf::getDbConnection()->beginTransaction();
+            if (false === $currentVrf = Vrf::findByPK($id)) {
+                throw new Exception('Неверные данные');
+            }
+            $currentVrf->delete();
+
+            Vrf::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Vrf::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Vrf::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
+    }
+
+    public function actionNetworksTab()
+    {
+        $this->data->networks = Network::findAll();
+    }
+
+    public function actionAddNetwork($network)
+    {
+        try {
+            Network::getDbConnection()->beginTransaction();
+            (new Network())
+                ->fill([
+                    'address' => $network->address,
+                    'comment' => $network->comment,
+                    'vrf' => Vrf::findByPK($network->vrfId)
+                ])
+                ->save();
+
+            Network::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Vrf::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Vrf::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
+    }
+
+    public function actionDelNetwork($id)
+    {
+        try {
+            Network::getDbConnection()->beginTransaction();
+            if (false === $currentNetwork = Network::findByPK($id)) {
+                throw new Exception('Неверные данные');
+            }
+            $currentNetwork->delete();
+
+            Network::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Vrf::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Vrf::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
+    }
+
+    public function actionNetworksTree()
+    {
+        $allVrf = Vrf::findAll();
+        $vrfs = new Collection();
+        foreach ($allVrf as $vrf) {
+            $vrf->rootNetworks = Network::findAllRootsByVrf($vrf);
+            $vrfs->append($vrf);
+        }
+        $this->data->vrfs = $vrfs;
+    }
 }
