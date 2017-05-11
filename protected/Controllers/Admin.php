@@ -134,7 +134,7 @@ class Admin extends Controller
     public function actionCities()
     {
         $asc = function (City $city_1, City $city_2) {
-            return strnatcmp($city_1->region->title, $city_2->region->title);
+            return strnatcmp(mb_strtolower($city_1->region->title), mb_strtolower($city_2->region->title));
         };
 
         $this->data->cities = City::findAll()->uasort($asc);
@@ -306,7 +306,7 @@ class Admin extends Controller
     public function actionOffices()
     {
         $asc = function (Office $office_1, Office $office_2) {
-            return (0 != $compareRes = strnatcmp($office_1->address->city->region->title, $office_2->address->city->region->title)) ? $compareRes : 1;
+            return (0 != $compareRes = strnatcmp(mb_strtolower($office_1->address->city->region->title), mb_strtolower($office_2->address->city->region->title))) ? $compareRes : 1;
         };
 
         $this->data->offices = Office::findAll()->uasort($asc);
