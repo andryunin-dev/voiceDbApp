@@ -12,6 +12,76 @@ class RServerTest extends \PHPUnit\Framework\TestCase
     use DbTrait;
     use EnvironmentTrait;
 
+    public function providerDbLockedDataSetAppliance()
+    {
+        return [
+            [
+                '{
+                    "platformSerial":"testPS",
+                    "applianceModules":
+                    [
+                        {
+                            "serial":"sn 1",
+                            "product_number":"pr_num 1",
+                            "description":"desc 1"
+                        },
+                        {
+                            "serial":"sn 2",
+                            "product_number":"pr_num 2",
+                            "description":"desc 2"
+                        },
+                        {
+                            "serial":"sn 3",
+                            "product_number":"pr_num 3",
+                            "description":"desc 3"
+                        },
+                        {
+                            "serial":"sn 4",
+                            "product_number":"pr_num 4",
+                            "description":"desc 4"
+                        },
+                        {
+                            "serial":"sn 5",
+                            "product_number":"pr_num 5",
+                            "description":"desc 5"
+                        }
+                    ],
+                    "LotusId":"1",
+                    "hostname":"host",
+                    "applianceType":"device",
+                    "softwareVersion":"ver soft",
+                    "chassis":"ch 1",
+                    "platformTitle":"pl_title 1",
+                    "ip":"10.100.240.195/24",
+                    "applianceSoft":"soft",
+                    "platformVendor":"CISCO"
+                }',
+                400
+            ]
+        ];
+    }
+
+    /**
+     * @param $jdataSet
+     * @param $codeResult
+     *
+     * @dataProvider providerDbLockedDataSetAppliance
+     */
+    public function testDbLocked($jdataSet, $codeResult)
+    {
+        $fistDbLockFileResource = fopen(ROOT_PATH_PROTECTED . '/db.lock', 'w');
+        $this->assertInternalType('resource', $fistDbLockFileResource);
+        $this->assertTrue(flock($fistDbLockFileResource, LOCK_EX | LOCK_NB));
+
+        $this->createOffice();
+        $resultRequest = $this->pushData($jdataSet);
+        $this->assertEquals($codeResult, $resultRequest->httpStatusCode);
+        $this->assertEquals('Can not get the lock file', $resultRequest->errors);
+
+        $this->assertTrue(flock($fistDbLockFileResource, LOCK_UN));
+        $this->assertTrue(fclose($fistDbLockFileResource));
+    }
+
     public function providerValidDataSetAppliance()
     {
         return [
@@ -754,75 +824,5 @@ class RServerTest extends \PHPUnit\Framework\TestCase
             $moduleItem = $moduleItems->first();
             $this->assertInstanceOf(\App\Models\ModuleItem::class, $moduleItem);
         }
-    }
-
-    public function providerDbLockedDataSetAppliance()
-    {
-        return [
-            [
-                '{
-                    "platformSerial":"testPS",
-                    "applianceModules":
-                    [
-                        {
-                            "serial":"sn 1",
-                            "product_number":"pr_num 1",
-                            "description":"desc 1"
-                        },
-                        {
-                            "serial":"sn 2",
-                            "product_number":"pr_num 2",
-                            "description":"desc 2"
-                        },
-                        {
-                            "serial":"sn 3",
-                            "product_number":"pr_num 3",
-                            "description":"desc 3"
-                        },
-                        {
-                            "serial":"sn 4",
-                            "product_number":"pr_num 4",
-                            "description":"desc 4"
-                        },
-                        {
-                            "serial":"sn 5",
-                            "product_number":"pr_num 5",
-                            "description":"desc 5"
-                        }
-                    ],
-                    "LotusId":"1",
-                    "hostname":"host",
-                    "applianceType":"device",
-                    "softwareVersion":"ver soft",
-                    "chassis":"ch 1",
-                    "platformTitle":"pl_title 1",
-                    "ip":"10.100.240.195/24",
-                    "applianceSoft":"soft",
-                    "platformVendor":"CISCO"
-                }',
-                400
-            ]
-        ];
-    }
-
-    /**
-     * @param $jdataSet
-     * @param $codeResult
-     *
-     * @dataProvider providerDbLockedDataSetAppliance
-     */
-    public function testDbLocked($jdataSet, $codeResult)
-    {
-        $fistDbLockFileResource = fopen(ROOT_PATH_PROTECTED . '/db.lock', 'w');
-        $this->assertInternalType('resource', $fistDbLockFileResource);
-        $this->assertTrue(flock($fistDbLockFileResource, LOCK_EX | LOCK_NB));
-
-        $this->createOffice();
-        $resultRequest = $this->pushData($jdataSet);
-        $this->assertEquals($codeResult, $resultRequest->httpStatusCode);
-        $this->assertEquals('Can not get the lock file', $resultRequest->errors);
-
-        $this->assertTrue(flock($fistDbLockFileResource, LOCK_UN));
-        $this->assertTrue(fclose($fistDbLockFileResource));
     }
 }
