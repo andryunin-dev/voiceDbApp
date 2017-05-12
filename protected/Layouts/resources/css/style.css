@@ -119,6 +119,12 @@ table {
     word-wrap: break-word;
 }
 
+.no-cut-long-text td,
+.no-cut-long-text th {
+    white-space: normal;
+    word-wrap: break-word;
+}
+
 /*==================
 custom striped table
 ====================*/
