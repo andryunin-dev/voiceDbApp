@@ -42,7 +42,8 @@ class RServer extends Controller
         define('ITERATIONS', 10); // Колличество попыток получить доступ к db.lock файлу
 
         $logger = new Logger('RServer');
-        $logger->pushHandler(new StreamHandler(ROOT_PATH . '/Logs/surveyOfAppliances.log', Logger::DEBUG));
+        $logfile = ROOT_PATH . '/Logs/surveyOfAppliances.log';
+        $logger->pushHandler(new StreamHandler($logfile, Logger::DEBUG));
 
         try {
             // Getting Datasets in JSON format from php://input
