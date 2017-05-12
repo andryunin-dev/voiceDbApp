@@ -17,8 +17,6 @@ use T4\Orm\Model;
  */
 class DPortType extends Model
 {
-    const NO_TYPE = 'NO_TYPE';
-
     protected static $schema = [
         'table' => 'equipment.dataPortTypes',
         'columns' => [
@@ -28,11 +26,13 @@ class DPortType extends Model
             'ports' => ['type' => self::HAS_MANY, 'model' => DataPort::class, 'by' => '__type_port_id']
         ]
     ];
+
     protected function validateType($val)
     {
         if (empty(trim($val))) {
-            throw new Exception('Пустое название типа');
+            throw new Exception('Пустое название DataPortType');
         }
+
         return true;
     }
 
@@ -43,12 +43,16 @@ class DPortType extends Model
 
     protected function validate()
     {
-        if (false === $this->isNew()) {
-            return true;
+        $portType = DPortType::findByColumn('type', $this->type);
+
+        if (true === $this->isNew && ($portType instanceof DPortType)) {
+            throw new Exception('Такой DataPortType уже существует');
         }
-        if (false !== DPortType::findByColumn('type', $this->type)) {
-            throw new Exception('Такой тип существует');
+
+        if (true === $this->isUpdated && ($portType instanceof DPortType) && ($portType->getPk() != $this->getPk())) {
+            throw new Exception('Такой DataPortType уже существует');
         }
+
         return true;
     }
 }
