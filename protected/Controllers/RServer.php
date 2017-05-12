@@ -38,8 +38,10 @@ class RServer extends Controller
 
     public function actionDefault()
     {
-        define('SLEEPTIME', 200);
-        define('ITERATIONS', 10); // Колличество попыток получить доступ к db.lock файлу
+        define('SLEEPTIME', 100000);
+        define('ITERATIONS', 520); // Колличество попыток получить доступ к db.lock файлу
+
+//        $startTime = microtime(true);
 
         $logger = new Logger('RServer');
         $logfile = ROOT_PATH . '/Logs/surveyOfAppliances.log';
@@ -373,6 +375,9 @@ class RServer extends Controller
         if (400 == $httpStatusCode) {
             $response->merge($errors);
         }
+
+//        $stopTime = microtime(true);
+//        $logger->error($srcData->ip . '-> ' . $stopTime - $startTime);
 
         echo(json_encode($response->toArray()));
 
