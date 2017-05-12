@@ -126,7 +126,6 @@ class RServer extends Controller
 
             // Основная обработка данных в транзакции
             try {
-
                 // Заблокировать db.lock файл
                 $dbLockFile = fopen(ROOT_PATH_PROTECTED . '/db.lock', 'w');
                 if (false === $dbLockFile) {
@@ -346,11 +345,8 @@ class RServer extends Controller
                 fclose($dbLockFile);
 
             } catch (Exception $e) {
-                Appliance::getDbConnection()->rollbackTransaction();
-
                 if (false !== $blockedFile) {
-                    flock($dbLockFile, LOCK_UN);
-                    fclose($dbLockFile);
+                    Appliance::getDbConnection()->rollbackTransaction();
                 }
 
                 throw new Exception($e->getMessage());

@@ -70,7 +70,8 @@ class RServerTest extends \PHPUnit\Framework\TestCase
         curl_setopt($curl, CURLOPT_POSTFIELDS, $jsonDataSet);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_HEADER, false);
-        $requestResult =  json_decode(curl_exec($curl));
+        $requestResult = (new \T4\Core\Std())
+            ->fill(json_decode(curl_exec($curl)));
         curl_close($curl);
 
         return $requestResult;
@@ -804,27 +805,24 @@ class RServerTest extends \PHPUnit\Framework\TestCase
         ];
     }
 
-
     /**
      * @param $jdataSet
      * @param $codeResult
      *
      * @dataProvider providerDbLockedDataSetAppliance
      */
-//    public function testDbLockedError($jdataSet, $codeResult)
-//    {
-//        $fp = fopen(ROOT_PATH_PROTECTED . '/db.lock', 'w');
-//        flock($fp, LOCK_EX);
-//
-//        // Determine "Location"
-//        $this->createOffice();
-//
-//        $resultRequest = $this->pushData($jdataSet);
-////        var_dump($resultRequest);die;
-//
-//        $this->assertEquals($codeResult, $resultRequest->httpStatusCode);
-//
-//        flock($fp, LOCK_UN);
-//        fclose($fp);
-//    }
+    public function testDbLocked($jdataSet, $codeResult)
+    {
+        $fistDbLockFileResource = fopen(ROOT_PATH_PROTECTED . '/db.lock', 'w');
+        $this->assertInternalType('resource', $fistDbLockFileResource);
+        $this->assertTrue(flock($fistDbLockFileResource, LOCK_EX | LOCK_NB));
+
+        $this->createOffice();
+        $resultRequest = $this->pushData($jdataSet);
+        $this->assertEquals($codeResult, $resultRequest->httpStatusCode);
+        $this->assertEquals('Can not get the lock file', $resultRequest->errors);
+
+        $this->assertTrue(flock($fistDbLockFileResource, LOCK_UN));
+        $this->assertTrue(fclose($fistDbLockFileResource));
+    }
 }
