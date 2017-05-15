@@ -74,8 +74,8 @@ class RServer extends Controller
             if (!isset($srcData->platformVendor)) {
                 $errors->add(new Exception('DATASET: No field platformVendor'));
             }
-            if (!isset($srcData->platformTitle)) {
-                $errors->add(new Exception('DATASET: No field platformTitle'));
+            if (!isset($srcData->chassis)) {
+                $errors->add(new Exception('DATASET: No field chassis'));
             }
             if (!isset($srcData->platformSerial)) {
                 $errors->add(new Exception('DATASET: No field platformSerial'));
@@ -161,7 +161,12 @@ class RServer extends Controller
                 }
 
                 // Determine "Platform"
-                $requestPlatformTitle = $srcData->platformTitle;
+                $replaceTitle = mb_ereg_replace($vendor->title, '', $srcData->chassis, "i");
+                $requestPlatformTitle = mb_ereg_replace('-CHASSIS', '', $replaceTitle, "i");
+                if (false === $requestPlatformTitle) {
+                    $errors->add(new Exception('Platform: No title chassis'));
+                }
+
                 $platform = $vendor->platforms->filter(
                     function($platform) use ($requestPlatformTitle) {
                         return $requestPlatformTitle == $platform->title;
@@ -171,7 +176,7 @@ class RServer extends Controller
                     $platform = (new Platform())
                         ->fill([
                             'vendor' => $vendor,
-                            'title' => $srcData->platformTitle
+                            'title' => $requestPlatformTitle
                         ])
                         ->save();
                 }
