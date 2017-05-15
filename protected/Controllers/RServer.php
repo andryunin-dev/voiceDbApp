@@ -38,7 +38,7 @@ class RServer extends Controller
 
     public function actionDefault()
     {
-        define('SLEEPTIME', 100000);
+        define('SLEEPTIME', 100000); // микросекунды
         define('ITERATIONS', 520); // Колличество попыток получить доступ к db.lock файлу
 
 //        $startTime = microtime(true);
@@ -377,7 +377,7 @@ class RServer extends Controller
         }
 
 //        $stopTime = microtime(true);
-//        $logger->error($srcData->ip . '-> ' . $stopTime - $startTime);
+//        $logger->error($srcData->ip . '-> ' . ($stopTime - $startTime));
 
         echo(json_encode($response->toArray()));
 
