@@ -161,21 +161,20 @@ class RServer extends Controller
                 }
 
                 // Process value of "Platform" Title
-                $processedValueTitle = $srcData->chassis;
                 $matches = [
                     $vendor->title,
                     '-CHASSIS',
                     'CHASSIS',
                 ];
                 foreach ($matches as $match) {
-                    $requestPlatformTitle = mb_ereg_replace($match, '', $processedValueTitle, "i");
-                    $processedValueTitle = $requestPlatformTitle;
+                    $srcData->chassis = mb_ereg_replace($match, '', $srcData->chassis, "i");
                 }
-                if (false === $requestPlatformTitle) {
-                    $errors->add(new Exception('Platform: No title chassis'));
+                if (false === $srcData->chassis) {
+                    $errors->add(new Exception('Platform: Title chassis ERROR'));
                 }
 
                 // Determine "Platform"
+                $requestPlatformTitle = $srcData->chassis;
                 $platform = $vendor->platforms->filter(
                     function($platform) use ($requestPlatformTitle) {
                         return $requestPlatformTitle == $platform->title;
