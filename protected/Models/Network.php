@@ -38,6 +38,7 @@ class Network extends Model
     ];
 
     protected static $extensions = ['tree'];
+    protected static $sortDefault = ['address' => 'asc', 'vrf' => 'asc'];
 
     protected function validateAddress($val)
     {
@@ -128,6 +129,68 @@ class Network extends Model
         return parent::beforeDelete();
     }
 
+    public static function findAll($options = [])
+    {
+        $allowedSortFields = [
+            'address',
+            'vrf'
+        ];
+        $directions = [
+            'asc',
+            'desc'
+        ];
+        $sortOrder = [];
+        if (is_array($options)) {
+            foreach ($options as $field => $direction) {
+                if (
+                    ! in_array(strtolower($field), $allowedSortFields) ||
+                    ! in_array(strtolower($direction), $directions)
+                ) {
+                    continue;
+                }
+                $sortOrder[strtolower($field)] = strtolower($direction);
+                unset($options[$field]);
+            }
+        }
+
+        $networks = parent::findAll($options);
+        if (empty($sortOrder)) {
+            return $networks;
+        }
+
+        $networks = $networks->uasort(function (Network $network1, Network $network2) use (&$sortOrder) {
+            $result = 1;
+            foreach ($sortOrder as $field => $direction) {
+                switch ($field) {
+                    case 'address':
+                        $net1 = new Ip($network1->address);
+                        $net2 = new Ip($network2->address);
+                        $result = ip2long($net1->address) <=> ip2long($net2->address);
+                        //if addresses equal compare masklen
+                        $result = $result ?: $net1->masklen <=> $net2->masklen;
+                        break;
+                    case 'vrf':
+                        $vrf1 = $network1->vrf->name;
+                        $vrf2 = $network2->vrf->name;
+                        if (Vrf::GLOBAL_VRF_NAME == $vrf1 && Vrf::GLOBAL_VRF_NAME != $vrf2) {
+                            $result = -1;
+                        } elseif (Vrf::GLOBAL_VRF_NAME != $vrf1 && Vrf::GLOBAL_VRF_NAME == $vrf2) {
+                            $result = 1;
+                        } else {
+                            $result = strnatcmp(strtolower($network1->vrf->name), strtolower($network2->vrf->name));
+                        }
+                        break;
+                }
+                if (0 != $result) {
+                    $result = ('asc' == $direction) ? $result : (-1) * $result;
+                    break;
+                }
+            }
+            return $result ?: 1;
+        });
+        return $networks;
+    }
+
     /**
      * @return Network|bool
      */
@@ -151,21 +214,125 @@ class Network extends Model
         return (null === $result) ? false : $result;
     }
 
-    public static function findAllRootsByVrf($vrf = null)
-    {
-        if (null ===  $vrf) {
-            return self::findAllRoots();
+    public static function findAllRootsByVrf($vrf = null, $options = [])
+    {        $allowedSortFields = [
+        'address',
+        'vrf'
+    ];
+        $directions = [
+            'asc',
+            'desc'
+        ];
+        $sortOrder = [];
+        if (is_array($options)) {
+            foreach ($options as $field => $direction) {
+                if (
+                    ! in_array(strtolower($field), $allowedSortFields) ||
+                    ! in_array(strtolower($direction), $directions)
+                ) {
+                    continue;
+                }
+                $sortOrder[strtolower($field)] = strtolower($direction);
+                unset($options[$field]);
+            }
         }
-        if ($vrf instanceof Vrf) {
+        if (null ===  $vrf) {
+            $networks = self::findAllRoots();
+        } elseif ($vrf instanceof Vrf) {
             /**
              * @var Collection|Network[] $roots
              */
             $roots = self::findAllRoots();
-            return $roots->filter(function (Network $network) use ($vrf) {
+            $networks = $roots->filter(function (Network $network) use ($vrf) {
                 return $network->vrf->getPk() == $vrf->getPk();
             });
+        } else {
+            $networks = false;
         }
-        return false;
+        if (empty($sortOrder)) {
+            return $networks;
+        }
+
+        $networks = $networks->uasort(function (Network $network1, Network $network2) use (&$sortOrder) {
+            $result = 1;
+            foreach ($sortOrder as $field => $direction) {
+                switch ($field) {
+                    case 'address':
+                        $net1 = new Ip($network1->address);
+                        $net2 = new Ip($network2->address);
+                        $result = ip2long($net1->address) <=> ip2long($net2->address);
+                        //if addresses equal compare masklen
+                        $result = $result ?: $net1->masklen <=> $net2->masklen;
+                        break;
+                    case 'vrf':
+                        $vrf1 = $network1->vrf->name;
+                        $vrf2 = $network2->vrf->name;
+                        if (Vrf::GLOBAL_VRF_NAME == $vrf1 && Vrf::GLOBAL_VRF_NAME != $vrf2) {
+                            $result = -1;
+                        } elseif (Vrf::GLOBAL_VRF_NAME != $vrf1 && Vrf::GLOBAL_VRF_NAME == $vrf2) {
+                            $result = 1;
+                        } else {
+                            $result = strnatcmp(strtolower($network1->vrf->name), strtolower($network2->vrf->name));
+                        }
+                        break;
+                }
+                if (0 != $result) {
+                    $result = ('asc' == $direction) ? $result : (-1) * $result;
+                    break;
+                }
+            }
+            return $result ?: 1;
+        });
+
+        return $networks;
+    }
+
+    public function findAllChildren($options = [])
+    {
+        $allowedSortFields = [
+            'address'
+        ];
+        $directions = [
+            'asc',
+            'desc'
+        ];
+        $sortOrder = [];
+        if (is_array($options)) {
+            foreach ($options as $field => $direction) {
+                if (
+                    !in_array(strtolower($field), $allowedSortFields) ||
+                    !in_array(strtolower($direction), $directions)
+                ) {
+                    continue;
+                }
+                $sortOrder[strtolower($field)] = strtolower($direction);
+                unset($options[$field]);
+            }
+        }
+        $networks = $this->children;
+        if (empty($sortOrder)) {
+            return $networks;
+        }
+        $networks = $networks->uasort(function (Network $network1, Network $network2) use (&$sortOrder) {
+            $result = 1;
+            foreach ($sortOrder as $field => $direction) {
+                switch ($field) {
+                    case 'address':
+                        $net1 = new Ip($network1->address);
+                        $net2 = new Ip($network2->address);
+                        $result = ip2long($net1->address) <=> ip2long($net2->address);
+                        //if addresses equal compare masklen
+                        $result = $result ?: $net1->masklen <=> $net2->masklen;
+                        break;
+                }
+                if (0 != $result) {
+                    $result = ('asc' == $direction) ? $result : (-1) * $result;
+                    break;
+                }
+            }
+            return $result ?: 1;
+        });
+        return $networks;
     }
 
     public function hostIpNumbers()
@@ -179,5 +346,10 @@ class Network extends Model
             $netSize -=2;
         }
         return $netSize;
+    }
+
+    public function test($arg)
+    {
+        return $arg;
     }
 }

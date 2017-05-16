@@ -5,7 +5,8 @@
         {% if item.children.count > 0 %}
             <li><span><a href="#">{{ item.address }}</a></span>
                 <ul>
-                    {% for child in item.children %}
+                    {#{% set children = item.findAllChildren({'address' : 'asc'}) %}#}
+                    {% for child in item.findAllChildren({'address' : 'asc'}) %}
                         {{ _self.buildTree(child) }}
                     {% endfor %}
                     {% for host in item.hosts %}

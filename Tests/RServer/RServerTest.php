@@ -134,7 +134,7 @@ class RServerTest extends \PHPUnit\Framework\TestCase
     public function pushData($jsonDataSet)
     {
 //        $url = "http://10.99.120.208/rserver/test";
-        $url = "http://voice.loc/rserver/test";
+        $url = "http://voice.loc/rServer/test";
         $curl = curl_init($url);
         curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
         curl_setopt($curl, CURLOPT_POSTFIELDS, $jsonDataSet);
@@ -242,7 +242,7 @@ class RServerTest extends \PHPUnit\Framework\TestCase
             ->params([
                 ':__vendor_id' => $vendor->__id,
                 ':__platform_item_id' => $platformItem->__id,
-                ':__software_id' => $software->__id,
+                ':__software_id' => $softwareItem->__id,
                 ':__type_id' => $applianceType->__id
             ]);
         $appliances = \App\Models\Appliance::findAllByQuery($query);
@@ -442,7 +442,7 @@ class RServerTest extends \PHPUnit\Framework\TestCase
             ->params([
                 ':__vendor_id' => $vendor->__id,
                 ':__platform_item_id' => $platformItem->__id,
-                ':__software_id' => $software->__id,
+                ':__software_id' => $softwareItem->__id,
                 ':__type_id' => $applianceType->__id
             ]);
         $appliances = \App\Models\Appliance::findAllByQuery($query);
