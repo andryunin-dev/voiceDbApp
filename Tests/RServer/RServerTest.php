@@ -586,7 +586,7 @@ class RServerTest extends \PHPUnit\Framework\TestCase
         $resultRequest = $this->pushData($jdataSet);
         $this->assertEquals($codeResult, $resultRequest->httpStatusCode);
 
-        $this->assertEquals(17, count($resultRequest->errors));
+        $this->assertEquals(19, count($resultRequest->errors));
     }
 
 

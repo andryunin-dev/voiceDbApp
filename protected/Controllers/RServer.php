@@ -44,8 +44,7 @@ class RServer extends Controller
 //        $startTime = microtime(true);
 
         $logger = new Logger('RServer');
-        $logfile = ROOT_PATH . '/Logs/surveyOfAppliances.log';
-        $logger->pushHandler(new StreamHandler($logfile, Logger::DEBUG));
+        $logger->pushHandler(new StreamHandler(ROOT_PATH . '/Logs/surveyOfAppliances.log', Logger::DEBUG));
 
         try {
             // Getting Datasets in JSON format from php://input
@@ -74,9 +73,6 @@ class RServer extends Controller
             if (!isset($srcData->platformVendor)) {
                 $errors->add(new Exception('DATASET: No field platformVendor'));
             }
-            if (!isset($srcData->chassis)) {
-                $errors->add(new Exception('DATASET: No field chassis'));
-            }
             if (!isset($srcData->platformSerial)) {
                 $errors->add(new Exception('DATASET: No field platformSerial'));
             }
@@ -98,6 +94,9 @@ class RServer extends Controller
                     if (!isset($moduleDataset->description)) {
                         $errors->add(new Exception('DATASET: No field applianceModule->description'));
                     }
+                    if (empty($moduleDataset->serial) || empty($moduleDataset->product_number)) {
+                        $errors->add(new Exception('DATASET: Empty applianceModule->serial or applianceModule->product_number'));
+                    }
                 }
             }
             if (!isset($srcData->applianceSoft)) {
@@ -111,6 +110,22 @@ class RServer extends Controller
             }
             if (!isset($srcData->ip)) {
                 $errors->add(new Exception('DATASET: No field ip'));
+            }
+
+            // Process value of chassiss
+            if (!isset($srcData->chassis)) {
+                $errors->add(new Exception('DATASET: No field chassis'));
+            }
+            $matches = [
+                $srcData->platformVendor,
+                '-CHASSIS',
+                'CHASSIS',
+            ];
+            foreach ($matches as $match) {
+                $srcData->chassis = mb_ereg_replace($match, '', $srcData->chassis, "i");
+            }
+            if (false === $srcData->chassis) {
+                $errors->add(new Exception('DATASET: Title chassis ERROR'));
             }
 
             // Если DataSet не валидный, то заканчиваем работу
@@ -160,40 +175,25 @@ class RServer extends Controller
                         ->save();
                 }
 
-                // Process value of "Platform" Title
-                $matches = [
-                    $vendor->title,
-                    '-CHASSIS',
-                    'CHASSIS',
-                ];
-                foreach ($matches as $match) {
-                    $srcData->chassis = mb_ereg_replace($match, '', $srcData->chassis, "i");
-                }
-                if (false === $srcData->chassis) {
-                    $errors->add(new Exception('Platform: Title chassis ERROR'));
-                }
-
                 // Determine "Platform"
-                $requestPlatformTitle = $srcData->chassis;
                 $platform = $vendor->platforms->filter(
-                    function($platform) use ($requestPlatformTitle) {
-                        return $requestPlatformTitle == $platform->title;
+                    function($platform) use (&$srcData) {
+                        return $srcData->chassis == $platform->title;
                     }
                 )->first();
                 if (!($platform instanceof Platform)) {
                     $platform = (new Platform())
                         ->fill([
                             'vendor' => $vendor,
-                            'title' => $requestPlatformTitle
+                            'title' => $srcData->chassis
                         ])
                         ->save();
                 }
 
                 // Determine "PlatformItem"
-                $requestPlatformSerial = $srcData->platformSerial;
                 $platformItem = $platform->platformItems->filter(
-                    function($platformItem) use ($requestPlatformSerial) {
-                        return $requestPlatformSerial == $platformItem->serialNumber;
+                    function($platformItem) use (&$srcData) {
+                        return $srcData->platformSerial == $platformItem->serialNumber;
                     }
                 )->first();
                 if (!($platformItem instanceof PlatformItem)) {
@@ -206,10 +206,9 @@ class RServer extends Controller
                 }
 
                 // Determine "Software"
-                $requestApplianceSoft = $srcData->applianceSoft;
                 $software = $vendor->software->filter(
-                    function($software) use ($requestApplianceSoft) {
-                        return $requestApplianceSoft == $software->title;
+                    function($software) use (&$srcData) {
+                        return $srcData->applianceSoft == $software->title;
                     }
                 )->first();
                 if (!($software instanceof Software)) {
@@ -222,10 +221,9 @@ class RServer extends Controller
                 }
 
                 // Determine "SoftwareItem"
-                $requestSoftwareVersion = $srcData->softwareVersion;
                 $softwareItem = $software->softwareItems->filter(
-                    function($softwareItem) use ($requestSoftwareVersion) {
-                        return $requestSoftwareVersion == $softwareItem->version;
+                    function($softwareItem) use (&$srcData) {
+                        return $srcData->softwareVersion == $softwareItem->version;
                     }
                 )->first();
                 if (!($softwareItem instanceof SoftwareItem)) {
@@ -267,16 +265,10 @@ class RServer extends Controller
                 $usedModules = new Collection();
                 foreach ($srcData->applianceModules as $moduleDataset) {
 
-                    // Проверка на отсутствие ключевых данных по модулю == отсутствие модуля у Appliance
-                    if (empty($moduleDataset->serial) || empty($moduleDataset->product_number)) {
-                        continue;
-                    }
-
                     // Determine "Module"
-                    $requestModuleTitle = $moduleDataset->product_number;
                     $module = $vendor->modules->filter(
-                        function($module) use ($requestModuleTitle) {
-                            return $requestModuleTitle == $module->title;
+                        function($module) use (&$moduleDataset) {
+                            return $moduleDataset->product_number == $module->title;
                         }
                     )->first();
 
@@ -292,16 +284,15 @@ class RServer extends Controller
                     }
 
                     // Determine "ModuleItem"
-                    $moduleItemSerial = $moduleDataset->serial;
                     $result = $module->moduleItems->filter(
-                        function($moduleItem) use ($moduleItemSerial) {
-                            return $moduleItemSerial == $moduleItem->serialNumber;
+                        function($moduleItem) use (&$moduleDataset) {
+                            return $moduleDataset->serial == $moduleItem->serialNumber;
                         }
                     )->first();
                     $moduleItem = ($result instanceof ModuleItem) ? $result : (new ModuleItem());
                     $moduleItem->fill([
                         'module' => $module,
-                        'serialNumber' => $moduleItemSerial,
+                        'serialNumber' => $moduleDataset->serial,
                         'appliance' => $appliance,
                         'location' => $appliance->location,
                     ])->save();
