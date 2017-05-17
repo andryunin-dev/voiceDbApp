@@ -1,0 +1,7 @@
+{% extends 'Index.html' %}
+{% block main %}
+
+    {% set var = net.test({'key': 'var'}) %}
+    {#{{ net.test({'key': 'var'}) }}#}
+    {{ var.key }}
+{% endblock %}

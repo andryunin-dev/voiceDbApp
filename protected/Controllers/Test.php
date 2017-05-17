@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Components\Ip;
 use App\Models\Appliance;
 use App\Models\City;
 use App\Models\ModuleItem;
@@ -14,6 +15,7 @@ use T4\Core\Collection;
 use T4\Core\Exception;
 use T4\Core\MultiException;
 use T4\Core\Std;
+use T4\Http\Request;
 use T4\Mvc\Controller;
 use T4\Orm\Model;
 
@@ -21,24 +23,11 @@ class Test extends Controller
 {
     public function actionDefault()
     {
-        $url = "http://voice.loc/rServer/testServer.json";
-//        $url = "http://10.99.120.170/rServer/serverTest.json";
-//        $url = "http://voice.loc/rServer/serverTest";
-
-        $files= [1,2,3,4,5,6];
-        $result = [];
-
-        foreach ($files as $file) {
-            $curl = curl_init($url);
-            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-            $result[] =  curl_exec($curl);
-            if (curl_error($curl)) {
-                echo curl_error($curl);die;
-            }
-            curl_close($curl);
-        }
-        var_dump($result);
         die;
+    }
+    public function actionTwig()
+    {
+        $this->data->net = Network::findByAddressVrf('1.1.1.0/24', Vrf::instanceGlobalVrf());
     }
 
     public function actionTestModule()
@@ -64,9 +53,131 @@ class Test extends Controller
 
     }
 
-    public function actionNetworks()
+    public function actionGenNet()
     {
-        $this->data->roots = Network::findAllRoots();
+        $netArrayAddress = [
+            '10.0.0.0/8',
+            '10.10.0.0/16',
+            '10.11.0.0/16',
+            '10.12.0.0/16',
+            '10.13.0.0/16',
+            '10.14.0.0/16',
+            '10.15.0.0/16',
+            '10.10.0.0/24',
+            '10.11.0.0/24',
+            '10.12.0.0/24',
+            '10.10.0.1/32',
+            '10.11.0.1/32',
+            '10.12.0.1/32',
+            '11.0.0.0/8',
+            '11.10.0.0/16',
+            '11.11.0.0/16',
+            '11.12.0.0/16',
+            '11.13.0.0/16',
+            '11.14.0.0/16',
+            '11.15.0.0/16',
+            '11.10.0.0/24',
+            '11.11.0.0/24',
+            '11.12.0.0/24',
+            '11.10.0.1/32',
+            '11.11.0.1/32',
+            '11.12.0.1/32',
+        ];
+        $n = 50;
+        while (count($netArrayAddress) > 0) {
+            $key = array_rand($netArrayAddress, 1);
+            $randAddress = $netArrayAddress[$key];
+            unset($netArrayAddress[$key]);
+
+            if (false !==Network::findByAddressVrf((new Ip($randAddress))->cidrNetwork, Vrf::instanceGlobalVrf())) {
+                continue;
+            }
+            $net = (new Network())
+                ->fill([
+                    'address' => (new Ip($randAddress))->cidrNetwork,
+                    'vrf' => Vrf::instanceGlobalVrf()
+                ])
+                ->save();
+
+            echo $net->address . '<br>';
+        }
+        die;
+    }
+
+    public function actionDelAllNet()
+    {
+        Network::findAll()->delete();
+        die;
+    }
+
+    public function actionNetSort()
+    {
+        $network3 = Network::findByAddressVrf('1.1.1.0/24', Vrf::instanceGlobalVrf());
+        $res = $network3->findAllChildren(['address' => 'asc']);
+        var_dump($res);die;
+        Network::findAll()->delete();
+        Vrf::findAll()->delete();
+        $testVrf = (new Vrf(['name' => 'test', 'rd' => '10:10']))->save();
+        $test2Vrf = (new Vrf(['name' => 'alfa', 'rd' => '20:10']))->save();
+        $network1 = (new Network())
+            ->fill([
+                'address' => '1.1.2.0/25',
+                'vrf' => Vrf::instanceGlobalVrf()
+            ])
+            ->save();
+        $network1 = (new Network())
+            ->fill([
+                'address' => '1.1.2.0/25',
+                'vrf' => $testVrf
+            ])
+            ->save();
+        $network1 = (new Network())
+            ->fill([
+                'address' => '1.1.2.0/25',
+                'vrf' => $test2Vrf
+            ])
+            ->save();
+        $network2 = (new Network())
+            ->fill([
+                'address' => '1.1.1.0/24',
+                'vrf' => Vrf::instanceGlobalVrf()
+            ])
+            ->save();
+        $network3 = (new Network())
+            ->fill([
+                'address' => '1.1.3.0/24',
+                'vrf' => Vrf::instanceGlobalVrf()
+            ])
+            ->save();
+        $network3 = (new Network())
+            ->fill([
+                'address' => '1.1.4.0/25',
+                'vrf' => Vrf::instanceGlobalVrf()
+            ])
+            ->save();
+        $network3 = (new Network())
+            ->fill([
+                'address' => '1.1.2.0/24',
+                'vrf' => Vrf::instanceGlobalVrf()
+            ])
+            ->save();
+//        var_dump($network3->vrf->name);die;
+        $result = Network::findAll(['vrf' => 'asc', 'address' => 'desc']);
+//        var_dump($result);
+        foreach ($result as $net) {
+            echo $net->address . ' - ' . $net->vrf . '<br>';
+        }
+//        var_dump(Network::myFindAll(['address' => 'asc']));
+        die;
+    }
+
+    public function actionSortVrf()
+    {
+        $result = Vrf::findAll(['name' => 'asc', 'rd' => 'asc']);
+        foreach ($result as $vrf) {
+            echo $vrf->name . ' - ' . $vrf->rd . '<br>';
+        }
+        die;
     }
 
     public function actionNetworkTree()
