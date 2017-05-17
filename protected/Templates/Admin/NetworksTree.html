@@ -9,7 +9,7 @@
                     {% for child in item.findAllChildren({'address' : 'asc'}) %}
                         {{ _self.buildTree(child) }}
                     {% endfor %}
-                    {% for host in item.hosts %}
+                    {% for host in item.findAllHosts({'address' : 'asc'}) %}
                         <li><span><a href="#">{{ host.ipAddress }}</a></span></li>
                     {% endfor %}
                 </ul>
@@ -17,7 +17,7 @@
         {% else %}
             <li><span><a href="#">{{ item.address }}</a></span>
                 <ul>
-                    {% for host in item.hosts %}
+                    {% for host in item.findAllHosts({'address' : 'asc'}) %}
                         <li><span><a href="#">{{ host.ipAddress }}</a></span></li>
                     {% endfor %}
                 </ul>
@@ -36,7 +36,7 @@
                         <div id="multi-tree">
                             {% for vrf in vrfs %}
                                 <div class="vrf-container">
-                                    <h4><a href="#">VRF {{ vrf }}</a></h4>
+                                    <h4><a href="#">VRF {{ vrf }} ({{ vrf.networks.count }} networks)</a></h4>
                                     <ul><!-- 1 уровень -->
                                         {% for root in vrf.rootNetworks %}
                                             {{ _self.buildTree(root) }}

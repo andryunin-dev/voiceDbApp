@@ -335,6 +335,54 @@ class Network extends Model
         return $networks;
     }
 
+    public function findAllHosts($options = [])
+    {
+        $allowedSortFields = [
+            'address'
+        ];
+        $directions = [
+            'asc',
+            'desc'
+        ];
+        $sortOrder = [];
+        if (is_array($options)) {
+            foreach ($options as $field => $direction) {
+                if (
+                    !in_array(strtolower($field), $allowedSortFields) ||
+                    !in_array(strtolower($direction), $directions)
+                ) {
+                    continue;
+                }
+                $sortOrder[strtolower($field)] = strtolower($direction);
+                unset($options[$field]);
+            }
+        }
+        $hosts = $this->hosts;
+        if (empty($sortOrder)) {
+            return $hosts;
+        }
+        $hosts = $hosts->uasort(function (DataPort $host1, DataPort $host2) use (&$sortOrder) {
+            $result = 1;
+            foreach ($sortOrder as $field => $direction) {
+                switch ($field) {
+                    case 'address':
+                        $ipObj1 = new Ip($host1->ipAddress);
+                        $ipObj2 = new Ip($host2->ipAddress);
+                        $result = ip2long($ipObj1->address) <=> ip2long($ipObj2->address);
+                        //if addresses equal compare masklen
+                        $result = $result ?: $ipObj1->masklen <=> $ipObj2->masklen;
+                        break;
+                }
+                if (0 != $result) {
+                    $result = ('asc' == $direction) ? $result : (-1) * $result;
+                    break;
+                }
+            }
+            return $result ?: 1;
+        });
+        return $hosts;
+    }
+
     public function hostIpNumbers()
     {
         $netObj = new Ip($this->address);
