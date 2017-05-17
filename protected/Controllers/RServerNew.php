@@ -68,11 +68,11 @@ class RServer extends Controller
 
 //-----------------------------------------------
 
-            // Determine "Location"
-            $office = Office::findByLotusId($srcData->LotusId);
-            if (!($office instanceof Office)) {
-                throw new Exception('Location not found, LotusId = ' . $srcData->LotusId);
-            }
+//            // Determine "Location"
+//            $office = Office::findByLotusId($srcData->LotusId);
+//            if (!($office instanceof Office)) {
+//                throw new Exception('Location not found, LotusId = ' . $srcData->LotusId);
+//            }
 
             // Основная обработка данных в транзакции
             try {
@@ -99,84 +99,84 @@ class RServer extends Controller
                 Appliance::getDbConnection()->beginTransaction();
 
                 // Determine "Vendor"
-                $vendor = Vendor::findByTitle($srcData->platformVendor);
-                if (!($vendor instanceof Vendor)) {
-                    $vendor = (new Vendor())
-                        ->fill([
-                            'title' => $srcData->platformVendor
-                        ])
-                        ->save();
-                }
+//                $vendor = Vendor::findByTitle($srcData->platformVendor);
+//                if (!($vendor instanceof Vendor)) {
+//                    $vendor = (new Vendor())
+//                        ->fill([
+//                            'title' => $srcData->platformVendor
+//                        ])
+//                        ->save();
+//                }
 
                 // Determine "Platform"
-                $platform = $vendor->platforms->filter(
-                    function($platform) use (&$srcData) {
-                        return $srcData->chassis == $platform->title;
-                    }
-                )->first();
-                if (!($platform instanceof Platform)) {
-                    $platform = (new Platform())
-                        ->fill([
-                            'vendor' => $vendor,
-                            'title' => $srcData->chassis
-                        ])
-                        ->save();
-                }
+//                $platform = $vendor->platforms->filter(
+//                    function($platform) use (&$srcData) {
+//                        return $srcData->chassis == $platform->title;
+//                    }
+//                )->first();
+//                if (!($platform instanceof Platform)) {
+//                    $platform = (new Platform())
+//                        ->fill([
+//                            'vendor' => $vendor,
+//                            'title' => $srcData->chassis
+//                        ])
+//                        ->save();
+//                }
 
                 // Determine "PlatformItem"
-                $platformItem = $platform->platformItems->filter(
-                    function($platformItem) use (&$srcData) {
-                        return $srcData->platformSerial == $platformItem->serialNumber;
-                    }
-                )->first();
-                if (!($platformItem instanceof PlatformItem)) {
-                    $platformItem = (new PlatformItem())
-                        ->fill([
-                            'platform' => $platform,
-                            'serialNumber' => $srcData->platformSerial
-                        ])
-                        ->save();
-                }
+//                $platformItem = $platform->platformItems->filter(
+//                    function($platformItem) use (&$srcData) {
+//                        return $srcData->platformSerial == $platformItem->serialNumber;
+//                    }
+//                )->first();
+//                if (!($platformItem instanceof PlatformItem)) {
+//                    $platformItem = (new PlatformItem())
+//                        ->fill([
+//                            'platform' => $platform,
+//                            'serialNumber' => $srcData->platformSerial
+//                        ])
+//                        ->save();
+//                }
 
                 // Determine "Software"
-                $software = $vendor->software->filter(
-                    function($software) use (&$srcData) {
-                        return $srcData->applianceSoft == $software->title;
-                    }
-                )->first();
-                if (!($software instanceof Software)) {
-                    $software = (new Software())
-                        ->fill([
-                            'vendor' => $vendor,
-                            'title' => $srcData->applianceSoft
-                        ])
-                        ->save();
-                }
+//                $software = $vendor->software->filter(
+//                    function($software) use (&$srcData) {
+//                        return $srcData->applianceSoft == $software->title;
+//                    }
+//                )->first();
+//                if (!($software instanceof Software)) {
+//                    $software = (new Software())
+//                        ->fill([
+//                            'vendor' => $vendor,
+//                            'title' => $srcData->applianceSoft
+//                        ])
+//                        ->save();
+//                }
 
                 // Determine "SoftwareItem"
-                $softwareItem = $software->softwareItems->filter(
-                    function($softwareItem) use (&$srcData) {
-                        return $srcData->softwareVersion == $softwareItem->version;
-                    }
-                )->first();
-                if (!($softwareItem instanceof SoftwareItem)) {
-                    $softwareItem = (new SoftwareItem())
-                        ->fill([
-                            'software' => $software,
-                            'version' => $srcData->softwareVersion
-                        ])
-                        ->save();
-                }
+//                $softwareItem = $software->softwareItems->filter(
+//                    function($softwareItem) use (&$srcData) {
+//                        return $srcData->softwareVersion == $softwareItem->version;
+//                    }
+//                )->first();
+//                if (!($softwareItem instanceof SoftwareItem)) {
+//                    $softwareItem = (new SoftwareItem())
+//                        ->fill([
+//                            'software' => $software,
+//                            'version' => $srcData->softwareVersion
+//                        ])
+//                        ->save();
+//                }
 
                 // Determine "Appliance Type"
-                $applianceType = ApplianceType::findByType($srcData->applianceType);
-                if (!($applianceType instanceof ApplianceType)) {
-                    $applianceType = (new ApplianceType())
-                        ->fill([
-                            'type' => $srcData->applianceType
-                        ])
-                        ->save();
-                }
+//                $applianceType = ApplianceType::findByType($srcData->applianceType);
+//                if (!($applianceType instanceof ApplianceType)) {
+//                    $applianceType = (new ApplianceType())
+//                        ->fill([
+//                            'type' => $srcData->applianceType
+//                        ])
+//                        ->save();
+//                }
 
                 // Determine "Appliance"
                 $appliance = ($platformItem->appliance instanceof Appliance) ? $platformItem->appliance : (new Appliance());

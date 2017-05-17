@@ -2,6 +2,14 @@
 
 namespace App\Components;
 
+use App\Models\Appliance;
+use App\Models\ApplianceType;
+use App\Models\Office;
+use App\Models\Platform;
+use App\Models\PlatformItem;
+use App\Models\Software;
+use App\Models\SoftwareItem;
+use App\Models\Vendor;
 use T4\Core\Exception;
 use T4\Core\MultiException;
 use T4\Core\Std;
@@ -63,18 +71,16 @@ class DataSetProcessor extends Std
      */
     protected function processApplianceDataSet($dataSet)
     {
-//        // Create preprocess function for
-//        $matches = [
-//            $dataSet->platformVendor,
-//            '-CHASSIS',
-//            'CHASSIS',
-//        ];
-//        foreach ($matches as $match) {
-//            $dataSet->chassis = mb_ereg_replace($match, '', $dataSet->chassis, "i");
-//        }
-//        if (false === $dataSet->chassis) {
-//            throw new Exception('DATASET: Title chassis ERROR');
-//        }
+        $dataSet = $this->beforeProcessApplianceDataSet($dataSet);
+
+        $office = $this->processLocationDataSet($dataSet->LotusId);
+        $vendor = $this->processVendorDataSet($dataSet->platformVendor);
+        $platform = $this->processPlatformDataSet($vendor ,$dataSet->chassis);
+        $platformItem = $this->processPlatformItemDataSet($platform ,$dataSet->platformSerial);
+        $software = $this->processSoftwareDataSet($vendor ,$dataSet->applianceSoft);
+        $softwareItem = $this->processSoftwareItemDataSet($software ,$dataSet->softwareVersion);
+        $applianceType = $this->processApplianceTypeDataSet($dataSet->applianceType);
+        $appliance = $this->processApplianceItemDataSet($office, $applianceType, $vendor, $platformItem, $softwareItem,$dataSet->hostname);
 
 
         // Create or Update Appliance
@@ -82,6 +88,204 @@ class DataSetProcessor extends Std
         // TODO: Сделать проверку на принадлежность кластеру
 
         return true;
+    }
+
+    /**
+     * @param $dataSet
+     * @return mixed
+     */
+    protected function beforeProcessApplianceDataSet($dataSet)
+    {
+        $matches = [
+            $dataSet->platformVendor,
+            '-CHASSIS',
+            'CHASSIS',
+        ];
+        foreach ($matches as $match) {
+            $dataSet->chassis = mb_ereg_replace($match, '', $dataSet->chassis, "i");
+        }
+
+        return $dataSet;
+    }
+
+    /**
+     * @param $lotusId
+     * @return mixed
+     * @throws Exception
+     */
+    protected function processLocationDataSet($lotusId)
+    {
+        $office = Office::findByLotusId($lotusId);
+        if (!($office instanceof Office)) {
+            throw new Exception('Location not found, LotusId = ' . $lotusId);
+        }
+
+        return $office;
+    }
+
+    /**
+     * @param $title
+     * @return Vendor|bool
+     */
+    protected function processVendorDataSet($title)
+    {
+        $vendor = Vendor::findByTitle($title);
+        if (!($vendor instanceof Vendor)) {
+            $vendor = (new Vendor())
+                ->fill([
+                    'title' => $title
+                ])
+                ->save();
+        }
+
+        return $vendor;
+    }
+
+    /**
+     * @param Vendor $vendor
+     * @param $title
+     * @return Platform|bool
+     */
+    protected function processPlatformDataSet(Vendor $vendor, $title)
+    {
+        $platform = $vendor->platforms->filter(
+            function($platform) use ($title) {
+                return $title == $platform->title;
+            }
+        )->first();
+        if (!($platform instanceof Platform)) {
+            $platform = (new Platform())
+                ->fill([
+                    'vendor' => $vendor,
+                    'title' => $title
+                ])
+                ->save();
+        }
+
+        return $platform;
+    }
+
+    /**
+     * @param Platform $platform
+     * @param $serialNumber
+     * @return PlatformItem|bool
+     */
+    protected function processPlatformItemDataSet(Platform $platform, $serialNumber)
+    {
+        $platformItem = $platform->platformItems->filter(
+            function($platformItem) use ($serialNumber) {
+                return $serialNumber == $platformItem->serialNumber;
+            }
+        )->first();
+        if (!($platformItem instanceof PlatformItem)) {
+            $platformItem = (new PlatformItem())
+                ->fill([
+                    'platform' => $platform,
+                    'serialNumber' => $serialNumber
+                ])
+                ->save();
+        }
+
+        return $platformItem;
+    }
+
+    /**
+     * @param Vendor $vendor
+     * @param $title
+     * @return Software|bool
+     */
+    protected function processSoftwareDataSet(Vendor $vendor, $title)
+    {
+        $software = $vendor->software->filter(
+            function($software) use ($title) {
+                return $title == $software->title;
+            }
+        )->first();
+        if (!($software instanceof Software)) {
+            $software = (new Software())
+                ->fill([
+                    'vendor' => $vendor,
+                    'title' => $title
+                ])
+                ->save();
+        }
+
+        return $software;
+    }
+
+    /**
+     * @param Software $software
+     * @param $version
+     * @return SoftwareItem|bool
+     */
+    protected function processSoftwareItemDataSet(Software $software, $version)
+    {
+        $softwareItem = $software->softwareItems->filter(
+            function($softwareItem) use ($version) {
+                return $version == $softwareItem->version;
+            }
+        )->first();
+        if (!($softwareItem instanceof SoftwareItem)) {
+            $softwareItem = (new SoftwareItem())
+                ->fill([
+                    'software' => $software,
+                    'version' => $version
+                ])
+                ->save();
+        }
+
+        return $softwareItem;
+    }
+
+    /**
+     * @param $type
+     * @return ApplianceType|bool
+     */
+    protected function processApplianceTypeDataSet($type)
+    {
+        $applianceType = ApplianceType::findByType($type);
+        if (!($applianceType instanceof ApplianceType)) {
+            $applianceType = (new ApplianceType())
+                ->fill([
+                    'type' => $type
+                ])
+                ->save();
+        }
+
+        return $applianceType;
+    }
+
+    /**
+     * @param Office $office
+     * @param ApplianceType $applianceType
+     * @param Vendor $vendor
+     * @param PlatformItem $platformItem
+     * @param SoftwareItem $softwareItem
+     * @param $hostname
+     * @return Appliance|bool
+     */
+    protected function processApplianceItemDataSet(
+        Office $office,
+        ApplianceType $applianceType,
+        Vendor $vendor,
+        PlatformItem $platformItem,
+        SoftwareItem $softwareItem,
+        $hostname
+    )
+    {
+        $appliance = ($platformItem->appliance instanceof Appliance) ? $platformItem->appliance : (new Appliance());
+        $appliance->fill([
+            'location' => $office,
+            'type' => $applianceType,
+            'vendor' => $vendor,
+            'platform' => $platformItem,
+            'software' => $softwareItem,
+            'details' => [
+                'hostname' => $hostname,
+            ]
+        ])->save();
+
+        return $appliance;
     }
 
     /**
