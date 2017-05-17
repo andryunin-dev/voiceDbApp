@@ -99,7 +99,8 @@
 
 // вешаем событие на клик по ссылке
 //-----------------------------------
-            $('li span', root).click(function () {
+            $('li span', root).click(function ($e) {
+                $e.preventDefault();
                 // снимаем выделение предыдущего узла
                 $('a.current', root).removeClass('current');
                 var a = $('a:first',this.parentNode);
