@@ -146,4 +146,67 @@ class Vrf extends Model
         }
         return $gVrf;
     }
+
+    public static function findAll($options = [])
+    {
+        $allowedSortFields = [
+            'name',
+            'rd'
+        ];
+        $directions = [
+            'asc',
+            'desc'
+        ];
+        $sortOrder = [];
+        if (is_array($options)) {
+            foreach ($options as $field => $direction) {
+                if (
+                    ! in_array(strtolower($field), $allowedSortFields) ||
+                    ! in_array(strtolower($direction), $directions)
+                ) {
+                    continue;
+                }
+                $sortOrder[strtolower($field)] = strtolower($direction);
+                unset($options[$field]);
+            }
+        }
+
+        $vrfs = parent::findAll($options);
+        if (empty($sortOrder)) {
+            return $vrfs;
+        }
+
+        $vrfs = $vrfs->uasort(function (Vrf $vrf1, Vrf $vrf2) use (&$sortOrder) {
+            $result = 1;
+            foreach ($sortOrder as $field => $direction) {
+                switch ($field) {
+                    case 'name':
+                        if (Vrf::GLOBAL_VRF_NAME == $vrf1->name && Vrf::GLOBAL_VRF_NAME != $vrf2->name) {
+                            $result = -1;
+                        } elseif (Vrf::GLOBAL_VRF_NAME != $vrf1->name && Vrf::GLOBAL_VRF_NAME == $vrf2->name) {
+                            $result = 1;
+                        } else {
+                            $result = strnatcmp(strtolower($vrf1->name), strtolower($vrf2->name));
+                        }
+                        break;
+                    case 'rd':
+                        if (Vrf::GLOBAL_VRF_RD == $vrf1->rd && Vrf::GLOBAL_VRF_RD != $vrf2->rd) {
+                            $result = -1;
+                        } elseif (Vrf::GLOBAL_VRF_RD != $vrf1->rd && Vrf::GLOBAL_VRF_RD == $vrf2->rd) {
+                            $result = 1;
+                        } else {
+                            $result = strnatcmp($vrf1->rd, $vrf2->rd);
+                        }
+                        break;
+                }
+                if (0 != $result) {
+                    $result = ('asc' == $direction) ? $result : (-1) * $result;
+                    break;
+                }
+            }
+            return $result ?: 1;
+        });
+        return $vrfs;
+
+    }
 }
