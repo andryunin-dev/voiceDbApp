@@ -12,6 +12,8 @@ use T4\Orm\Model;
  *
  * @property string $details
  * @property string $comment
+ * @property string $lastUpdate
+ *
  * @property ApplianceType $type
  * @property Office $location
  * @property Cluster $cluster
@@ -29,7 +31,8 @@ class Appliance extends Model
         'table' => 'equipment.appliances',
         'columns' => [
             'details' => ['type' => 'json'],
-            'comment' => ['type' => 'text']
+            'comment' => ['type' => 'text'],
+            'lastUpdate' => ['type' => 'datetime']
         ],
         'relations' => [
             'type' => ['type' => self::BELONGS_TO, 'model' => ApplianceType::class, 'by' => '__type_id'],
@@ -83,5 +86,11 @@ class Appliance extends Model
         }
 
         return true;
+    }
+
+    protected function beforeSave()
+    {
+        $this->lastUpdate = (new \DateTime())->format('Y-m-d H:i:sP');
+        return parent::beforeSave();
     }
 }
