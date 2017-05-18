@@ -4,12 +4,19 @@ namespace App\Components;
 
 use App\Models\Appliance;
 use App\Models\ApplianceType;
+use App\Models\Cluster;
+use App\Models\DataPort;
+use App\Models\DPortType;
+use App\Models\Module;
+use App\Models\ModuleItem;
 use App\Models\Office;
 use App\Models\Platform;
 use App\Models\PlatformItem;
 use App\Models\Software;
 use App\Models\SoftwareItem;
 use App\Models\Vendor;
+use App\Models\Vrf;
+use T4\Core\Collection;
 use T4\Core\Exception;
 use T4\Core\MultiException;
 use T4\Core\Std;
@@ -18,8 +25,12 @@ class DataSetProcessor extends Std
 {
     const APPLIANCE = 'appliance';
     const CLUSTER = 'cluster';
+    const SLEEPTIME = 100000; // микросекунды
+    const ITERATIONS = 520; // Колличество попыток получить доступ к db.lock файлу
 
     protected $dataSet;
+    protected $dbLockFile;
+    protected $firstClusterAppliance = true;
 
     /**
      * DataSetProcessor constructor.
@@ -31,7 +42,7 @@ class DataSetProcessor extends Std
     }
 
     /**
-     * @return bool
+     *
      */
     public function run()
     {
@@ -40,61 +51,90 @@ class DataSetProcessor extends Std
         $dataSetDeviceType = $this->determineDeviceType();
 
         if (self::APPLIANCE == $dataSetDeviceType) {
-            return $this->processApplianceDataSet($this->dataSet);
+            return $this->processApplianceDataSet();
         }
-
         if (self::CLUSTER == $dataSetDeviceType) {
             return $this->processClusterDataSet();
         }
-
-        return false;
     }
 
     /**
-     * @return bool
+     *
      */
     protected function processClusterDataSet()
     {
-        // TODO: Create or Update Cluster
+        $cluster = $this->processClusterItemDataSet($this->dataSet->hostname);
 
-        // Create or Update Cluster's appliances
-        foreach ($this->dataSet->clusterAppliances as $dataSetAppliance) {
-            $this->processApplianceDataSet($dataSetAppliance);
+        foreach ($this->dataSet->clusterAppliances as $dataSetClusterAppliance) {
+            $this->processClusterApplianceDataSet($cluster, $dataSetClusterAppliance);
         }
-
-        return true;
     }
 
     /**
-     * @param $dataSet
-     * @return bool
+     * @param string $title
+     * @return Cluster|bool
      */
-    protected function processApplianceDataSet($dataSet)
+    protected function processClusterItemDataSet(string $title)
     {
-        $dataSet = $this->beforeProcessApplianceDataSet($dataSet);
+        $cluster = Cluster::findByTitle($title);
+        if (!($cluster instanceof Cluster)) {
+            $cluster = (new Cluster())
+                ->fill([
+                    'title' => $title
+                ])
+                ->save();
+        }
 
-        $office = $this->processLocationDataSet($dataSet->LotusId);
-        $vendor = $this->processVendorDataSet($dataSet->platformVendor);
-        $platform = $this->processPlatformDataSet($vendor ,$dataSet->chassis);
-        $platformItem = $this->processPlatformItemDataSet($platform ,$dataSet->platformSerial);
-        $software = $this->processSoftwareDataSet($vendor ,$dataSet->applianceSoft);
-        $softwareItem = $this->processSoftwareItemDataSet($software ,$dataSet->softwareVersion);
-        $applianceType = $this->processApplianceTypeDataSet($dataSet->applianceType);
-        $appliance = $this->processApplianceItemDataSet($office, $applianceType, $vendor, $platformItem, $softwareItem,$dataSet->hostname);
+        return $cluster;
+    }
 
+    /**
+     * @param Cluster $cluster
+     * @param $dataSetClusterAppliance
+     * @throws Exception
+     */
+    protected function processClusterApplianceDataSet(Cluster $cluster, $dataSetClusterAppliance)
+    {
+        $dataSetClusterAppliance = $this->beforeProcessClusterApplianceDataSet($dataSetClusterAppliance);
 
-        // Create or Update Appliance
+        if (false === $this->dbLock()) {
+            throw new Exception('Can not get the lock file');
+        }
 
-        // TODO: Сделать проверку на принадлежность кластеру
+        try {
+            Appliance::getDbConnection()->beginTransaction();
 
-        return true;
+            $office = $this->processLocationDataSet($dataSetClusterAppliance->LotusId);
+            $vendor = $this->processVendorDataSet($dataSetClusterAppliance->platformVendor);
+            $platform = $this->processPlatformDataSet($vendor ,$dataSetClusterAppliance->chassis);
+            $platformItem = $this->processPlatformItemDataSet($platform ,$dataSetClusterAppliance->platformSerial);
+            $software = $this->processSoftwareDataSet($vendor ,$dataSetClusterAppliance->applianceSoft);
+            $softwareItem = $this->processSoftwareItemDataSet($software ,$dataSetClusterAppliance->softwareVersion);
+            $applianceType = $this->processApplianceTypeDataSet($dataSetClusterAppliance->applianceType);
+            $appliance = $this->processApplianceItemDataSet($office, $applianceType, $vendor, $platformItem, $softwareItem,$dataSetClusterAppliance->hostname, $cluster);
+            $this->processModulesDataSet($vendor, $appliance, $office,$dataSetClusterAppliance->applianceModules);
+
+            // IP address прописываем только у первого Appliance, входящего в состав кластера
+            if (true === $this->firstClusterAppliance) {
+                $this->processDataPortDataSet($appliance, $dataSetClusterAppliance->ip);
+                $this->firstClusterAppliance = false;
+            }
+
+            Appliance::getDbConnection()->commitTransaction();
+
+        } catch (Exception $e) {
+            Appliance::getDbConnection()->rollbackTransaction();
+            throw new Exception($e->getMessage());
+        }
+
+        $this->dbUnLock();
     }
 
     /**
      * @param $dataSet
      * @return mixed
      */
-    protected function beforeProcessApplianceDataSet($dataSet)
+    protected function beforeProcessClusterApplianceDataSet($dataSet)
     {
         $matches = [
             $dataSet->platformVendor,
@@ -109,8 +149,58 @@ class DataSetProcessor extends Std
     }
 
     /**
+     * @throws Exception
+     */
+    protected function processApplianceDataSet()
+    {
+        $this->beforeProcessApplianceDataSet();
+
+        if (false === $this->dbLock()) {
+            throw new Exception('Can not get the lock file');
+        }
+
+        try {
+            Appliance::getDbConnection()->beginTransaction();
+
+            $office = $this->processLocationDataSet($this->dataSet->LotusId);
+            $vendor = $this->processVendorDataSet($this->dataSet->platformVendor);
+            $platform = $this->processPlatformDataSet($vendor ,$this->dataSet->chassis);
+            $platformItem = $this->processPlatformItemDataSet($platform ,$this->dataSet->platformSerial);
+            $software = $this->processSoftwareDataSet($vendor ,$this->dataSet->applianceSoft);
+            $softwareItem = $this->processSoftwareItemDataSet($software ,$this->dataSet->softwareVersion);
+            $applianceType = $this->processApplianceTypeDataSet($this->dataSet->applianceType);
+            $appliance = $this->processApplianceItemDataSet($office, $applianceType, $vendor, $platformItem, $softwareItem,$this->dataSet->hostname);
+            $this->processModulesDataSet($vendor, $appliance, $office,$this->dataSet->applianceModules);
+            $this->processDataPortDataSet($appliance, $this->dataSet->ip);
+
+            Appliance::getDbConnection()->commitTransaction();
+
+        } catch (Exception $e) {
+            Appliance::getDbConnection()->rollbackTransaction();
+            throw new Exception($e->getMessage());
+        }
+
+        $this->dbUnLock();
+    }
+
+    /**
+     *
+     */
+    protected function beforeProcessApplianceDataSet()
+    {
+        $matches = [
+            $this->dataSet->platformVendor,
+            '-CHASSIS',
+            'CHASSIS',
+        ];
+        foreach ($matches as $match) {
+            $this->dataSet->chassis = mb_ereg_replace($match, '', $this->dataSet->chassis, "i");
+        }
+    }
+
+    /**
      * @param $lotusId
-     * @return mixed
+     * @return Office
      * @throws Exception
      */
     protected function processLocationDataSet($lotusId)
@@ -262,7 +352,8 @@ class DataSetProcessor extends Std
      * @param PlatformItem $platformItem
      * @param SoftwareItem $softwareItem
      * @param $hostname
-     * @return Appliance|bool
+     * @param Cluster|null $cluster
+     * @return Appliance
      */
     protected function processApplianceItemDataSet(
         Office $office,
@@ -270,11 +361,13 @@ class DataSetProcessor extends Std
         Vendor $vendor,
         PlatformItem $platformItem,
         SoftwareItem $softwareItem,
-        $hostname
+        $hostname,
+        Cluster $cluster = null
     )
     {
         $appliance = ($platformItem->appliance instanceof Appliance) ? $platformItem->appliance : (new Appliance());
         $appliance->fill([
+            'cluster' => $cluster,
             'location' => $office,
             'type' => $applianceType,
             'vendor' => $vendor,
@@ -289,19 +382,179 @@ class DataSetProcessor extends Std
     }
 
     /**
-     * @return bool
+     * @param Vendor $vendor
+     * @param Appliance $appliance
+     * @param Office $office
+     * @param $modulesDataSet
      */
-    protected function verifyDataSet()
+    protected function processModulesDataSet(Vendor $vendor, Appliance $appliance, Office $office, $modulesDataSet)
     {
-        if (isset($this->dataSet->clusterAppliances)) {
-            return $this->verifyClusterDataSet();
-        }
-
-        return $this->verifyApplianceDataSet($this->dataSet);
+        $usedModules = $this->processUsedModulesDataSet($vendor, $appliance, $office, $modulesDataSet);
+        $this->processUnUsedModulesDataSet($appliance, $usedModules);
     }
 
     /**
-     * @return bool
+     * @param Vendor $vendor
+     * @param Appliance $appliance
+     * @param Office $office
+     * @param $modulesDataSet
+     * @return Collection
+     */
+    protected function processUsedModulesDataSet(Vendor $vendor, Appliance $appliance, Office $office, $modulesDataSet)
+    {
+        $usedModules = new Collection();
+
+        foreach ($modulesDataSet as $moduleDataSet) {
+            $module = $this->processModuleDataSet($vendor, $moduleDataSet->product_number, $moduleDataSet->description);
+            $moduleItem = $this->processModuleItemDataSet($appliance, $office, $module, $moduleDataSet->serial);
+            $usedModules->add($moduleItem);
+        }
+
+        return $usedModules;
+    }
+
+    /**
+     * @param Appliance $appliance
+     * @param Collection $usedModules
+     */
+    protected function processUnUsedModulesDataSet(Appliance $appliance, Collection $usedModules)
+    {
+        $appliance->refresh();
+        $dbModules = $appliance->modules;
+        if (0 < $dbModules->count()) {
+            foreach ($dbModules as $dbModule) {
+                if (!$usedModules->existsElement(['serialNumber' => $dbModule->serialNumber])) {
+                    $dbModule->fill([
+                        'appliance' => null,
+                    ])->save();
+                }
+            }
+        }
+    }
+
+    /**
+     * @param Vendor $vendor
+     * @param $title
+     * @param $description
+     * @return Module|bool
+     */
+    protected function processModuleDataSet(Vendor $vendor, $title, $description)
+    {
+        $module = $vendor->modules->filter(
+            function($module) use ($title) {
+                return $title == $module->title;
+            }
+        )->first();
+
+        if (!($module instanceof Module)) {
+            $module = (new Module())
+                ->fill([
+                    'vendor' => $vendor,
+                    'title' => $title,
+                    'description' => $description,
+                ])
+                ->save();
+            $vendor->refresh();
+        }
+
+        return $module;
+    }
+
+    /**
+     * @param Appliance $appliance
+     * @param Office $office
+     * @param Module $module
+     * @param $serialNumber
+     * @return ModuleItem
+     */
+    protected function processModuleItemDataSet(Appliance $appliance, Office $office, Module $module, $serialNumber)
+    {
+        $moduleItem = $module->moduleItems->filter(
+            function($moduleItem) use ($serialNumber) {
+                return $serialNumber == $moduleItem->serialNumber;
+            }
+        )->first();
+        $moduleItem = ($moduleItem instanceof ModuleItem) ? $moduleItem : (new ModuleItem());
+        $moduleItem->fill([
+            'module' => $module,
+            'serialNumber' => $serialNumber,
+            'appliance' => $appliance,
+            'location' => $office,
+        ])->save();
+
+        return $moduleItem;
+    }
+
+    /**
+     * @param Appliance $appliance
+     * @param $ipAddress
+     */
+    protected function processDataPortDataSet(Appliance $appliance, $ipAddress)
+    {
+        $vrf = $this->processVrfDataSet();
+        $dataPort = DataPort::findByIpVrf($ipAddress, $vrf);
+        $portType = $this->processPortTypeDataSet();
+
+        $dataPort = ($dataPort instanceof DataPort) ? $dataPort : (new DataPort());
+        $dataPort->fill([
+            'ipAddress' => $ipAddress,
+            'portType' => $portType,
+            'appliance' => $appliance,
+            'vrf' => $vrf,
+        ])->save();
+    }
+
+    /**
+     * @return Vrf
+     */
+    protected function processVrfDataSet()
+    {
+//        $vrf = $vrf ?? Vrf::instanceGlobalVrf();  // TODO: Добавить в обработку $srcData->vrf
+        return Vrf::instanceGlobalVrf();
+    }
+
+    /**
+     * @return DPortType|bool
+     */
+    protected function processPortTypeDataSet()
+    {
+        $portTypeDefault = 'Ethernet';  // TODO: Возможно в будущем будем передавать $portType в запросе, а пока так
+
+        $portType = DPortType::findByType($portTypeDefault);
+        if (!($portType instanceof DPortType)) {
+            $portType = (new DPortType())
+                ->fill([
+                    'type' => $portTypeDefault,
+                ])
+                ->save();
+        }
+
+        return $portType;
+    }
+
+    /**
+     * @throws Exception
+     */
+    protected function verifyDataSet()
+    {
+        if (null === $this->dataSet) {
+            throw new Exception('DATASET: Not a valid JSON input dataset');
+        }
+        if (0 == count($this->dataSet)) {
+            throw new Exception('DATASET: Empty an input dataset');
+        }
+        if (!(Office::findByLotusId($this->dataSet->LotusId) instanceof Office)) {
+            throw new Exception('Location not found, LotusId = ' . $this->dataSet->LotusId);
+        }
+
+        if (isset($this->dataSet->clusterAppliances)) {
+            $this->verifyClusterDataSet();
+        } else {
+            $this->verifyApplianceDataSet($this->dataSet);
+        }
+    }
+
+    /**
      * @throws Exception
      */
     protected function verifyClusterDataSet()
@@ -316,13 +569,10 @@ class DataSetProcessor extends Std
         foreach ($this->dataSet->clusterAppliances as $dataSetAppliance) {
             $this->verifyApplianceDataSet($dataSetAppliance);
         }
-
-        return true;
     }
 
     /**
      * @param $dataSet
-     * @return bool
      * @throws MultiException
      */
     protected function verifyApplianceDataSet($dataSet)
@@ -387,8 +637,6 @@ class DataSetProcessor extends Std
         if (0 < $errors->count()) {
             throw $errors;
         }
-
-        return true;
     }
 
     /**
@@ -401,5 +649,48 @@ class DataSetProcessor extends Std
         }
 
         return self::APPLIANCE;
+    }
+
+    /**
+     * Заблокировать db.lock файл
+     *
+     * @return bool
+     * @throws Exception
+     */
+    protected function dbLock()
+    {
+        $this->dbLockFile = fopen(ROOT_PATH_PROTECTED . '/db.lock', 'w');
+
+        if (false === $this->dbLockFile) {
+            throw new Exception('Can not open the lock file');
+        }
+
+        $blockedFile = flock($this->dbLockFile, LOCK_EX | LOCK_NB);
+
+        $n = self::ITERATIONS; // Кол-во попыток доступа к db.lock
+        while (false === $blockedFile && 0 !== $n--) {
+            usleep(self::SLEEPTIME);
+            $blockedFile = flock($this->dbLockFile, LOCK_EX | LOCK_NB);
+        }
+
+        if (false === $blockedFile) {
+            fclose($this->dbLockFile);
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Разблокировать db.lock файл
+     *
+     * @return bool
+     */
+    protected function dbUnLock()
+    {
+        flock($this->dbLockFile, LOCK_UN);
+        fclose($this->dbLockFile);
+
+        return true;
     }
 }

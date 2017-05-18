@@ -2,7 +2,6 @@
 
 namespace App\Controllers;
 
-use App\Components\DataSetProcessor;
 use App\Components\WebRequest;
 use App\Models\Appliance;
 use App\Models\ApplianceType;
@@ -49,30 +48,98 @@ class RServer extends Controller
 
         try {
             // Getting Datasets in JSON format from php://input
-            $srcData = json_decode(file_get_contents('php://input'));
-            if (null === $srcData) {
+            $jsonData = json_decode(file_get_contents('php://input'));
+            $srcData = (new Std())->fill($jsonData);
+
+            // Determine the validity of the input data format
+            if (null === $jsonData) {
                 throw new Exception('DATASET: Not a valid JSON input dataset');
             }
-
-//            $srcData = (new Std())->fill($jsonData);
-//            if (0 == count($srcData)) {
-
             if (0 == count($srcData)) {
                 throw new Exception('DATASET: Empty an input dataset');
             }
 
-//            (new DataSetProcessor($srcData))->run();
+            $errors = new MultiException();
 
+            if (!isset($srcData->LotusId)) {
+                $errors->add(new Exception('DATASET: No field LotusId'));
+            }
+            if (empty($srcData->LotusId)) {
+                $errors->add(new Exception('DATASET: Empty LotusId'));
+            }
+            if (!is_numeric($srcData->LotusId)) {
+                $errors->add(new Exception('DATASET: LotusId is not valid'));
+            }
+            if (!isset($srcData->platformVendor)) {
+                $errors->add(new Exception('DATASET: No field platformVendor'));
+            }
+            if (!isset($srcData->platformSerial)) {
+                $errors->add(new Exception('DATASET: No field platformSerial'));
+            }
+            if (!isset($srcData->applianceType)) {
+                $errors->add(new Exception('DATASET: No field applianceType'));
+            }
+            if (!isset($srcData->applianceModules)) {
+                $errors->add(new Exception('DATASET: No field applianceModules'));
+            }
+            if (!empty($srcData->applianceModules)) {
+                foreach ($srcData->applianceModules as $moduleDataset) {
 
+                    if (!isset($moduleDataset->product_number)) {
+                        $errors->add(new Exception('DATASET: No field applianceModule->product_number'));
+                    }
+                    if (!isset($moduleDataset->serial)) {
+                        $errors->add(new Exception('DATASET: No field applianceModule->serial'));
+                    }
+                    if (!isset($moduleDataset->description)) {
+                        $errors->add(new Exception('DATASET: No field applianceModule->description'));
+                    }
+                    if (empty($moduleDataset->serial) || empty($moduleDataset->product_number)) {
+                        $errors->add(new Exception('DATASET: Empty applianceModule->serial or applianceModule->product_number'));
+                    }
+                }
+            }
+            if (!isset($srcData->applianceSoft)) {
+                $errors->add(new Exception('DATASET: No field applianceSoft'));
+            }
+            if (!isset($srcData->softwareVersion)) {
+                $errors->add(new Exception('DATASET: No field softwareVersion'));
+            }
+            if (!isset($srcData->hostname)) {
+                $errors->add(new Exception('DATASET: No field hostname'));
+            }
+            if (!isset($srcData->ip)) {
+                $errors->add(new Exception('DATASET: No field ip'));
+            }
 
+            // Process value of chassiss
+            if (!isset($srcData->chassis)) {
+                $errors->add(new Exception('DATASET: No field chassis'));
+            }
+            $matches = [
+                $srcData->platformVendor,
+                '-CHASSIS',
+                'CHASSIS',
+            ];
+            foreach ($matches as $match) {
+                $srcData->chassis = mb_ereg_replace($match, '', $srcData->chassis, "i");
+            }
+            if (false === $srcData->chassis) {
+                $errors->add(new Exception('DATASET: Title chassis ERROR'));
+            }
+
+            // Если DataSet не валидный, то заканчиваем работу
+            if (0 < $errors->count()) {
+                throw $errors;
+            }
+
+            // Determine "Location"
+            $office = Office::findByLotusId($srcData->LotusId);
+            if (!($office instanceof Office)) {
+                throw new Exception('Location not found, LotusId = ' . $srcData->LotusId);
+            }
 
 //-----------------------------------------------
-
-//            // Determine "Location"
-//            $office = Office::findByLotusId($srcData->LotusId);
-//            if (!($office instanceof Office)) {
-//                throw new Exception('Location not found, LotusId = ' . $srcData->LotusId);
-//            }
 
             // Основная обработка данных в транзакции
             try {
@@ -99,84 +166,84 @@ class RServer extends Controller
                 Appliance::getDbConnection()->beginTransaction();
 
                 // Determine "Vendor"
-//                $vendor = Vendor::findByTitle($srcData->platformVendor);
-//                if (!($vendor instanceof Vendor)) {
-//                    $vendor = (new Vendor())
-//                        ->fill([
-//                            'title' => $srcData->platformVendor
-//                        ])
-//                        ->save();
-//                }
+                $vendor = Vendor::findByTitle($srcData->platformVendor);
+                if (!($vendor instanceof Vendor)) {
+                    $vendor = (new Vendor())
+                        ->fill([
+                            'title' => $srcData->platformVendor
+                        ])
+                        ->save();
+                }
 
                 // Determine "Platform"
-//                $platform = $vendor->platforms->filter(
-//                    function($platform) use (&$srcData) {
-//                        return $srcData->chassis == $platform->title;
-//                    }
-//                )->first();
-//                if (!($platform instanceof Platform)) {
-//                    $platform = (new Platform())
-//                        ->fill([
-//                            'vendor' => $vendor,
-//                            'title' => $srcData->chassis
-//                        ])
-//                        ->save();
-//                }
+                $platform = $vendor->platforms->filter(
+                    function($platform) use (&$srcData) {
+                        return $srcData->chassis == $platform->title;
+                    }
+                )->first();
+                if (!($platform instanceof Platform)) {
+                    $platform = (new Platform())
+                        ->fill([
+                            'vendor' => $vendor,
+                            'title' => $srcData->chassis
+                        ])
+                        ->save();
+                }
 
                 // Determine "PlatformItem"
-//                $platformItem = $platform->platformItems->filter(
-//                    function($platformItem) use (&$srcData) {
-//                        return $srcData->platformSerial == $platformItem->serialNumber;
-//                    }
-//                )->first();
-//                if (!($platformItem instanceof PlatformItem)) {
-//                    $platformItem = (new PlatformItem())
-//                        ->fill([
-//                            'platform' => $platform,
-//                            'serialNumber' => $srcData->platformSerial
-//                        ])
-//                        ->save();
-//                }
+                $platformItem = $platform->platformItems->filter(
+                    function($platformItem) use (&$srcData) {
+                        return $srcData->platformSerial == $platformItem->serialNumber;
+                    }
+                )->first();
+                if (!($platformItem instanceof PlatformItem)) {
+                    $platformItem = (new PlatformItem())
+                        ->fill([
+                            'platform' => $platform,
+                            'serialNumber' => $srcData->platformSerial
+                        ])
+                        ->save();
+                }
 
                 // Determine "Software"
-//                $software = $vendor->software->filter(
-//                    function($software) use (&$srcData) {
-//                        return $srcData->applianceSoft == $software->title;
-//                    }
-//                )->first();
-//                if (!($software instanceof Software)) {
-//                    $software = (new Software())
-//                        ->fill([
-//                            'vendor' => $vendor,
-//                            'title' => $srcData->applianceSoft
-//                        ])
-//                        ->save();
-//                }
+                $software = $vendor->software->filter(
+                    function($software) use (&$srcData) {
+                        return $srcData->applianceSoft == $software->title;
+                    }
+                )->first();
+                if (!($software instanceof Software)) {
+                    $software = (new Software())
+                        ->fill([
+                            'vendor' => $vendor,
+                            'title' => $srcData->applianceSoft
+                        ])
+                        ->save();
+                }
 
                 // Determine "SoftwareItem"
-//                $softwareItem = $software->softwareItems->filter(
-//                    function($softwareItem) use (&$srcData) {
-//                        return $srcData->softwareVersion == $softwareItem->version;
-//                    }
-//                )->first();
-//                if (!($softwareItem instanceof SoftwareItem)) {
-//                    $softwareItem = (new SoftwareItem())
-//                        ->fill([
-//                            'software' => $software,
-//                            'version' => $srcData->softwareVersion
-//                        ])
-//                        ->save();
-//                }
+                $softwareItem = $software->softwareItems->filter(
+                    function($softwareItem) use (&$srcData) {
+                        return $srcData->softwareVersion == $softwareItem->version;
+                    }
+                )->first();
+                if (!($softwareItem instanceof SoftwareItem)) {
+                    $softwareItem = (new SoftwareItem())
+                        ->fill([
+                            'software' => $software,
+                            'version' => $srcData->softwareVersion
+                        ])
+                        ->save();
+                }
 
                 // Determine "Appliance Type"
-//                $applianceType = ApplianceType::findByType($srcData->applianceType);
-//                if (!($applianceType instanceof ApplianceType)) {
-//                    $applianceType = (new ApplianceType())
-//                        ->fill([
-//                            'type' => $srcData->applianceType
-//                        ])
-//                        ->save();
-//                }
+                $applianceType = ApplianceType::findByType($srcData->applianceType);
+                if (!($applianceType instanceof ApplianceType)) {
+                    $applianceType = (new ApplianceType())
+                        ->fill([
+                            'type' => $srcData->applianceType
+                        ])
+                        ->save();
+                }
 
                 // Determine "Appliance"
                 $appliance = ($platformItem->appliance instanceof Appliance) ? $platformItem->appliance : (new Appliance());
