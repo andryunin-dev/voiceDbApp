@@ -159,6 +159,16 @@ navbar styles
     color: #fff;
     background-color: #286090;
 }
+/*=========================
+style for last update time in table
+===========================*/
+td .lastUpdate {
+    float: right;
+    position: relative;
+    top: -5px;
+    right: -5px;
+    background-color: #80ed80;
+}
 
 /*=====================================
 Дерево

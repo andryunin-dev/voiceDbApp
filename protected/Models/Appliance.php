@@ -93,4 +93,9 @@ class Appliance extends Model
         $this->lastUpdate = (new \DateTime())->format('Y-m-d H:i:sP');
         return parent::beforeSave();
     }
+
+    public function lastUpdateDate()
+    {
+        return (new \DateTime($this->lastUpdate))->format('Y-m-d');
+    }
 }
