@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Components\Ip;
+use phpDocumentor\Reflection\Types\Array_;
 use T4\Core\Collection;
 use T4\Core\Exception;
 use T4\Dbal\Query;
@@ -20,6 +21,8 @@ use T4\Orm\Model;
  */
 class Network extends Model
 {
+    use HelperTrait;
+
     protected static $schema = [
         'table' => 'network.networks',
         'columns' => [
@@ -253,7 +256,7 @@ class Network extends Model
             return $networks;
         }
 
-        $networks = $networks->uasort(function (Network $network1, Network $network2) use (&$sortOrder) {
+        $networks = $networks->uasort(function (Model $network1, Model $network2) use (&$sortOrder) {
             $result = 1;
             foreach ($sortOrder as $field => $direction) {
                 switch ($field) {
@@ -396,8 +399,5 @@ class Network extends Model
         return $netSize;
     }
 
-    public function test($arg)
-    {
-        return $arg;
-    }
+
 }
