@@ -94,10 +94,13 @@ APP.convertTime = function() {
 
 
     $("span.lastUpdate").each(function () {
-        var UTCtime = $(this).html(); //get UTC time as string from tag <span class="lastUpdate"> in format (2017-08-15 14:55:45 UTC)
+        var UTCtime = $(this).data("lastUpdateUtc"); //get UTC time as string from tag <span class="lastUpdate"> in format (2017-08-15 14:55:45 UTC)
+        console.log(UTCtime);
         var date = new Date(UTCtime);
-        $(this).attr("title", "last update: " + dateFormater.format(date) + " " + timeFormater.format(date));
-        $(this).html(dateFormater.format(date));
+        if (! isNaN(date.getDate())) {
+            $(this).attr("title", "last update: " + dateFormater.format(date) + " " + timeFormater.format(date));
+            $(this).html(dateFormater.format(date));
+        }
     });
 };
 jQuery(function ($) {

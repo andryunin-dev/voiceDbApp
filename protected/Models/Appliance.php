@@ -96,11 +96,11 @@ class Appliance extends Model
 
     public function lastUpdateDate()
     {
-        return (new \DateTime($this->lastUpdate))->format('Y-m-d');
+        return $this->lastUpdate ? (new \DateTime($this->lastUpdate))->format('Y-m-d') : null;
     }
 
     public function lastUpdateDateTime()
     {
-        return (new \DateTime($this->lastUpdate))->format('Y-m-d H:i');
+        return $this->lastUpdate ? (new \DateTime($this->lastUpdate))->format('Y-m-d H:i') : null;
     }
 }
