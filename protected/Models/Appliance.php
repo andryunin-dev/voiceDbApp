@@ -98,4 +98,9 @@ class Appliance extends Model
     {
         return (new \DateTime($this->lastUpdate))->format('Y-m-d');
     }
+
+    public function lastUpdateDateTime()
+    {
+        return (new \DateTime($this->lastUpdate))->format('Y-m-d H:i');
+    }
 }

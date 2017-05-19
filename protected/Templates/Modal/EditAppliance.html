@@ -17,7 +17,7 @@
                     <label for="id-vendor" class="col-sm-3 control-label">Производитель</label>
                     <div class="col-sm-9"><select name="data[vendorId]" id="id-vendor" class="form-control">
                             {% for vendor in vendors %}
-                                <option value="{{ vendor.getPK }}"{% if vendor.getPK == current.vendor.getPk %} selected {% endif %}>{{ vendor.title }}</option>
+                                <option value="{{ vendor.getPK }}"{% if vendor.getPK == current.platform.platform.vendor.getPk %} selected {% endif %}>{{ vendor.title }}</option>
                             {% endfor %}
                         </select>
                     </div>
