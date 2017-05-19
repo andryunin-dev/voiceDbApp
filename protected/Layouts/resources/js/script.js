@@ -78,7 +78,30 @@ APP.request = function (href, data) {
             console.log(errorThrown);
         })
 };
+
+APP.convertTime = function() {
+    var dateFormater = new Intl.DateTimeFormat("ru", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+    });
+
+    var timeFormater = new Intl.DateTimeFormat("ru", {
+        hour: "numeric",
+        minute: "numeric",
+        timeZoneName: "short"
+    });
+
+
+    $("span.lastUpdate").each(function () {
+        var UTCtime = $(this).html(); //get UTC time as string from tag <span class="lastUpdate"> in format (2017-08-15 14:55:45 UTC)
+        var date = new Date(UTCtime);
+        $(this).attr("title", "last update: " + dateFormater.format(date) + " " + timeFormater.format(date));
+        $(this).html(dateFormater.format(date));
+    });
+};
 jQuery(function ($) {
+    APP.convertTime();
     APP.currentPopup = APP.currentPopup || {};
     APP.body = APP.body || $('body');
     APP.body.on(

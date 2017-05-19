@@ -7,7 +7,9 @@ Fix bootstrap styles
     }
 }
 
-body { padding-top: 60px; }
+body {
+    padding-top: 60px;
+}
 
 .container-fluid {
     margin-left: 10px;
@@ -158,6 +160,18 @@ navbar styles
 {
     color: #fff;
     background-color: #286090;
+}
+/*=========================
+style for last update time in table
+===========================*/
+td .lastUpdate {
+    float: right;
+    position: relative;
+    top: -5px;
+    right: -5px;
+
+    font-size: 12px;
+    background-color: #80ed80;
 }
 
 /*=====================================

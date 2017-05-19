@@ -1085,6 +1085,7 @@ class Admin extends Controller
                             'appliance' => $appliance,
                             'module' => $module,
                             'serialNumber' => $data->module->sn->$key,
+                            'location' => $office,
                             'comment' => $data->module->comment->$key
                         ])
                         ->save();
@@ -1161,6 +1162,7 @@ class Admin extends Controller
                             'appliance' => $current, //текущий appliance
                             'module' => $module,
                             'serialNumber' => $data->module->sn->$key,
+                            'location' => $office,
                             'comment' => $data->module->comment->$key
                         ])
                         ->save();
@@ -1179,8 +1181,9 @@ class Admin extends Controller
                         ->fill([
                             'appliance' => $current, //текущий appliance
                             'module' => $module,
-                            'serialNumber' => $data->module->sn->$key,
-                            'comment' => $data->module->comment->$key
+                            'serialNumber' => $data->newModule->sn->$key,
+                            'location' => $office,
+                            'comment' => $data->newModule->comment->$key
                         ])
                         ->save();
                 }
