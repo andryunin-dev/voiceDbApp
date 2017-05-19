@@ -77,6 +77,7 @@ class DataSetProcessor extends Std
     protected function processClusterItemDataSet(string $title)
     {
         $cluster = Cluster::findByTitle($title);
+
         if (!($cluster instanceof Cluster)) {
             $cluster = (new Cluster())
                 ->fill([
@@ -95,7 +96,7 @@ class DataSetProcessor extends Std
      */
     protected function processClusterApplianceDataSet(Cluster $cluster, $dataSetClusterAppliance)
     {
-        $dataSetClusterAppliance = $this->beforeProcessClusterApplianceDataSet($dataSetClusterAppliance);
+        $dataSetClusterAppliance = $this->fixClusterApplianceDataSet($dataSetClusterAppliance);
 
         if (false === $this->dbLock()) {
             throw new Exception('Can not get the lock file');
@@ -134,7 +135,7 @@ class DataSetProcessor extends Std
      * @param $dataSet
      * @return mixed
      */
-    protected function beforeProcessClusterApplianceDataSet($dataSet)
+    protected function fixClusterApplianceDataSet($dataSet)
     {
         $matches = [
             $dataSet->platformVendor,
@@ -206,6 +207,7 @@ class DataSetProcessor extends Std
     protected function processLocationDataSet($lotusId)
     {
         $office = Office::findByLotusId($lotusId);
+
         if (!($office instanceof Office)) {
             throw new Exception('Location not found, LotusId = ' . $lotusId);
         }
@@ -238,11 +240,8 @@ class DataSetProcessor extends Std
      */
     protected function processPlatformDataSet(Vendor $vendor, $title)
     {
-        $platform = $vendor->platforms->filter(
-            function($platform) use ($title) {
-                return $title == $platform->title;
-            }
-        )->first();
+        $platform = Platform::findByVendorTitle($vendor, $title);
+
         if (!($platform instanceof Platform)) {
             $platform = (new Platform())
                 ->fill([
@@ -262,11 +261,8 @@ class DataSetProcessor extends Std
      */
     protected function processPlatformItemDataSet(Platform $platform, $serialNumber)
     {
-        $platformItem = $platform->platformItems->filter(
-            function($platformItem) use ($serialNumber) {
-                return $serialNumber == $platformItem->serialNumber;
-            }
-        )->first();
+        $platformItem = PlatformItem::findByPlatformSerial($platform, $serialNumber);
+
         if (!($platformItem instanceof PlatformItem)) {
             $platformItem = (new PlatformItem())
                 ->fill([
@@ -286,11 +282,8 @@ class DataSetProcessor extends Std
      */
     protected function processSoftwareDataSet(Vendor $vendor, $title)
     {
-        $software = $vendor->software->filter(
-            function($software) use ($title) {
-                return $title == $software->title;
-            }
-        )->first();
+        $software = Software::findByVendorTitle($vendor, $title);
+
         if (!($software instanceof Software)) {
             $software = (new Software())
                 ->fill([
@@ -310,11 +303,8 @@ class DataSetProcessor extends Std
      */
     protected function processSoftwareItemDataSet(Software $software, $version)
     {
-        $softwareItem = $software->softwareItems->filter(
-            function($softwareItem) use ($version) {
-                return $version == $softwareItem->version;
-            }
-        )->first();
+        $softwareItem = SoftwareItem::findBySoftwareVersion($software, $version);
+
         if (!($softwareItem instanceof SoftwareItem)) {
             $softwareItem = (new SoftwareItem())
                 ->fill([
@@ -334,6 +324,7 @@ class DataSetProcessor extends Std
     protected function processApplianceTypeDataSet($type)
     {
         $applianceType = ApplianceType::findByType($type);
+
         if (!($applianceType instanceof ApplianceType)) {
             $applianceType = (new ApplianceType())
                 ->fill([
@@ -414,25 +405,6 @@ class DataSetProcessor extends Std
     }
 
     /**
-     * @param Appliance $appliance
-     * @param Collection $usedModules
-     */
-    protected function processUnUsedModulesDataSet(Appliance $appliance, Collection $usedModules)
-    {
-        $appliance->refresh();
-        $dbModules = $appliance->modules;
-        if (0 < $dbModules->count()) {
-            foreach ($dbModules as $dbModule) {
-                if (!$usedModules->existsElement(['serialNumber' => $dbModule->serialNumber])) {
-                    $dbModule->fill([
-                        'appliance' => null,
-                    ])->save();
-                }
-            }
-        }
-    }
-
-    /**
      * @param Vendor $vendor
      * @param $title
      * @param $description
@@ -440,11 +412,8 @@ class DataSetProcessor extends Std
      */
     protected function processModuleDataSet(Vendor $vendor, $title, $description)
     {
-        $module = $vendor->modules->filter(
-            function($module) use ($title) {
-                return $title == $module->title;
-            }
-        )->first();
+        $vendor->refresh();
+        $module = Module::findByVendorTitle($vendor, $title);
 
         if (!($module instanceof Module)) {
             $module = (new Module())
@@ -469,11 +438,8 @@ class DataSetProcessor extends Std
      */
     protected function processModuleItemDataSet(Appliance $appliance, Office $office, Module $module, $serialNumber)
     {
-        $moduleItem = $module->moduleItems->filter(
-            function($moduleItem) use ($serialNumber) {
-                return $serialNumber == $moduleItem->serialNumber;
-            }
-        )->first();
+        $moduleItem = ModuleItem::findByModuleSerial($module, $serialNumber);
+
         $moduleItem = ($moduleItem instanceof ModuleItem) ? $moduleItem : (new ModuleItem());
         $moduleItem->fill([
             'module' => $module,
@@ -483,6 +449,24 @@ class DataSetProcessor extends Std
         ])->save();
 
         return $moduleItem;
+    }
+
+    /**
+     * @param Appliance $appliance
+     * @param Collection $usedModules
+     */
+    protected function processUnUsedModulesDataSet(Appliance $appliance, Collection $usedModules)
+    {
+        $appliance->refresh();
+        $dbModules = $appliance->modules;
+        if (0 < $dbModules->count()) {
+            foreach ($dbModules as $dbModule) {
+                if (!$usedModules->existsElement(['serialNumber' => $dbModule->serialNumber])) {
+                    $dbModule->unlinkAppliance();
+                    $dbModule->save();
+                }
+            }
+        }
     }
 
     /**
@@ -521,6 +505,7 @@ class DataSetProcessor extends Std
         $portTypeDefault = 'Ethernet';  // TODO: Возможно в будущем будем передавать $portType в запросе, а пока так
 
         $portType = DPortType::findByType($portTypeDefault);
+
         if (!($portType instanceof DPortType)) {
             $portType = (new DPortType())
                 ->fill([
@@ -543,10 +528,6 @@ class DataSetProcessor extends Std
         if (0 == count($this->dataSet)) {
             throw new Exception('DATASET: Empty an input dataset');
         }
-        if (!(Office::findByLotusId($this->dataSet->LotusId) instanceof Office)) {
-            throw new Exception('Location not found, LotusId = ' . $this->dataSet->LotusId);
-        }
-
         if (isset($this->dataSet->clusterAppliances)) {
             $this->verifyClusterDataSet();
         } else {

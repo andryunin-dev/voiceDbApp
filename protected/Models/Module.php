@@ -42,29 +42,39 @@ class Module extends Model
         return true;
     }
 
+    /**
+     * @return bool
+     * @throws Exception
+     */
     protected function validate()
     {
         if (! ($this->vendor instanceof Vendor)) {
             throw new Exception('Module: Неверный тип Vendor');
         }
 
-        $title = $this->title;
-        $this->vendor->refresh();
+        $module = Module::findByVendorTitle($this->vendor, $this->title);
 
-        $module = $this->vendor->modules->filter(
+        if (true === $this->isNew && ($module instanceof Module)) {
+            throw new Exception('Такой Module уже существует-> ' . $this->title);
+        }
+
+        if (true === $this->isUpdated && ($module instanceof Module) && ($module->getPk() != $this->getPk())) {
+            throw new Exception('Такой Module уже существует-> ' . $this->title);
+        }
+
+        return true;
+    }
+
+    /**
+     * @param Vendor $vendor
+     * @param $title
+     * @return Module|bool
+     */
+    public static function findByVendorTitle(Vendor $vendor, $title) {
+        return $vendor->modules->filter(
             function ($module) use ($title) {
                 return $title == $module->title;
             }
         )->first();
-
-        if (true === $this->isNew && ($module instanceof Module)) {
-            throw new Exception('Такой Module уже существует-> ' . $title);
-        }
-
-        if (true === $this->isUpdated && ($module instanceof Module) && ($module->getPk() != $this->getPk())) {
-            throw new Exception('Такой Module уже существует-> ' . $title);
-        }
-
-        return true;
     }
 }
