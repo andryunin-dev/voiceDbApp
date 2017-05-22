@@ -64,23 +64,15 @@ class Appliance extends Model
         if (! ($this->type instanceof ApplianceType)) {
             throw new Exception('Appliance: Неверный тип ApplianceType');
         }
+        if (!(is_null($this->cluster)) && !($this->cluster instanceof Cluster)) {
+            throw new Exception('Appliance: Неверный тип Cluster');
+        }
 
-        // TODO: Доделать для cluster
-
-
-        $platform = $this->platform;
-        $this->vendor->refresh();
-
-        $appliance = $this->vendor->appliances->filter(
-            function ($appliance) use ($platform) {
-                return $platform == $appliance->platform;
-            }
-        )->first();
+        $appliance = $this->platform->appliance;
 
         if (true === $this->isNew && ($appliance instanceof Appliance)) {
             throw new Exception('Такой Appliance уже существует');
         }
-
         if (true === $this->isUpdated && ($appliance instanceof Appliance) && ($appliance->getPk() != $this->getPk())) {
             throw new Exception('Такой Appliance уже существует');
         }
@@ -96,11 +88,11 @@ class Appliance extends Model
 
     public function lastUpdateDate()
     {
-        return (new \DateTime($this->lastUpdate))->format('Y-m-d');
+        return $this->lastUpdate ? (new \DateTime($this->lastUpdate))->format('Y-m-d') : null;
     }
 
     public function lastUpdateDateTime()
     {
-        return (new \DateTime($this->lastUpdate))->format('Y-m-d H:i');
+        return $this->lastUpdate ? (new \DateTime($this->lastUpdate))->format('Y-m-d H:i') : null;
     }
 }

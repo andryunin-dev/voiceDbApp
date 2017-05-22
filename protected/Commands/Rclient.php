@@ -9,10 +9,12 @@ class Rclient extends Command
     public function actionDefault()
     {
 //        $url = "http://voice.loc/rserver/infile";
+//        $errDir = realpath(ROOT_PATH . '/Tmp/Test_err');
+//        $okDir = realpath(ROOT_PATH . '/Tmp/Test_ok');
+//        $tmpDir = realpath(ROOT_PATH . '/Tmp/Test_dataset_2');
+
         $url = "http://voice.loc/rserver";
         $srcDir = realpath(ROOT_PATH . '/Tmp/Test_src');
-        $errDir = realpath(ROOT_PATH . '/Tmp/Test_err');
-        $okDir = realpath(ROOT_PATH . '/Tmp/Test_ok');
 
         $files = array_slice(scandir($srcDir), 2);
 
@@ -37,13 +39,13 @@ class Rclient extends Command
 
             curl_close($curl);
 
-            if (400 == $result->httpStatusCode){
-                rename($filePath, $errDir . '\\' . $file);
-            }
-
-            if (202 == $result->httpStatusCode){
-                rename($filePath, $okDir . '\\' . $file);
-            }
+//            if (400 == $result->httpStatusCode){
+//                rename($filePath, $errDir . '\\' . $file);
+//            }
+//
+//            if (202 == $result->httpStatusCode){
+//                rename($filePath, $okDir . '\\' . $file);
+//            }
         }
     }
 
@@ -73,19 +75,36 @@ class Rclient extends Command
             echo $oldFileName . ' -> ' . realpath($srcDir . '\\' . $file) . PHP_EOL;
         }
 
+//        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_dataset_2');
+//        $destinationDir = realpath(ROOT_PATH . '/Tmp/Test_dataset_1');
+//
+//        $files = scandir($srcDir);
+//        foreach ($files as $file) {
+//            if ('.' == $file || '..' == $file) {
+//                continue;
+//            }
+//            $oldFileName = realpath($srcDir . '\\' . $file);
+//            rename($oldFileName, $destinationDir . '\\' . $file);
+//            echo $oldFileName . ' -> ' . realpath($destinationDir . '\\' . $file) . PHP_EOL;
+//        }
+
         echo 'OK';
     }
 
-    public function actionTest()
+    public function actionTestOne()
     {
-        $fp = fopen(ROOT_PATH_PROTECTED . '/db.lock', 'w');
-        flock($fp, LOCK_EX);
+//        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_src');
+//        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_dataset_2');
+//        $filePath = realpath($srcDir . '\\' . 'item_201705059191861768500.json');
+//        $filePath = realpath($srcDir . '\\' . 'item_Cluster.json');
+//        $filePath = realpath($srcDir . '\\' . 'item_wrongjson-1.json');
+//        $filePath = realpath($srcDir . '\\' . 'item_wrongjson-2.json');
 
-//        $url = "http://10.99.120.170/rserver";
         $url = "http://voice.loc/rserver";
-        $okDir = realpath(ROOT_PATH . '/Tmp/Test_ok');
 
-        $filePath = realpath($okDir . '\\item_2017050511124264561700.json');
+        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_src');
+        $filePath = realpath($srcDir . '\\' . 'item_201705059191861768500.json');
+
         $jsondata = file_get_contents($filePath);
 
         $curl = curl_init($url);
@@ -93,15 +112,10 @@ class Rclient extends Command
         curl_setopt($curl, CURLOPT_HEADER, false);
         curl_setopt($curl, CURLOPT_POSTFIELDS, $jsondata);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        $result =  curl_exec($curl);
-        curl_close($curl);
 
+        $result =  curl_exec($curl);
         var_dump($result);
 
-        flock($fp, LOCK_UN);
-        fclose($fp);
-
-
-        die;
+        curl_close($curl);
     }
 }

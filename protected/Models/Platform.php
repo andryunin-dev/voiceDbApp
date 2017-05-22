@@ -45,14 +45,7 @@ class Platform extends Model
             throw new Exception('Platform: Неверный тип Vendor');
         }
 
-        $title = $this->title;
-        $this->vendor->refresh();
-
-        $platform = $this->vendor->platforms->filter(
-            function ($platform) use ($title) {
-                return $title == $platform->title;
-            }
-        )->first();
+        $platform = Platform::findByVendorTitle($this->vendor, $this->title);
 
         if (true === $this->isNew && ($platform instanceof Platform)) {
             throw new Exception('Такая платформа уже существует');
@@ -63,5 +56,18 @@ class Platform extends Model
         }
 
         return true;
+    }
+
+    /**
+     * @param Vendor $vendor
+     * @param $title
+     * @return Platform|bool
+     */
+    public static function findByVendorTitle(Vendor $vendor, $title) {
+        return $vendor->platforms->filter(
+            function ($platform) use ($title) {
+                return $title == $platform->title;
+            }
+        )->first();
     }
 }
