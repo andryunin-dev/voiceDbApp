@@ -13,6 +13,7 @@ use T4\Orm\Model;
  * @property string $inventoryNumber
  * @property string $details
  * @property string $comment
+ * @property string $lastUpdate
  *
  * @property Module $module
  * @property Appliance $appliance
@@ -26,7 +27,8 @@ class ModuleItem extends Model
             'serialNumber' => ['type' => 'string'],
             'inventoryNumber' => ['type' => 'string'],
             'details' => ['type' => 'json'],
-            'comment' => ['type' => 'string']
+            'comment' => ['type' => 'string'],
+            'lastUpdate' => ['type' => 'datetime']
         ],
         'relations' => [
             'module' => ['type' => self::BELONGS_TO, 'model' => Module::class],
@@ -78,6 +80,7 @@ class ModuleItem extends Model
     {
         if ($this->appliance instanceof Appliance) {
             $this->location = $this->appliance->location;
+            $this->lastUpdate = (new \DateTime())->format('Y-m-d H:i:sP');
         }
 
         return parent::beforeSave();

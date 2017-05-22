@@ -1085,6 +1085,7 @@ class Admin extends Controller
                             'appliance' => $appliance,
                             'module' => $module,
                             'serialNumber' => $data->module->sn->$key,
+                            'location' => $office,
                             'comment' => $data->module->comment->$key
                         ])
                         ->save();
@@ -1161,6 +1162,7 @@ class Admin extends Controller
                             'appliance' => $current, //текущий appliance
                             'module' => $module,
                             'serialNumber' => $data->module->sn->$key,
+                            'location' => $office,
                             'comment' => $data->module->comment->$key
                         ])
                         ->save();
@@ -1179,8 +1181,9 @@ class Admin extends Controller
                         ->fill([
                             'appliance' => $current, //текущий appliance
                             'module' => $module,
-                            'serialNumber' => $data->module->sn->$key,
-                            'comment' => $data->module->comment->$key
+                            'serialNumber' => $data->newModule->sn->$key,
+                            'location' => $office,
+                            'comment' => $data->newModule->comment->$key
                         ])
                         ->save();
                 }
@@ -1313,7 +1316,7 @@ class Admin extends Controller
 
     public function actionVrf()
     {
-        $this->data->vrfs = Vrf::findAll();
+        $this->data->vrfs = Vrf::findAll(['name' => 'asc']);
         $this->data->gvrf = Vrf::instanceGlobalVrf();
         $this->data->activeLink->ipPlanning = true;
     }
@@ -1379,7 +1382,7 @@ class Admin extends Controller
 
     public function actionNetworksTab()
     {
-        $this->data->networks = Network::findAll();
+        $this->data->networks = Network::findAll(['vrf' => 'asc', 'address' => 'asc']);
     }
 
     public function actionAddNetwork($network)
@@ -1425,10 +1428,10 @@ class Admin extends Controller
 
     public function actionNetworksTree()
     {
-        $allVrf = Vrf::findAll();
+        $allVrf = Vrf::findAll(['name' => 'asc']);
         $vrfs = new Collection();
         foreach ($allVrf as $vrf) {
-            $vrf->rootNetworks = Network::findAllRootsByVrf($vrf);
+            $vrf->rootNetworks = Network::findAllRootsByVrf($vrf, ['address' => 'asc']);
             $vrfs->append($vrf);
         }
         $this->data->vrfs = $vrfs;

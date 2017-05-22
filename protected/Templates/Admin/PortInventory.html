@@ -27,8 +27,17 @@
                                 <tr>
                                     <td rowspan="{{ appliance.dataPorts.count }}">{{ office.title }}</td>
                                     <td rowspan="{{ appliance.dataPorts.count }}">
+                                        <span class="pull-right">
+                                            <span class="lastUpdate" data-last-update-utc="{{ appliance.lastUpdateDateTime }} UTC"></span>
+                                            <div>
+                                                <a class="btn btn-success btn-xs btn-custom pull-right" href="/modal/addDataPort?id={{ appliance.getPK }}" role="button" data-action="get-popup"><span class="glyphicon glyphicon-plus" aria-hidden="true" title="добавить порт"></span></a>
+                                            </div>
+
+                                        </span>
+
+
                                         {{ appliance.platform.platform.vendor.title }} {{ appliance.platform.platform.title }}
-                                        <a class="btn btn-success btn-xs btn-custom pull-right" href="/modal/addDataPort?id={{ appliance.getPK }}" role="button" data-action="get-popup"><span class="glyphicon glyphicon-plus" aria-hidden="true" title="добавить порт"></span></a>
+
                                     </td>
                                     <td rowspan="{{ appliance.dataPorts.count }}">{{ appliance.software.software.title }} {{ appliance.software.version }}</td>
                                     <td rowspan="{{ appliance.dataPorts.count }}">{{ appliance.details.hostname }}</td>
