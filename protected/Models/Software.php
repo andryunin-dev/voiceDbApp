@@ -45,14 +45,7 @@ class Software extends Model
             throw new Exception('Software: Неверный тип Vendor');
         }
 
-        $title = $this->title;
-        $this->vendor->refresh();
-
-        $software = $this->vendor->software->filter(
-            function ($software) use ($title) {
-                return $title == $software->title;
-            }
-        )->first();
+        $software = Software::findByVendorTitle($this->vendor, $this->title);
 
         if (true === $this->isNew && ($software instanceof Software)) {
             throw new Exception('Такое ПО уже существует');
@@ -63,5 +56,18 @@ class Software extends Model
         }
 
         return true;
+    }
+
+    /**
+     * @param Vendor $vendor
+     * @param $title
+     * @return Software|bool
+     */
+    public static function findByVendorTitle(Vendor $vendor, $title) {
+        return $vendor->software->filter(
+            function ($software) use ($title) {
+                return $title == $software->title;
+            }
+        )->first();
     }
 }

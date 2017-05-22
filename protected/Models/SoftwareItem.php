@@ -43,29 +43,30 @@ class SoftwareItem extends Model
         return true;
     }
 
+    /**
+     * @return bool
+     * @throws Exception
+     */
     public function validate()
     {
         if (! ($this->software instanceof Software)) {
             throw new Exception('SoftwareItem: Неверный тип Software');
         }
 
-        $version = $this->version;
-        $this->software->refresh();
+        return true;
+    }
 
-        $softwareItem = $this->software->softwareItems->filter(
+    /**
+     * @param Software $software
+     * @param $version
+     * @return SoftwareItem|bool
+     */
+    public static function findBySoftwareVersion(Software $software, $version)
+    {
+        return $software->softwareItems->filter(
             function ($softwareItem) use ($version) {
                 return $version == $softwareItem->version;
             }
         )->first();
-
-        if (true === $this->isNew && ($softwareItem instanceof SoftwareItem)) {
-            throw new Exception('Такой SoftwareItem уже существует');
-        }
-
-        if (true === $this->isUpdated && ($softwareItem instanceof SoftwareItem) && ($softwareItem->getPk() != $this->getPk())) {
-            throw new Exception('Такой SoftwareItem уже существует');
-        }
-
-        return true;
     }
 }

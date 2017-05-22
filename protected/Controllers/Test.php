@@ -8,6 +8,7 @@ use App\Models\City;
 use App\Models\ModuleItem;
 use App\Models\Network;
 use App\Models\Office;
+use App\Models\Platform;
 use App\Models\Region;
 use App\Models\Vendor;
 use App\Models\Vrf;
@@ -23,44 +24,10 @@ class Test extends Controller
 {
     public function actionDefault()
     {
-
-        $nets = Network::findAll();
-        $res = Network::sortCollection($nets, ['address' => 'desc']);
-        var_dump($res); die;
-
-
-
-        $pathArray = ['vrf', 'name'];
-
-        $valueByPath = function ($path) use (&$net) {
-
-            $propValue = function ($obj, array $pathArray) use (&$propValue) {
-                if (empty($pathArray)) {
-                    return $obj;
-                }
-                $propName = array_shift($pathArray);
-                return $propValue($obj->{$propName}, $pathArray);
-            };
-            if (is_array($path)) {
-                return $propValue($net, $path);
-            } elseif (is_string($path)) {
-                return $propValue($net, preg_split('~(->|\.)~', $path));
-            } else {
-                return null;
-            }
-        };
-
-        var_dump($net->getValueByPath('vrf->rd->name'));
-//        var_dump($valueByPath($pathArray));
-//        var_dump($valueByPath('vrf->rd'));
-//        var_dump($valueByPath('vrf.rd'));
-
-
-        die;
     }
     public function actionTwig()
     {
-        $this->data->net = Network::findByAddressVrf('1.1.1.0/24', Vrf::instanceGlobalVrf());
+
     }
 
     public function actionTestModule()
