@@ -61,14 +61,7 @@ class ModuleItem extends Model
             throw new Exception('ModuleItem: Неверный тип Office');
         }
 
-        $serialNumber = $this->serialNumber;
-        $this->module->refresh();
-
-        $moduleItem = $this->module->moduleItems->filter(
-            function ($moduleItem) use ($serialNumber) {
-                return $serialNumber == $moduleItem->serialNumber;
-            }
-        )->first();
+        $moduleItem = ModuleItem::findByModuleSerial($this->module, $this->serialNumber);
 
         if (true === $this->isNew && ($moduleItem instanceof ModuleItem)) {
             throw new Exception('Такой ModuleItem уже существует');
@@ -93,5 +86,19 @@ class ModuleItem extends Model
     public function unlinkAppliance()
     {
         $this->appliance = null;
+    }
+
+    /**
+     * @param Module $module
+     * @param $serialNumber
+     * @return ModuleItem|bool
+     */
+    public static function findByModuleSerial(Module $module, $serialNumber)
+    {
+        return $module->moduleItems->filter(
+            function($moduleItem) use ($serialNumber) {
+                return $serialNumber == $moduleItem->serialNumber;
+            }
+        )->first();
     }
 }

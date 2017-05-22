@@ -123,9 +123,11 @@ class Rclient extends Command
     {
         $url = "http://voice.loc/rserver";
 
-//        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_dataset_2');
-        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_src');
-        $filePath = realpath($srcDir . '\\' . 'item_201705059191946390600.json');
+        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_dataset_2');
+//        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_src');
+        $filePath = realpath($srcDir . '\\' . 'item_Cluster.json');
+//        $filePath = realpath($srcDir . '\\' . 'item_wrongjson-1.json');
+//        $filePath = realpath($srcDir . '\\' . 'item_wrongjson-2.json');
 
         $jsondata = file_get_contents($filePath);
 
@@ -134,13 +136,9 @@ class Rclient extends Command
         curl_setopt($curl, CURLOPT_HEADER, false);
         curl_setopt($curl, CURLOPT_POSTFIELDS, $jsondata);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        $result =  json_decode(curl_exec($curl));
 
-//        $result =  curl_exec($curl);
-//        var_dump($result);die;
-
-        $statusCode = (400 == $result->httpStatusCode) ? ' Bad Request' : ' Accepted';
-        echo ' request 1  ->  ' . $result->httpStatusCode  . $statusCode . PHP_EOL;
+        $result =  curl_exec($curl);
+        var_dump($result);
 
         curl_close($curl);
 
