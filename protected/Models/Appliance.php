@@ -61,11 +61,18 @@ class Appliance extends Model
         if (! ($this->type instanceof ApplianceType)) {
             throw new Exception('Appliance: Неверный тип ApplianceType');
         }
-        if (!(is_null($this->cluster)) && !($this->cluster instanceof Cluster)) {
-            throw new Exception('Appliance: Неверный тип Cluster');
-        }
 
-        $appliance = $this->platform->appliance;
+        // TODO: Доделать для cluster
+
+
+        $platform = $this->platform;
+        $this->vendor->refresh();
+
+        $appliance = $this->vendor->appliances->filter(
+            function ($appliance) use ($platform) {
+                return $platform == $appliance->platform;
+            }
+        )->first();
 
         if (true === $this->isNew && ($appliance instanceof Appliance)) {
             throw new Exception('Такой Appliance уже существует');

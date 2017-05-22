@@ -8,7 +8,6 @@ use Monolog\Logger;
 use T4\Core\Collection;
 use T4\Core\Exception;
 use T4\Core\MultiException;
-use T4\Core\Std;
 use T4\Mvc\Controller;
 
 class RServer extends Controller
@@ -30,14 +29,8 @@ class RServer extends Controller
         $logger->pushHandler(new StreamHandler(ROOT_PATH . '/Logs/surveyOfAppliances.log', Logger::DEBUG));
 
         try {
-
-            $srcData = (new Std())
-                ->fill(json_decode(file_get_contents('php://input')));
-//var_dump($srcData);die;
+            $srcData = json_decode(file_get_contents('php://input'));
             (new DataSetProcessor($srcData))->run();
-//            $dp = new DataSetProcessor($srcData);
-//var_dump($dp);die;
-
 
         } catch (MultiException $e) {
             $errors = [];

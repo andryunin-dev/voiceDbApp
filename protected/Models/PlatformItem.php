@@ -57,7 +57,14 @@ class PlatformItem extends Model
             throw new Exception('PlatformItem: Неверный тип Platform');
         }
 
-        $platformItem = PlatformItem::findByPlatformSerial($this->platform, $this->serialNumber);
+        $serialNumber = $this->serialNumber;
+        $this->platform->refresh();
+
+        $platformItem = $this->platform->platformItems->filter(
+            function ($platformItem) use ($serialNumber) {
+                return $serialNumber == $platformItem->serialNumber;
+            }
+        )->first();
 
         if (true === $this->isNew && ($platformItem instanceof PlatformItem)) {
             throw new Exception('Такой PlatformItem уже существует');
@@ -68,19 +75,5 @@ class PlatformItem extends Model
         }
 
         return true;
-    }
-
-    /**
-     * @param Platform $platform
-     * @param $serialNumber
-     * @return PlatformItem|bool
-     */
-    public static function findByPlatformSerial(Platform $platform, $serialNumber)
-    {
-        return $platform->platformItems->filter(
-            function ($platformItem) use ($serialNumber) {
-                return $serialNumber == $platformItem->serialNumber;
-            }
-        )->first();
     }
 }
