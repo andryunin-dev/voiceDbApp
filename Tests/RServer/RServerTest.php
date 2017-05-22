@@ -416,9 +416,7 @@ class RServerTest extends \PHPUnit\Framework\TestCase
             ->where('"__software_id" = :__software_id AND "version" = :version')
             ->params([':__software_id' => $software->getPk(), ':version' => $dataSet->softwareVersion]);
         $softwareItems = \App\Models\SoftwareItem::findAllByQuery($query);
-        $this->assertEquals(1, $softwareItems->count());
-        $softwareItem = $softwareItems->first();
-        $this->assertInstanceOf(\App\Models\SoftwareItem::class, $softwareItem);
+        $this->assertEquals(2, $softwareItems->count());
 
         // Find "Appliance Type"
         $query = (new \T4\Dbal\Query())
@@ -438,13 +436,11 @@ class RServerTest extends \PHPUnit\Framework\TestCase
             ->where('
                 "__vendor_id" = :__vendor_id AND
                 "__platform_item_id" = :__platform_item_id AND
-                "__software_item_id" = :__software_item_id AND
                 "__type_id" = :__type_id
             ')
             ->params([
                 ':__vendor_id' => $vendor->getPk(),
                 ':__platform_item_id' => $platformItem->getPk(),
-                ':__software_item_id' => $softwareItem->getPk(),
                 ':__type_id' => $applianceType->getPk()
             ]);
         $appliances = \App\Models\Appliance::findAllByQuery($query);

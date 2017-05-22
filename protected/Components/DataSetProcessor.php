@@ -304,16 +304,12 @@ class DataSetProcessor extends Std
      */
     protected function processSoftwareItemDataSet(Software $software, $version)
     {
-        $softwareItem = SoftwareItem::findBySoftwareVersion($software, $version);
-
-        if (!($softwareItem instanceof SoftwareItem)) {
-            $softwareItem = (new SoftwareItem())
-                ->fill([
-                    'software' => $software,
-                    'version' => $version
-                ])
-                ->save();
-        }
+        $softwareItem = (new SoftwareItem())
+            ->fill([
+                'software' => $software,
+                'version' => $version
+            ])
+            ->save();
 
         return $softwareItem;
     }
