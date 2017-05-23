@@ -24,6 +24,9 @@ class Test extends Controller
 {
     public function actionDefault()
     {
+        $res = ModuleItem::findAll()->first();
+        var_dump($res);
+        die;
     }
     public function actionTwig()
     {

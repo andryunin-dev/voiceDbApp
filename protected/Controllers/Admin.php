@@ -915,6 +915,7 @@ class Admin extends Controller
     public function actionDevices()
     {
         $this->data->offices = Office::findAll(['order' => 'title']);
+        $this->data->regions = Region::findAll(['order' => 'title']);
         $this->data->activeLink->devices = true;
         $this->data->userLevel = User::$level;
     }

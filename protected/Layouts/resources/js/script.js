@@ -95,7 +95,7 @@ APP.convertTime = function() {
 
     $("span.lastUpdate").each(function () {
         var UTCtime = $(this).data("lastUpdateUtc"); //get UTC time as string from tag <span class="lastUpdate"> in format (2017-08-15 14:55:45 UTC)
-        console.log(UTCtime);
+        // console.log(UTCtime);
         var date = new Date(UTCtime);
         if (! isNaN(date.getDate())) {
             $(this).attr("title", "last update: " + dateFormater.format(date) + " " + timeFormater.format(date));
@@ -103,8 +103,41 @@ APP.convertTime = function() {
         }
     });
 };
+
+APP.filterRegion = function () {
+    $(".filter-list .dropdown-menu a").on(
+        "click",
+        function ($e) {
+            $e.stopPropagation();
+            var $regId;
+            if ($(this).children("input[type=checkbox]").prop("checked")) {
+                $(this).children("input[type=checkbox]").prop( "checked", false );
+                $regId = $(this).data("regId");
+                console.log($regId);
+                if ($regId == "all") {
+                    $("tr[data-reg-id]").hide();
+                    // console.log($("td[data-reg-id]"));
+                } else {
+                    $("tr[data-reg-id=" + $regId + "]").hide();
+                }
+            } else {
+                $(this).children("input[type=checkbox]").prop( "checked", true );
+                $regId = $(this).data("regId");
+                console.log($regId);
+                if ($regId == "all") {
+                    $("tr[data-reg-id]").show();
+                    console.log("all on");
+                } else {
+                    $("tr[data-reg-id=" + $regId + "]").show();
+                }
+            }
+        }
+    )
+};
+
 jQuery(function ($) {
     APP.convertTime();
+    APP.filterRegion();
     APP.currentPopup = APP.currentPopup || {};
     APP.body = APP.body || $('body');
     APP.body.on(

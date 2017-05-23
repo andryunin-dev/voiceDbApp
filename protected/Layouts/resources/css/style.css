@@ -176,7 +176,35 @@ td .lastUpdate {
     font-size: 12px;
     background-color: #80ed80;
 }
+/*=========================
+style for last update time in table
+===========================*/
+ul.filter-list {
+    padding-left: 0;
+    margin-bottom: 0;
+    list-style: none;
+}
 
+ul.scrollable-menu {
+    height: auto;
+    max-height: 200px;
+    overflow-x: hidden;
+}
+
+.filter-list > li > a,
+.filter-list > li > a:hover,
+.filter-list > li > a:focus {
+    text-decoration: none;
+    background-color: inherit;
+    color: inherit;
+
+}
+
+.filter-list > li > a {
+    position: relative;
+    display: block;
+    padding: 0 0;
+}
 /*=====================================
 Дерево
 =======================================*/

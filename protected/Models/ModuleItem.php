@@ -14,6 +14,8 @@ use T4\Orm\Model;
  * @property string $details
  * @property string $comment
  * @property string $lastUpdate
+ * @property boolean $using if module using for any tasks
+ * @property boolean $removed if not found in last update
  *
  * @property Module $module
  * @property Appliance $appliance
@@ -28,7 +30,9 @@ class ModuleItem extends Model
             'inventoryNumber' => ['type' => 'string'],
             'details' => ['type' => 'json'],
             'comment' => ['type' => 'string'],
-            'lastUpdate' => ['type' => 'datetime']
+            'lastUpdate' => ['type' => 'datetime'],
+            'using' => ['type' => 'boolean'],
+            'removed' => ['type' => 'boolean']
         ],
         'relations' => [
             'module' => ['type' => self::BELONGS_TO, 'model' => Module::class],
@@ -78,7 +82,7 @@ class ModuleItem extends Model
 
     protected function beforeSave()
     {
-        if ($this->appliance instanceof Appliance) {
+        if (false === $this->removed) {
             $this->location = $this->appliance->location;
             $this->lastUpdate = (new \DateTime())->format('Y-m-d H:i:sP');
         }

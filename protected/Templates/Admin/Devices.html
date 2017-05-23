@@ -8,21 +8,47 @@
                 <table class="bg-default table table-condensed table-bordered table-hover cust-table-striped no-cut-long-text">
                     <thead>
                         <tr class="text-middle text-center">
-                            <th class="bg-primary {{ width.reg }}">Регион</th>
-                            <th class="bg-primary {{ width.office }}">Офис</th>
+                            <th class="bg-primary {{ width.reg }}">
+                                <ul class="filter-list bg-primary">
+                                    <li class="dropdown">
+                                        <a href="#" class="dropdown-toggle active" data-toggle="dropdown">Регион <b class="caret"></b></a>
+                                        <ul class="dropdown-menu scrollable-menu">
+                                            <li><a href="#" class="small" data-reg-id="all" tabIndex="-1"><input type="checkbox" checked/>&nbsp; все</a></li>
+                                            {% for region in regions %}
+                                            <li><a href="#" class="small" data-reg-id="{{ region.getPk }}" tabIndex="-1"><input type="checkbox"/>&nbsp; {{ region.title }}</a></li>
+                                            {% endfor %}
+                                        </ul>
+                                    </li>
+                                </ul>
+
+                            </th>
+                            <th class="bg-primary {{ width.office }}">
+                                <ul class="filter-list bg-primary">
+                                    <li class="dropdown {% if activeLink.devices == true %} active {% endif %}">
+                                        <a href="#" class="dropdown-toggle active" data-toggle="dropdown">Офис <b class="caret"></b></a>
+                                        <ul class="dropdown-menu scrollable-menu">
+                                            <li><a href="#" class="small" data-office-id="all" tabIndex="-1"><input type="checkbox" checked/>&nbsp; все</a></li>
+                                            {% for office in offices %}
+                                                <li><a href="#" class="small" data-office-id="{{ office.getPk }}" tabIndex="-1"><input type="checkbox"/>&nbsp; {{ office.title }}</a></li>
+                                            {% endfor %}
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </th>
                             <th class="bg-primary {{ width.host }}">hostname</th>
                             <th class="bg-primary {{ width.devices }}">Оборудование<a class="btn btn-success btn-xs btn-custom pull-right" href="/modal/addAppliance" role="button" data-action="get-popup" title="добавить устройство"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></a></th>
                             <th class="bg-primary {{ width.soft }}">ПО</th>
                             <th class="bg-primary {{ width.module }}">Модуль</th>
                             <th class="bg-primary {{ width.comment }}">Комментарий</th>
                             <th class="bg-primary {{ width.action }}">Action</th>
+
                         </tr>
                     </thead>
                     {% for office in offices %}
                         {% for appliance in office.appliances %}
                         <tbody>
-                            <tr data-appliance-id="appliance.getPk">
-                                <td rowspan="{{ appliance.modules.count }}">{{ office.address.city.region.title }}</td>
+                            <tr data-appliance-id="appliance.getPk" data-reg-id="{{ office.address.city.region.getPk }}">
+                                <td rowspan="{{ appliance.modules.count }}" data-reg-id="{{ office.address.city.region.getPk }}">{{ office.address.city.region.title }}</td>
                                 <td rowspan="{{ appliance.modules.count }}">{{ office.title }}</td>
                                 <td rowspan="{{ appliance.modules.count }}">{{ appliance.details.hostname }}</td>
                                 <td rowspan="{{ appliance.modules.count }}">
@@ -42,7 +68,7 @@
                                 </td>
                             </tr>
                         {% for module in appliance.modules|slice(1) %}
-                            <tr data-appliance-id="appliance.getPk">
+                            <tr data-appliance-id="appliance.getPk" data-reg-id="{{ office.address.city.region.getPk }}">
                                 <td><span class="module-title">{{ module.module.title }}</span></td>
                             </tr>
                         {% endfor %}
