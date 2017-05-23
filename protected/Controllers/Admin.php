@@ -1153,8 +1153,8 @@ class Admin extends Controller
                 ->save();
 
             //если appliance сохранился без ошибок - сохраняем существующие модули к нему
-            if (!empty($data->module->id)) {
-                foreach ($data->module->id as $key => $value) {
+            if (!empty($data->module->currentId)) {
+                foreach ($data->module->currentId as $key => $value) {
                     //если не выбран модуль - пропускаем
                     if (!is_numeric($value)) {
                         continue;
