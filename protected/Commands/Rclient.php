@@ -14,6 +14,7 @@ class Rclient extends Command
 //        $tmpDir = realpath(ROOT_PATH . '/Tmp/Test_dataset_2');
 
         $url = "http://voice.loc/rserver";
+//        $url = "http://vm-utk-reg.rs.ru/rServer";
         $srcDir = realpath(ROOT_PATH . '/Tmp/Test_src');
 
         $files = array_slice(scandir($srcDir), 2);
@@ -33,6 +34,9 @@ class Rclient extends Command
             curl_setopt($curl, CURLOPT_POSTFIELDS, $jsondata);
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
             $result =  json_decode(curl_exec($curl));
+
+//            $result =  curl_exec($curl);
+//            var_dump($result);
 
             $statusCode = (400 == $result->httpStatusCode) ? ' Bad Request' : ' Accepted';
             echo ' request ' . $n++ . '  ->  ' . $result->httpStatusCode  . $statusCode . PHP_EOL;
@@ -103,7 +107,7 @@ class Rclient extends Command
         $url = "http://voice.loc/rserver";
 
         $srcDir = realpath(ROOT_PATH . '/Tmp/Test_src');
-        $filePath = realpath($srcDir . '\\' . 'item_201705059191861768500.json');
+        $filePath = realpath($srcDir . '\\' . 'item_2017052213213817852100.json');
 
         $jsondata = file_get_contents($filePath);
 

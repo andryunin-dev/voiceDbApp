@@ -19,6 +19,7 @@ use App\Models\PlatformItem;
 use App\Models\Region;
 use App\Models\Software;
 use App\Models\SoftwareItem;
+use App\Models\User;
 use App\Models\Vendor;
 use App\Models\VPortType;
 use App\Models\Vrf;
@@ -915,6 +916,7 @@ class Admin extends Controller
     {
         $this->data->offices = Office::findAll(['order' => 'title']);
         $this->data->activeLink->devices = true;
+        $this->data->userLevel = User::$level;
     }
 
     public function actionPortTypes()
