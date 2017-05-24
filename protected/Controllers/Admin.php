@@ -19,6 +19,7 @@ use App\Models\PlatformItem;
 use App\Models\Region;
 use App\Models\Software;
 use App\Models\SoftwareItem;
+use App\Models\User;
 use App\Models\Vendor;
 use App\Models\VPortType;
 use App\Models\Vrf;
@@ -914,7 +915,9 @@ class Admin extends Controller
     public function actionDevices()
     {
         $this->data->offices = Office::findAll(['order' => 'title']);
+        $this->data->regions = Region::findAll(['order' => 'title']);
         $this->data->activeLink->devices = true;
+        $this->data->userLevel = User::$level;
     }
 
     public function actionPortTypes()
@@ -1150,8 +1153,8 @@ class Admin extends Controller
                 ->save();
 
             //если appliance сохранился без ошибок - сохраняем существующие модули к нему
-            if (!empty($data->module->id)) {
-                foreach ($data->module->id as $key => $value) {
+            if (!empty($data->module->currentId)) {
+                foreach ($data->module->currentId as $key => $value) {
                     //если не выбран модуль - пропускаем
                     if (!is_numeric($value)) {
                         continue;

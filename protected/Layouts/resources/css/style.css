@@ -1,4 +1,138 @@
 /*==============================
+font and icons for custom-box styles
+=================================*/
+@font-face {
+    font-family: 'symbols-nerds';
+    src: url('../font/symbols-nerds.eot?27841936');
+    src: url('../font/symbols-nerds.eot?27841936#iefix') format('embedded-opentype'), url('../font/symbols-nerds.woff?27841936') format('woff'), url('../font/symbols-nerds.ttf?27841936') format('truetype'), url('../font/symbols-nerds.svg?27841936#symbols-nerds') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+[class^="icon-"]:before,
+[class*=" icon-"]:before {
+    font-family: "symbols-nerds";
+    font-style: normal;
+    font-weight: normal;
+    speak: none;
+    display: inline-block;
+    vertical-align: baseline;
+    text-decoration: inherit;
+    width: 1em;
+    margin-right: .2em;
+    text-align: center;
+    /* opacity: .8; */
+    /* For safety - reset parent styles, that can break glyph codes*/
+    font-variant: normal;
+    text-transform: none;
+    /* fix buttons height, for twitter bootstrap */
+    line-height: 1em;
+    /* Animation center compensation - margins should be symmetric */
+    /* remove if not needed */
+    /* margin-left: .2em; */
+    /* you can be more comfortable with increased icons size */
+    /* font-size: 120%; */
+    /* Uncomment for 3D effect */
+    /* text-shadow: 1px 1px 1px rgba(127, 127, 127, 0.3); */
+}
+
+.icon-basket:before {
+    content: '\62';
+}
+/* 'b' */
+
+.icon-facebook:before {
+    content: '\66';
+}
+/* 'f' */
+
+.icon-twitter:before {
+    content: '\74';
+}
+/* 't' */
+
+.icon-vk:before {
+    content: '\76';
+}
+/* 'v' */
+
+.icon-up-dir:before {
+    content: '\25b2';
+}
+/* '▲' */
+
+.icon-down-dir:before {
+    content: '\25bc';
+}
+/* '▼' */
+
+.icon-circle:before {
+    content: '\25cb';
+}
+/* '○' */
+
+.icon-circle-dot:before {
+    content: '\25cf';
+}
+/* '●' */
+
+.icon-check-off:before {
+    content: '\2610';
+}
+/* '☐' */
+
+.icon-check-on:before {
+    content: '\2611';
+}
+
+
+/* '☑' */
+
+.icon-instagramm:before {
+    content: '📷';
+}
+/*==============================
+custom box styles (checkbox)
+=================================*/
+.custom-box label {
+    display: inline-block;
+    vertical-align: middle;
+    position: relative;
+    padding-left: 35px;
+
+    font-size: 16px;
+    line-height: 28px;
+    color: #283136;
+}
+
+.custom-box label:before {
+    position: absolute;
+    top: 4px;
+    left: 0;
+
+    font-size: 28px;
+    line-height: 28px;
+    color: #8e8e8e;
+}
+
+.custom-box label:hover {
+    color: #000;
+}
+
+.custom-box label:hover:before {
+    color: #7a7a7a;
+}
+
+.custom-box input[type="radio"],
+.custom-box input[type="checkbox"] {
+    display: none;
+}
+
+.custom-box input:checked + label:before {
+    content: '\2611';
+}
+
+/*==============================
 Fix bootstrap styles
 =================================*/
 @media (max-width: 1100px) {
@@ -46,6 +180,9 @@ table {
 /*Column width in percents*/
 .col-5 {
     width: 5%;
+}
+.col-7 {
+    width: 7%;
 }
 .col-10 {
     width: 10%;
@@ -173,7 +310,35 @@ td .lastUpdate {
     font-size: 12px;
     background-color: #80ed80;
 }
+/*=========================
+style for last update time in table
+===========================*/
+ul.filter-list {
+    padding-left: 0;
+    margin-bottom: 0;
+    list-style: none;
+}
 
+ul.scrollable-menu {
+    height: auto;
+    max-height: 200px;
+    overflow-x: hidden;
+}
+
+.filter-list > li > a,
+.filter-list > li > a:hover,
+.filter-list > li > a:focus {
+    text-decoration: none;
+    background-color: inherit;
+    color: inherit;
+
+}
+
+.filter-list > li > a {
+    position: relative;
+    display: block;
+    padding: 0 0;
+}
 /*=====================================
 Дерево
 =======================================*/

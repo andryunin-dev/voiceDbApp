@@ -93,16 +93,20 @@
                             <div class="col-xs-4">
                                 <select name="data[module][id][]" id="id-module" class="form-control" title="modules list">
                                     {% for module in modules %}
-                                        <option value="{{ module.getPK }}"{% if module.getPK == currentModuleItem.module.getPk %} selected {% endif %}>{{ module.title }}</option>
+                                        <option value="{{ module.getPK }}"{% if module.getPK == currentModuleItem.module.getPk %} selected {% endif %} disabled>{{ module.title }} </option>
                                     {% endfor %}
                                 </select>
                             </div>
-                            <div class="col-xs-4">
+                            <div class="col-xs-3">
                                 <input type="hidden" class="form-control" name="data[module][currentId][]" title="current module id" value="{{ currentModuleItem.getPK }}">
-                                <input type="text" class="form-control" name="data[module][sn][]" title="serial number" value="{{ currentModuleItem.serialNumber }}">
+                                <input type="text" class="form-control" name="data[module][sn][]" title="serial number" value="{{ currentModuleItem.serialNumber }}" placeholder="серийный номер">
                             </div>
-                            <div class="col-xs-4">
-                                <input type="text" class="form-control" name="data[module][comment][]" title="comment for module" value="{{ currentModuleItem.comment }}">
+                            <div class="col-xs-3">
+                                <input type="text" class="form-control" name="data[module][comment][]" title="comment for module" value="{{ currentModuleItem.comment }}" placeholder="комментарий">
+                            </div>
+                            <div class="col-xs-2 custom-box">
+                                <input type="checkbox" id="item-id-{{ currentModuleItem.getPK }}" name="data[module][using][]" value="checked" checked>
+                                <label class="icon-check-off" for="item-id-{{ currentModuleItem.getPK }}">In use</label>
                             </div>
                         </div>
 
