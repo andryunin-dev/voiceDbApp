@@ -10,8 +10,8 @@ class m_1495547785_alterModuleItem
 
     public function up()
     {
-        $sql['equipment.moduleItems1'] = 'ALTER TABLE equipment."moduleItems" ADD COLUMN "using"  BOOLEAN DEFAULT TRUE';
-        $sql['equipment.moduleItems2'] = 'ALTER TABLE equipment."moduleItems" ADD COLUMN "removed"  BOOLEAN DEFAULT FALSE ';
+        $sql['equipment.moduleItems1'] = 'ALTER TABLE equipment."moduleItems" ADD COLUMN "inUse"  BOOLEAN DEFAULT TRUE';
+        $sql['equipment.moduleItems2'] = 'ALTER TABLE equipment."moduleItems" ADD COLUMN "notFound"  BOOLEAN DEFAULT FALSE ';
         // For main DB
         foreach ($sql as $key => $query) {
             if (true === $this->db->execute($query)) {
@@ -30,8 +30,8 @@ class m_1495547785_alterModuleItem
 
     public function down()
     {
-        $sql['equipment.moduleItems1'] = 'ALTER TABLE equipment."moduleItems" DROP COLUMN "using"';
-        $sql['equipment.moduleItems2'] = 'ALTER TABLE equipment."moduleItems" DROP COLUMN "removed"';
+        $sql['equipment.moduleItems1'] = 'ALTER TABLE equipment."moduleItems" DROP COLUMN "inUse"';
+        $sql['equipment.moduleItems2'] = 'ALTER TABLE equipment."moduleItems" DROP COLUMN "notFound"';
         // For main DB
         foreach ($sql as $key => $query) {
             if (true === $this->db->execute($query)) {

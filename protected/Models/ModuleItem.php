@@ -14,8 +14,8 @@ use T4\Orm\Model;
  * @property string $details
  * @property string $comment
  * @property string $lastUpdate
- * @property boolean $using if module using for any tasks
- * @property boolean $removed if not found in last update
+ * @property boolean $inUse if module using for any tasks
+ * @property boolean $notFound if not found in last update
  *
  * @property Module $module
  * @property Appliance $appliance
@@ -31,8 +31,8 @@ class ModuleItem extends Model
             'details' => ['type' => 'json'],
             'comment' => ['type' => 'string'],
             'lastUpdate' => ['type' => 'datetime'],
-            'using' => ['type' => 'boolean'],
-            'removed' => ['type' => 'boolean']
+            'inUse' => ['type' => 'boolean'],
+            'notFound' => ['type' => 'boolean']
         ],
         'relations' => [
             'module' => ['type' => self::BELONGS_TO, 'model' => Module::class],
@@ -82,7 +82,7 @@ class ModuleItem extends Model
 
     protected function beforeSave()
     {
-        if (false === $this->removed) {
+        if (false === $this->notFound) {
             $this->location = $this->appliance->location;
             $this->lastUpdate = (new \DateTime())->format('Y-m-d H:i:sP');
         }

@@ -24,7 +24,12 @@ class Test extends Controller
 {
     public function actionDefault()
     {
+        /**
+         * @var ModuleItem $res
+         */
         $res = ModuleItem::findAll()->first();
+        $res->serialNumber = '0';
+        $res->save();
         var_dump($res);
         die;
     }
