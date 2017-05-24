@@ -40,7 +40,7 @@ class ModuleItem extends Model
     protected function validateSerialNumber($val)
     {
         if (empty(trim($val))) {
-            throw new Exception('Отсутствует серийный номер модуля');
+            throw new Exception('ModuleItem: Empty serial number');
         }
 
         return trim($val);

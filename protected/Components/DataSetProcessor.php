@@ -48,12 +48,10 @@ class DataSetProcessor extends Std
     {
         $this->verifyDataSet();
 
-        $dataSetDeviceType = $this->determineDeviceType();
-
-        if (self::APPLIANCE == $dataSetDeviceType) {
+        if (self::APPLIANCE == $this->dataSet->dataSetType) {
             return $this->processApplianceDataSet();
         }
-        if (self::CLUSTER == $dataSetDeviceType) {
+        if (self::CLUSTER == $this->dataSet->dataSetType) {
             return $this->processClusterDataSet();
         }
     }
@@ -472,15 +470,24 @@ class DataSetProcessor extends Std
     {
         $vrf = $this->processVrfDataSet();
         $dataPort = DataPort::findByIpVrf($ipAddress, $vrf);
-        $portType = $this->processPortTypeDataSet();
 
-        $dataPort = ($dataPort instanceof DataPort) ? $dataPort : (new DataPort());
-        $dataPort->fill([
-            'ipAddress' => $ipAddress,
-            'portType' => $portType,
-            'appliance' => $appliance,
-            'vrf' => $vrf,
-        ])->save();
+        if (($dataPort instanceof DataPort) && ($dataPort->appliance->getPk() !== $appliance->getPk()) ) {
+            $dataPort->fill([
+                'appliance' => $appliance,
+            ])->save();
+        }
+
+        if (!($dataPort instanceof DataPort)) {
+            $portType = $this->processPortTypeDataSet();
+
+            (new DataPort())
+                ->fill([
+                    'ipAddress' => $ipAddress,
+                    'portType' => $portType,
+                    'appliance' => $appliance,
+                    'vrf' => $vrf,
+                ])->save();
+        }
     }
 
     /**
@@ -584,7 +591,7 @@ class DataSetProcessor extends Std
                 if (!isset($moduleDataset->description)) {
                     $errors->add(new Exception('DATASET: No field applianceModule->description'));
                 }
-                if (empty($moduleDataset->serial) || empty($moduleDataset->product_number)) {
+                if (('' === $moduleDataset->serial) || ('' === $moduleDataset->product_number)) {
                     $errors->add(new Exception('DATASET: Empty applianceModule->serial or applianceModule->product_number'));
                 }
             }
@@ -609,18 +616,6 @@ class DataSetProcessor extends Std
         if (0 < $errors->count()) {
             throw $errors;
         }
-    }
-
-    /**
-     * @return string
-     */
-    protected function determineDeviceType()
-    {
-        if (isset($this->dataSet->clusterAppliances)) {
-            return self::CLUSTER;
-        }
-
-        return self::APPLIANCE;
     }
 
     /**
