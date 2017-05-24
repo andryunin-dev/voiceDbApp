@@ -280,6 +280,19 @@ custom striped table
 .cust-table-striped tbody:hover td[rowspan], tr:hover td {
     background: #c1c1c1;
 }
+/*===================
+custom styles for cells
+=====================*/
+.item-not-use,
+.item-not-use:hover {
+    background: #edc945 !important;
+}
+
+.item-not-found,
+.item-not-found:hover {
+    color: #e4e4e4 !important;
+    background: #d42b48 !important;
+}
 
 /*===================
 navbar styles
@@ -311,7 +324,7 @@ td .lastUpdate {
     background-color: #80ed80;
 }
 /*=========================
-style for last update time in table
+style for column filters in table
 ===========================*/
 ul.filter-list {
     padding-left: 0;
