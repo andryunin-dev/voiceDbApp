@@ -65,10 +65,10 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="id-software" class="col-sm-3 control-label"></label>
-                    <div class="col-sm-4">
+                    <label for="id-hostname" class="col-sm-3 control-label"></label>
+                    <div class="col-sm-5">
                         <div class="input-group">
-                            <span class="input-group-addon" id="hostname">hostname</span>
+                            <span class="input-group-addon" id="idhostname">hostname</span>
                             <input type="text" class="form-control" name="data[hostname]" value="{{ current.details.hostname }}"
                                    aria-describedby="hostname">
                         </div>
@@ -122,11 +122,15 @@
                                         {% endfor %}
                                     </select>
                                 </div>
-                                <div class="col-xs-4">
+                                <div class="col-xs-3">
                                     <input type="text" class="form-control" name="data[newModule][sn][]" placeholder="Серийный номер">
                                 </div>
-                                <div class="col-xs-4">
+                                <div class="col-xs-3">
                                     <input type="text" class="form-control" name="data[newModule][comment][]" placeholder="Комментарий">
+                                </div>
+                                <div class="col-xs-2 custom-box">
+                                    <input type="checkbox" id="item-id-{{ currentModuleItem.getPK }}" name="data[module][using][]" value="checked" checked>
+                                    <label class="icon-check-off" for="item-id-{{ currentModuleItem.getPK }}">In use</label>
                                 </div>
                             </div>
                         </template>
