@@ -54,6 +54,8 @@ class DataSetProcessor extends Std
         if (self::CLUSTER == $this->dataSet->dataSetType) {
             return $this->processClusterDataSet();
         }
+
+        return false;
     }
 
     /**
@@ -180,6 +182,8 @@ class DataSetProcessor extends Std
         }
 
         $this->dbUnLock();
+
+        return true;
     }
 
     /**
@@ -433,6 +437,7 @@ class DataSetProcessor extends Std
     protected function processModuleItemDataSet(Appliance $appliance, Office $office, Module $module, $serialNumber)
     {
         $moduleItem = ModuleItem::findByModuleSerial($module, $serialNumber);
+
         $moduleItem = ($moduleItem instanceof ModuleItem) ? $moduleItem : (new ModuleItem());
         $moduleItem->fill([
             'module' => $module,
@@ -525,6 +530,12 @@ class DataSetProcessor extends Std
     {
         if (0 == count($this->dataSet)) {
             throw new Exception('DATASET: Empty an input dataset');
+        }
+        if (!isset($this->dataSet->dataSetType)) {
+            throw new Exception('DATASET: No field dataSetType');
+        }
+        if (empty($this->dataSet->dataSetType)) {
+            throw new Exception('DATASET: Empty dataSetType');
         }
         if (isset($this->dataSet->clusterAppliances)) {
             $this->verifyClusterDataSet();

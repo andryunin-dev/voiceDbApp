@@ -95,10 +95,10 @@ class Rclient extends Command
 
     public function actionTestOne()
     {
-        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_src');
-//        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_err');
+//        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_src');
+        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_err');
 //        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_dataset_2');
-        $filePath = realpath($srcDir . '\\' . '10.100.240.67-32__2017-05-23__12-39-19.92881100.json');
+        $filePath = realpath($srcDir . '\\' . '10.100.240.67-32__2017-05-23__12-11-15.11571500.json');
 
         $url = "http://voice.loc/rserver";
 //        $url = "http://voice.loc/rServer/infile";

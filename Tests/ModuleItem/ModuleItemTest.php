@@ -239,7 +239,7 @@ class ModuleItemTest extends \PHPUnit\Framework\TestCase
         $appliance = $fromDb->appliance;
         $this->assertInstanceOf(\App\Models\Appliance::class, $appliance);
 
-        $fromDb->appliance = null;
+        $fromDb->unlinkAppliance();
         $this->assertNull($fromDb->appliance);
         $fromDb->save();
         $this->assertNull($fromDb->appliance);

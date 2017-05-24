@@ -54,7 +54,8 @@ class RServerTest extends \PHPUnit\Framework\TestCase
                     "platformTitle":"pl_title 1",
                     "ip":"10.100.240.195/24",
                     "applianceSoft":"soft",
-                    "platformVendor":"CISCO"
+                    "platformVendor":"CISCO",
+                    "dataSetType": "appliance"
                 }',
                 400
             ]
@@ -126,7 +127,8 @@ class RServerTest extends \PHPUnit\Framework\TestCase
                     "platformTitle":"pl_title 1",
                     "ip":"10.100.240.195/24",
                     "applianceSoft":"soft",
-                    "platformVendor":"CISCO"
+                    "platformVendor":"CISCO",
+                    "dataSetType": "appliance"
                 }',
                 202
             ]
@@ -144,6 +146,9 @@ class RServerTest extends \PHPUnit\Framework\TestCase
         curl_setopt($curl, CURLOPT_HEADER, false);
         $requestResult = (new \T4\Core\Std())
             ->fill(json_decode(curl_exec($curl)));
+
+//        var_dump(curl_exec($curl));die;
+
         curl_close($curl);
 
         return $requestResult;
@@ -157,14 +162,14 @@ class RServerTest extends \PHPUnit\Framework\TestCase
      */
     public function testValidAppliance($jdataSet, $codeResult)
     {
-        // Determine "Location"
         $this->createOffice();
+
         $resultRequest = $this->pushData($jdataSet);
+
         $this->assertEquals($codeResult, $resultRequest->httpStatusCode);
 
         // Determine the validity of the input data format
         $dataSet = json_decode($jdataSet);
-
         // Find "Vendor"
         $query = (new \T4\Dbal\Query())
             ->select()
@@ -545,7 +550,7 @@ class RServerTest extends \PHPUnit\Framework\TestCase
     public function providerInvalidDataSetApplianceError_1()
     {
         return [
-            ['{"platformSerial":"testPS" "applianceModules":[{"serial":"sn 1","product_number":"pr_num 1","description":"desc 1"},{"serial":"sn 2","product_number":"pr_num 2","description":"desc 2"}],"LotusId":"1","hostname":"host 223","applianceType":"device","softwareVersion":"ver soft","chassis":"ch 1","platformTitle":"pl_title 1","ip":"10.100.240.195/24","applianceSoft":"soft","platformVendor":"CISCO"}',400],
+            ['{"platformSerial":"testPS" "applianceModules":[{"serial":"sn 1","product_number":"pr_num 1","description":"desc 1"},{"serial":"sn 2","product_number":"pr_num 2","description":"desc 2"}],"LotusId":"1","hostname":"host 223","applianceType":"device","softwareVersion":"ver soft","chassis":"ch 1","platformTitle":"pl_title 1","ip":"10.100.240.195/24","applianceSoft":"soft","platformVendor":"CISCO","dataSetType": "appliance"}',400],
             ['',400],
         ];
     }
@@ -569,7 +574,7 @@ class RServerTest extends \PHPUnit\Framework\TestCase
     public function providerInvalidDataSetApplianceError_2()
     {
         return [
-            ['{"":"testPS", "applianceModules":[{"":"sn 1","":"pr_num 1","":"desc 1"},{"":"sn 2","":"pr_num 2","":"desc 2"}],"":"1","":"host 223","":"device","":"ver soft","":"ch 1","":"pl_title 1","":"10.100.240.195/24","":"soft","":"CISCO"}',400],
+            ['{"":"testPS", "applianceModules":[{"":"sn 1","":"pr_num 1","":"desc 1"},{"":"sn 2","":"pr_num 2","":"desc 2"}],"":"1","":"host 223","":"device","":"ver soft","":"ch 1","":"pl_title 1","":"10.100.240.195/24","":"soft","":"CISCO","dataSetType": "appliance"}',400],
         ];
     }
 
@@ -584,7 +589,7 @@ class RServerTest extends \PHPUnit\Framework\TestCase
         $resultRequest = $this->pushData($jdataSet);
         $this->assertEquals($codeResult, $resultRequest->httpStatusCode);
 
-        $this->assertEquals(19, count($resultRequest->errors));
+        $this->assertEquals(17, count($resultRequest->errors));
     }
 
 
@@ -621,7 +626,8 @@ class RServerTest extends \PHPUnit\Framework\TestCase
                     "platformTitle":"pl_title 1",
                     "ip":"10.100.240.195/24",
                     "applianceSoft":"soft",
-                    "platformVendor":"CISCO"
+                    "platformVendor":"CISCO",
+                    "dataSetType": "appliance"
                 }',
                 202
             ]
@@ -734,7 +740,8 @@ class RServerTest extends \PHPUnit\Framework\TestCase
                     "platformTitle":"pl_title 1",
                     "ip":"10.100.240.195/24",
                     "applianceSoft":"soft",
-                    "platformVendor":"CISCO"
+                    "platformVendor":"CISCO",
+                    "dataSetType": "appliance"
                 }',
                 202
             ]

@@ -36,7 +36,10 @@ class RServer extends Controller
             }
             $inputDataset = (new Std())->fill($inputDataset);
 
-            (new DataSetProcessor($inputDataset))->run();
+            $res = (new DataSetProcessor($inputDataset))->run();
+            if (false === $res) {
+                throw new Exception('Dataset Processor: runtime error');
+            }
 
         } catch (MultiException $e) {
             $errors = [];

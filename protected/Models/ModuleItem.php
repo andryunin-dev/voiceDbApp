@@ -93,6 +93,7 @@ class ModuleItem extends Model
     public function unlinkAppliance()
     {
         $this->appliance = null;
+        $this->notFound = true;
     }
 
     /**
