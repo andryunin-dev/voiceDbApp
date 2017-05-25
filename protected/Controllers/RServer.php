@@ -26,7 +26,7 @@ class RServer extends Controller
     {
 //        $startTime = microtime(true);
 
-        $logger = new Logger('RS');
+        $logger = new Logger('DS');
         $logger->pushHandler(new StreamHandler(ROOT_PATH . '/Logs/surveyOfAppliances.log', Logger::DEBUG));
 
         try {

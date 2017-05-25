@@ -96,6 +96,26 @@ class ModuleItem extends Model
         $this->notFound = true;
     }
 
+    public function Found()
+    {
+        $this->notFound = false;
+    }
+
+    public function notFound()
+    {
+        $this->notFound = true;
+    }
+
+    public function inUse()
+    {
+        $this->inUse = true;
+    }
+
+    public function notUse()
+    {
+        $this->inUse = false;
+    }
+
     /**
      * @param Module $module
      * @param $serialNumber

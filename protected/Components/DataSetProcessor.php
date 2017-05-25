@@ -15,6 +15,8 @@ use App\Models\Software;
 use App\Models\SoftwareItem;
 use App\Models\Vendor;
 use App\Models\Vrf;
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
 use T4\Core\Collection;
 use T4\Core\Exception;
 use T4\Core\MultiException;
@@ -22,8 +24,9 @@ use T4\Core\Std;
 
 class DataSetProcessor extends Std
 {
-    const APPLIANCE = 'appliance';
-    const CLUSTER = 'cluster';
+    const DST_APPLIANCE = 'appliance';
+    const DST_CLUSTER = 'cluster';
+    const DST_ERROR = 'error';
     const SLEEPTIME = 100000; // микросекунды
     const ITERATIONS = 520; // Колличество попыток получить доступ к db.lock файлу
     const DBLOCKFILE = ROOT_PATH_PROTECTED . '/db.lock';
@@ -48,11 +51,14 @@ class DataSetProcessor extends Std
     {
         $this->verifyDataSet();
 
-        if (self::APPLIANCE == $this->dataSet->dataSetType) {
+        if (self::DST_APPLIANCE == $this->dataSet->dataSetType) {
             return $this->processApplianceDataSet();
         }
-        if (self::CLUSTER == $this->dataSet->dataSetType) {
+        if (self::DST_CLUSTER == $this->dataSet->dataSetType) {
             return $this->processClusterDataSet();
+        }
+        if (self::DST_ERROR == $this->dataSet->dataSetType) {
+            return $this->processErrorDataSet();
         }
 
         return false;
@@ -439,6 +445,8 @@ class DataSetProcessor extends Std
         $moduleItem = ModuleItem::findByModuleSerial($module, $serialNumber);
 
         $moduleItem = ($moduleItem instanceof ModuleItem) ? $moduleItem : (new ModuleItem());
+        $moduleItem->Found();
+        $moduleItem->inUse();
         $moduleItem->fill([
             'module' => $module,
             'serialNumber' => $serialNumber,
@@ -460,7 +468,8 @@ class DataSetProcessor extends Std
         if (0 < $dbModules->count()) {
             foreach ($dbModules as $dbModule) {
                 if (!$usedModules->existsElement(['serialNumber' => $dbModule->serialNumber])) {
-                    $dbModule->unlinkAppliance();
+                    $dbModule->notFound();
+                    $dbModule->notUse();
                     $dbModule->save();
                 }
             }
@@ -523,6 +532,15 @@ class DataSetProcessor extends Std
         return $portType;
     }
 
+    protected function processErrorDataSet()
+    {
+        $logger = new Logger('ErrDS');
+        $logger->pushHandler(new StreamHandler(ROOT_PATH . '/Logs/surveyOfAppliances.log', Logger::DEBUG));
+        $logger->error($this->dataSet->ip . ' ->> ' . $this->dataSet->hostname . ' ->> ' . $this->dataSet->message);
+
+        return true;
+    }
+
     /**
      * @throws Exception
      */
@@ -537,10 +555,17 @@ class DataSetProcessor extends Std
         if (empty($this->dataSet->dataSetType)) {
             throw new Exception('DATASET: Empty dataSetType');
         }
-        if (isset($this->dataSet->clusterAppliances)) {
-            $this->verifyClusterDataSet();
-        } else {
+
+        if (self::DST_APPLIANCE == $this->dataSet->dataSetType) {
             $this->verifyApplianceDataSet($this->dataSet);
+        }
+
+        if (self::DST_CLUSTER == $this->dataSet->dataSetType) {
+            $this->verifyClusterDataSet();
+        }
+
+        if (self::DST_ERROR == $this->dataSet->dataSetType) {
+            $this->verifyErrorDataSet();
         }
     }
 
@@ -626,6 +651,22 @@ class DataSetProcessor extends Std
         // Если DataSet не валидный, то заканчиваем работу
         if (0 < $errors->count()) {
             throw $errors;
+        }
+    }
+
+    /**
+     * @throws Exception
+     */
+    protected function verifyErrorDataSet()
+    {
+        if (!isset($this->dataSet->ip)) {
+            throw new Exception('DATASET: No field ip');
+        }
+        if (!isset($this->dataSet->hostname)) {
+            throw new Exception('DATASET: No field hostname');
+        }
+        if (!isset($this->dataSet->message)) {
+            throw new Exception('DATASET: No field message');
         }
     }
 
