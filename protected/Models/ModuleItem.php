@@ -14,6 +14,8 @@ use T4\Orm\Model;
  * @property string $details
  * @property string $comment
  * @property string $lastUpdate
+ * @property boolean $inUse if module using for any tasks
+ * @property boolean $notFound if not found in last update
  *
  * @property Module $module
  * @property Appliance $appliance
@@ -28,7 +30,9 @@ class ModuleItem extends Model
             'inventoryNumber' => ['type' => 'string'],
             'details' => ['type' => 'json'],
             'comment' => ['type' => 'string'],
-            'lastUpdate' => ['type' => 'datetime']
+            'lastUpdate' => ['type' => 'datetime'],
+            'inUse' => ['type' => 'boolean'],
+            'notFound' => ['type' => 'boolean']
         ],
         'relations' => [
             'module' => ['type' => self::BELONGS_TO, 'model' => Module::class],
@@ -40,7 +44,7 @@ class ModuleItem extends Model
     protected function validateSerialNumber($val)
     {
         if (empty(trim($val))) {
-            throw new Exception('Отсутствует серийный номер модуля');
+            throw new Exception('ModuleItem: Empty serial number');
         }
 
         return trim($val);
@@ -78,7 +82,7 @@ class ModuleItem extends Model
 
     protected function beforeSave()
     {
-        if ($this->appliance instanceof Appliance) {
+        if (false === $this->notFound) {
             $this->location = $this->appliance->location;
             $this->lastUpdate = (new \DateTime())->format('Y-m-d H:i:sP');
         }
@@ -89,6 +93,27 @@ class ModuleItem extends Model
     public function unlinkAppliance()
     {
         $this->appliance = null;
+        $this->notFound = true;
+    }
+
+    public function Found()
+    {
+        $this->notFound = false;
+    }
+
+    public function notFound()
+    {
+        $this->notFound = true;
+    }
+
+    public function inUse()
+    {
+        $this->inUse = true;
+    }
+
+    public function notUse()
+    {
+        $this->inUse = false;
     }
 
     /**
@@ -104,4 +129,15 @@ class ModuleItem extends Model
             }
         )->first();
     }
+
+    public function lastUpdateDate()
+    {
+        return $this->lastUpdate ? (new \DateTime($this->lastUpdate))->format('Y-m-d') : null;
+    }
+
+    public function lastUpdateDateTime()
+    {
+        return $this->lastUpdate ? (new \DateTime($this->lastUpdate))->format('Y-m-d H:i') : null;
+    }
+
 }

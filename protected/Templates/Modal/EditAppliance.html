@@ -65,10 +65,10 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="id-software" class="col-sm-3 control-label"></label>
-                    <div class="col-sm-4">
+                    <label for="id-hostname" class="col-sm-3 control-label"></label>
+                    <div class="col-sm-5">
                         <div class="input-group">
-                            <span class="input-group-addon" id="hostname">hostname</span>
+                            <span class="input-group-addon" id="idhostname">hostname</span>
                             <input type="text" class="form-control" name="data[hostname]" value="{{ current.details.hostname }}"
                                    aria-describedby="hostname">
                         </div>
@@ -80,29 +80,43 @@
                         <div class="col-sm-6">
                             <label for="">Модули</label>
                         </div>
+                        {% if userLevel > 2 %}
                         <div class="col-sm-1 col-sm-offset-4">
                             <button class="btn btn-xs btn-success" type="button" data-action="add-module">
                                 добавить
                             </button>
                         </div>
+                        {% endif %}
                     </div>
                     {#============Модули========================#}
                     <div class="panel-body js-add-module">
                     {% for currentModuleItem in current.modules %}
                         <div class="form-group">
                             <div class="col-xs-4">
-                                <select name="data[module][id][]" id="id-module" class="form-control" title="modules list">
+                                <select name="data[moduleItem][moduleId][]" id="id-module" class="form-control" title="modules list" {% if userLevel <= 2 %}disabled{% endif %}>
                                     {% for module in modules %}
-                                        <option value="{{ module.getPK }}"{% if module.getPK == currentModuleItem.module.getPk %} selected {% endif %}>{{ module.title }}</option>
+                                        <option value="{{ module.getPK }}"{% if module.getPK == currentModuleItem.module.getPk %} selected {% endif %}>{{ module.title }} </option>
                                     {% endfor %}
                                 </select>
+                                {% if userLevel <= 2 %}
+                                    <input type="hidden" name="data[moduleItem][moduleId][]" value="{{ currentModuleItem.module.getPk }}">
+                                {% endif %}
                             </div>
-                            <div class="col-xs-4">
-                                <input type="hidden" class="form-control" name="data[module][currentId][]" title="current module id" value="{{ currentModuleItem.getPK }}">
-                                <input type="text" class="form-control" name="data[module][sn][]" title="serial number" value="{{ currentModuleItem.serialNumber }}">
+                            <div class="col-xs-3">
+                                <input type="hidden" class="form-control" name="data[moduleItem][id][]" title="current module id" value="{{ currentModuleItem.getPK }}">
+                                <input type="text" class="form-control {% if (currentModuleItem.notFound) %}item-not-found{% elseif (currentModuleItem.inUse is defined and false == currentModuleItem.inUse) %}item-not-use{% endif %}" name="data[moduleItem][sn][]" title="serial number" value="{{ currentModuleItem.serialNumber }}" placeholder="серийный номер">
                             </div>
-                            <div class="col-xs-4">
-                                <input type="text" class="form-control" name="data[module][comment][]" title="comment for module" value="{{ currentModuleItem.comment }}">
+                            <div class="col-xs-3">
+                                <input type="text" class="form-control" name="data[moduleItem][comment][]" title="comment for module" value="{{ currentModuleItem.comment }}" placeholder="комментарий">
+                            </div>
+                            <div class="col-xs-2 custom-box checkbox-container">
+                                {% if (false == currentModuleItem.notFound) %}
+                                    {% if (currentModuleItem.inUse == false) %}
+                                        <input type="hidden" name="data[moduleItem][inUse][]" value="0">
+                                    {% endif %}
+                                    <input type="checkbox" id="item-id-{{ currentModuleItem.getPK }}" name="data[moduleItem][inUse][]" value="1" {% if (currentModuleItem.inUse) %}checked{% endif %}>
+                                    <label class="icon-check-off" for="item-id-{{ currentModuleItem.getPK }}">In use</label>
+                                {% endif %}
                             </div>
                         </div>
 
@@ -111,18 +125,22 @@
                         <template class="js-add-module">
                             <div class="form-group">
                                 <div class="col-xs-4">
-                                    <select id="id-module" class="form-control" name="data[newModule][id][]" title="modules list">
+                                    <select id="id-module" class="form-control" name="data[][newModule][id]" title="modules list">
                                         <option value="" selected="selected">---------</option>
                                         {% for module in modules %}
                                             <option value="{{ module.getPK }}">{{ module.title }}</option>
                                         {% endfor %}
                                     </select>
                                 </div>
-                                <div class="col-xs-4">
-                                    <input type="text" class="form-control" name="data[newModule][sn][]" placeholder="Серийный номер">
+                                <div class="col-xs-3">
+                                    <input type="text" class="form-control" name="data[][newModule][sn]" placeholder="Серийный номер">
                                 </div>
-                                <div class="col-xs-4">
-                                    <input type="text" class="form-control" name="data[newModule][comment][]" placeholder="Комментарий">
+                                <div class="col-xs-3">
+                                    <input type="text" class="form-control" name="data[][newModule][comment]" placeholder="Комментарий">
+                                </div>
+                                <div class="col-xs-2 custom-box checkbox-container">
+                                    <input type="checkbox" id="item-id-{{ currentModuleItem.getPK }}" name="data[][module][in-use]" value="checked" checked>
+                                    <label class="icon-check-off" for="item-id-{{ currentModuleItem.getPK }}">In use</label>
                                 </div>
                             </div>
                         </template>
@@ -138,6 +156,7 @@
     </div>
     <script>
         var APP = APP || {};
+        APP.ctrlCheckbox();
         APP.popups = APP.popups || [];
         APP.popups.push({
             path: "{{ path }}",
@@ -151,6 +170,7 @@
                     //console.log(APP);
                     $(APP.popups[APP.currentPopup.index].popupSelector + " .panel-body.js-add-module").prepend($("template.js-add-module").clone().html());
                 }
-        )
+        );
+
     </script>
 </div>

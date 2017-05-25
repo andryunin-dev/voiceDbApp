@@ -8,13 +8,12 @@ class Rclient extends Command
 {
     public function actionDefault()
     {
-//        $url = "http://voice.loc/rserver/infile";
-//        $errDir = realpath(ROOT_PATH . '/Tmp/Test_err');
-//        $okDir = realpath(ROOT_PATH . '/Tmp/Test_ok');
-//        $tmpDir = realpath(ROOT_PATH . '/Tmp/Test_dataset_2');
+//        $url = "http://vm-utk-reg.rs.ru/rServer";
+        $url = "http://voice.loc/rServer";
 
-        $url = "http://voice.loc/rserver";
         $srcDir = realpath(ROOT_PATH . '/Tmp/Test_src');
+        $okDir = realpath(ROOT_PATH . '/Tmp/Test_ok');
+        $errDir = realpath(ROOT_PATH . '/Tmp/Test_err');
 
         $files = array_slice(scandir($srcDir), 2);
 
@@ -34,18 +33,21 @@ class Rclient extends Command
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
             $result =  json_decode(curl_exec($curl));
 
+//            $result =  curl_exec($curl);
+//            var_dump($result);
+
             $statusCode = (400 == $result->httpStatusCode) ? ' Bad Request' : ' Accepted';
             echo ' request ' . $n++ . '  ->  ' . $result->httpStatusCode  . $statusCode . PHP_EOL;
 
             curl_close($curl);
+//var_dump($result->errors);
+            if (400 == $result->httpStatusCode){
+                rename($filePath, $errDir . '\\' . $file);
+            }
 
-//            if (400 == $result->httpStatusCode){
-//                rename($filePath, $errDir . '\\' . $file);
-//            }
-//
-//            if (202 == $result->httpStatusCode){
-//                rename($filePath, $okDir . '\\' . $file);
-//            }
+            if (202 == $result->httpStatusCode){
+                rename($filePath, $okDir . '\\' . $file);
+            }
         }
     }
 
@@ -94,16 +96,14 @@ class Rclient extends Command
     public function actionTestOne()
     {
 //        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_src');
+//        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_err');
+        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_dataset_1_errors');
 //        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_dataset_2');
-//        $filePath = realpath($srcDir . '\\' . 'item_201705059191861768500.json');
-//        $filePath = realpath($srcDir . '\\' . 'item_Cluster.json');
-//        $filePath = realpath($srcDir . '\\' . 'item_wrongjson-1.json');
-//        $filePath = realpath($srcDir . '\\' . 'item_wrongjson-2.json');
+
+        $filePath = realpath($srcDir . '\\' . '10.100.108.2-32__2017-05-25__5-44-17.33909000.json');
+//        $filePath = realpath($srcDir . '\\' . '10.100.240.1-32__2017-05-25__6-43-43.72926900.json');
 
         $url = "http://voice.loc/rserver";
-
-        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_src');
-        $filePath = realpath($srcDir . '\\' . 'item_201705059191861768500.json');
 
         $jsondata = file_get_contents($filePath);
 

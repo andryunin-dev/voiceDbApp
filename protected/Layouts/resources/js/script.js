@@ -95,18 +95,96 @@ APP.convertTime = function() {
 
     $("span.lastUpdate").each(function () {
         var UTCtime = $(this).data("lastUpdateUtc"); //get UTC time as string from tag <span class="lastUpdate"> in format (2017-08-15 14:55:45 UTC)
-        console.log(UTCtime);
-        var date = new Date(UTCtime);
+        // console.log(UTCtime);
+        var date = APP.dateToUtc(UTCtime);
         if (! isNaN(date.getDate())) {
             $(this).attr("title", "last update: " + dateFormater.format(date) + " " + timeFormater.format(date));
             $(this).html(dateFormater.format(date));
         }
     });
+
+    $("td.lastUpdate").each(function () {
+        var UTCtime = $(this).data("lastUpdateUtc"); //get UTC time as string from tag <span class="lastUpdate"> in format (2017-08-15 14:55:45 UTC)
+        // console.log(UTCtime);
+        var date = APP.dateToUtc(UTCtime);
+        if (! isNaN(date.getDate())) {
+            $(this).attr("title", "last update: " + dateFormater.format(date));
+        }
+    });
 };
+
+APP.ctrlCheckbox = function () {
+    $("input[type=checkbox]").on(
+        "change",
+        function ($e) {
+            var hiddenInput = '<input type="hidden" name="' + $(this).attr("name") + '" value="0">';
+            var $parent = $(this).parent(".checkbox-container");
+            if (this.checked) {
+                $parent.children("input[type=hidden]").remove();
+                console.log('checked');
+            } else {
+                $parent.prepend(hiddenInput);
+                console.log('unchecked');
+            }
+        }
+    )
+};
+
+APP.filterRegion = function () {
+    $(".filter-list .dropdown-menu a").on(
+        "click",
+        function ($e) {
+            $e.stopPropagation();
+            var $regId;
+            if ($(this).children("input[type=checkbox]").prop("checked")) {
+                $(this).children("input[type=checkbox]").prop( "checked", false );
+                $regId = $(this).data("regId");
+                console.log($regId);
+                if ($regId == "all") {
+                    $("tr[data-reg-id]").hide();
+                    // console.log($("td[data-reg-id]"));
+                } else {
+                    $("tr[data-reg-id=" + $regId + "]").hide();
+                }
+            } else {
+                $(this).children("input[type=checkbox]").prop( "checked", true );
+                $regId = $(this).data("regId");
+                console.log($regId);
+                if ($regId == "all") {
+                    $("tr[data-reg-id]").show();
+                    console.log("all on");
+                } else {
+                    $("tr[data-reg-id=" + $regId + "]").show();
+                }
+            }
+        }
+    )
+};
+APP.dateToUtc = function (date, toUTC) {
+    var InPutdate = new Date(date);
+    var LocalTime = InPutdate.getTime();
+    var LocalOffsetTime = InPutdate.getTimezoneOffset() * 60000;
+    // if true convert to utc else convert from utc to Local
+    if (toUTC)
+    {
+        //Convert to UTC
+        InPutdate = LocalTime + LocalOffsetTime;
+    }
+    else
+    {
+        //UTC to Normal
+        InPutdate = LocalTime - LocalOffsetTime;
+    }
+    // console.log(new Date(InPutdate))
+    return new Date(InPutdate);
+};
+
 jQuery(function ($) {
-    APP.convertTime();
     APP.currentPopup = APP.currentPopup || {};
+    APP.ctrl = APP.ctrl || [];
     APP.body = APP.body || $('body');
+    APP.convertTime();
+    APP.filterRegion();
     APP.body.on(
         "click",
         "a[role='button'][data-action='get-popup']", //открытие диалогового окна
