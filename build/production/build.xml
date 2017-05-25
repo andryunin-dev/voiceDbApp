@@ -10,7 +10,7 @@
         <resolvepath propertyName="www.dir" file="/var/www" />
         <echo msg="Nginx base dir is: ${www.dir}" />
 
-        <property name="production.domain.name" value="voice.rs.ru" />
+        <property name="production.domain.name" value="${domainName}" />
         <echo msg="Production domain name: ${production.domain.name}" />
 
         <php returnProperty="build.time" function="date">
