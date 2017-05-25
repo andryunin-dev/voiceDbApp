@@ -5,19 +5,61 @@ namespace App\Controllers;
 use App\Models\Appliance;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use T4\Mvc\Controller;
 
 class Export extends Controller
 {
-    public function actionExcel()
+    public function actionExcellll()
     {
         $spreadsheet = new Spreadsheet();
 
-        // Set default font
-        $spreadsheet->getDefaultStyle()
-            ->getFont()
-            ->setName('Arial')
-            ->setSize(10);
+        // 4.6.21.	Setting the default style of a workbook
+//        $spreadsheet->getDefaultStyle()->getFont()->setName('Arial')->setSize(10);
+
+         /// 4.6.28.	Setting a column’s width
+        $spreadsheet->getActiveSheet()->getColumnDimension('A:L')->setAutoSize(true);
+        // Default
+//        $spreadsheet->getActiveSheet()->getDefaultColumnDimension()->setWidth(12);
+
+        // 4.6.31.	Setting a row’s height
+//        $spreadsheet->getActiveSheet()->getRowDimension('10')->setRowHeight(100);
+//        $spreadsheet->getActiveSheet()->getDefaultRowDimension()->setRowHeight(15);
+
+        // 4.6.34.	Merge/unmerge cells
+//        $spreadsheet->getActiveSheet()->mergeCells('A18:E22');
+//        $spreadsheet->getActiveSheet()->unmergeCells('A18:E22');
+
+        // 4.6.38.	Add rich text to a cell
+//        $objRichText = new PHPExcel_RichText();
+//        $objRichText->createText('This invoice is ');
+//
+//        $objPayable = $objRichText->createTextRun('payable within thirty days after the end of the month');
+//        $objPayable->getFont()->setBold(true);
+//        $objPayable->getFont()->setItalic(true);
+//        $objPayable->getFont()->setColor( new PHPExcel_Style_Color( PHPExcel_Style_Color::COLOR_DARKGREEN ) );
+//
+//        $objRichText->createText(', unless specified otherwise on the invoice.');
+//
+//        $spreadsheet->getActiveSheet()->getCell('A18')->setValue($objRichText);
+
+        // 4.6.18.	Formatting cells
+//        $spreadsheet->getActiveSheet()->getStyle('B2')->getFont()->getColor()->setARGB(PHPExcel_Style_Color::COLOR_RED);
+//
+//        $spreadsheet->getActiveSheet()->getStyle('B2')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+//        $spreadsheet->getActiveSheet()->getStyle('A1:D4')->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_TOP);
+//
+//        $spreadsheet->getActiveSheet()->getStyle('B2')->getBorders()->getTop()->setBorderStyle(PHPExcel_Style_Border::BORDER_THICK);
+//        $spreadsheet->getActiveSheet()->getStyle('B2')->getBorders()->getBottom()->setBorderStyle(PHPExcel_Style_Border::BORDER_THICK);
+//        $spreadsheet->getActiveSheet()->getStyle('B2')->getBorders()->getLeft()->setBorderStyle(PHPExcel_Style_Border::BORDER_THICK);
+//        $spreadsheet->getActiveSheet()->getStyle('B2')->getBorders()->getRight()->setBorderStyle(PHPExcel_Style_Border::BORDER_THICK);
+//
+//        $spreadsheet->getActiveSheet()->getStyle('B2')->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID);
+//        $spreadsheet->getActiveSheet()->getStyle('B2')->getFill()->getStartColor()->setARGB('FFFF0000');
+//        // cell range as a parameter
+//        $spreadsheet->getActiveSheet()->getStyle('B3:B7')->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setARGB('FFFF0000');
+
+
 
         // Add header
         $spreadsheet->setActiveSheetIndex(0)
@@ -37,9 +79,6 @@ class Export extends Controller
 //        $appliances = Appliance::findAll();
         $appliance = Appliance::findByPK('18096');
 //        var_dump($appliance->modules->first());die;
-
-//        appliance.modules.first.module.title
-//        appliance.software.version
 
         $n = 2;
         foreach ($appliance->modules as $module) {
@@ -63,6 +102,40 @@ class Export extends Controller
             $n++;
         }
 
+    }
+
+    /**
+     *
+     */
+    public function actionExcel()
+    {
+        // Create new Spreadsheet object
+        $spreadsheet = new Spreadsheet();
+
+        // HEADER
+        $spreadsheet->getActiveSheet()->getStyle('A1:M1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $spreadsheet->getActiveSheet()->getStyle('A1:M1')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+
+        $columns = ['A','B','C','D','E','F','G','H','I','J','K','L','M'];
+        foreach ($columns as $column) {
+            $spreadsheet->getActiveSheet()->getColumnDimension($column)->setAutoSize(true);
+        }
+
+        // Add some data
+        $spreadsheet->setActiveSheetIndex(0)
+            ->setCellValue('A1', '№п/п')
+            ->setCellValue('B1', 'Регион')
+            ->setCellValue('C1', 'Офис')
+            ->setCellValue('D1', 'Hostname')
+            ->setCellValue('E1', 'Type')
+            ->setCellValue('F1', 'Device')
+            ->setCellValue('G1', 'Device ser.')
+            ->setCellValue('H1', 'Software')
+            ->setCellValue('I1', 'Software ver.')
+            ->setCellValue('J1', 'Module')
+            ->setCellValue('K1', 'Module ser.')
+            ->setCellValue('L1', 'Comment')
+            ->setCellValue('M1', 'In use');
 
         // Rename worksheet
         $spreadsheet->getActiveSheet()->setTitle('Appliances');
@@ -74,7 +147,6 @@ class Export extends Controller
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment;filename="Appliances '. gmdate('d M Y') . '.xlsx"');
         header('Cache-Control: max-age=0');
-
         // If you're serving to IE 9, then the following may be needed
         header('Cache-Control: max-age=1');
 
