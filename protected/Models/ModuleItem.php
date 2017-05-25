@@ -129,4 +129,15 @@ class ModuleItem extends Model
             }
         )->first();
     }
+
+    public function lastUpdateDate()
+    {
+        return $this->lastUpdate ? (new \DateTime($this->lastUpdate))->format('Y-m-d') : null;
+    }
+
+    public function lastUpdateDateTime()
+    {
+        return $this->lastUpdate ? (new \DateTime($this->lastUpdate))->format('Y-m-d H:i') : null;
+    }
+
 }
