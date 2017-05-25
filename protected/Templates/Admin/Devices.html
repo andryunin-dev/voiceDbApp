@@ -82,7 +82,7 @@
                         {% for moduleItem in appliance.modules|slice(1) %}
                             <tr data-appliance-id="appliance.getPk" data-reg-id="{{ office.address.city.region.getPk }}">
                                 {% if moduleItem.notFound %}
-                                    <td class="item-not-found">
+                                    <td class="item-not-found lastUpdate" data-last-update-utc="{{ moduleItem.lastUpdateDateTime }}">
                                         <span class="module-title">{{ moduleItem.module.title }}</span>
                                     </td>
                                 {% elseif (moduleItem.inUse is defined and false == moduleItem.inUse) %}

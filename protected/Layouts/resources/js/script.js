@@ -93,13 +93,22 @@ APP.convertTime = function() {
     });
 
 
-    $(".lastUpdate").each(function () {
+    $("span.lastUpdate").each(function () {
         var UTCtime = $(this).data("lastUpdateUtc"); //get UTC time as string from tag <span class="lastUpdate"> in format (2017-08-15 14:55:45 UTC)
         // console.log(UTCtime);
         var date = APP.dateToUtc(UTCtime);
         if (! isNaN(date.getDate())) {
             $(this).attr("title", "last update: " + dateFormater.format(date) + " " + timeFormater.format(date));
             $(this).html(dateFormater.format(date));
+        }
+    });
+
+    $("td.lastUpdate").each(function () {
+        var UTCtime = $(this).data("lastUpdateUtc"); //get UTC time as string from tag <span class="lastUpdate"> in format (2017-08-15 14:55:45 UTC)
+        // console.log(UTCtime);
+        var date = APP.dateToUtc(UTCtime);
+        if (! isNaN(date.getDate())) {
+            $(this).attr("title", "last update: " + dateFormater.format(date));
         }
     });
 };
