@@ -67,12 +67,6 @@ class RServer extends Controller
         die;
     }
 
-    public function actionLog()
-    {
-        $logFile = ROOT_PATH . '/Logs/surveyOfAppliances.log';
-        $this->data->logs = file($logFile,FILE_IGNORE_NEW_LINES);
-    }
-
     public function actionInfile()
     {
         $rawdata = file_get_contents('php://input');

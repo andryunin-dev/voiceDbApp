@@ -11,9 +11,9 @@ class Rclient extends Command
 //        $url = "http://vm-utk-reg.rs.ru/rServer";
         $url = "http://voice.loc/rServer";
 
-        $errDir = realpath(ROOT_PATH . '/Tmp/Test_err');
-        $okDir = realpath(ROOT_PATH . '/Tmp/Test_ok');
         $srcDir = realpath(ROOT_PATH . '/Tmp/Test_src');
+        $okDir = realpath(ROOT_PATH . '/Tmp/Test_ok');
+        $errDir = realpath(ROOT_PATH . '/Tmp/Test_err');
 
         $files = array_slice(scandir($srcDir), 2);
 
