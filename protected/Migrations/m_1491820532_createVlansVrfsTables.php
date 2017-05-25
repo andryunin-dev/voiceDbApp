@@ -81,7 +81,7 @@ class m_1491820532_createVlansVrfsTables
 
         //insert global VRF into VRFs table
         echo 'main DB: inserting initial data into VRF table' . "\n";
-        $this->db->execute('INSERT INTO network.vrfs (name, rd) VALUES (:name, :rd)', [':name' => 'global', 'rd' => ':']);
+        $this->db->execute('INSERT INTO network.vrfs (name, rd) VALUES (:name, :rd)', [':name' => 'global', 'rd' => '0:0']);
         echo 'Done!' . "\n";
 
         //============================ for test DB =========================
