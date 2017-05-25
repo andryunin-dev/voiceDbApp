@@ -2,5 +2,4 @@
 vendor
 protected/Cache
 public/Assets
-/Logs
 Tmp
