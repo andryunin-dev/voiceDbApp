@@ -26,7 +26,7 @@ class RServer extends Controller
     {
 //        $startTime = microtime(true);
 
-        $logger = new Logger('RServer');
+        $logger = new Logger('DS');
         $logger->pushHandler(new StreamHandler(ROOT_PATH . '/Logs/surveyOfAppliances.log', Logger::DEBUG));
 
         try {
@@ -36,7 +36,10 @@ class RServer extends Controller
             }
             $inputDataset = (new Std())->fill($inputDataset);
 
-            (new DataSetProcessor($inputDataset))->run();
+            $res = (new DataSetProcessor($inputDataset))->run();
+            if (false === $res) {
+                throw new Exception('Dataset Processor: runtime error');
+            }
 
         } catch (MultiException $e) {
             $errors = [];
@@ -64,27 +67,27 @@ class RServer extends Controller
         die;
     }
 
-    public function actionLog()
-    {
-        $logFile = ROOT_PATH . '/Logs/surveyOfAppliances.log';
-        $this->data->logs = file($logFile,FILE_IGNORE_NEW_LINES);
-    }
-
     public function actionInfile()
     {
         $rawdata = file_get_contents('php://input');
+        $inputDataset = json_decode(file_get_contents('php://input'));
+        $ip = (isset($inputDataset->ip)) ? str_replace('/', '-', $inputDataset->ip) : '';
 
 //        $cacheDir = realpath(ROOT_PATH . '/Tmp/Test_test/');
 //        $cacheDir = realpath(ROOT_PATH . '/Tmp/Test_dataset_2/');
+//        $cacheDir = realpath(ROOT_PATH . '/Tmp/Test_dataset_1/');
+//        $cacheDir = realpath(ROOT_PATH . '/Tmp/Test_cache/');
         $cacheDir = realpath(ROOT_PATH . '/Tmp/Test_src/');
+
         $mt = explode(' ', microtime());
         $rawmc = explode('.', $mt[0]);
         $mc = $rawmc[1];
-        $datetime = date('YmdGis', $mt[1]);
-        $fileName = $cacheDir . '\\' . 'item_' . $datetime . $mc . '.json';
+        $datetime = date('Y-m-d__G-i-s.', $mt[1]);
+        $fileName = $cacheDir . '\\' . $ip . '__' . $datetime . $mc . '.json';
 
         $file = fopen($fileName, 'w+');
         fwrite($file,$rawdata);
         fclose($file);
+        die;
     }
 }
