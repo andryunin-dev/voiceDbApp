@@ -52,12 +52,24 @@
                                 <td rowspan="{{ appliance.modules.count }}">{{ office.title }}</td>
                                 <td rowspan="{{ appliance.modules.count }}">{{ appliance.details.hostname }}</td>
                                 <td rowspan="{{ appliance.modules.count }}">
-                                    <span class="lastUpdate" data-last-update-utc="{{ appliance.lastUpdateDateTime }} UTC"></span>
+                                    <span class="lastUpdate" data-last-update-utc="{{ appliance.lastUpdateDateTime }}"></span>
                                     <span class="vendor">{{ appliance.platform.platform.vendor.title }}</span> <span class="platform-title">{{ appliance.platform.platform.title }}</span>
                                 </td>
                                 <td rowspan="{{ appliance.modules.count }}">
                                     <span class="sw-title">{{ appliance.software.software.title }}</span> <span class="sw-ver">{{ appliance.software.version }}</span></td>
-                                <td rowspan=""><span class="module-title">{{ appliance.modules.first.module.title }}</span></td>
+                                {% if appliance.modules.first.notFound %}
+                                    <td rowspan="" class="item-not-found" title="last update: ">
+                                        <span class="module-title">{{ appliance.modules.first.module.title }}</span>
+                                    </td>
+                                {% elseif (appliance.modules.first.inUse is defined and false == appliance.modules.first.inUse) %}
+                                    <td rowspan="" class="item-not-use">
+                                        <span class="module-title">{{ appliance.modules.first.module.title }}</span>
+                                    </td>
+                                {% else %}
+                                    <td rowspan="">
+                                        <span class="module-title">{{ appliance.modules.first.module.title }}</span>
+                                    </td>
+                                {% endif %}
                                 <td rowspan="{{ appliance.modules.count }}">{{ appliance.comment }}</td>
                                 <td class="text-center" rowspan="{{ appliance.modules.count }}">
                                     <a class="btn btn-success btn-xs" href="/modal/editAppliance?id={{ appliance.getPK }}" role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать устройство"></span></a>
@@ -67,9 +79,25 @@
                                     {% endif %}
                                 </td>
                             </tr>
-                        {% for module in appliance.modules|slice(1) %}
+                        {% for moduleItem in appliance.modules|slice(1) %}
                             <tr data-appliance-id="appliance.getPk" data-reg-id="{{ office.address.city.region.getPk }}">
-                                <td><span class="module-title">{{ module.module.title }}</span></td>
+                                {% if moduleItem.notFound %}
+                                    <td class="item-not-found lastUpdate" data-last-update-utc="{{ moduleItem.lastUpdateDateTime }}">
+                                        <span class="module-title">{{ moduleItem.module.title }}</span>
+                                    </td>
+                                {% elseif (moduleItem.inUse is defined and false == moduleItem.inUse) %}
+                                    <td class="item-not-use">
+                                        <span class="module-title">{{ moduleItem.module.title }}</span>
+                                    </td>
+                                {% else %}
+                                    <td>
+                                        <span class="module-title">{{ moduleItem.module.title }}</span>
+                                    </td>
+                                {% endif %}
+
+
+
+                                {#<td class="{% if (module.notFound) %}item-not-found{% elseif (module.inUse is defined and false == module.inUse) %}item-not-use{% endif %}"><span class="module-title">{{ module.module.title }}</span></td>#}
                             </tr>
                         {% endfor %}
                         </tbody>

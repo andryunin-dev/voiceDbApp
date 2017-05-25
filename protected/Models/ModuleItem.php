@@ -96,6 +96,26 @@ class ModuleItem extends Model
         $this->notFound = true;
     }
 
+    public function Found()
+    {
+        $this->notFound = false;
+    }
+
+    public function notFound()
+    {
+        $this->notFound = true;
+    }
+
+    public function inUse()
+    {
+        $this->inUse = true;
+    }
+
+    public function notUse()
+    {
+        $this->inUse = false;
+    }
+
     /**
      * @param Module $module
      * @param $serialNumber
@@ -109,4 +129,15 @@ class ModuleItem extends Model
             }
         )->first();
     }
+
+    public function lastUpdateDate()
+    {
+        return $this->lastUpdate ? (new \DateTime($this->lastUpdate))->format('Y-m-d') : null;
+    }
+
+    public function lastUpdateDateTime()
+    {
+        return $this->lastUpdate ? (new \DateTime($this->lastUpdate))->format('Y-m-d H:i') : null;
+    }
+
 }

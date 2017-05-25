@@ -26,7 +26,7 @@ class RServer extends Controller
     {
 //        $startTime = microtime(true);
 
-        $logger = new Logger('RS');
+        $logger = new Logger('DS');
         $logger->pushHandler(new StreamHandler(ROOT_PATH . '/Logs/surveyOfAppliances.log', Logger::DEBUG));
 
         try {
@@ -65,12 +65,6 @@ class RServer extends Controller
 
         echo(json_encode($response->toArray()));
         die;
-    }
-
-    public function actionLog()
-    {
-        $logFile = ROOT_PATH . '/Logs/surveyOfAppliances.log';
-        $this->data->logs = file($logFile,FILE_IGNORE_NEW_LINES);
     }
 
     public function actionInfile()

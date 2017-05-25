@@ -11,9 +11,9 @@ class Rclient extends Command
 //        $url = "http://vm-utk-reg.rs.ru/rServer";
         $url = "http://voice.loc/rServer";
 
-        $errDir = realpath(ROOT_PATH . '/Tmp/Test_err');
-        $okDir = realpath(ROOT_PATH . '/Tmp/Test_ok');
         $srcDir = realpath(ROOT_PATH . '/Tmp/Test_src');
+        $okDir = realpath(ROOT_PATH . '/Tmp/Test_ok');
+        $errDir = realpath(ROOT_PATH . '/Tmp/Test_err');
 
         $files = array_slice(scandir($srcDir), 2);
 
@@ -96,12 +96,14 @@ class Rclient extends Command
     public function actionTestOne()
     {
 //        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_src');
-        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_err');
+//        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_err');
+        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_dataset_1_errors');
 //        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_dataset_2');
-        $filePath = realpath($srcDir . '\\' . '10.100.240.67-32__2017-05-23__12-11-15.11571500.json');
+
+        $filePath = realpath($srcDir . '\\' . '10.100.108.2-32__2017-05-25__5-44-17.33909000.json');
+//        $filePath = realpath($srcDir . '\\' . '10.100.240.1-32__2017-05-25__6-43-43.72926900.json');
 
         $url = "http://voice.loc/rserver";
-//        $url = "http://voice.loc/rServer/infile";
 
         $jsondata = file_get_contents($filePath);
 

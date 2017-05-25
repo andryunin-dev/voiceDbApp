@@ -666,24 +666,19 @@ class RServerTest extends \PHPUnit\Framework\TestCase
         $resultRequest = $this->pushData($jdataSet);
         $this->assertEquals($codeResult, $resultRequest->httpStatusCode);
 
-        // Find "ModuleItem" after Request
-        $useModuleItems = \App\Models\ModuleItem::findAllByQuery($query);
-        $this->assertEquals(3, $useModuleItems->count());
+        // Find NOT FOUND "ModuleItem"
+        $query = (new \T4\Dbal\Query())
+            ->select()
+            ->from(\App\Models\ModuleItem::getTableName())
+            ->where('"__appliance_id" = :__appliance_id AND "notFound" = :notFound')
+            ->params([
+                ':__appliance_id' => $appliance->getPk(),
+                'notFound' => true,
+            ]);
 
-        // Determine the UNUSED "Modules"
-        foreach ($dbModuleItems as $dbModule) {
-            if (!$useModuleItems->existsElement(['serialNumber' => $dbModule->serialNumber])) {
-                $query = (new \T4\Dbal\Query())
-                    ->select()
-                    ->from(\App\Models\ModuleItem::getTableName())
-                    ->where('"serialNumber" = :serialNumber')
-                    ->params([':serialNumber' => $dbModule->serialNumber]);
-                $unUsedModuleItems = \App\Models\ModuleItem::findAllByQuery($query);
-                $this->assertEquals(1, $unUsedModuleItems->count());
-                $unUsedModuleItem = $unUsedModuleItems->first();
-                $this->assertEquals(null, $unUsedModuleItem->__appliance_id);
-            }
-        }
+        // Find "ModuleItem" after Request
+        $notFoundModuleItems = \App\Models\ModuleItem::findAllByQuery($query);
+        $this->assertEquals(2, $notFoundModuleItems->count());
     }
 
 
@@ -774,7 +769,7 @@ class RServerTest extends \PHPUnit\Framework\TestCase
                 ':__appliance_id' => $appliance->getPk(),
             ]);
         $dbModuleItems = \App\Models\ModuleItem::findAllByQuery($query);
-        $this->assertEquals(3, $dbModuleItems->count());
+        $this->assertEquals(5, $dbModuleItems->count());
 
         // Send Request for update Appliance's data
         $resultRequest = $this->pushData($jdataSet);

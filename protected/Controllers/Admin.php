@@ -1110,7 +1110,7 @@ class Admin extends Controller
         try {
             Appliance::getDbConnection()->beginTransaction();
 
-            $current = Appliance::findByPK($data->currentId);
+            $currentAppliance = Appliance::findByPK($data->currentId);
 
             if (false === $office = Office::findByPK($data->officeId)) {
                 throw new Exception('Офис не найден');
@@ -1127,21 +1127,21 @@ class Admin extends Controller
             if (false === $software = Software::findByPK($data->softwareId)) {
                 throw new Exception('ПО не найдено');
             }
-            ($current->platform)
+            ($currentAppliance->platform)
                 ->fill([
                     'platform' => $platform,
                     'serialNumber' => $data->platformSn
                 ])
                 ->save();
 
-            ($current->software)
+            ($currentAppliance->software)
                 ->fill([
                     'software' => $software,
                     'version' => $data->softwareVersion
                 ])
                 ->save();
 
-            ($current)
+            ($currentAppliance)
                 ->fill([
                     'location' => $office,
                     'vendor' => $vendor,
@@ -1153,20 +1153,21 @@ class Admin extends Controller
                 ->save();
 
             //если appliance сохранился без ошибок - сохраняем существующие модули к нему
-            if (!empty($data->module->currentId)) {
-                foreach ($data->module->currentId as $key => $value) {
+            if (!empty($data->moduleItem->id)) {
+                foreach ($data->moduleItem->id as $key => $value) {
                     //если не выбран модуль - пропускаем
-                    if (!is_numeric($value)) {
+                    if (!is_numeric($data->moduleItem->moduleId->$key)) {
                         continue;
                     }
-                    $module = Module::findByPK($value);
-                    $moduleItem = (ModuleItem::findByPK($data->module->currentId->$key))
+                    $module = Module::findByPK($data->moduleItem->moduleId->$key);
+                    $moduleItem = (ModuleItem::findByPK($data->moduleItem->id->$key))
                         ->fill([
-                            'appliance' => $current, //текущий appliance
+                            'appliance' => $currentAppliance, //текущий appliance
                             'module' => $module,
-                            'serialNumber' => $data->module->sn->$key,
+                            'serialNumber' => $data->moduleItem->sn->$key,
                             'location' => $office,
-                            'comment' => $data->module->comment->$key
+                            'comment' => $data->moduleItem->comment->$key,
+                            'inUse' => (boolean)$data->moduleItem->inUse->$key
                         ])
                         ->save();
                 }
@@ -1182,7 +1183,7 @@ class Admin extends Controller
                     $module = Module::findByPK($value);
                     $moduleItem = (new ModuleItem())
                         ->fill([
-                            'appliance' => $current, //текущий appliance
+                            'appliance' => $currentAppliance, //текущий appliance
                             'module' => $module,
                             'serialNumber' => $data->newModule->sn->$key,
                             'location' => $office,
