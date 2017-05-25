@@ -33,7 +33,7 @@ class Test extends Controller
         var_dump($res);
         die;
     }
-    public function actionTwig()
+    public function actionTable()
     {
 
     }
