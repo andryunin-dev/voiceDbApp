@@ -35,7 +35,23 @@ class Test extends Controller
     }
     public function actionTable()
     {
+        $asc = function (Office $office_1, Office $office_2) {
+            return (0 != $compareRes = strnatcmp(mb_strtolower($office_1->address->city->region->title), mb_strtolower($office_2->address->city->region->title))) ? $compareRes : 1;
+        };
 
+        $this->data->offices = Office::findAll()->uasort($asc);
+        $this->data->activeLink->offices = true;
+
+    }
+
+    public function actionTime()
+    {
+        $date = new \DateTime('2000-01-01', new \DateTimeZone('UTC'));
+        echo $date->format('Y-m-d H:i:sP') . "\n";
+
+        $date->setTimezone(new \DateTimeZone('Pacific/Chatham'));
+        echo $date->format('Y-m-d H:i:sP') . "\n";
+        die;
     }
 
     public function actionTestModule()

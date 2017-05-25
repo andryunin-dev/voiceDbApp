@@ -7,14 +7,14 @@ return [
             'host' => '127.0.0.1',
             'user' => 'postgres',
             'password' => '{{db.password}}',
-            'dbname' => '{{db.productionDb}}'
+            'dbname' => 'phpVDB'
         ],
         'phpUnitTest' => [
             'driver' => 'pgsql',
             'host' => '127.0.0.1',
             'user' => 'postgres',
             'password' => '{{db.password}}',
-            'dbname' => '{{db.unitTestDb}}'
+            'dbname' => 'phpUnitTest'
         ]
     ]
 ];

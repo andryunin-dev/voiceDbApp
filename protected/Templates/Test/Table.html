@@ -1,51 +1,46 @@
 {% extends 'TestIndex.html' %}
+
 {% block main %}
-
-        <table class="table table-fixed">
-            <thead>
-                <tr>
-                    <th class="col-xs-2">#</th><th class="col-xs-8">Name</th><th class="col-xs-2">Points</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td class="col-xs-2">1</td><td class="col-xs-8">Mike Adams</td><td class="col-xs-2">23</td>
-                </tr>
-                <tr>
-                    <td class="col-xs-2">2</td><td class="col-xs-8">Holly Galivan</td><td class="col-xs-2">44</td>
-                </tr>
-                <tr>
-                    <td class="col-xs-2">3</td><td class="col-xs-8">Mary Shea</td><td class="col-xs-2">86</td>
-                </tr>
-                <tr>
-                    <td class="col-xs-2">4</td><td class="col-xs-8">Jim Adams</td><td>23</td>
-                </tr>
-                <tr>
-                    <td class="col-xs-2">5</td><td class="col-xs-8">Henry Galivan</td><td class="col-xs-2">44</td>
-                </tr>
-                <tr>
-                    <td class="col-xs-2">6</td><td class="col-xs-8">Bob Shea</td><td class="col-xs-2">26</td>
-                </tr>
-                <tr>
-                    <td class="col-xs-2">7</td><td class="col-xs-8">Andy Parks</td><td class="col-xs-2">56</td>
-                </tr>
-                <tr>
-                    <td class="col-xs-2">8</td><td class="col-xs-8">Bob Skelly</td><td class="col-xs-2">96</td>
-                </tr>
-                <tr>
-                    <td class="col-xs-2">9</td><td class="col-xs-8">William Defoe</td><td class="col-xs-2">13</td>
-                </tr>
-                <tr>
-                    <td class="col-xs-2">10</td><td class="col-xs-8">Will Tripp</td><td class="col-xs-2">16</td>
-                </tr>
-                <tr>
-                    <td class="col-xs-2">11</td><td class="col-xs-8">Bill Champion</td><td class="col-xs-2">44</td>
-                </tr>
-                <tr>
-                    <td class="col-xs-2">12</td><td class="col-xs-8">Lastly Jane</td><td class="col-xs-2">6</td>
-                </tr>
-            </tbody>
-        </table>
-
+    <div class="row">
+        <main class="offices">
+            <div class="col-xs-12">
+                <table class="bg-default table table-condensed table-bordered table-hover table-striped no-cut-long-text">
+                    <thead>
+                    <tr>
+                        <th class="bg-primary">Регион</th>
+                        <th class="bg-primary col-10">Город</th>
+                        <th class="bg-primary col-30">Адрес</th>
+                        <th class="bg-primary col-30">Офис
+                            <span class="btn-pull-right">
+                                    <a class="btn btn-success btn-xs pull-right" href="/modal/addOffice" role="button"
+                                       data-action="get-popup"><span class="glyphicon glyphicon-plus" aria-hidden="true" title="добавить новый офис"></span></a>
+                                </span>
+                        </th>
+                        <th class="bg-primary col-10">Статус</th>
+                        <th class="bg-primary col-10">Действия</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for office in offices %}
+                        <tr class="office-row" data-action="popup-view" aria-controls="office-detail"
+                            data-id="{{ office.getPK }}">
+                            <td>{{ office.address.city.region.title }}</td>
+                            <td>{{ office.address.city.title }}</td>
+                            <td>{{ office.address.address }}</td>
+                            <td>{{ office.title }}</td>
+                            <td>{{ office.status.title }}</td>
+                            <td class="text-center">
+                                <a class="btn btn-success btn-xs" href="/modal/editOffice?id={{ office.getPK }}" role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать офис"></span></a>
+                                <a class="btn btn-danger btn-xs" href="/admin/delOffice?id={{ office.getPK }}" role="button" data-action="delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" title="удалить офис"></span></a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </main>
     </div>
+{% endblock %}
+{% block JS %}
+
 {% endblock %}
