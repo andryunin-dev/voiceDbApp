@@ -46,6 +46,7 @@ class Test extends Controller
                 'vendor' => Vendor::findByTitle('test')
             ])
             ->save();
+
         $item1 = (new ModuleItem())
             ->fill([
                 'serialNumber' => 'sn1',
