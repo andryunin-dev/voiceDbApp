@@ -31,6 +31,7 @@ class Test extends Controller
         $res->serialNumber = '0';
         $res->save();
         var_dump($res);
+
         die;
     }
     public function actionTable()
