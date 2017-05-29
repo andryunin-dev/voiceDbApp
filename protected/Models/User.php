@@ -7,5 +7,5 @@ use T4\Orm\Model;
 
 class User extends Model
 {
-    public static $level = 3;
+    public static $level = 2;
 }

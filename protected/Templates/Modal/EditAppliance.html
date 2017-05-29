@@ -95,7 +95,7 @@
                             <div class="col-xs-4">
                                 <select name="data[moduleItem][moduleId][]" id="id-module" class="form-control" title="modules list" {% if userLevel <= 2 %}disabled{% endif %}>
                                     {% for module in modules %}
-                                        <option value="{{ module.getPK }}"{% if module.getPK == currentModuleItem.module.getPk %} selected {% endif %}>{{ module.title }} </option>
+                                        <option value="{{ module.getPK }}"{% if module.getPK == currentModuleItem.module.getPk %} selected {% endif %}>{{ module.title }}  ({{ module.vendor.title }})</option>
                                     {% endfor %}
                                 </select>
                                 {% if userLevel <= 2 %}
@@ -128,7 +128,7 @@
                                     <select id="id-module" class="form-control" name="data[newModule][id][]" title="modules list">
                                         <option value="" selected="selected">---------</option>
                                         {% for module in modules %}
-                                            <option value="{{ module.getPK }}">{{ module.title }}</option>
+                                            <option value="{{ module.getPK }}">{{ module.title }}  ({{ module.vendor.title }})</option>
                                         {% endfor %}
                                     </select>
                                 </div>

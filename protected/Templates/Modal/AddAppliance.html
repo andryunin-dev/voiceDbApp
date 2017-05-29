@@ -78,7 +78,7 @@
                         </div>
                     </div>
                 </div>
-
+                <!--add module items-->
                 <div class="panel panel-default">
                     <div class="panel-heading clearfix">
                         <div class="col-sm-6">
@@ -98,7 +98,7 @@
                                     <select name="data[module][id][]" id="id-module" class="form-control">
                                         <option value="" selected="selected">---------</option>
                                         {% for module in modules %}
-                                            <option value="{{ module.getPK }}">{{ module.title }}</option>
+                                            <option value="{{ module.getPK }}">{{ module.title }} ({{ module.vendor.title }})</option>
                                         {% endfor %}
                                     </select>
                                 </div>
