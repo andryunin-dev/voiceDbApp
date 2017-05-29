@@ -442,11 +442,11 @@ class DataSetProcessor extends Std
      */
     protected function processModuleItemDataSet(Appliance $appliance, Office $office, Module $module, $serialNumber)
     {
-        $moduleItem = ModuleItem::findByModuleSerial($module, $serialNumber);
+        $module->refresh();
+        $moduleItem = ModuleItem::findByVendorSerial($module->vendor->title, $serialNumber);
 
         $moduleItem = ($moduleItem instanceof ModuleItem) ? $moduleItem : (new ModuleItem());
-        $moduleItem->Found();
-        $moduleItem->inUse();
+        $moduleItem->found();
         $moduleItem->fill([
             'module' => $module,
             'serialNumber' => $serialNumber,

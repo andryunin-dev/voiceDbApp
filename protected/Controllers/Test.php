@@ -31,6 +31,7 @@ class Test extends Controller
         $res->serialNumber = '0';
         $res->save();
         var_dump($res);
+
         die;
     }
     public function actionTable()
@@ -46,7 +47,11 @@ class Test extends Controller
 
     public function actionTime()
     {
-        $date = new \DateTime('2000-01-01', new \DateTimeZone('UTC'));
+//        $tz = new \DateTimeZone('Europe/Moscow');
+//        var_dump($tz);die;
+//        var_dump($res);die;
+        $date = new \DateTime('2000-01-01', new \DateTimeZone('Europe/Moscow'));
+        $date = new \DateTime('now', new \DateTimeZone('Europe/Moscow'));
         echo $date->format('Y-m-d H:i:sP') . "\n";
 
         $date->setTimezone(new \DateTimeZone('Pacific/Chatham'));

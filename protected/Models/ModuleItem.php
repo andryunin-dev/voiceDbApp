@@ -67,7 +67,7 @@ class ModuleItem extends Model
             throw new Exception('ModuleItem: Неверный тип Office');
         }
 
-        $moduleItem = ModuleItem::findByModuleSerial($this->module, $this->serialNumber);
+        $moduleItem = ModuleItem::findByVendorSerial($this->module->vendor->title, $this->serialNumber);
 
         if (true === $this->isNew && ($moduleItem instanceof ModuleItem)) {
             throw new Exception('Такой ModuleItem уже существует');
@@ -82,9 +82,16 @@ class ModuleItem extends Model
 
     protected function beforeSave()
     {
+        if (true === $this->isNew && null === $this->inUse) {
+            $this->inUse();
+        }
+        if (!isset($this->notFound)) {
+            $this->found();
+        }
+
         if (false === $this->notFound) {
             $this->location = $this->appliance->location;
-            $this->lastUpdate = (new \DateTime())->format('Y-m-d H:i:sP');
+            $this->lastUpdate = (new \DateTime('now', new \DateTimeZone('Europe/Moscow')))->format('Y-m-d H:i:sP');
         }
 
         return parent::beforeSave();
@@ -96,7 +103,7 @@ class ModuleItem extends Model
         $this->notFound = true;
     }
 
-    public function Found()
+    public function found()
     {
         $this->notFound = false;
     }
@@ -126,6 +133,22 @@ class ModuleItem extends Model
         return $module->moduleItems->filter(
             function($moduleItem) use ($serialNumber) {
                 return $serialNumber == $moduleItem->serialNumber;
+            }
+        )->first();
+    }
+
+    /**
+     * @param $vendorTitle
+     * @param $serialNumber
+     * @return ModuleItem|bool
+     */
+    public static function findByVendorSerial($vendorTitle, $serialNumber)
+    {
+        $moduleItems = ModuleItem::findAllByColumn('serialNumber', $serialNumber);
+
+        return $moduleItems->filter(
+            function($moduleItem) use ($vendorTitle) {
+                return $vendorTitle == $moduleItem->module->vendor->title;
             }
         )->first();
     }
