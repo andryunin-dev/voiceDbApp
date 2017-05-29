@@ -1090,7 +1090,8 @@ class Admin extends Controller
                             'module' => $module,
                             'serialNumber' => $data->module->sn->$key,
                             'location' => $office,
-                            'comment' => $data->module->comment->$key
+                            'comment' => $data->module->comment->$key,
+                            'inUse' => $data->module->inUse->$key
                         ])
                         ->save();
                 }
@@ -1188,7 +1189,8 @@ class Admin extends Controller
                             'module' => $module,
                             'serialNumber' => $data->newModule->sn->$key,
                             'location' => $office,
-                            'comment' => $data->newModule->comment->$key
+                            'comment' => $data->newModule->comment->$key,
+                            'inUse' => (boolean)$data->newModule->inUse->$key
                         ])
                         ->save();
                 }
