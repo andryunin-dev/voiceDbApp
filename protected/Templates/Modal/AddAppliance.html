@@ -102,11 +102,15 @@
                                         {% endfor %}
                                     </select>
                                 </div>
-                                <div class="col-xs-4">
+                                <div class="col-xs-3">
                                     <input type="text" class="form-control" name="data[module][sn][]" placeholder="Серийный номер">
                                 </div>
-                                <div class="col-xs-4">
+                                <div class="col-xs-3">
                                     <input type="text" class="form-control" name="data[module][comment][]" placeholder="Комментарий">
+                                </div>
+                                <div class="col-xs-2 custom-box checkbox-container">
+                                    <input type="checkbox" id="item-id-{{ currentModuleItem.getPK }}" name="data[module][in-use][]" value="checked" checked>
+                                    <label class="icon-check-off" for="item-id-{{ currentModuleItem.getPK }}">In use</label>
                                 </div>
                             </div>
                         </template>
@@ -122,6 +126,7 @@
     </div>
     <script>
         var APP = APP || {};
+        APP.ctrlCheckbox();
         APP.popups = APP.popups || [];
         APP.popups.push({
             path: "{{ path }}",
