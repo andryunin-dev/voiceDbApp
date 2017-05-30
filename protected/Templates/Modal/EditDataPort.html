@@ -18,12 +18,20 @@
                 </div>
                 {#IP address#}
                 <div class="form-group">
-                    <div class="col-sm-9 col-sm-offset-3">
+                    <div class="col-sm-5 col-sm-offset-3">
                         <div class="input-group">
                             <span class="input-group-addon" id="ip-addr">IP</span>
                             <input type="text" class="form-control" name="data[ip]" value="{{ currentPort.ipAddress }}"
                                    aria-describedby="ip-addr">
                         </div>
+                    </div>
+                    {# checkbox Management or not#}
+                    <div class="col-sm-3 custom-box checkbox-container">
+                        {% if (currentPort.isManagement == false) %}
+                            <input type="hidden" name="data[isManagement]" value="0">
+                        {% endif %}
+                        <input type="checkbox" id="item-id-{{ currentModuleItem.getPK }}" name="data[isManagement]" value="1" {% if (currentPort.isManagement) %}checked{% endif %}>
+                        <label class="icon-check-off" for="item-id-{{ currentModuleItem.getPK }}">Management</label>
                     </div>
                 </div>
                 {#VRF#}
@@ -67,7 +75,7 @@
 
 
                 <div class="col-sm-offset-3 col-sm-8">
-                    <button class="btn btn-success" type="submit">Создать</button>
+                    <button class="btn btn-success" type="submit">Сохранить</button>
                     <button class="btn btn-danger" type="button" role="button" data-action="close">Отмена</button>
                 </div>
             </form>
@@ -75,11 +83,12 @@
     </div>
     <script>
         var APP = APP || {};
+        APP.ctrlCheckbox();
         APP.popups = APP.popups || [];
         APP.popups.push({
             path: "{{ path }}",
             popupSelector: "#edit-port",
-            width: "500"
+            width: "600"
         });
     </script>
 </div>

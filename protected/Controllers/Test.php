@@ -271,6 +271,8 @@ class Test extends Controller
 
     public function actionOffices()
     {
+        $test = Appliance::findAll()->first();
+        var_dump($test->getManagementIp());die;
         $asc = function (Office $office_1, Office $office_2) {
             return (0 != strnatcmp($office_1->address->city->region->title, $office_2->address->city->region->title)) ?: 1;
         };
