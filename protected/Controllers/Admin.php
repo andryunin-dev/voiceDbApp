@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Components\Parser;
+use App\Components\Timer;
 use App\Models\Address;
 use App\Models\Appliance;
 use App\Models\ApplianceType;
@@ -915,10 +916,13 @@ class Admin extends Controller
 
     public function actionDevices()
     {
+        $timer = Timer::instance();
+        $timer->fix('start action');
         $this->data->offices = Office::findAll(['order' => 'title']);
         $this->data->regions = Region::findAll(['order' => 'title']);
         $this->data->activeLink->devices = true;
         $this->data->exportUrl = '/export/hardInvExcel';
+        $timer->fix('end action');
     }
 
     public function actionPortTypes()
