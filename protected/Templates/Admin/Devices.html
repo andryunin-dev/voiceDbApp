@@ -50,8 +50,11 @@
                             <tr data-appliance-id="appliance.getPk" data-reg-id="{{ office.address.city.region.getPk }}">
                                 <td rowspan="{{ appliance.modules.count }}" data-reg-id="{{ office.address.city.region.getPk }}">{{ office.address.city.region.title }}</td>
                                 <td rowspan="{{ appliance.modules.count }}">{{ office.title }}</td>
-                                <td rowspan="{{ appliance.modules.count }}"><span>{{ appliance.details.hostname }}</span> <span class="pull-right"><a
-                                                href="#">[ssh]</a></span></td>
+                                <td rowspan="{{ appliance.modules.count }}"><span>{{ appliance.details.hostname }}</span>
+                                    <div class="pull-right">
+                                        <span ><a href="ssh://#">[ssh]</a></span>
+                                    </div>
+                                </td>
                                 <td rowspan="{{ appliance.modules.count }}">
                                     <span class="lastUpdate" data-last-update-utc="{{ appliance.lastUpdateDateTime }}"></span>
                                     <span class="vendor">{{ appliance.platform.platform.vendor.title }}</span> <span class="platform-title">{{ appliance.platform.platform.title }}</span>
