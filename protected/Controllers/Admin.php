@@ -19,7 +19,6 @@ use App\Models\PlatformItem;
 use App\Models\Region;
 use App\Models\Software;
 use App\Models\SoftwareItem;
-use App\Models\User;
 use App\Models\Vendor;
 use App\Models\VPortType;
 use App\Models\Vrf;
@@ -31,6 +30,8 @@ use T4\Mvc\Controller;
 
 class Admin extends Controller
 {
+    use DebugTrait;
+
     public function actionDefault()
     {
 
@@ -918,7 +919,6 @@ class Admin extends Controller
         $this->data->regions = Region::findAll(['order' => 'title']);
         $this->data->activeLink->devices = true;
         $this->data->exportUrl = '/export/hardInvExcel';
-        $this->data->userLevel = User::$level;
     }
 
     public function actionPortTypes()
