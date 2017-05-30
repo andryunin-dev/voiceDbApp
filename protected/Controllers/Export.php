@@ -8,6 +8,7 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Color;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter;
 use T4\Mvc\Controller;
 
 class Export extends Controller
@@ -74,6 +75,15 @@ class Export extends Controller
                 $n++;
             }
         }
+
+        // Autofilter
+        $spreadsheet->getActiveSheet()->setAutoFilter('B1:N' . ($n-1));
+        $spreadsheet->getActiveSheet()->freezePane('A2');
+        $autoFilter = $spreadsheet->getActiveSheet()->getAutoFilter();
+
+        $aColumnFilter = $autoFilter->getColumn('B');
+        $aColumnFilter->setFilterType(AutoFilter\Column::AUTOFILTER_FILTERTYPE_FILTER);
+        $aColumnFilter->createRule()->setRule(AutoFilter\Column\Rule::AUTOFILTER_COLUMN_RULE_EQUAL,'');
 
         // Rename worksheet
         $spreadsheet->getActiveSheet()->setTitle('Appliances');
