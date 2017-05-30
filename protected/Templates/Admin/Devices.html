@@ -1,7 +1,7 @@
 {% extends 'Index.html' %}
 
 {% block main %}
-    {% set width = {reg: 'col-7', office: 'col-15', devices: 'col-20', soft: 'col-10', host: 'col-10', module: 'col-10', comment: 'col-15', action: 'col-5'} %}
+    {% set width = {reg: 'col-7', office: 'col-15', devices: 'col-20', soft: 'col-10', host: 'col-15', module: 'col-10', comment: 'col-10', action: 'col-5'} %}
     <div class="row">
         <main class="devices">
             <div class="">
@@ -48,15 +48,29 @@
                         {% for appliance in office.appliances %}
                         <tbody>
                             <tr data-appliance-id="appliance.getPk" data-reg-id="{{ office.address.city.region.getPk }}">
+                                {#Region#}
                                 <td rowspan="{{ appliance.modules.count }}" data-reg-id="{{ office.address.city.region.getPk }}">{{ office.address.city.region.title }}</td>
+                                {#Office#}
                                 <td rowspan="{{ appliance.modules.count }}">{{ office.title }}</td>
-                                <td rowspan="{{ appliance.modules.count }}">{{ appliance.details.hostname }}</td>
+                                {#Hostname#}
+                                <td rowspan="{{ appliance.modules.count }}"><span>{{ appliance.details.hostname }}</span>
+                                    {% set mngmnt = appliance.getManagementIp %}
+                                    {% if false != mngmnt %}
+                                    <div class="pull-right">
+                                        <span ><a href="ssh://{{ mngmnt }}" >[ssh]</a></span>
+                                    </div>
+                                    {% endif %}
+                                </td>
+                                {#Platform#}
                                 <td rowspan="{{ appliance.modules.count }}">
                                     <span class="lastUpdate" data-last-update-utc="{{ appliance.lastUpdateDateTime }}"></span>
                                     <span class="vendor">{{ appliance.platform.platform.vendor.title }}</span> <span class="platform-title">{{ appliance.platform.platform.title }}</span>
                                 </td>
+                                {#Software#}
                                 <td rowspan="{{ appliance.modules.count }}">
-                                    <span class="sw-title">{{ appliance.software.software.title }}</span> <span class="sw-ver">{{ appliance.software.version }}</span></td>
+                                    <span class="sw-title">{{ appliance.software.software.title }}</span> <span class="sw-ver">{{ appliance.software.version }}</span>
+                                </td>
+                                {#Modules#}
                                 {% if appliance.modules.first.notFound %}
                                     <td rowspan="" class="item-not-found" title="last update: ">
                                         <span class="module-title">{{ appliance.modules.first.module.title }}</span>
@@ -70,7 +84,9 @@
                                         <span class="module-title">{{ appliance.modules.first.module.title }}</span>
                                     </td>
                                 {% endif %}
+                                {#Comment#}
                                 <td rowspan="{{ appliance.modules.count }}">{{ appliance.comment }}</td>
+                                {#Action#}
                                 <td class="text-center" rowspan="{{ appliance.modules.count }}">
                                     <a class="btn btn-success btn-xs" href="/modal/editAppliance?id={{ appliance.getPK }}" role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать устройство"></span></a>
                                     {% if userLevel > 2 %}
