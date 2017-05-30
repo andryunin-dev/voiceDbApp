@@ -1272,10 +1272,11 @@ class Admin extends Controller
             if (!is_numeric($data->vrfId)) {
                 throw new Exception('VRF не выбран');
             }
-
+            if ($currentDataPort->ipAddress != $data->ip) {
+                $currentDataPort->ipAddress = $data->ip;
+            }
             $currentDataPort
                 ->fill([
-                    'ipAddress' => $data->ip,
                     'vrf' => Vrf::findByPK($data->vrfId),
                     'macAddress' => $data->mac,
                     'comment' => $data->comment,
@@ -1283,7 +1284,8 @@ class Admin extends Controller
                     'portType' => DPortType::findByPK($data->portTypeId),
                     'details' => [
                         'portName' => $data->portName
-                    ]
+                    ],
+                    'isManagement' => $data->isManagement
                 ])
                 ->save();
 

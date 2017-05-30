@@ -102,6 +102,7 @@ custom box styles (checkbox)
     padding-left: 35px;
 
     font-size: 16px;
+    font-weight: normal;
     line-height: 28px;
     color: #283136;
 }
@@ -110,7 +111,7 @@ custom box styles (checkbox)
     position: absolute;
     left: 0;
 
-    font-size: 28px;
+    font-size: 25px;
     line-height: 28px;
     color: #8e8e8e;
 }

@@ -25,7 +25,9 @@
                         {% for appliance in office.appliances %}
                             <tbody>
                                 <tr>
+                                    {#Office#}
                                     <td rowspan="{{ appliance.dataPorts.count }}">{{ office.title }}</td>
+                                    {#Device#}
                                     <td rowspan="{{ appliance.dataPorts.count }}">
                                         <span class="pull-right">
                                             <span class="lastUpdate" data-last-update-utc="{{ appliance.lastUpdateDateTime }} UTC"></span>
@@ -39,11 +41,23 @@
                                         {{ appliance.platform.platform.vendor.title }} {{ appliance.platform.platform.title }}
 
                                     </td>
+                                    {#Software#}
                                     <td rowspan="{{ appliance.dataPorts.count }}">{{ appliance.software.software.title }} {{ appliance.software.version }}</td>
+                                    {#Hostname#}
                                     <td rowspan="{{ appliance.dataPorts.count }}">{{ appliance.details.hostname }}</td>
-                                    <td colspan="4">{{ appliance.dataPorts.first.ipAddress }}</td>
+                                    {#IP#}
+                                    <td colspan="4">{{ appliance.dataPorts.first.ipAddress }}
+                                        {% if appliance.dataPorts.first.isManagement %}
+                                        <div class="pull-right">
+                                            <span ><a href="ssh://{{ appliance.getManagementIp }}" >[ssh]</a></span>
+                                        </div>
+                                        {% endif %}
+                                    </td>
+                                    {#Port Name#}
                                     <td colspan="3">{{ appliance.dataPorts.first.details.portName }}</td>
+                                    {#Port Comment#}
                                     <td colspan="5">{{ appliance.dataPorts.first.comment }}</td>
+                                    {#Action#}
                                     <td class="text-center">
                                         {%  if appliance.dataPorts.count > 0 %}
                                                 <a class="btn btn-success btn-xs" href="/modal/editDataPort?portId={{ appliance.dataPorts.first.getPK }}&deviceId={{ appliance.getPK }} "
@@ -55,7 +69,13 @@
                                 </tr>
                             {% for port in appliance.dataPorts|slice(1) %}
                                 <tr>
-                                    <td colspan="4">{{ port.ipAddress }}</td>
+                                    <td colspan="4">{{ port.ipAddress }}
+                                        {% if port.isManagement %}
+                                            <div class="pull-right">
+                                                <span ><a href="ssh://{{ appliance.getManagementIp }}" >[ssh]</a></span>
+                                            </div>
+                                        {% endif %}
+                                    </td>
                                     <td colspan="3">{{ port.details.portName }}</td>
                                     <td colspan="5">{{ port.comment }}</td>
                                     <td class="text-center">
