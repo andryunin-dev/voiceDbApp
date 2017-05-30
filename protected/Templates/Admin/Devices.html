@@ -1,7 +1,7 @@
 {% extends 'Index.html' %}
 
 {% block main %}
-    {% set width = {reg: 'col-7', office: 'col-15', devices: 'col-20', soft: 'col-10', host: 'col-10', module: 'col-10', comment: 'col-15', action: 'col-5'} %}
+    {% set width = {reg: 'col-7', office: 'col-15', devices: 'col-20', soft: 'col-10', host: 'col-15', module: 'col-10', comment: 'col-10', action: 'col-5'} %}
     <div class="row">
         <main class="devices">
             <div class="">
@@ -50,7 +50,8 @@
                             <tr data-appliance-id="appliance.getPk" data-reg-id="{{ office.address.city.region.getPk }}">
                                 <td rowspan="{{ appliance.modules.count }}" data-reg-id="{{ office.address.city.region.getPk }}">{{ office.address.city.region.title }}</td>
                                 <td rowspan="{{ appliance.modules.count }}">{{ office.title }}</td>
-                                <td rowspan="{{ appliance.modules.count }}">{{ appliance.details.hostname }}</td>
+                                <td rowspan="{{ appliance.modules.count }}"><span>{{ appliance.details.hostname }}</span> <span class="pull-right"><a
+                                                href="#">[ssh]</a></span></td>
                                 <td rowspan="{{ appliance.modules.count }}">
                                     <span class="lastUpdate" data-last-update-utc="{{ appliance.lastUpdateDateTime }}"></span>
                                     <span class="vendor">{{ appliance.platform.platform.vendor.title }}</span> <span class="platform-title">{{ appliance.platform.platform.title }}</span>
