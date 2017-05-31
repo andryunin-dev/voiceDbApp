@@ -918,8 +918,36 @@ class Admin extends Controller
     {
         $timer = Timer::instance();
         $timer->fix('start action');
-        $this->data->offices = Office::findAll(['order' => 'title']);
-        $this->data->regions = Region::findAll(['order' => 'title']);
+
+        if (empty($_GET)) {
+            $this->data->offices = Office::findAll(['order' => 'title']);
+            $this->data->regions = Region::findAll(['order' => 'title']);
+        }
+        if (!empty($_GET['reg'])) {
+            $region = Region::findByPK((int) $_GET['reg']);
+            $this->data->regions = (new Collection())->add($region);
+
+            $this->data->offices = new Collection();
+            foreach ($region->cities as $city) {
+                foreach ($city->addresses as $address) {
+                    $this->data->offices->add($address->office);
+                }
+            }
+        }
+        if (!empty($_GET['city'])) {
+            $city = City::findByPK((int) $_GET['city']);
+            $this->data->regions = (new Collection())->add($city->region);
+
+            $this->data->offices = new Collection();
+            foreach ($city->addresses as $address) {
+                $this->data->offices->add($address->office);
+            }
+        }
+        if (!empty($_GET['loc'])) {
+            $office = Office::findByPK((int) $_GET['loc']);
+            $this->data->offices = (new Collection())->add($office);
+            $this->data->regions = $office->address->city->region;
+        }
         $this->data->activeLink->devices = true;
         $this->data->exportUrl = '/export/hardInvExcel';
         $timer->fix('end action');
@@ -1228,7 +1256,26 @@ class Admin extends Controller
 
     public function actionPortInventory()
     {
-        $this->data->offices = Office::findAll(['order' => 'title']);
+        if (empty($_GET)) {
+            $this->data->offices = Office::findAll(['order' => 'title']);
+        }
+        if (!empty($_GET['reg'])) {
+            $this->data->offices = new Collection();
+            foreach ((Region::findByPK((int) $_GET['reg']))->cities as $city) {
+                foreach ($city->addresses as $address) {
+                    $this->data->offices->add($address->office);
+                }
+            }
+        }
+        if (!empty($_GET['city'])) {
+            $this->data->offices = new Collection();
+            foreach ((City::findByPK((int) $_GET['city']))->addresses as $address) {
+                $this->data->offices->add($address->office);
+            }
+        }
+        if (!empty($_GET['loc'])) {
+            $this->data->offices = (new Collection())->add(Office::findByPK((int) $_GET['loc']));
+        }
     }
 
     public function actionAddDataPort($data)
