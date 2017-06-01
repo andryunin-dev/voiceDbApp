@@ -28,6 +28,13 @@
                 scrollWidth = $(options.selector.bodyWrapper).width() - $(env.table).outerWidth();
                 if (scrollWidth > 0) {
                     $("<th>", {'width': scrollWidth, 'class': 'scroll-th'}).appendTo(env.header.find("thead tr"));
+                    //выравниваем ширину ячеек
+                    var thHeader = env.header.find("thead tr:eq(0) th");
+                    var firstRowBody = env.table.find("tbody tr:eq(0)>td");
+                    firstRowBody.each(function (index, element) {
+                        var elemWidth = $(element).width();
+                        $(thHeader[index]).width(elemWidth);
+                    })
                 } else $(".scroll-th").remove();
             },
             resize: function () {
@@ -68,8 +75,10 @@
                 env.bodyWrapper = $(options.selector.bodyWrapper);
 
                 env.tableWrapper.prepend(env.header); // добавляем header
-                env.table.find("thead").hide(); //прячем заголовок основной таблицы
-                helpers.alignHeader();
+                env.table.find("thead th")
+                    .empty()
+                    .css({"font-size": 0 , "padding-top": "0", "padding-bottom": "0"}); //прячем заголовок основной таблицы
+                // helpers.alignHeader();
                 helpers.resize();
             }
         };

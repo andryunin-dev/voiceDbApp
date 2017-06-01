@@ -1,0 +1,17 @@
+table.inner {
+    margin: 0 !important;
+    border: none !important;
+}
+/*убираем верхний и нижние бордюры у первой и последней строки*/
+table.inner tr:first-child td {
+    border-top: none !important;
+}
+table.inner tr:last-child td {
+    border-bottom: none !important;
+}
+table.inner tr td:first-child {
+    border-left: none !important;
+}
+table.inner tr td:last-child {
+    border-right: none !important;
+}
