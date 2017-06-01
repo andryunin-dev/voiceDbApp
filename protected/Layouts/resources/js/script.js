@@ -183,7 +183,7 @@ APP.setLink = function ($linkSelector, $url) {
 };
 
 jQuery(function ($) {
-    $("#fixed-header").headerFix({'height': '100%'});
+
     APP.currentPopup = APP.currentPopup || {};
     APP.ctrl = APP.ctrl || [];
     APP.body = APP.body || $('body');
