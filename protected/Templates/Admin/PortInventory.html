@@ -76,16 +76,6 @@
 
                                             </tbody>
                                         </table>
-
-
-
-
-                                        {#{%  if appliance.dataPorts.count > 0 %}#}
-                                                {#<a class="btn btn-success btn-xs" href="/modal/editDataPort?portId={{ appliance.dataPorts.first.getPK }}&deviceId={{ appliance.getPK }} "#}
-                                                   {#role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать порт"></span></a>#}
-                                                {#<a class="btn btn-danger btn-xs" href="/admin/delDataPort?portId={{ appliance.dataPorts.first.getPK }}&deviceId={{ appliance.getPK }} " role="button"#}
-                                                   {#data-action="delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" title="удалить порт"></span></a>#}
-                                        {#{% endif %}#}
                                     </td>
                                 </tr>
                         {% endfor %}
