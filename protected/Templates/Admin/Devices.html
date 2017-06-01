@@ -5,36 +5,11 @@
     <div class="row">
         <main class="devices">
             <div class="">
-                <table class="bg-default table table-condensed table-bordered table-hover cust-table-striped no-cut-long-text">
+                <table id="fixed-header" class="bg-default table table-condensed table-bordered cust-table-striped no-cut-long-text">
                     <thead>
                         <tr class="text-middle text-center">
-                            <th class="bg-primary {{ width.reg }}">
-                                <ul class="filter-list bg-primary">
-                                    <li class="dropdown">
-                                        <a href="#" class="dropdown-toggle active" data-toggle="dropdown">Регион <b class="caret"></b></a>
-                                        <ul class="dropdown-menu scrollable-menu">
-                                            <li><a href="#" class="small" data-reg-id="all" tabIndex="-1"><input type="checkbox" checked/>&nbsp; все</a></li>
-                                            {% for region in regions %}
-                                            <li><a href="#" class="small" data-reg-id="{{ region.getPk }}" tabIndex="-1"><input type="checkbox"/>&nbsp; {{ region.title }}</a></li>
-                                            {% endfor %}
-                                        </ul>
-                                    </li>
-                                </ul>
-
-                            </th>
-                            <th class="bg-primary {{ width.office }}">
-                                <ul class="filter-list bg-primary">
-                                    <li class="dropdown {% if activeLink.devices == true %} active {% endif %}">
-                                        <a href="#" class="dropdown-toggle active" data-toggle="dropdown">Офис <b class="caret"></b></a>
-                                        <ul class="dropdown-menu scrollable-menu">
-                                            <li><a href="#" class="small" data-office-id="all" tabIndex="-1"><input type="checkbox" checked/>&nbsp; все</a></li>
-                                            {% for office in offices %}
-                                                <li><a href="#" class="small" data-office-id="{{ office.getPk }}" tabIndex="-1"><input type="checkbox"/>&nbsp; {{ office.title }}</a></li>
-                                            {% endfor %}
-                                        </ul>
-                                    </li>
-                                </ul>
-                            </th>
+                            <th class="bg-primary {{ width.reg }}">Регион</th>
+                            <th class="bg-primary {{ width.office }}">Офис</th>
                             <th class="bg-primary {{ width.host }}">hostname</th>
                             <th class="bg-primary {{ width.devices }}">Оборудование<a class="btn btn-success btn-xs btn-custom pull-right" href="/modal/addAppliance" role="button" data-action="get-popup" title="добавить устройство"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></a></th>
                             <th class="bg-primary {{ width.soft }}">ПО</th>
@@ -44,16 +19,16 @@
 
                         </tr>
                     </thead>
+                        <tbody>
                     {% for office in offices %}
                         {% for appliance in office.appliances %}
-                        <tbody>
-                            <tr data-appliance-id="appliance.getPk" data-reg-id="{{ office.address.city.region.getPk }}">
+                            <tr>
                                 {#Region#}
-                                <td rowspan="{{ appliance.modules.count }}" data-reg-id="{{ office.address.city.region.getPk }}">{{ office.address.city.region.title }}</td>
+                                <td>{{ office.address.city.region.title }}</td>
                                 {#Office#}
-                                <td rowspan="{{ appliance.modules.count }}">{{ office.title }}</td>
+                                <td>{{ office.title }}</td>
                                 {#Hostname#}
-                                <td rowspan="{{ appliance.modules.count }}"><span>{{ appliance.details.hostname }}</span>
+                                <td>{{ appliance.details.hostname }}
                                     {% set mngmnt = appliance.getManagementIp %}
                                     {% if false != mngmnt %}
                                     <div class="pull-right">
@@ -62,32 +37,38 @@
                                     {% endif %}
                                 </td>
                                 {#Platform#}
-                                <td rowspan="{{ appliance.modules.count }}">
+                                <td>
                                     <span class="lastUpdate" data-last-update-utc="{{ appliance.lastUpdateDateTime }}"></span>
-                                    <span class="vendor">{{ appliance.platform.platform.vendor.title }}</span> <span class="platform-title">{{ appliance.platform.platform.title }}</span>
+                                    <span class="vendor">{{ appliance.platform.platform.vendor.title }}</span>
+                                    {{ appliance.platform.platform.title }}
                                 </td>
                                 {#Software#}
-                                <td rowspan="{{ appliance.modules.count }}">
-                                    <span class="sw-title">{{ appliance.software.software.title }}</span> <span class="sw-ver">{{ appliance.software.version }}</span>
+                                <td>
+                                    <span class="sw-title">{{ appliance.software.software.title }}</span>
+                                    {{ appliance.software.version }}
                                 </td>
-                                {#Modules#}
-                                {% if appliance.modules.first.notFound %}
-                                    <td rowspan="" class="item-not-found" title="last update: ">
-                                        <span class="module-title">{{ appliance.modules.first.module.title }}</span>
-                                    </td>
-                                {% elseif (appliance.modules.first.inUse is defined and false == appliance.modules.first.inUse) %}
-                                    <td rowspan="" class="item-not-use">
-                                        <span class="module-title">{{ appliance.modules.first.module.title }}</span>
-                                    </td>
-                                {% else %}
-                                    <td rowspan="">
-                                        <span class="module-title">{{ appliance.modules.first.module.title }}</span>
-                                    </td>
-                                {% endif %}
+                                {#ModuleItems#}
+                                <td class="cell-container">
+                                    <table class="inner table table-bordered">
+                                        <tbody>
+                                        {% for moduleItem in appliance.modules %}
+                                            <tr>
+                                                {% if moduleItem.notFound %}
+                                                <td class="item-not-found">{{ moduleItem.module.title }}</td>
+                                                {% elseif moduleItem.inUse is defined and false == moduleItem.inUse %}
+                                                <td class="item-not-use">{{ moduleItem.module.title }}</td>
+                                                {% else %}
+                                                <td>{{ moduleItem.module.title }}</td>
+                                                {% endif %}
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </td>
                                 {#Comment#}
-                                <td rowspan="{{ appliance.modules.count }}">{{ appliance.comment }}</td>
+                                <td>{{ appliance.comment }}</td>
                                 {#Action#}
-                                <td class="text-center" rowspan="{{ appliance.modules.count }}">
+                                <td class="text-center">
                                     <a class="btn btn-success btn-xs" href="/modal/editAppliance?id={{ appliance.getPK }}" role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать устройство"></span></a>
                                     {% if user.level > 2 %}
                                     <a class="btn btn-danger btn-xs" href="/admin/delAppliance?id={{ appliance.getPK }}" role="button"
@@ -95,31 +76,9 @@
                                     {% endif %}
                                 </td>
                             </tr>
-                        {% for moduleItem in appliance.modules|slice(1) %}
-                            <tr data-appliance-id="appliance.getPk" data-reg-id="{{ office.address.city.region.getPk }}">
-                                {% if moduleItem.notFound %}
-                                    <td class="item-not-found lastUpdate" data-last-update-utc="{{ moduleItem.lastUpdateDateTime }}">
-                                        <span class="module-title">{{ moduleItem.module.title }}</span>
-                                    </td>
-                                {% elseif (moduleItem.inUse is defined and false == moduleItem.inUse) %}
-                                    <td class="item-not-use">
-                                        <span class="module-title">{{ moduleItem.module.title }}</span>
-                                    </td>
-                                {% else %}
-                                    <td>
-                                        <span class="module-title">{{ moduleItem.module.title }}</span>
-                                    </td>
-                                {% endif %}
-
-
-
-                                {#<td class="{% if (module.notFound) %}item-not-found{% elseif (module.inUse is defined and false == module.inUse) %}item-not-use{% endif %}"><span class="module-title">{{ module.module.title }}</span></td>#}
-                            </tr>
-                        {% endfor %}
-                        </tbody>
                         {% endfor %}   {#appliances#}
                     {% endfor %}    {#offices#}
-
+                    </tbody>
                 </table>
             </div>
         </main>

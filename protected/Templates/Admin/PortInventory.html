@@ -59,28 +59,33 @@
                                             </tbody>
                                         </table>
                                     </td>
-
-                                    {#Port Name#}
-                                    {#<td>#}
-                                        {#{% for dataport in appliance.dataPorts %}#}
-                                            {#{{ dataport.details.portName }}#}
-                                        {#{% endfor %}#}
-                                    {#</td>#}
-                                    {#Port Comment#}
-                                    {#<td>#}
-                                        {#{% for dataport in appliance.dataPorts %}#}
-                                            {#{{ dataport.comment }}#}
-                                        {#{% endfor %}#}
-                                    {#</td>#}
-
                                     {#Action#}
-                                    <td class="text-center">
-                                        {%  if appliance.dataPorts.count > 0 %}
-                                                <a class="btn btn-success btn-xs" href="/modal/editDataPort?portId={{ appliance.dataPorts.first.getPK }}&deviceId={{ appliance.getPK }} "
-                                                   role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать порт"></span></a>
-                                                <a class="btn btn-danger btn-xs" href="/admin/delDataPort?portId={{ appliance.dataPorts.first.getPK }}&deviceId={{ appliance.getPK }} " role="button"
-                                                   data-action="delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" title="удалить порт"></span></a>
-                                        {% endif %}
+                                    <td class="cell-container">
+                                        <table class="inner table table-bordered">
+                                            <tbody>
+                                            {% for dataport in appliance.dataPorts %}
+                                                <tr>
+                                                    <td class="text-center">
+                                                        <a class="btn btn-success btn-xs" href="/modal/editDataPort?portId={{ appliance.dataPorts.first.getPK }}&deviceId={{ appliance.getPK }} "
+                                                           role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать порт"></span></a>
+                                                        <a class="btn btn-danger btn-xs" href="/admin/delDataPort?portId={{ appliance.dataPorts.first.getPK }}&deviceId={{ appliance.getPK }} " role="button"
+                                                           data-action="delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" title="удалить порт"></span></a>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+
+                                            </tbody>
+                                        </table>
+
+
+
+
+                                        {#{%  if appliance.dataPorts.count > 0 %}#}
+                                                {#<a class="btn btn-success btn-xs" href="/modal/editDataPort?portId={{ appliance.dataPorts.first.getPK }}&deviceId={{ appliance.getPK }} "#}
+                                                   {#role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать порт"></span></a>#}
+                                                {#<a class="btn btn-danger btn-xs" href="/admin/delDataPort?portId={{ appliance.dataPorts.first.getPK }}&deviceId={{ appliance.getPK }} " role="button"#}
+                                                   {#data-action="delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" title="удалить порт"></span></a>#}
+                                        {#{% endif %}#}
                                     </td>
                                 </tr>
                         {% endfor %}
