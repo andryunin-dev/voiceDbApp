@@ -268,19 +268,42 @@ table {
 /*==================
 custom striped table
 ====================*/
-.cust-table-striped tbody:nth-child(odd) {
+/*.cust-table-striped tbody:nth-child(odd) {*/
+    /*background: #d9d9d9;*/
+/*}*/
+/*.cust-table-striped tbody:nth-child(even) {*/
+    /*background: #f4f4f4;*/
+/*}*/
+
+/*.cust-table-striped tbody:hover {*/
+    /*background: #c1c1c1;*/
+/*}*/
+/*.cust-table-striped tbody:hover td[rowspan], tr:hover td {*/
+    /*background: #c1c1c1;*/
+/*}*/
+/*==================
+custom striped table
+====================*/
+/*.cust-table-striped tr:nth-child(odd) table.inner
+.cust-table-striped tr:nth-child(even) table.inner
+*/
+.cust-table-striped > tbody > tr:nth-child(odd),
+.cust-table-striped > tbody > tr:nth-child(odd) table.inner
+ {
     background: #d9d9d9;
 }
-.cust-table-striped tbody:nth-child(even) {
-    background: #f4f4f4;
+.cust-table-striped > tbody > tr:nth-child(even),
+.cust-table-striped > tbody > tr:nth-child(even) table.inner
+ {
+    background: #f4f4f4 !important;
 }
 
-.cust-table-striped tbody:hover {
-    background: #c1c1c1;
-}
-.cust-table-striped tbody:hover td[rowspan], tr:hover td {
-    background: #c1c1c1;
-}
+/*.cust-table-striped > tbody >  tr:hover {*/
+    /*background: #c1c1c1;*/
+/*}*/
+/*.cust-table-striped tr:hover td[rowspan], tr:hover td {*/
+    /*background: #c1c1c1;*/
+/*}*/
 /*===================
 custom styles for cells
 =====================*/

@@ -32,8 +32,8 @@
                     var thHeader = env.header.find("thead tr:eq(0) th");
                     var firstRowBody = env.table.find("tbody tr:eq(0)>td");
                     firstRowBody.each(function (index, element) {
-                        var elemWidth = $(element).width();
-                        $(thHeader[index]).width(elemWidth);
+                        var elemWidth = $(element).innerWidth();
+                        $(thHeader[index]).innerWidth(elemWidth);
                     })
                 } else $(".scroll-th").remove();
             },

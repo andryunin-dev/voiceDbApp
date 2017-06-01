@@ -4,24 +4,22 @@
     <div class="row">
         <main class="devices">
             <div class="col-xs-12">
-                <table id="fixed-header" class="bg-default table table-condensed table-bordered table-hover cust-table-striped no-cut-long-text">
+                <table id="fixed-header" class="bg-default table table-condensed table-bordered cust-table-striped no-cut-long-text">
                     <thead>
 
                     <tr class="text-middle text-center">
-                        <th class="bg-primary col-20">Офис</th>
+                        <th class="bg-primary">Офис</th>
                         <th class="bg-primary col-15">Оборудование</th>
-                        <th class="bg-primary col-10">ПО</th>
+                        <th class="bg-primary col-20">ПО</th>
                         <th class="bg-primary col-10">hostname</th>
-                        <th class="bg-primary col-10">IP</th>
-                        <th class="bg-primary col-10">Port Name</th>
-                        <th class="bg-primary col-15">Description</th>
+                        <th class="bg-primary col-30">IP / Port Name / Description</th>
                         <th class="bg-primary col-10">Действия</th>
                     </tr>
                     </thead>
+                    <tbody>
 
                     {% for office in offices %}
                         {% for appliance in office.appliances %}
-                            <tbody>
                                 <tr>
                                     {#Office#}
                                     <td>{{ office.title }}</td>
@@ -41,28 +39,40 @@
                                     {#Hostname#}
                                     <td>{{ appliance.details.hostname }}</td>
                                     {#IP#}
-                                    <td >
-                                        {% for dataport in appliance.dataPorts %}
-                                            {% if dataport.isManagement %}
-                                            <div class="pull-right">
-                                                <span>{{ dataport.ipAddress }}</span>
-                                                <span ><a href="ssh://{{ appliance.getManagementIp }}" >[ssh]</a></span>
-                                            </div>
-                                            {% endif %}
-                                        {% endfor %}
+                                    <td class="cell-container">
+                                        <table class="inner table table-bordered">
+                                            <tbody>
+                                            {% for dataport in appliance.dataPorts %}
+                                                <tr>
+                                                    <td class="col-40">{{ dataport.ipAddress }}
+                                                        {% if dataport.isManagement %}
+                                                            <div class="pull-right">
+                                                                <span ><a href="ssh://{{ appliance.getManagementIp }}" >[ssh]</a></span>
+                                                            </div>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td class="col-30">{{ dataport.details.portName }}</td>
+                                                    <td class="col-30">{{ dataport.comment }}</td>
+                                                </tr>
+                                            {% endfor %}
+
+                                            </tbody>
+                                        </table>
                                     </td>
+
                                     {#Port Name#}
-                                    <td>
-                                        {% for dataport in appliance.dataPorts %}
-                                            {{ dataport.details.portName }}
-                                        {% endfor %}
-                                    </td>
+                                    {#<td>#}
+                                        {#{% for dataport in appliance.dataPorts %}#}
+                                            {#{{ dataport.details.portName }}#}
+                                        {#{% endfor %}#}
+                                    {#</td>#}
                                     {#Port Comment#}
-                                    <td>
-                                        {% for dataport in appliance.dataPorts %}
-                                            {{ dataport.comment }}
-                                        {% endfor %}
-                                    </td>
+                                    {#<td>#}
+                                        {#{% for dataport in appliance.dataPorts %}#}
+                                            {#{{ dataport.comment }}#}
+                                        {#{% endfor %}#}
+                                    {#</td>#}
+
                                     {#Action#}
                                     <td class="text-center">
                                         {%  if appliance.dataPorts.count > 0 %}
@@ -73,9 +83,9 @@
                                         {% endif %}
                                     </td>
                                 </tr>
-                           </tbody>
                         {% endfor %}
                     {% endfor %}
+                    </tbody>
                 </table>
             </div>
         </main>
