@@ -26,28 +26,49 @@
                             {#Region#}
                             <td>
                                 {{ office.address.city.region.title }}<br>
-                                <div class="pull-right">
-                                    <span ><a href="/admin/devices?reg={{ office.address.city.region.getPK }}" >[hw]</a></span>
-                                    <span ><a href="/admin/portInventory?reg={{ office.address.city.region.getPK }}" >[ip]</a></span>
-                                </div>
+                                <!--{% set applcount = 0 %}-->
+                                <!--{% for city in office.address.city.region.cities %}-->
+                                    <!--{% for address in city.addresses %}-->
+                                        <!--{% set applcount = applcount + address.office.appliances.count %}-->
+                                    <!--{% endfor %}-->
+                                <!--{% endfor %}-->
+                                <!--{% if 0 < applcount %}-->
+                                    <div class="pull-right">
+                                        <!--<span ><a href="/admin/devices?reg={{ office.address.city.region.getPK }}" >[{{ applcount }} hw]</a></span>-->
+                                        <span ><a href="/admin/devices?reg={{ office.address.city.region.getPK }}" >[hw]</a></span>
+                                        <span ><a href="/admin/portInventory?reg={{ office.address.city.region.getPK }}" >[ip]</a></span>
+                                    </div>
+                                <!--{% endif %}-->
                             </td>
                             {#City#}
                             <td>
                                 {{ office.address.city.title }}<br>
-                                <div class="pull-right">
-                                    <span ><a href="/admin/devices?city={{ office.address.city.getPK }}" >[hw]</a></span>
-                                    <span ><a href="/admin/portInventory?city={{ office.address.city.getPK }}" >[ip]</a></span>
-                                </div>
+                                <!--{% set applcount = 0 %}-->
+                                <!--{% for address in office.address.city.addresses %}-->
+                                    <!--{% set applcount = applcount + address.office.appliances.count %}-->
+                                <!--{% endfor %}-->
+                                <!--{% if 0 < applcount %}-->
+                                    <div class="pull-right">
+                                        <!--<span ><a href="/admin/devices?city={{ office.address.city.getPK }}" >[{{ applcount }} hw]</a></span>-->
+                                        <span ><a href="/admin/devices?city={{ office.address.city.getPK }}" >[hw]</a></span>
+                                        <span ><a href="/admin/portInventory?city={{ office.address.city.getPK }}" >[ip]</a></span>
+                                    </div>
+                                <!--{% endif %}-->
+
                             </td>
                             {#Address#}
                             <td>{{ office.address.address }}</td>
                             {#office#}
                             <td>
                                 {{ office.title }}<br>
-                                <div class="pull-right">
-                                    <span ><a href="/admin/devices?loc={{ office.getPK }}" >[hw]</a></span>
-                                    <span ><a href="/admin/portInventory?loc={{ office.getPK }}" >[ip]</a></span>
-                                </div>
+                                <!--{% set applcount = office.appliances.count %}-->
+                                <!--{% if 0 < applcount %}-->
+                                    <div class="pull-right">
+                                        <!--<span ><a href="/admin/devices?loc={{ office.getPK }}" >[{{ applcount }} hw]</a></span>-->
+                                        <span ><a href="/admin/devices?loc={{ office.getPK }}" >[hw]</a></span>
+                                        <span ><a href="/admin/portInventory?loc={{ office.getPK }}" >[ip]</a></span>
+                                    </div>
+                                <!--{% endif %}-->
                             </td>
                             {#Status#}
                             <td>{{ office.status.title }}</td>
