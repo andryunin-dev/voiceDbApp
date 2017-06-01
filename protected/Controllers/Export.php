@@ -79,11 +79,6 @@ class Export extends Controller
         // Autofilter
         $spreadsheet->getActiveSheet()->setAutoFilter('B1:N' . ($n-1));
         $spreadsheet->getActiveSheet()->freezePane('A2');
-        $autoFilter = $spreadsheet->getActiveSheet()->getAutoFilter();
-
-        $aColumnFilter = $autoFilter->getColumn('B');
-        $aColumnFilter->setFilterType(AutoFilter\Column::AUTOFILTER_FILTERTYPE_FILTER);
-        $aColumnFilter->createRule()->setRule(AutoFilter\Column\Rule::AUTOFILTER_COLUMN_RULE_EQUAL,'');
 
         // Rename worksheet
         $spreadsheet->getActiveSheet()->setTitle('Appliances');
