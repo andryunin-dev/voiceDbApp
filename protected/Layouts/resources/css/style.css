@@ -469,4 +469,6 @@ ul.scrollable-menu {
 }
 
 /*Временные стили*/
-
+span.comment {
+    color: #888888;
+}

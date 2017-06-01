@@ -13,7 +13,7 @@
                             <th class="bg-primary {{ width.host }}">hostname</th>
                             <th class="bg-primary {{ width.devices }}">Оборудование<a class="btn btn-success btn-xs btn-custom pull-right" href="/modal/addAppliance" role="button" data-action="get-popup" title="добавить устройство"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></a></th>
                             <th class="bg-primary {{ width.soft }}">ПО</th>
-                            <th class="bg-primary {{ width.module }}">Модуль</th>
+                            <th class="bg-primary {{ width.module }}">Модуль (комментарий)</th>
                             <th class="bg-primary {{ width.comment }}">Комментарий</th>
                             <th class="bg-primary {{ width.action }}">Action</th>
 
@@ -54,12 +54,18 @@
                                         {% for moduleItem in appliance.modules %}
                                             <tr>
                                                 {% if moduleItem.notFound %}
-                                                <td class="item-not-found">{{ moduleItem.module.title }}</td>
+                                                    {% set colorClass = "item-not-found" %}
                                                 {% elseif moduleItem.inUse is defined and false == moduleItem.inUse %}
-                                                <td class="item-not-use">{{ moduleItem.module.title }}</td>
+                                                    {% set colorClass = "item-not-use" %}
                                                 {% else %}
-                                                <td>{{ moduleItem.module.title }}</td>
+                                                    {% set colorClass = "" %}
                                                 {% endif %}
+                                                <td class="{{ colorClass }}">
+                                                    {{ moduleItem.module.title }}
+                                                    {% if not moduleItem.comment is empty %}
+                                                        <span class="comment">({{ moduleItem.comment }})</span>
+                                                    {% endif %}
+                                                </td>
                                             </tr>
                                         {% endfor %}
                                         </tbody>
