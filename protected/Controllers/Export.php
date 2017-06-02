@@ -3,12 +3,12 @@
 namespace App\Controllers;
 
 use App\Models\Appliance;
+use App\Models\DataPort;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Color;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter;
 use T4\Mvc\Controller;
 
 class Export extends Controller
@@ -79,11 +79,6 @@ class Export extends Controller
         // Autofilter
         $spreadsheet->getActiveSheet()->setAutoFilter('B1:N' . ($n-1));
         $spreadsheet->getActiveSheet()->freezePane('A2');
-        $autoFilter = $spreadsheet->getActiveSheet()->getAutoFilter();
-
-        $aColumnFilter = $autoFilter->getColumn('B');
-        $aColumnFilter->setFilterType(AutoFilter\Column::AUTOFILTER_FILTERTYPE_FILTER);
-        $aColumnFilter->createRule()->setRule(AutoFilter\Column\Rule::AUTOFILTER_COLUMN_RULE_EQUAL,'');
 
         // Rename worksheet
         $spreadsheet->getActiveSheet()->setTitle('Appliances');
@@ -108,5 +103,34 @@ class Export extends Controller
         $writer = IOFactory::createWriter($spreadsheet, 'Excel2007');
         $writer->save('php://output');
         exit;
+    }
+
+    public function actionIp()
+    {
+        $dataports = DataPort::findAllByColumn('isManagement', true);
+
+        // Semicolon format
+        $outputData = '';
+        foreach ($dataports as $dataport) {
+            $outputData = $outputData . $dataport->appliance->location->lotusId . ',' . preg_replace('~/.+~', '', $dataport->ipAddress) . ';';
+        }
+        echo $outputData;
+
+        // Array into array format
+//        $outputData = '[';
+//        foreach ($dataports as $dataport) {
+//            $outputData = $outputData . '[' . $dataport->appliance->location->lotusId . ',' . preg_replace('~/.+~', '', $dataport->ipAddress) . '],';
+//        }
+//        echo preg_replace('~,]$~', ']', $outputData . ']');
+
+        // JSON format
+//        $outputData = [];
+//        foreach ($dataports as $dataport) {
+//            $data['LotusId'] = $dataport->appliance->location->lotusId;
+//            $data['ip'] = preg_replace('~/.+~', '', $dataport->ipAddress);
+//            $outputData[] =  $data;
+//        }
+//        echo (json_encode($outputData));
+        die;
     }
 }
