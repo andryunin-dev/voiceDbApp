@@ -112,25 +112,10 @@ class Export extends Controller
         // Semicolon format
         $outputData = '';
         foreach ($dataports as $dataport) {
-            $outputData = $outputData . $dataport->appliance->location->lotusId . ',' . preg_replace('~/.+~', '', $dataport->ipAddress) . ';';
+            $outputData .= $dataport->appliance->details->hostname . ',' . preg_replace('~/.+~', '', $dataport->ipAddress) . ',' . $dataport->appliance->location->lotusId . ';';
         }
         echo $outputData;
 
-        // Array into array format
-//        $outputData = '[';
-//        foreach ($dataports as $dataport) {
-//            $outputData = $outputData . '[' . $dataport->appliance->location->lotusId . ',' . preg_replace('~/.+~', '', $dataport->ipAddress) . '],';
-//        }
-//        echo preg_replace('~,]$~', ']', $outputData . ']');
-
-        // JSON format
-//        $outputData = [];
-//        foreach ($dataports as $dataport) {
-//            $data['LotusId'] = $dataport->appliance->location->lotusId;
-//            $data['ip'] = preg_replace('~/.+~', '', $dataport->ipAddress);
-//            $outputData[] =  $data;
-//        }
-//        echo (json_encode($outputData));
         die;
     }
 }
