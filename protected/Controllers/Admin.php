@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Components\Parser;
+use App\Components\Timer;
 use App\Models\Address;
 use App\Models\Appliance;
 use App\Models\ApplianceType;
@@ -19,7 +20,6 @@ use App\Models\PlatformItem;
 use App\Models\Region;
 use App\Models\Software;
 use App\Models\SoftwareItem;
-use App\Models\User;
 use App\Models\Vendor;
 use App\Models\VPortType;
 use App\Models\Vrf;
@@ -31,6 +31,8 @@ use T4\Mvc\Controller;
 
 class Admin extends Controller
 {
+    use DebugTrait;
+
     public function actionDefault()
     {
 
@@ -914,11 +916,41 @@ class Admin extends Controller
 
     public function actionDevices()
     {
-        $this->data->offices = Office::findAll(['order' => 'title']);
-        $this->data->regions = Region::findAll(['order' => 'title']);
+        $timer = Timer::instance();
+        $timer->fix('start action');
+
+        if (empty($_GET)) {
+            $this->data->offices = Office::findAll(['order' => 'title']);
+            $this->data->regions = Region::findAll(['order' => 'title']);
+        }
+        if (!empty($_GET['reg'])) {
+            $region = Region::findByPK((int) $_GET['reg']);
+            $this->data->regions = (new Collection())->add($region);
+
+            $this->data->offices = new Collection();
+            foreach ($region->cities as $city) {
+                foreach ($city->addresses as $address) {
+                    $this->data->offices->add($address->office);
+                }
+            }
+        }
+        if (!empty($_GET['city'])) {
+            $city = City::findByPK((int) $_GET['city']);
+            $this->data->regions = (new Collection())->add($city->region);
+
+            $this->data->offices = new Collection();
+            foreach ($city->addresses as $address) {
+                $this->data->offices->add($address->office);
+            }
+        }
+        if (!empty($_GET['loc'])) {
+            $office = Office::findByPK((int) $_GET['loc']);
+            $this->data->offices = (new Collection())->add($office);
+            $this->data->regions = $office->address->city->region;
+        }
         $this->data->activeLink->devices = true;
         $this->data->exportUrl = '/export/hardInvExcel';
-        $this->data->userLevel = User::$level;
+        $timer->fix('end action');
     }
 
     public function actionPortTypes()
@@ -1097,6 +1129,17 @@ class Admin extends Controller
                 }
             }
 
+            // если указан management IP - создать data port
+            if (!empty($data->managementIp)) {
+                (new DataPort())->fill([
+                    'ipAddress' => $data->managementIp,
+                    'portType' => DPortType::findByType('Ethernet'),
+                    'appliance' => $appliance,
+                    'vrf' => Vrf::instanceGlobalVrf(),
+                    'isManagement' => true,
+                ])->save();
+            }
+
             Appliance::getDbConnection()->commitTransaction();
         } catch (MultiException $e) {
             Appliance::getDbConnection()->rollbackTransaction();
@@ -1213,7 +1256,26 @@ class Admin extends Controller
 
     public function actionPortInventory()
     {
-        $this->data->offices = Office::findAll(['order' => 'title']);
+        if (empty($_GET)) {
+            $this->data->offices = Office::findAll(['order' => 'title']);
+        }
+        if (!empty($_GET['reg'])) {
+            $this->data->offices = new Collection();
+            foreach ((Region::findByPK((int) $_GET['reg']))->cities as $city) {
+                foreach ($city->addresses as $address) {
+                    $this->data->offices->add($address->office);
+                }
+            }
+        }
+        if (!empty($_GET['city'])) {
+            $this->data->offices = new Collection();
+            foreach ((City::findByPK((int) $_GET['city']))->addresses as $address) {
+                $this->data->offices->add($address->office);
+            }
+        }
+        if (!empty($_GET['loc'])) {
+            $this->data->offices = (new Collection())->add(Office::findByPK((int) $_GET['loc']));
+        }
     }
 
     public function actionAddDataPort($data)
