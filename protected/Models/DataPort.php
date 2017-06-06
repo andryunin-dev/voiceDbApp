@@ -313,4 +313,9 @@ class DataPort extends Model
         $this->isManagement = false;
     }
 
+    public function trimIpAddress()
+    {
+        return preg_replace('~/.+~', '', $this->ipAddress);
+    }
+
 }
