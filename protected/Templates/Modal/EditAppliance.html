@@ -1,12 +1,14 @@
 <div id="edit-appliance" role="dialog" title="Редактирование устройства">
     <div class="container-fluid">
         <div class="row">
+            <div class="panel-body">
+
             <form class="form-horizontal" action="/admin/editAppliance" method="post" role="form">
 
                 {#hidden field with current appliance ID#}
                 <input type="hidden" class="form-control" name="data[currentId]" title="current appliance id" value="{{ current.getPK }}">
                 <div class="form-group">
-                    <label for="id-office" class="col-sm-3 control-label">Офис</label>
+                    <label for="id-office" class="col-sm-2 control-label">Офис</label>
                     <div class="col-sm-9"><select name="data[officeId]" id="id-office" class="form-control">
                             {% for office in offices %}
                                 <option value="{{ office.getPK }}"{% if office.getPK == current.location.getPk %} selected {% endif %}>{{ office.title }}</option>
@@ -16,7 +18,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="id-vendor" class="col-sm-3 control-label">Производитель</label>
+                    <label for="id-vendor" class="col-sm-2 control-label">Производитель</label>
                     <div class="col-sm-9"><select name="data[vendorId]" id="id-vendor" class="form-control">
                             {% for vendor in vendors %}
                                 <option value="{{ vendor.getPK }}"{% if vendor.getPK == current.platform.platform.vendor.getPk %} selected {% endif %}>{{ vendor.title }}</option>
@@ -26,7 +28,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="id-appliance-type" class="col-sm-3 control-label">Тип (роль)</label>
+                    <label for="id-appliance-type" class="col-sm-2 control-label">Тип (роль)</label>
                     <div class="col-sm-5">
                         <select name="data[applianceTypeId]" id="id-appliance-type" class="form-control">
                             {% for applianceType in applianceTypes %}
@@ -37,7 +39,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="id-platform" class="col-sm-3 control-label">Платформа</label>
+                    <label for="id-platform" class="col-sm-2 control-label">Платформа</label>
                     <div class="col-sm-5">
                             <select name="data[platformId]" id="id-platform" class="form-control">
                                 {% for platform in platforms %}
@@ -52,7 +54,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="id-software" class="col-sm-3 control-label">ПО</label>
+                    <label for="id-software" class="col-sm-2 control-label">ПО</label>
                     <div class="col-sm-5">
                         <select name="data[softwareId]" id="id-software" class="form-control">
                             {% for softwareItem in software %}
@@ -67,7 +69,7 @@
                 </div>
 
                 <div class="form-group">
-                    <div class="col-sm-5 col-sm-offset-3">
+                    <div class="col-sm-5 col-sm-offset-2">
                         <div class="input-group">
                             <span class="input-group-addon" id="id-hostname">hostname</span>
                             <input type="text" class="form-control" name="data[hostname]" value="{{ current.details.hostname }}"
@@ -87,9 +89,8 @@
 
 
 
-                <div id="tabs" class="panel-body">
-                    <ul>
-                        <li>
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="active" aria-controls="tabs-1" role="tab">
                             <a href="#tabs-1">
                                 Modules
                                 {% if user.level > 2 %}
@@ -99,7 +100,7 @@
                                 {% endif %}
                             </a>
                         </li>
-                        <li>
+                        <li aria-controls="tabs-2" role="tab">
                             <a href="#tabs-2">
                                 Data ports
                                 {% if user.level > 2 %}
@@ -111,8 +112,8 @@
                         </li>
                     </ul>
 
-                    <div id="tabs-1">
-                        <div class="panel-body js-add-module">
+                    <div class="tab-content cust-tab-content">
+                        <div class="tab-pane active" role="tabpanel" id="tabs-1">
                             {% for currentModuleItem in current.modules %}
                                 <div class="form-group">
                                     <div class="col-xs-4">
@@ -161,46 +162,45 @@
                                 </div>
                             </template>
                         </div>
-                    </div>
 
-                    <div id="tabs-2">
-                        <div class="panel-body js-add-dataport">
+                        <div class="tab-pane" role="tabpanel" id="tabs-2">
+                            <!--<div class="panel-body js-add-dataport">-->
                             {% for dataPort in current.dataPorts %}
-                                <div class="form-group">
-                                    <div class="col-xs-2">
-                                        <select name="data[dataportItem][portTypeId][]" id="id-data-port-type" class="form-control" title="Тип порта">
-                                            {% for portType in portTypes %}
-                                                <option value="{{ portType.getPK }}" {% if portType.getPK == dataPort.portType.getPK %}selected{% endif %}>{{ portType.type }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                    <div class="col-xs-1">
-                                        <input id="id-port-name" type="text" class="form-control" name="data[dataportItem][portName][]" value="{{ dataPort.details.portName }}" placeholder="Name" title="Имя порта">
-                                    </div>
-
-                                    <div class="col-xs-2">
-                                        <input type="hidden" class="form-control" name="data[dataportItem][vrfId][]"  value="{{ dataPort.network.vrf.getPK }}">
-                                        <input id="id-vrf" type="text" class="form-control" name="data[dataportItem][vrfName][]" title="VRF" value="{{ dataPort.network.vrf.name }}" readonly>
-                                    </div>
-
-                                    <div class="col-xs-2">
-                                        <input type="hidden" class="form-control" name="data[dataportItem][portId][]" title="current port id" value="{{ dataPort.getPK }}">
-                                        <input type="text" class="form-control" name="data[dataportItem][ip][]" value="{{ dataPort.ipAddress }}" aria-describedby="ip-addr" placeholder="IP адрес" readonly title="IP адрес">
-                                    </div>
-                                    <div class="col-xs-2">
-                                        <input type="text" class="form-control" name="data[dataportItem][mac][]" value="{{ dataPort.macAddress }}" aria-describedby="mac-addr" placeholder="MAC адрес" title="MAC адрес">
-                                    </div>
-                                    <div class="col-xs-2">
-                                        <input id="id-comment" type="text" class="form-control" name="data[dataportItem][comment][]" value="{{ dataPort.comment }}" placeholder="Комментарий" title="Комментарий">
-                                    </div>
-                                    <div class="col-xs-1 custom-box checkbox-container" >
-                                        {% if (false == dataPort.isManagement) %}
-                                            <input type="hidden" name="data[dataportItem][isManagement][]" value="0">
-                                        {% endif %}
-                                        <input type="checkbox" id="item-id-{{ dataPort.getPK }}" name="data[dataportItem][isManagement][]" value="1" {% if (dataPort.isManagement) %}checked{% endif %}>
-                                        <label class="icon-check-off" for="item-id-{{ dataPort.getPK }}" title="Management IP">Mng</label>
-                                    </div>
+                            <div class="form-group">
+                                <div class="col-xs-2">
+                                    <select name="data[dataportItem][portTypeId][]" id="id-data-port-type" class="form-control" title="Тип порта">
+                                        {% for portType in portTypes %}
+                                        <option value="{{ portType.getPK }}" {% if portType.getPK == dataPort.portType.getPK %}selected{% endif %}>{{ portType.type }}</option>
+                                        {% endfor %}
+                                    </select>
                                 </div>
+                                <div class="col-xs-1">
+                                    <input id="id-port-name" type="text" class="form-control" name="data[dataportItem][portName][]" value="{{ dataPort.details.portName }}" placeholder="Name" title="Имя порта">
+                                </div>
+
+                                <div class="col-xs-2">
+                                    <input type="hidden" class="form-control" name="data[dataportItem][vrfId][]"  value="{{ dataPort.network.vrf.getPK }}">
+                                    <input id="id-vrf" type="text" class="form-control" name="data[dataportItem][vrfName][]" title="VRF" value="{{ dataPort.network.vrf.name }}" readonly>
+                                </div>
+
+                                <div class="col-xs-2">
+                                    <input type="hidden" class="form-control" name="data[dataportItem][portId][]" title="current port id" value="{{ dataPort.getPK }}">
+                                    <input type="text" class="form-control" name="data[dataportItem][ip][]" value="{{ dataPort.ipAddress }}" aria-describedby="ip-addr" placeholder="IP адрес" readonly title="IP адрес">
+                                </div>
+                                <div class="col-xs-2">
+                                    <input type="text" class="form-control" name="data[dataportItem][mac][]" value="{{ dataPort.macAddress }}" aria-describedby="mac-addr" placeholder="MAC адрес" title="MAC адрес">
+                                </div>
+                                <div class="col-xs-2">
+                                    <input id="id-comment" type="text" class="form-control" name="data[dataportItem][comment][]" value="{{ dataPort.comment }}" placeholder="Комментарий" title="Комментарий">
+                                </div>
+                                <div class="col-xs-1 custom-box checkbox-container" >
+                                    {% if (false == dataPort.isManagement) %}
+                                    <input type="hidden" name="data[dataportItem][isManagement][]" value="0">
+                                    {% endif %}
+                                    <input type="checkbox" id="item-id-{{ dataPort.getPK }}" name="data[dataportItem][isManagement][]" value="1" {% if (dataPort.isManagement) %}checked{% endif %}>
+                                    <label class="icon-check-off" for="item-id-{{ dataPort.getPK }}" title="Management IP">Mng</label>
+                                </div>
+                            </div>
                             {% endfor %}
                             {#===========Template for new data port=====================#}
                             <template class="js-add-dataport">
@@ -209,7 +209,7 @@
                                         <select name="data[newDataport][portTypeId][]" id="id-data-port-type" class="form-control" title="Тип порта">
                                             <option value="" selected="selected">---------</option>
                                             {% for portType in portTypes %}
-                                                <option value="{{ portType.getPK }}">{{ portType.type }}</option>
+                                            <option value="{{ portType.getPK }}">{{ portType.type }}</option>
                                             {% endfor %}
                                         </select>
                                     </div>
@@ -220,9 +220,9 @@
                                         <select name="data[newDataport][vrfId][]" id="id-vrf" class="form-control" title="VRF">
                                             <option value="" selected="selected">---------</option>
                                             {% for vrf in vrfs %}
-                                                <option value="{{ vrf.getPK }}" {% if dataPort.network.vrf.getPk == vrf.getPk %} selected {% endif %}>
-                                                    {{ vrf.name }}{% if vrf.getPk != gvrf.getPk %} ({{ vrf.rd }}){% endif %}
-                                                </option>
+                                            <option value="{{ vrf.getPK }}" {% if dataPort.network.vrf.getPk == vrf.getPk %} selected {% endif %}>
+                                                {{ vrf.name }}{% if vrf.getPk != gvrf.getPk %} ({{ vrf.rd }}){% endif %}
+                                            </option>
                                             {% endfor %}
                                         </select>
                                     </div>
@@ -246,9 +246,9 @@
 
                                 </div>
                             </template>
+                            <!--</div>-->
                         </div>
                     </div>
-                </div>
 
 
 
@@ -259,8 +259,11 @@
                 </div>
 
             </form>
+            </div>
+
         </div>
     </div>
+</div>
     <script>
         var APP = APP || {};
         APP.ctrlCheckbox();
@@ -285,15 +288,35 @@
             function (event) {
                 event.preventDefault();
                 //console.log(APP);
-                $(APP.popups[APP.currentPopup.index].popupSelector + " .panel-body.js-add-dataport").prepend($("template.js-add-dataport").clone().html());
+                $(APP.popups[APP.currentPopup.index].popupSelector + " .panel-body.tab-content.tab-pane.js-add-dataport").prepend($("template.js-add-dataport").clone().html());
                 APP.ctrlCheckbox();
             }
         );
+        APP.settings = APP.settings || {};
+        APP.settings.tablist = $('[role=tablist]');
+        APP.settings.panels = $('[role=tabpanel]');
+        APP.settings.activeTab = 'tabs-1';
+        APP.settings.tablist.on(
+            "click",
+            "[role=tab]",
+            function (event) {
+                event.preventDefault();
+                //переключение табов
+                console.log($(this).attr("aria-controls"));
+                APP.settings.tablist.children('[role=tab]').removeClass("active");
+                APP.settings.activeTab = $(this).attr("aria-controls");
+                $(this).addClass("active");
+                //переключение панелей
+                APP.settings.panels.removeClass("active");
+                APP.settings.panels.filter("#" + APP.settings.activeTab).addClass("active");
+            }
+        )
 
-        $(document).ready(function() {
 
-            $("#tabs").tabs();
-
-        });
+        //        $(document).ready(function() {
+//
+//            $("#tabs").tabs();
+//
+//        });
     </script>
 </div>
