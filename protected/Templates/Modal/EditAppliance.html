@@ -2,6 +2,8 @@
     <div class="container-fluid">
         <div class="row">
             <form class="form-horizontal" action="/admin/editAppliance" method="post" role="form">
+
+                {#hidden field with current appliance ID#}
                 <input type="hidden" class="form-control" name="data[currentId]" title="current appliance id" value="{{ current.getPK }}">
                 <div class="form-group">
                     <label for="id-office" class="col-sm-3 control-label">Офис</label>
@@ -78,82 +80,179 @@
                     </div>
                 </div>
 
-                <div class="panel panel-default">
-                    <div class="panel-heading clearfix">
-                        <div class="col-sm-6">
-                            <label for="">Модули</label>
-                        </div>
-                        {% if user.level > 2 %}
-                        <div class="col-sm-1 col-sm-offset-4">
-                            <button class="btn btn-xs btn-success" type="button" data-action="add-module">
-                                добавить
-                            </button>
-                        </div>
-                        {% endif %}
-                    </div>
-                    {#============Модули========================#}
-                    <div class="panel-body js-add-module">
-                    {% for currentModuleItem in current.modules %}
-                        <div class="form-group">
-                            <div class="col-xs-4">
-                                <select name="data[moduleItem][moduleId][]" id="id-module" class="form-control" title="modules list" {% if user.level <= 2 %}disabled{% endif %}>
-                                    {% for module in modules %}
-                                        <option value="{{ module.getPK }}"{% if module.getPK == currentModuleItem.module.getPk %} selected {% endif %}>{{ module.title }}  ({{ module.vendor.title }})</option>
-                                    {% endfor %}
-                                </select>
-                                {% if user.level <= 2 %}
-                                    <input type="hidden" name="data[moduleItem][moduleId][]" value="{{ currentModuleItem.module.getPk }}">
-                                {% endif %}
-                            </div>
-                            <div class="col-xs-3">
-                                <input type="hidden" class="form-control" name="data[moduleItem][id][]" title="current module id" value="{{ currentModuleItem.getPK }}">
-                                <input type="text" class="form-control {% if (currentModuleItem.notFound) %}item-not-found{% elseif (currentModuleItem.inUse is defined and false == currentModuleItem.inUse) %}item-not-use{% endif %}" name="data[moduleItem][sn][]" title="serial number" value="{{ currentModuleItem.serialNumber }}" placeholder="серийный номер">
-                            </div>
-                            <div class="col-xs-3">
-                                <input type="text" class="form-control" name="data[moduleItem][comment][]" title="comment for module" value="{{ currentModuleItem.comment }}" placeholder="комментарий">
-                            </div>
-                            <div class="col-xs-2 custom-box checkbox-container">
-                                {% if (false == currentModuleItem.notFound) %}
-                                    {% if (currentModuleItem.inUse == false) %}
-                                        <input type="hidden" name="data[moduleItem][inUse][]" value="0">
-                                    {% endif %}
-                                    <input type="checkbox" id="item-id-{{ currentModuleItem.getPK }}" name="data[moduleItem][inUse][]" value="1" {% if (currentModuleItem.inUse) %}checked{% endif %}>
-                                    <label class="icon-check-off" for="item-id-{{ currentModuleItem.getPK }}">In use</label>
-                                {% endif %}
-                            </div>
-                        </div>
 
-                    {% endfor %}
-                        {#===========Template for new module=====================#}
-                        <template class="js-add-module">
-                            <div class="form-group">
-                                <div class="col-xs-4">
-                                    <select id="id-module" class="form-control" name="data[newModule][id][]" title="modules list">
-                                        <option value="" selected="selected">---------</option>
-                                        {% for module in modules %}
-                                            <option value="{{ module.getPK }}">{{ module.title }}  ({{ module.vendor.title }})</option>
-                                        {% endfor %}
-                                    </select>
+
+                <div id="tabs" class="panel-body">
+                    <ul>
+                        <li>
+                            <a href="#tabs-1">
+                                Modules
+                                {% if user.level > 2 %}
+                                    <button class="btn btn-xs btn-success" type="button" data-action="add-module">
+                                        <span class="glyphicon glyphicon-plus" aria-hidden="true" title="Добавить модуль"></span>
+                                    </button>
+                                {% endif %}
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#tabs-2">
+                                Data ports
+                                {% if user.level > 2 %}
+                                <button class="btn btn-xs btn-success" type="button" data-action="add-dataport">
+                                    <span class="glyphicon glyphicon-plus" aria-hidden="true" title="Добавить порт"></span>
+                                </button>
+                                {% endif %}
+                            </a>
+                        </li>
+                    </ul>
+
+                    <div id="tabs-1">
+                        <div class="panel-body js-add-module">
+                            {% for currentModuleItem in current.modules %}
+                                <div class="form-group">
+                                    <div class="col-xs-4">
+                                        <input type="hidden" class="form-control" name="data[moduleItem][moduleId][]"  value="{{ currentModuleItem.module.getPK }}">
+                                        <input id="id-module" type="text" class="form-control" name="data[moduleItem][moduleTitle][]" title="Модуль" value="{{ currentModuleItem.module.title }} ({{ currentModuleItem.module.vendor.title }})" readonly>
+                                    </div>
+                                    <div class="col-xs-3">
+                                        <input type="hidden" class="form-control" name="data[moduleItem][id][]" title="current module id" value="{{ currentModuleItem.getPK }}">
+                                        <input type="text" class="form-control {% if (currentModuleItem.notFound) %}item-not-found{% elseif (currentModuleItem.inUse is defined and false == currentModuleItem.inUse) %}item-not-use{% endif %}" name="data[moduleItem][sn][]" title="Серийный номер" value="{{ currentModuleItem.serialNumber }}" placeholder="Серийный номер" readonly>
+                                    </div>
+                                    <div class="col-xs-3">
+                                        <input type="text" class="form-control" name="data[moduleItem][comment][]" title="Комментарий" value="{{ currentModuleItem.comment }}" placeholder="Комментарий">
+                                    </div>
+                                    <div class="col-xs-2 custom-box checkbox-container">
+                                        {% if (false == currentModuleItem.notFound) %}
+                                            {% if (false == currentModuleItem.inUse) %}
+                                                <input type="hidden" name="data[moduleItem][inUse][]" value="0">
+                                            {% endif %}
+                                            <input type="checkbox" id="item-id-{{ currentModuleItem.getPK }}" name="data[moduleItem][inUse][]" value="1" {% if (currentModuleItem.inUse) %}checked{% endif %}>
+                                            <label class="icon-check-off" for="item-id-{{ currentModuleItem.getPK }}">In use</label>
+                                        {% endif %}
+                                    </div>
                                 </div>
-                                <div class="col-xs-3">
-                                    <input type="text" class="form-control" name="data[newModule][sn][]" placeholder="Серийный номер">
+                            {% endfor %}
+                            {#===========Template for new module=====================#}
+                            <template class="js-add-module">
+                                <div class="form-group">
+                                    <div class="col-xs-4">
+                                        <select id="id-module" class="form-control" name="data[newModule][id][]" title="Модуль">
+                                            <option value="" selected="selected">---------</option>
+                                            {% for module in modules %}
+                                                <option value="{{ module.getPK }}">{{ module.title }}  ({{ module.vendor.title }})</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-xs-3">
+                                        <input type="text" class="form-control" name="data[newModule][sn][]" placeholder="Серийный номер">
+                                    </div>
+                                    <div class="col-xs-3">
+                                        <input type="text" class="form-control" name="data[newModule][comment][]" placeholder="Комментарий">
+                                    </div>
+                                    <div class="col-xs-2 custom-box checkbox-container">
+                                        <input type="checkbox" id="item-id-{{ currentModuleItem.getPK }}" name="data[newModule][inUse][]" value="checked" checked>
+                                        <label class="icon-check-off" for="item-id-{{ currentModuleItem.getPK }}">In use</label>
+                                    </div>
                                 </div>
-                                <div class="col-xs-3">
-                                    <input type="text" class="form-control" name="data[newModule][comment][]" placeholder="Комментарий">
+                            </template>
+                        </div>
+                    </div>
+
+                    <div id="tabs-2">
+                        <div class="panel-body js-add-dataport">
+                            {% for dataPort in current.dataPorts %}
+                                <div class="form-group">
+                                    <div class="col-xs-2">
+                                        <select name="data[dataportItem][portTypeId][]" id="id-data-port-type" class="form-control" title="Тип порта">
+                                            {% for portType in portTypes %}
+                                                <option value="{{ portType.getPK }}" {% if portType.getPK == dataPort.portType.getPK %}selected{% endif %}>{{ portType.type }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-xs-1">
+                                        <input id="id-port-name" type="text" class="form-control" name="data[dataportItem][portName][]" value="{{ dataPort.details.portName }}" placeholder="Name" title="Имя порта">
+                                    </div>
+
+                                    <div class="col-xs-2">
+                                        <input type="hidden" class="form-control" name="data[dataportItem][vrfId][]"  value="{{ dataPort.network.vrf.getPK }}">
+                                        <input id="id-vrf" type="text" class="form-control" name="data[dataportItem][vrfName][]" title="VRF" value="{{ dataPort.network.vrf.name }}" readonly>
+                                    </div>
+
+                                    <div class="col-xs-2">
+                                        <input type="hidden" class="form-control" name="data[dataportItem][portId][]" title="current port id" value="{{ dataPort.getPK }}">
+                                        <input type="text" class="form-control" name="data[dataportItem][ip][]" value="{{ dataPort.ipAddress }}" aria-describedby="ip-addr" placeholder="IP адрес" readonly title="IP адрес">
+                                    </div>
+                                    <div class="col-xs-2">
+                                        <input type="text" class="form-control" name="data[dataportItem][mac][]" value="{{ dataPort.macAddress }}" aria-describedby="mac-addr" placeholder="MAC адрес" title="MAC адрес">
+                                    </div>
+                                    <div class="col-xs-2">
+                                        <input id="id-comment" type="text" class="form-control" name="data[dataportItem][comment][]" value="{{ dataPort.comment }}" placeholder="Комментарий" title="Комментарий">
+                                    </div>
+                                    <div class="col-xs-1 custom-box checkbox-container" >
+                                        {% if (false == dataPort.isManagement) %}
+                                            <input type="hidden" name="data[dataportItem][isManagement][]" value="0">
+                                        {% endif %}
+                                        <input type="checkbox" id="item-id-{{ dataPort.getPK }}" name="data[dataportItem][isManagement][]" value="1" {% if (dataPort.isManagement) %}checked{% endif %}>
+                                        <label class="icon-check-off" for="item-id-{{ dataPort.getPK }}" title="Management IP">Mng</label>
+                                    </div>
                                 </div>
-                                <div class="col-xs-2 custom-box checkbox-container">
-                                    <input type="checkbox" id="item-id-{{ currentModuleItem.getPK }}" name="data[newModule][inUse][]" value="checked" checked>
-                                    <label class="icon-check-off" for="item-id-{{ currentModuleItem.getPK }}">In use</label>
+                            {% endfor %}
+                            {#===========Template for new data port=====================#}
+                            <template class="js-add-dataport">
+                                <div class="form-group">
+                                    <div class="col-xs-2">
+                                        <select name="data[newDataport][portTypeId][]" id="id-data-port-type" class="form-control" title="Тип порта">
+                                            <option value="" selected="selected">---------</option>
+                                            {% for portType in portTypes %}
+                                                <option value="{{ portType.getPK }}">{{ portType.type }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-xs-1">
+                                        <input id="id-port-name" type="text" class="form-control" name="data[newDataport][portName][]" placeholder="Name" title="Имя порта">
+                                    </div>
+                                    <div class="col-xs-2">
+                                        <select name="data[newDataport][vrfId][]" id="id-vrf" class="form-control" title="VRF">
+                                            <option value="" selected="selected">---------</option>
+                                            {% for vrf in vrfs %}
+                                                <option value="{{ vrf.getPK }}" {% if dataPort.network.vrf.getPk == vrf.getPk %} selected {% endif %}>
+                                                    {{ vrf.name }}{% if vrf.getPk != gvrf.getPk %} ({{ vrf.rd }}){% endif %}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-xs-2">
+                                        <input type="hidden" class="form-control" name="data[newDataport][portId][]">
+                                        <input type="text" class="form-control" name="data[newDataport][ip][]" aria-describedby="ip-addr" placeholder="IP адрес" title="IP адрес">
+                                    </div>
+                                    <div class="col-xs-2">
+                                        <input type="text" class="form-control" name="data[newDataport][mac][]" aria-describedby="mac-addr" placeholder="MAC адрес" title="MAC адрес">
+                                    </div>
+                                    <div class="col-xs-2">
+                                        <input id="id-comment" type="text" class="form-control" name="data[newDataport][comment][]" placeholder="Комментарий" title="Комментарий">
+                                    </div>
+
+
+                                    <div class="col-xs-1 custom-box checkbox-container" >
+                                        <input type="checkbox" id="item-id-isManagement" name="data[newDataport][isManagement][]" value="1">
+                                        <label class="icon-check-off" for="item-id-isManagement" title="Management IP">Mng</label>
+                                    </div>
+
+
                                 </div>
-                            </div>
-                        </template>
+                            </template>
+                        </div>
                     </div>
                 </div>
+
+
+
 
                 <div class="col-sm-offset-3 col-sm-8">
                     <button class="btn btn-success" type="submit">Сохранить</button>
                     <button class="btn btn-danger" type="button" role="button" data-action="close">Отмена</button>
                 </div>
+
             </form>
         </div>
     </div>
@@ -164,7 +263,7 @@
         APP.popups.push({
             path: "{{ path }}",
             popupSelector: "#edit-appliance",
-            width: "900"
+            width: "95%"
         });
         $("button[data-action='add-module']").on(
                 "click",
@@ -174,8 +273,22 @@
                     $(APP.popups[APP.currentPopup.index].popupSelector + " .panel-body.js-add-module").prepend($("template.js-add-module").clone().html());
                     APP.ctrlCheckbox();
                 }
-
         );
 
+        $("button[data-action='add-dataport']").on(
+            "click",
+            function (event) {
+                event.preventDefault();
+                //console.log(APP);
+                $(APP.popups[APP.currentPopup.index].popupSelector + " .panel-body.js-add-dataport").prepend($("template.js-add-dataport").clone().html());
+                APP.ctrlCheckbox();
+            }
+        );
+
+        $(document).ready(function() {
+
+            $("#tabs").tabs();
+
+        });
     </script>
 </div>

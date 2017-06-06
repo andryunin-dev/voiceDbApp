@@ -1239,6 +1239,64 @@ class Admin extends Controller
                 }
             }
 
+            // edit data ports
+            if (!empty($data->dataportItem->portId)) {
+                foreach ($data->dataportItem->portId as $key => $value) {
+
+                    $vrf = Vrf::findByPK($data->dataportItem->vrfId->$key);
+                    $currentDataPort = DataPort::findByIpVrf($data->dataportItem->ip->$key, $vrf);
+
+                    $currentDataPort->fill([
+                        'appliance' => $currentAppliance,
+                        'vrf' => $vrf,
+                        'portType' => DPortType::findByPK($data->dataportItem->portTypeId->$key),
+                        'isManagement' => $data->dataportItem->isManagement->$key,
+                        'macAddress' => $data->dataportItem->mac->$key,
+                        'comment' => $data->dataportItem->comment->$key,
+                        'details' => [
+                            'portName' => $data->dataportItem->portName->$key
+                        ],
+                    ])->save();
+                }
+            }
+
+
+            // save new data ports
+            if (!empty($data->newDataport->portId)) {
+                foreach ($data->newDataport->portId as $key => $value) {
+                    if (!is_numeric($data->newDataport->vrfId->$key)) {
+                        throw new Exception('VRF не выбран');
+                    }
+                    if (!is_numeric($data->newDataport->portTypeId->$key)) {
+                        throw new Exception('Тип порта не выбран');
+                    }
+
+                    $vrf = Vrf::findByPK($data->newDataport->vrfId->$key);
+                    $result = DataPort::findByIpVrf($data->newDataport->ip->$key, $vrf);
+
+                    if ($result instanceof DataPort) {
+                        throw new Exception('Data port: vrf=' . $vrf->name . ' ip=' . $data->newDataport->ip->$key. ' alredy exist');
+                    }
+
+                    (new DataPort())->fill([
+                        'ipAddress' => $data->newDataport->ip->$key,
+                        'appliance' => $currentAppliance,
+                        'vrf' => $vrf,
+                        'portType' => DPortType::findByPK($data->newDataport->portTypeId->$key),
+                        'isManagement' => $data->newDataport->isManagement->$key,
+                        'macAddress' => $data->newDataport->mac->$key,
+                        'comment' => $data->newDataport->comment->$key,
+                        'details' => [
+                            'portName' => $data->newDataport->portName->$key
+                        ],
+                    ])->save();
+                }
+            }
+
+
+
+
+
             Appliance::getDbConnection()->commitTransaction();
         } catch (MultiException $e) {
             Appliance::getDbConnection()->rollbackTransaction();
