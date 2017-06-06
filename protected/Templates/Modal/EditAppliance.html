@@ -80,7 +80,7 @@
                             <span class="input-group-addon" id="id-mngmnt">management IP</span>
                             {% if current.getManagementIpPort != false %}
                                 <input type="hidden" name="data[managementIpId]" value="{{ current.getManagementIpPort.getPk }}">
-                                <input type="text" class="form-control" name="data[managementIp]" value="{{ current.getManagementIpPort.ipAddress }}" title="management IP">
+                                <input type="text" class="form-control" name="data[managementIp]" value="{{ current.getManagementIp }}" title="management IP">
                             {% else %}
                                 <input type="text" class="form-control" name="data[managementIp]" value="" title="management IP">
                             {% endif %}
