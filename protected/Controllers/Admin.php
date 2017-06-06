@@ -1066,7 +1066,6 @@ class Admin extends Controller
                 throw new Exception('Офис не выбран');
             }
             if (!is_numeric($data->vendorId)) {
-                throw new Exception('Производитель не выбран');
             }
             if (!is_numeric($data->applianceTypeId)) {
                 throw new Exception('Тип оборудования не выбран');
@@ -1196,6 +1195,27 @@ class Admin extends Controller
                     ]
                 ])
                 ->save();
+            if (!empty($data->managementIp)) {
+                if (isset($data->managementIpId)) {
+                    $currentDataPort = DataPort::findByPK($data->managementIpId);
+                    $currentDataPort
+                        ->fill([
+                            'vrf' => $currentDataPort->network->vrf,
+                            'ipAddress' => $data->managementIp,
+                        ])
+                        ->save();
+                } else {
+                    (new DataPort())
+                        ->fill([
+                            'vrf' => Vrf::instanceGlobalVrf(),
+                            'appliance' => $currentAppliance,
+                            'ipAddress' => $data->managementIp,
+                            'isManagement' => true,
+                            'portType' => DPortType::getEmpty()
+                        ])
+                        ->save();
+                }
+            }
 
             //если appliance сохранился без ошибок - сохраняем существующие модули к нему
             if (!empty($data->moduleItem->id)) {
@@ -1348,8 +1368,8 @@ class Admin extends Controller
                         'portName' => $data->portName
                     ],
                     'isManagement' => $data->isManagement
-                ])
-                ->save();
+                ]);
+            $currentDataPort->save();
 
             DataPort::getDbConnection()->commitTransaction();
         } catch (MultiException $e) {

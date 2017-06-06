@@ -310,4 +310,5 @@ class DataPort extends Model
     {
         $this->isManagement = false;
     }
+
 }

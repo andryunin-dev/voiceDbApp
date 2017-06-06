@@ -32,9 +32,9 @@ class Platform extends Model
 
     public function validateTitle($val)
     {
-        if (empty(trim($val))) {
-            throw new Exception('Пустое название платформы');
-        }
+//        if (empty(trim($val))) {
+//            throw new Exception('Пустое название платформы');
+//        }
 
         return true;
     }
@@ -69,5 +69,9 @@ class Platform extends Model
                 return $title == $platform->title;
             }
         )->first();
+    }
+    public static function getEmpty()
+    {
+        return self::findByColumn('title', '');
     }
 }
