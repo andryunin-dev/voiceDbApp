@@ -446,4 +446,6 @@ ul.scrollable-menu {
 }
 
 /*Временные стили*/
-
+.cust-tab-content {
+    padding-top:20px;
+}
