@@ -113,4 +113,18 @@ class Appliance extends Model
 
         return false;
     }
+    public function getManagementIpPort()
+    {
+        $dataPort = $this->dataPorts->filter(
+            function($dataPort) {
+                return true === $dataPort->isManagement;
+            }
+        )->first();
+
+        if ($dataPort instanceof DataPort) {
+            return $dataPort;
+        }
+
+        return false;
+    }
 }
