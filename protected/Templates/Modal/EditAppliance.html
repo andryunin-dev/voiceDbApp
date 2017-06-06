@@ -3,100 +3,98 @@
         <div class="row">
             <div class="panel-body">
 
-            <form class="form-horizontal" action="/admin/editAppliance" method="post" role="form">
+                <form class="form-horizontal" action="/admin/editAppliance" method="post" role="form">
 
-                {#hidden field with current appliance ID#}
-                <input type="hidden" class="form-control" name="data[currentId]" title="current appliance id" value="{{ current.getPK }}">
-                <div class="form-group">
-                    <label for="id-office" class="col-sm-2 control-label">Офис</label>
-                    <div class="col-sm-9"><select name="data[officeId]" id="id-office" class="form-control">
-                            {% for office in offices %}
-                                <option value="{{ office.getPK }}"{% if office.getPK == current.location.getPk %} selected {% endif %}>{{ office.title }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="id-vendor" class="col-sm-2 control-label">Производитель</label>
-                    <div class="col-sm-9"><select name="data[vendorId]" id="id-vendor" class="form-control">
-                            {% for vendor in vendors %}
-                                <option value="{{ vendor.getPK }}"{% if vendor.getPK == current.platform.platform.vendor.getPk %} selected {% endif %}>{{ vendor.title }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="id-appliance-type" class="col-sm-2 control-label">Тип (роль)</label>
-                    <div class="col-sm-5">
-                        <select name="data[applianceTypeId]" id="id-appliance-type" class="form-control">
-                            {% for applianceType in applianceTypes %}
-                                <option value="{{ applianceType.getPK }}"{% if applianceType.getPK == current.type.getPk %} selected {% endif %}>{{ applianceType }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="id-platform" class="col-sm-2 control-label">Платформа</label>
-                    <div class="col-sm-5">
-                            <select name="data[platformId]" id="id-platform" class="form-control">
-                                {% for platform in platforms %}
-                                    <option value="{{ platform.getPK }}"{% if platform.getPK == current.platform.platform.getPk %} selected {% endif %}>{{ platform.title }}</option>
+                    {#hidden field with current appliance ID#}
+                    <input type="hidden" class="form-control" name="data[currentId]" title="current appliance id" value="{{ current.getPK }}">
+                    <div class="form-group">
+                        <label for="id-office" class="col-sm-2 control-label">Офис</label>
+                        <div class="col-sm-9"><select name="data[officeId]" id="id-office" class="form-control">
+                                {% for office in offices %}
+                                    <option value="{{ office.getPK }}"{% if office.getPK == current.location.getPk %} selected {% endif %}>{{ office.title }}</option>
                                 {% endfor %}
                             </select>
-                    </div>
-                    <div class="col-sm-4 input-group">
-                        <span class="input-group-addon" id="hw-sn">S/N</span>
-                        <input type="text" class="form-control" name="data[platformSn]" value="{{ current.platform.serialNumber }}" aria-describedby="hw-sn">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="id-software" class="col-sm-2 control-label">ПО</label>
-                    <div class="col-sm-5">
-                        <select name="data[softwareId]" id="id-software" class="form-control">
-                            {% for softwareItem in software %}
-                                <option value="{{ softwareItem.getPK }}"{% if softwareItem.getPK == current.software.software.getPk %} selected {% endif %}>{{ softwareItem.title }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col-sm-4 input-group">
-                        <span class="input-group-addon" id="sw-ver">ver.</span>
-                        <input type="text" class="form-control" name="data[softwareVersion]" value="{{ current.software.version }}" aria-describedby="sw-ver">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <div class="col-sm-5 col-sm-offset-2">
-                        <div class="input-group">
-                            <span class="input-group-addon" id="id-hostname">hostname</span>
-                            <input type="text" class="form-control" name="data[hostname]" value="{{ current.details.hostname }}"
-                                   aria-describedby="hostname">
                         </div>
                     </div>
-                    <div class="col-sm-4 input-group">
-                        <span class="input-group-addon" id="id-mngmnt">management IP</span>
-                        {% if current.getManagementIpPort != false %}
-                            <input type="hidden" name="data[managementIpId]" value="{{ current.getManagementIpPort.getPk }}">
-                            <input type="text" class="form-control" name="data[managementIp]" value="{{ current.getManagementIpPort.ipAddress }}" title="management IP">
-                        {% else %}
-                            <input type="text" class="form-control" name="data[managementIp]" value="" title="management IP">
-                        {% endif %}
+
+                    <div class="form-group">
+                        <label for="id-vendor" class="col-sm-2 control-label">Производитель</label>
+                        <div class="col-sm-9"><select name="data[vendorId]" id="id-vendor" class="form-control">
+                                {% for vendor in vendors %}
+                                    <option value="{{ vendor.getPK }}"{% if vendor.getPK == current.platform.platform.vendor.getPk %} selected {% endif %}>{{ vendor.title }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
                     </div>
-                </div>
 
+                    <div class="form-group">
+                        <label for="id-appliance-type" class="col-sm-2 control-label">Тип (роль)</label>
+                        <div class="col-sm-5">
+                            <select name="data[applianceTypeId]" id="id-appliance-type" class="form-control">
+                                {% for applianceType in applianceTypes %}
+                                    <option value="{{ applianceType.getPK }}"{% if applianceType.getPK == current.type.getPk %} selected {% endif %}>{{ applianceType }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
 
+                    <div class="form-group">
+                        <label for="id-platform" class="col-sm-2 control-label">Платформа</label>
+                        <div class="col-sm-5">
+                                <select name="data[platformId]" id="id-platform" class="form-control">
+                                    {% for platform in platforms %}
+                                        <option value="{{ platform.getPK }}"{% if platform.getPK == current.platform.platform.getPk %} selected {% endif %}>{{ platform.title }}</option>
+                                    {% endfor %}
+                                </select>
+                        </div>
+                        <div class="col-sm-4 input-group">
+                            <span class="input-group-addon" id="hw-sn">S/N</span>
+                            <input type="text" class="form-control" name="data[platformSn]" value="{{ current.platform.serialNumber }}" aria-describedby="hw-sn">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="id-software" class="col-sm-2 control-label">ПО</label>
+                        <div class="col-sm-5">
+                            <select name="data[softwareId]" id="id-software" class="form-control">
+                                {% for softwareItem in software %}
+                                    <option value="{{ softwareItem.getPK }}"{% if softwareItem.getPK == current.software.software.getPk %} selected {% endif %}>{{ softwareItem.title }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-sm-4 input-group">
+                            <span class="input-group-addon" id="sw-ver">ver.</span>
+                            <input type="text" class="form-control" name="data[softwareVersion]" value="{{ current.software.version }}" aria-describedby="sw-ver">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-sm-5 col-sm-offset-2">
+                            <div class="input-group">
+                                <span class="input-group-addon" id="id-hostname">hostname</span>
+                                <input type="text" class="form-control" name="data[hostname]" value="{{ current.details.hostname }}"
+                                       aria-describedby="hostname">
+                            </div>
+                        </div>
+                        <div class="col-sm-4 input-group">
+                            <span class="input-group-addon" id="id-mngmnt">management IP</span>
+                            {% if current.getManagementIpPort != false %}
+                                <input type="hidden" name="data[managementIpId]" value="{{ current.getManagementIpPort.getPk }}">
+                                <input type="text" class="form-control" name="data[managementIp]" value="{{ current.getManagementIpPort.ipAddress }}" title="management IP">
+                            {% else %}
+                                <input type="text" class="form-control" name="data[managementIp]" value="" title="management IP">
+                            {% endif %}
+                        </div>
+                    </div>
 
                     <ul class="nav nav-tabs" role="tablist">
                         <li class="active" aria-controls="tabs-1" role="tab">
                             <a href="#tabs-1">
                                 Modules
                                 {% if user.level > 2 %}
-                                    <button class="btn btn-xs btn-success" type="button" data-action="add-module">
-                                        <span class="glyphicon glyphicon-plus" aria-hidden="true" title="Добавить модуль"></span>
-                                    </button>
+                                <button class="btn btn-xs btn-success" type="button" data-action="add-module">
+                                    <span class="glyphicon glyphicon-plus" aria-hidden="true" title="Добавить модуль"></span>
+                                </button>
                                 {% endif %}
                             </a>
                         </li>
@@ -112,31 +110,33 @@
                         </li>
                     </ul>
 
+
                     <div class="tab-content cust-tab-content">
+
                         <div class="tab-pane active" role="tabpanel" id="tabs-1">
                             {% for currentModuleItem in current.modules %}
-                                <div class="form-group">
-                                    <div class="col-xs-4">
-                                        <input type="hidden" class="form-control" name="data[moduleItem][moduleId][]"  value="{{ currentModuleItem.module.getPK }}">
-                                        <input id="id-module" type="text" class="form-control" name="data[moduleItem][moduleTitle][]" title="Модуль" value="{{ currentModuleItem.module.title }} ({{ currentModuleItem.module.vendor.title }})" readonly>
-                                    </div>
-                                    <div class="col-xs-3">
-                                        <input type="hidden" class="form-control" name="data[moduleItem][id][]" title="current module id" value="{{ currentModuleItem.getPK }}">
-                                        <input type="text" class="form-control {% if (currentModuleItem.notFound) %}item-not-found{% elseif (currentModuleItem.inUse is defined and false == currentModuleItem.inUse) %}item-not-use{% endif %}" name="data[moduleItem][sn][]" title="Серийный номер" value="{{ currentModuleItem.serialNumber }}" placeholder="Серийный номер" readonly>
-                                    </div>
-                                    <div class="col-xs-3">
-                                        <input type="text" class="form-control" name="data[moduleItem][comment][]" title="Комментарий" value="{{ currentModuleItem.comment }}" placeholder="Комментарий">
-                                    </div>
-                                    <div class="col-xs-2 custom-box checkbox-container">
-                                        {% if (false == currentModuleItem.notFound) %}
-                                            {% if (false == currentModuleItem.inUse) %}
-                                                <input type="hidden" name="data[moduleItem][inUse][]" value="0">
-                                            {% endif %}
-                                            <input type="checkbox" id="item-id-{{ currentModuleItem.getPK }}" name="data[moduleItem][inUse][]" value="1" {% if (currentModuleItem.inUse) %}checked{% endif %}>
-                                            <label class="icon-check-off" for="item-id-{{ currentModuleItem.getPK }}">In use</label>
-                                        {% endif %}
-                                    </div>
+                            <div class="form-group">
+                                <div class="col-xs-4">
+                                    <input type="hidden" class="form-control" name="data[moduleItem][moduleId][]"  value="{{ currentModuleItem.module.getPK }}">
+                                    <input id="id-module" type="text" class="form-control" name="data[moduleItem][moduleTitle][]" title="Модуль" value="{{ currentModuleItem.module.title }} ({{ currentModuleItem.module.vendor.title }})" readonly>
                                 </div>
+                                <div class="col-xs-3">
+                                    <input type="hidden" class="form-control" name="data[moduleItem][id][]" title="current module id" value="{{ currentModuleItem.getPK }}">
+                                    <input type="text" class="form-control {% if (currentModuleItem.notFound) %}item-not-found{% elseif (currentModuleItem.inUse is defined and false == currentModuleItem.inUse) %}item-not-use{% endif %}" name="data[moduleItem][sn][]" title="Серийный номер" value="{{ currentModuleItem.serialNumber }}" placeholder="Серийный номер" readonly>
+                                </div>
+                                <div class="col-xs-3">
+                                    <input type="text" class="form-control" name="data[moduleItem][comment][]" title="Комментарий" value="{{ currentModuleItem.comment }}" placeholder="Комментарий">
+                                </div>
+                                <div class="col-xs-2 custom-box checkbox-container">
+                                    {% if (false == currentModuleItem.notFound) %}
+                                    {% if (false == currentModuleItem.inUse) %}
+                                    <input type="hidden" name="data[moduleItem][inUse][]" value="0">
+                                    {% endif %}
+                                    <input type="checkbox" id="item-id-{{ currentModuleItem.getPK }}" name="data[moduleItem][inUse][]" value="1" {% if (currentModuleItem.inUse) %}checked{% endif %}>
+                                    <label class="icon-check-off" for="item-id-{{ currentModuleItem.getPK }}">In use</label>
+                                    {% endif %}
+                                </div>
+                            </div>
                             {% endfor %}
                             {#===========Template for new module=====================#}
                             <template class="js-add-module">
@@ -145,7 +145,7 @@
                                         <select id="id-module" class="form-control" name="data[newModule][id][]" title="Модуль">
                                             <option value="" selected="selected">---------</option>
                                             {% for module in modules %}
-                                                <option value="{{ module.getPK }}">{{ module.title }}  ({{ module.vendor.title }})</option>
+                                            <option value="{{ module.getPK }}">{{ module.title }}  ({{ module.vendor.title }})</option>
                                             {% endfor %}
                                         </select>
                                     </div>
@@ -164,7 +164,6 @@
                         </div>
 
                         <div class="tab-pane" role="tabpanel" id="tabs-2">
-                            <!--<div class="panel-body js-add-dataport">-->
                             {% for dataPort in current.dataPorts %}
                             <div class="form-group">
                                 <div class="col-xs-2">
@@ -246,19 +245,15 @@
 
                                 </div>
                             </template>
-                            <!--</div>-->
                         </div>
                     </div>
 
+                    <div class="col-sm-offset-3 col-sm-8">
+                        <button class="btn btn-success" type="submit">Сохранить</button>
+                        <button class="btn btn-danger" type="button" role="button" data-action="close">Отмена</button>
+                    </div>
 
-
-
-                <div class="col-sm-offset-3 col-sm-8">
-                    <button class="btn btn-success" type="submit">Сохранить</button>
-                    <button class="btn btn-danger" type="button" role="button" data-action="close">Отмена</button>
-                </div>
-
-            </form>
+                </form>
             </div>
 
         </div>
@@ -278,7 +273,7 @@
                 function (event) {
                     event.preventDefault();
                     //console.log(APP);
-                    $(APP.popups[APP.currentPopup.index].popupSelector + " .panel-body.js-add-module").prepend($("template.js-add-module").clone().html());
+                    $(APP.popups[APP.currentPopup.index].popupSelector + " #tabs-1").prepend($("template.js-add-module").clone().html());
                     APP.ctrlCheckbox();
                 }
         );
@@ -288,7 +283,7 @@
             function (event) {
                 event.preventDefault();
                 //console.log(APP);
-                $(APP.popups[APP.currentPopup.index].popupSelector + " .panel-body.tab-content.tab-pane.js-add-dataport").prepend($("template.js-add-dataport").clone().html());
+                $(APP.popups[APP.currentPopup.index].popupSelector + " #tabs-2").prepend($("template.js-add-dataport").clone().html());
                 APP.ctrlCheckbox();
             }
         );
