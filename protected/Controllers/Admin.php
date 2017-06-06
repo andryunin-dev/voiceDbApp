@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Components\Ip;
 use App\Components\Parser;
 use App\Components\Timer;
 use App\Models\Address;
@@ -1062,20 +1063,20 @@ class Admin extends Controller
         try {
             Appliance::getDbConnection()->beginTransaction();
 
-            if (!is_numeric($data->officeId)) {
-                throw new Exception('Офис не выбран');
-            }
-            if (!is_numeric($data->vendorId)) {
-            }
-            if (!is_numeric($data->applianceTypeId)) {
-                throw new Exception('Тип оборудования не выбран');
-            }
-            if (!is_numeric($data->platformId)) {
-                throw new Exception('Платформа не выбрана');
-            }
-            if (!is_numeric($data->softwareId)) {
-                throw new Exception('ПО не выбрано');
-            }
+//            if (!is_numeric($data->officeId)) {
+//                throw new Exception('Офис не выбран');
+//            }
+//            if (!is_numeric($data->vendorId)) {
+//            }
+//            if (!is_numeric($data->applianceTypeId)) {
+//                throw new Exception('Тип оборудования не выбран');
+//            }
+//            if (!is_numeric($data->platformId)) {
+//                throw new Exception('Платформа не выбрана');
+//            }
+//            if (!is_numeric($data->softwareId)) {
+//                throw new Exception('ПО не выбрано');
+//            }
             $office = Office::findByPK($data->officeId);
             $vendor = Vendor::findByPK($data->vendorId);
             $applianceType = ApplianceType::findByPK($data->applianceTypeId);
@@ -1131,7 +1132,7 @@ class Admin extends Controller
             // если указан management IP - создать data port
             if (!empty($data->managementIp)) {
                 (new DataPort())->fill([
-                    'ipAddress' => $data->managementIp,
+                    'ipAddress' => (new Ip($data->managementIp, 32))->cidrAddress,
                     'portType' => DPortType::findByType('Ethernet'),
                     'appliance' => $appliance,
                     'vrf' => Vrf::instanceGlobalVrf(),
@@ -1201,7 +1202,7 @@ class Admin extends Controller
                     $currentDataPort
                         ->fill([
                             'vrf' => $currentDataPort->network->vrf,
-                            'ipAddress' => $data->managementIp,
+                            'ipAddress' => (new Ip($data->managementIp, 32))->cidrAddress,
                         ])
                         ->save();
                 } else {
@@ -1209,7 +1210,7 @@ class Admin extends Controller
                         ->fill([
                             'vrf' => Vrf::instanceGlobalVrf(),
                             'appliance' => $currentAppliance,
-                            'ipAddress' => $data->managementIp,
+                            'ipAddress' => (new Ip($data->managementIp, 32))->cidrAddress,
                             'isManagement' => true,
                             'portType' => DPortType::getEmpty()
                         ])
