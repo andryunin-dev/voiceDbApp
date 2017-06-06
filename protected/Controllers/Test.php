@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Components\Ip;
 use App\Components\Timer;
 use App\Models\Appliance;
+use App\Models\DPortType;
 use App\Models\ModuleItem;
 use App\Models\Network;
 use App\Models\Office;
@@ -21,6 +22,9 @@ class Test extends Controller
 
     public function actionDefault()
     {
+//        var_dump(DPortType::findAll());die;
+        var_dump(DPortType::getEmpty());die;
+        var_dump(DPortType::findByColumn('type',''));die;
         /**
          * @var ModuleItem $res
          */

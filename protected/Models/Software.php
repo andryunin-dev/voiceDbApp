@@ -32,9 +32,9 @@ class Software extends Model
 
     public function validateTitle($val)
     {
-        if (empty(trim($val))) {
-            throw new Exception('Пустое название ПО');
-        }
+//        if (empty(trim($val))) {
+//            throw new Exception('Пустое название ПО');
+//        }
 
         return true;
     }
@@ -69,5 +69,10 @@ class Software extends Model
                 return $title == $software->title;
             }
         )->first();
+    }
+
+    public static function getEmpty()
+    {
+        return self::findByColumn('title', '');
     }
 }
