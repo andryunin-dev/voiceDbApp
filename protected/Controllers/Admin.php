@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Components\Ip;
 use App\Components\Parser;
 use App\Components\Timer;
 use App\Models\Address;
@@ -1062,20 +1063,20 @@ class Admin extends Controller
         try {
             Appliance::getDbConnection()->beginTransaction();
 
-            if (!is_numeric($data->officeId)) {
-                throw new Exception('Офис не выбран');
-            }
-            if (!is_numeric($data->vendorId)) {
-            }
-            if (!is_numeric($data->applianceTypeId)) {
-                throw new Exception('Тип оборудования не выбран');
-            }
-            if (!is_numeric($data->platformId)) {
-                throw new Exception('Платформа не выбрана');
-            }
-            if (!is_numeric($data->softwareId)) {
-                throw new Exception('ПО не выбрано');
-            }
+//            if (!is_numeric($data->officeId)) {
+//                throw new Exception('Офис не выбран');
+//            }
+//            if (!is_numeric($data->vendorId)) {
+//            }
+//            if (!is_numeric($data->applianceTypeId)) {
+//                throw new Exception('Тип оборудования не выбран');
+//            }
+//            if (!is_numeric($data->platformId)) {
+//                throw new Exception('Платформа не выбрана');
+//            }
+//            if (!is_numeric($data->softwareId)) {
+//                throw new Exception('ПО не выбрано');
+//            }
             $office = Office::findByPK($data->officeId);
             $vendor = Vendor::findByPK($data->vendorId);
             $applianceType = ApplianceType::findByPK($data->applianceTypeId);
@@ -1131,7 +1132,7 @@ class Admin extends Controller
             // если указан management IP - создать data port
             if (!empty($data->managementIp)) {
                 (new DataPort())->fill([
-                    'ipAddress' => $data->managementIp,
+                    'ipAddress' => (new Ip($data->managementIp, 32))->cidrAddress,
                     'portType' => DPortType::findByType('Ethernet'),
                     'appliance' => $appliance,
                     'vrf' => Vrf::instanceGlobalVrf(),
@@ -1196,25 +1197,38 @@ class Admin extends Controller
                 ])
                 ->save();
             if (!empty($data->managementIp)) {
-                if (isset($data->managementIpId)) {
-                    $currentDataPort = DataPort::findByPK($data->managementIpId);
-                    $currentDataPort
-                        ->fill([
-                            'vrf' => $currentDataPort->network->vrf,
-                            'ipAddress' => $data->managementIp,
-                        ])
-                        ->save();
-                } else {
-                    (new DataPort())
+                if (!isset($data->managementIpId) && !empty($data->managementIp)) {
+                    $newDPort = (new DataPort())
                         ->fill([
                             'vrf' => Vrf::instanceGlobalVrf(),
                             'appliance' => $currentAppliance,
-                            'ipAddress' => $data->managementIp,
+                            'ipAddress' => (new Ip($data->managementIp, 32))->cidrAddress,
                             'isManagement' => true,
                             'portType' => DPortType::getEmpty()
-                        ])
-                        ->save();
+                        ]);
+
+                    $newDPort->save();
+
+
+                    //                    $currentDataPortMng = DataPort::findByPK($data->managementIpId);
+//                    $currentDataPortMng
+//                        ->fill([
+//                            'vrf' => $currentDataPortMng->network->vrf,
+//                            'ipAddress' => (new Ip($data->managementIp, 32))->cidrAddress,
+//                        ])
+//                        ->save();
                 }
+//                else {
+//                    (new DataPort())
+//                        ->fill([
+//                            'vrf' => Vrf::instanceGlobalVrf(),
+//                            'appliance' => $currentAppliance,
+//                            'ipAddress' => (new Ip($data->managementIp, 32))->cidrAddress,
+//                            'isManagement' => true,
+//                            'portType' => DPortType::getEmpty()
+//                        ])
+//                        ->save();
+//                }
             }
 
             //если appliance сохранился без ошибок - сохраняем существующие модули к нему
@@ -1258,6 +1272,65 @@ class Admin extends Controller
                         ->save();
                 }
             }
+
+            // edit data ports
+            if (!empty($data->dataportItem->portId)) {
+                foreach ($data->dataportItem->portId as $key => $value) {
+
+                    $vrf = Vrf::findByPK($data->dataportItem->vrfId->$key);
+                    $currentDataPort = DataPort::findByIpVrf($data->dataportItem->ip->$key, $vrf);
+                    if (isset($data->managementIpId) && !empty($data->managementIp) && $currentDataPort->getPk() == $data->managementIpId) {
+                        $currentDataPort->ipAddress = (new Ip($data->managementIp, 32))->cidrAddress;
+                    }
+                    $currentDataPort->fill([
+                        'appliance' => $currentAppliance,
+                        'vrf' => $vrf,
+                        'portType' => DPortType::findByPK($data->dataportItem->portTypeId->$key),
+                        'isManagement' => $data->dataportItem->isManagement->$key,
+                        'macAddress' => $data->dataportItem->mac->$key,
+                        'comment' => $data->dataportItem->comment->$key,
+                        'details' => [
+                            'portName' => $data->dataportItem->portName->$key
+                        ],
+                    ])->save();
+                }
+            }
+
+            // save new data ports
+            if (!empty($data->newDataport->portId)) {
+                foreach ($data->newDataport->portId as $key => $value) {
+                    if (!is_numeric($data->newDataport->vrfId->$key)) {
+                        throw new Exception('VRF не выбран');
+                    }
+                    if (!is_numeric($data->newDataport->portTypeId->$key)) {
+                        throw new Exception('Тип порта не выбран');
+                    }
+
+                    $vrf = Vrf::findByPK($data->newDataport->vrfId->$key);
+                    $result = DataPort::findByIpVrf($data->newDataport->ip->$key, $vrf);
+
+                    if ($result instanceof DataPort) {
+                        throw new Exception('Data port: vrf=' . $vrf->name . ' ip=' . $data->newDataport->ip->$key. ' alredy exist');
+                    }
+
+                    (new DataPort())->fill([
+                        'ipAddress' => $data->newDataport->ip->$key,
+                        'appliance' => $currentAppliance,
+                        'vrf' => $vrf,
+                        'portType' => DPortType::findByPK($data->newDataport->portTypeId->$key),
+                        'isManagement' => $data->newDataport->isManagement->$key,
+                        'macAddress' => $data->newDataport->mac->$key,
+                        'comment' => $data->newDataport->comment->$key,
+                        'details' => [
+                            'portName' => $data->newDataport->portName->$key
+                        ],
+                    ])->save();
+                }
+            }
+
+
+
+
 
             Appliance::getDbConnection()->commitTransaction();
         } catch (MultiException $e) {

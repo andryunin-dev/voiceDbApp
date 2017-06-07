@@ -179,6 +179,10 @@ class Modal extends Controller
         $this->data->software = Software::findAll(['order' => 'title']);
         $this->data->modules = Module::findAll(['order' => 'title']);
         $this->data->applianceTypes = ApplianceType::findAll(['order' => 'type']);
+
+        $this->data->portTypes = DPortType::findAll(['order' => 'type']);
+        $this->data->vrfs = Vrf::findAll();
+        $this->data->gvrf = Vrf::instanceGlobalVrf();
     }
 
     public function actionAddPortType($type)

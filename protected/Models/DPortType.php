@@ -36,11 +36,6 @@ class DPortType extends Model
         return true;
     }
 
-    protected function sanitizeType($val)
-    {
-//        return trim($val);
-    }
-
     protected function validate()
     {
         $portType = DPortType::findByColumn('type', $this->type);

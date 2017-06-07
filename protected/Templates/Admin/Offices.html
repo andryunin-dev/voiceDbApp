@@ -26,28 +26,28 @@
                             {#Region#}
                             <td>
                                 {{ office.address.city.region.title }}<br>
-                                <div class="pull-right">
-                                    <span ><a href="/admin/devices?reg={{ office.address.city.region.getPK }}" >[hw]</a></span>
-                                    <span ><a href="/admin/portInventory?reg={{ office.address.city.region.getPK }}" >[ip]</a></span>
-                                </div>
+                                    <div class="pull-right">
+                                        <span ><a href="/admin/devices?reg={{ office.address.city.region.getPK }}" >[hw]</a></span>
+                                        <span ><a href="/admin/portInventory?reg={{ office.address.city.region.getPK }}" >[ip]</a></span>
+                                    </div>
                             </td>
                             {#City#}
                             <td>
                                 {{ office.address.city.title }}<br>
-                                <div class="pull-right">
-                                    <span ><a href="/admin/devices?city={{ office.address.city.getPK }}" >[hw]</a></span>
-                                    <span ><a href="/admin/portInventory?city={{ office.address.city.getPK }}" >[ip]</a></span>
-                                </div>
+                                    <div class="pull-right">
+                                        <span ><a href="/admin/devices?city={{ office.address.city.getPK }}" >[hw]</a></span>
+                                        <span ><a href="/admin/portInventory?city={{ office.address.city.getPK }}" >[ip]</a></span>
+                                    </div>
                             </td>
                             {#Address#}
                             <td>{{ office.address.address }}</td>
                             {#office#}
                             <td>
                                 {{ office.title }}<br>
-                                <div class="pull-right">
-                                    <span ><a href="/admin/devices?loc={{ office.getPK }}" >[hw]</a></span>
-                                    <span ><a href="/admin/portInventory?loc={{ office.getPK }}" >[ip]</a></span>
-                                </div>
+                                    <div class="pull-right">
+                                        <span ><a href="/admin/devices?loc={{ office.getPK }}" >[hw]</a></span>
+                                        <span ><a href="/admin/portInventory?loc={{ office.getPK }}" >[ip]</a></span>
+                                    </div>
                             </td>
                             {#Status#}
                             <td>{{ office.status.title }}</td>

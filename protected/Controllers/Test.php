@@ -23,8 +23,9 @@ class Test extends Controller
     public function actionDefault()
     {
 //        var_dump(DPortType::findAll());die;
+//        var_dump(Vendor::findAll());die;
         var_dump(DPortType::getEmpty());die;
-        var_dump(DPortType::findByColumn('type',''));die;
+        var_dump(DPortType::findByColumn('type',null));die;
         /**
          * @var ModuleItem $res
          */
