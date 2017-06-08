@@ -113,6 +113,15 @@ class Appliance extends Model
 
         return false;
     }
+    public function getNoManagementPorts()
+    {
+        $result = $this->dataPorts->filter(
+            function ($dPort) {
+                return true !== $dPort->isManagement;
+            }
+        );
+        return $result;
+    }
     public function getManagementIpPort()
     {
         $dataPort = $this->dataPorts->filter(

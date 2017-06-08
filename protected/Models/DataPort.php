@@ -12,6 +12,7 @@ use T4\Orm\Model;
 /**
  * Class DataPort
  * @package App\Models
+ * имя порта писать в details->portName
  *
  * @property string $ipAddress
  * @property Network $network

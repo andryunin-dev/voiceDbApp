@@ -1,0 +1,30 @@
+/*убираем паддинги у контейнера*/
+td.cell-container {
+    padding: 0 !important;
+}
+/*стили для вложенной таблицы*/
+table.inner {
+    margin: 0 !important;
+    border: none !important;
+    height: 100% !important;
+}
+/*отключить все бордеры*/
+table.inner tr td {
+    border: none !important;
+}
+
+/*или отключить все кроме внутренних*/
+/*
+table.inner tr:first-child td {
+    border-top: none !important;
+}
+table.inner tr:last-child td {
+    border-bottom: none !important;
+}
+table.inner tr td:first-child {
+    border-left: none !important;
+}
+table.inner tr td:last-child {
+    border-right: none !important;
+}
+*/
