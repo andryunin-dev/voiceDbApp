@@ -41,23 +41,22 @@ class RServer extends Controller
                 throw new Exception('Dataset Processor: runtime error');
             }
 
-        } catch (MultiException $e) {
-            $errors = [];
-            foreach ($e as $error) {
-                $errors['errors'][] = $error->getMessage();
-                $logger->error($inputDataset->ip . '-> ' . $error->getMessage());
+        } catch (MultiException $errs) {
+            foreach ($errs as $e) {
+                $err['errors'][] = $e->getMessage();
+                $logger->error($inputDataset->ip . '-> ' . $e->getMessage());
             }
         } catch (Exception $e) {
-            $errors['errors'] = $e->getMessage();
+            $err['errors'] = $e->getMessage();
             $logger->error($inputDataset->ip . '-> ' . $e->getMessage());
         }
 
         // Подготовить и вернуть ответ
-        $httpStatusCode = (isset($errors['errors'])) ? 400 : 202; // Bad Request OR Accepted
+        $httpStatusCode = (isset($err['errors'])) ? 400 : 202; // Bad Request OR Accepted
         $response = (new Collection())->merge(['ip' => $inputDataset->ip]);
         $response->merge(['httpStatusCode' => $httpStatusCode]);
         if (400 == $httpStatusCode) {
-            $response->merge($errors);
+            $response->merge($err);
         }
 
 //        $stopTime = microtime(true);
