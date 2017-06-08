@@ -15,6 +15,6 @@ class User extends Model
         parent::__construct();
     }
 
-    public $level = 3;
+    public $level = 2;
     public $debugMode = false;
 }
