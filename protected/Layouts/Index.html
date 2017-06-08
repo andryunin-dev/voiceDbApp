@@ -56,13 +56,16 @@
                     <li {% if activeLink.offices == true %}class="active" {% endif %}>
                         <a href="/admin/offices">Офисы</a>
                     </li>
-                    <li class="dropdown {% if activeLink.devices == true %} active {% endif %}">
-                        <a href="#" class="dropdown-toggle active" data-toggle="dropdown">Оборудование <b class="caret"></b></a>
-                        <ul class="dropdown-menu">
-                            <li><a href="/admin/devices">По офисам(HW inventory)</a></li>
-                            {#<li><a href="/admin/portInventory">По офисам(ports inventory)</a></li>#}
-                        </ul>
+                    <li {% if activeLink.devices == true %}class="active" {% endif %}>
+                        <a href="/admin/devices">Оборудование</a>
                     </li>
+                    {#<li class="dropdown {% if activeLink.devices == true %} active {% endif %}">#}
+                        {#<a href="#" class="dropdown-toggle active" data-toggle="dropdown">Оборудование <b class="caret"></b></a>#}
+                        {#<ul class="dropdown-menu">#}
+                            {#<li><a href="/admin/devices">По офисам(HW inventory)</a></li>#}
+                            {#<li><a href="/admin/portInventory">По офисам(ports inventory)</a></li>#}
+                        {#</ul>#}
+                    {#</li>#}
                     <li class="dropdown {% if activeLink.ipPlanning == true %} active {% endif %}">
                         <a href="#" class="dropdown-toggle active" data-toggle="dropdown">IP Planning<b class="caret"></b></a>
                         <ul class="dropdown-menu">
