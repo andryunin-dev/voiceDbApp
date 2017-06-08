@@ -25,29 +25,17 @@
                         <tr class="office-row" data-action="popup-view" aria-controls="office-detail" data-id="{{ office.getPK }}">
                             {#Region#}
                             <td>
-                                {{ office.address.city.region.title }}<br>
-                                    <div class="pull-right">
-                                        <span ><a href="/admin/devices?reg={{ office.address.city.region.getPK }}" >[hw]</a></span>
-                                        <span ><a href="/admin/portInventory?reg={{ office.address.city.region.getPK }}" >[ip]</a></span>
-                                    </div>
+                                <a href="/admin/devices?reg={{ office.address.city.region.getPK }}" >{{ office.address.city.region.title }}</a>
                             </td>
                             {#City#}
                             <td>
-                                {{ office.address.city.title }}<br>
-                                    <div class="pull-right">
-                                        <span ><a href="/admin/devices?city={{ office.address.city.getPK }}" >[hw]</a></span>
-                                        <span ><a href="/admin/portInventory?city={{ office.address.city.getPK }}" >[ip]</a></span>
-                                    </div>
+                                <a href="/admin/devices?city={{ office.address.city.getPK }}" >{{ office.address.city.title }}</a>
                             </td>
                             {#Address#}
                             <td>{{ office.address.address }}</td>
                             {#office#}
                             <td>
-                                {{ office.title }}<br>
-                                    <div class="pull-right">
-                                        <span ><a href="/admin/devices?loc={{ office.getPK }}" >[hw]</a></span>
-                                        <span ><a href="/admin/portInventory?loc={{ office.getPK }}" >[ip]</a></span>
-                                    </div>
+                                <a href="/admin/devices?loc={{ office.getPK }}" >{{ office.title }}</a>
                             </td>
                             {#Status#}
                             <td>{{ office.status.title }}</td>

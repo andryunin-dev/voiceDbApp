@@ -88,15 +88,21 @@
                                                 </th>
                                             </tr>
                                             {% endif %}
-                                            <tr>
-                                                <th class="toggler">еще 5 интерфейсов</th>
-                                            </tr>
+                                            {% set noMngmnt = appliance.getNoManagementPorts %}
+                                            {% if noMngmnt.count > 0 %}
+                                                <tr>
+                                                    <th class="toggler">другие интерфейсы ({{ noMngmnt.count }})</th>
+                                                </tr>
+                                            {% endif %}
                                         </theader>
                                         <tbody>
-                                            <tr>
-                                                <td>1.1.1.1/24 (fastEthernet 0/0)</td>
-                                            </tr>
+                                        {% for port in noMngmnt %}
+                                        <tr>
+                                            <td>{{ port.ipAddress }} {% if not port.details.portName is empty %}({{ port.details.portName }}){% endif %}</td>
+                                        </tr>
                                         </tbody>
+
+                                        {% endfor %}
                                     </table>
                                 </td>
                                 {#Action#}
