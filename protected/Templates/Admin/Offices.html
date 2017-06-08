@@ -55,6 +55,7 @@
 {% endblock %}
 {% block JS %}
     <script>
+        $("#fixed-header").headerFix({'height': '100%'});
         var APP = APP || {};
         APP.navbar = APP.navbar || {};
         APP.navbar.activeLink = "{{ path }}"
