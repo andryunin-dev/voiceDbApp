@@ -88,18 +88,25 @@ class Dataports extends Controller
             // For each dataport in the request
             foreach ($dataSet->networks as $dataSetNetwork) {
 
+                // Define VRF
+                if ('global' == $dataSetNetwork->vrf_name) {
+                    $vrf = Vrf::instanceGlobalVrf();
+                }
+                if ('global' != $dataSetNetwork->vrf_name) {
+                    $vrf = Vrf::findByColumn('name', $dataSetNetwork->vrf_name);
+                }
+                if (!($vrf instanceof Vrf)) {
+                    throw new Exception('Unknown VRF - ' . $dataSetNetwork->vrf_name);
+                }
+
                 // Find the dataport by its VRF and IP
-                $dataport = ($appliance->dataPorts)->filter(
-                    function ($dataport) use ($dataSetNetwork) {
-                        return ($dataSetNetwork->ip_address == $dataport->ipAddress && $dataSetNetwork->vrf_name == $dataport->network->vrf->name);
-                    }
-                )->first();
+                $dataport = DataPort::findByIpVrf($dataSetNetwork->ip_address, $vrf);
 
                 // If the dataport exist, then updated data on the dataport
                 if ($dataport instanceof DataPort) {
                     $dataport->fill([
                         'appliance' => $appliance,
-                        'vrf' => Vrf::findByColumn('name', $dataSetNetwork->vrf_name),
+                        'vrf' => $vrf,
                         'macAddress' => $dataSetNetwork->mac,
                         'details' => [
                             'portName' => $dataSetNetwork->interface
@@ -109,21 +116,6 @@ class Dataports extends Controller
 
                 // If the dataport does not exist, then created the dataport
                 if (!($dataport instanceof DataPort)) {
-
-                    // Define VRF of the management IP
-                    if ('global' == $dataSetNetwork->vrf_name) {
-                        $vrf = Vrf::instanceGlobalVrf();
-                    }
-                    if ('global' != $dataSetNetwork->vrf_name) {
-                        $vrf = Vrf::findByColumn('name', $dataSetNetwork->vrf_name);
-                    }
-                    if (!($vrf instanceof Vrf)) {
-                        $vrf = (new Vrf())
-                            ->fill([
-                                'name' => $dataSetNetwork->vrf_name,
-                                'rd' => $dataSetNetwork->vrf_rd
-                            ])->save();
-                    }
 
                     // Create the dataport
                     $dataport = (new DataPort())->fill([
