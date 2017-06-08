@@ -25,9 +25,9 @@
                         {% for appliance in office.appliances %}
                             <tr>
                                 {#Region#}
-                                <td>{{ office.address.city.region.title }}</td>
+                                <td><a href="/admin/devices?reg={{ office.address.city.region.getPK }}" >{{ office.address.city.region.title }}</a></td>
                                 {#Office#}
-                                <td>{{ office.title }}</td>
+                                <td><a href="/admin/devices?loc={{ office.getPK }}" >{{ office.title }}</a></td>
                                 {#Hostname#}
                                 <td>
                                     {% set mngmnt = appliance.getManagementIp %}
@@ -38,8 +38,15 @@
                                     {% endif %}
                                 </td>
                                 {#Type#}
-                                <td>
-
+                                <td style="vertical-align:middle; text-align:center">
+                                    <b>
+                                        {% if appliance.type|lower == 'switch' %}
+                                            SW
+                                        {% elseif appliance.type|lower == 'router' %}
+                                            R
+                                        {% else %}
+                                        {% endif %}
+                                    </b>
                                 </td>
                                 {#Platform#}
                                 <td>
