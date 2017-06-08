@@ -12,6 +12,7 @@ use T4\Orm\Model;
 /**
  * Class DataPort
  * @package App\Models
+ * имя порта писать в details->portName
  *
  * @property string $ipAddress
  * @property Network $network
@@ -190,14 +191,14 @@ class DataPort extends Model
                     ])
                     ->save();
             } elseif ($network->children->count() > 0) {
-                throw new Exception('Данная сеть разбита на подсети. Использование для хостовых IP невозможно.');
+//                throw new Exception('Данная сеть разбита на подсети. Использование для хостовых IP невозможно.');
             }
             $this->network = $network;
         } elseif ($this->isUpdated) {
             if (false !== $network = Network::findByAddressVrf($ip->cidrNetwork, $this->vrf)) {
                 //if net for new IP exists, it must not contain subnets.
                 if ($network->children->count() > 0) {
-                    throw new Exception('Данная сеть разбита на подсети. Использование для хостовых IP невозможно.');
+//                    throw new Exception('Данная сеть разбита на подсети. Использование для хостовых IP невозможно.');
                 }
                 $this->network = $network;
             } else {
@@ -216,9 +217,9 @@ class DataPort extends Model
                 $network->save();
                 $network->refresh();
                 //new network must not contain any subnets
-                if ($network->children->count() > 0) {
-                    throw new Exception('Данная сеть разбита на подсети. Использование для хостовых IP невозможно.');
-                }
+//                if ($network->children->count() > 0) {
+//                    throw new Exception('Данная сеть разбита на подсети. Использование для хостовых IP невозможно.');
+//                }
                 $this->network = $network;
             }
         }
@@ -235,7 +236,9 @@ class DataPort extends Model
         if ($this->isUpdated) {
             $oldNetwork = (DataPort::findByPK($this->getPk()))->network;
             $saveResult = parent::save();
-            if (false !== $saveResult && 32 == (new Ip($oldNetwork->address))->masklen) {
+            if (false !== $saveResult &&
+                32 == (new Ip($oldNetwork->address))->masklen &&
+                $this->network->address != $oldNetwork->address) {
                 $oldNetwork->delete();
             }
             return $saveResult;
@@ -310,4 +313,10 @@ class DataPort extends Model
     {
         $this->isManagement = false;
     }
+
+    public function trimIpAddress()
+    {
+        return preg_replace('~/.+~', '', $this->ipAddress);
+    }
+
 }

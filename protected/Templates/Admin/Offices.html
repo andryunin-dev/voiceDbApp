@@ -4,7 +4,7 @@
     <div class="row">
         <main class="offices">
             <div class="col-xs-12">
-                <table class="bg-default table table-condensed table-bordered table-hover table-striped no-cut-long-text">
+                <table id="fixed-header" class="bg-default table table-condensed table-bordered cust-table-striped no-cut-long-text">
                     <thead>
                         <tr>
                             <th class="bg-primary">Регион</th>
@@ -25,35 +25,23 @@
                         <tr class="office-row" data-action="popup-view" aria-controls="office-detail" data-id="{{ office.getPK }}">
                             {#Region#}
                             <td>
-                                {{ office.address.city.region.title }}<br>
-                                <div class="pull-right">
-                                    <span ><a href="/admin/devices?reg={{ office.address.city.region.getPK }}" >[hw]</a></span>
-                                    <span ><a href="/admin/portInventory?reg={{ office.address.city.region.getPK }}" >[ip]</a></span>
-                                </div>
+                                <a href="/admin/devices?reg={{ office.address.city.region.getPK }}" >{{ office.address.city.region.title }}</a>
                             </td>
                             {#City#}
                             <td>
-                                {{ office.address.city.title }}<br>
-                                <div class="pull-right">
-                                    <span ><a href="/admin/devices?city={{ office.address.city.getPK }}" >[hw]</a></span>
-                                    <span ><a href="/admin/portInventory?city={{ office.address.city.getPK }}" >[ip]</a></span>
-                                </div>
+                                <a href="/admin/devices?city={{ office.address.city.getPK }}" >{{ office.address.city.title }}</a>
                             </td>
                             {#Address#}
                             <td>{{ office.address.address }}</td>
                             {#office#}
                             <td>
-                                {{ office.title }}<br>
-                                <div class="pull-right">
-                                    <span ><a href="/admin/devices?loc={{ office.getPK }}" >[hw]</a></span>
-                                    <span ><a href="/admin/portInventory?loc={{ office.getPK }}" >[ip]</a></span>
-                                </div>
+                                <a href="/admin/devices?loc={{ office.getPK }}" >{{ office.title }}</a>
                             </td>
                             {#Status#}
                             <td>{{ office.status.title }}</td>
                             <td class="text-center">
                                 <a class="btn btn-success btn-xs" href="/modal/editOffice?id={{ office.getPK }}" role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать офис"></span></a>
-                                {% if user.level > 2 %}
+                                {% if user.level > 5 %}
                                 <a class="btn btn-danger btn-xs" href="/admin/delOffice?id={{ office.getPK }}" role="button" data-action="delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" title="удалить офис"></span></a>
                                 {% endif %}
                             </td>
@@ -67,6 +55,7 @@
 {% endblock %}
 {% block JS %}
     <script>
+        $("#fixed-header").headerFix({'height': '100%'});
         var APP = APP || {};
         APP.navbar = APP.navbar || {};
         APP.navbar.activeLink = "{{ path }}"

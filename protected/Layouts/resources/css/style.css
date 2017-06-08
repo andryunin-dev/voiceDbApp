@@ -179,6 +179,18 @@ table {
 }
 
 /*Column width in percents*/
+.col-1 {
+    width: 1%;
+}
+.col-2 {
+    width: 2%;
+}
+.col-3 {
+    width: 3%;
+}
+.col-4 {
+    width: 4%;
+}
 .col-5 {
     width: 5%;
 }
@@ -268,19 +280,42 @@ table {
 /*==================
 custom striped table
 ====================*/
-.cust-table-striped tbody:nth-child(odd) {
+/*.cust-table-striped tbody:nth-child(odd) {*/
+    /*background: #d9d9d9;*/
+/*}*/
+/*.cust-table-striped tbody:nth-child(even) {*/
+    /*background: #f4f4f4;*/
+/*}*/
+
+/*.cust-table-striped tbody:hover {*/
+    /*background: #c1c1c1;*/
+/*}*/
+/*.cust-table-striped tbody:hover td[rowspan], tr:hover td {*/
+    /*background: #c1c1c1;*/
+/*}*/
+/*==================
+custom striped table
+====================*/
+/*.cust-table-striped tr:nth-child(odd) table.inner
+.cust-table-striped tr:nth-child(even) table.inner
+*/
+.cust-table-striped > tbody > tr:nth-child(odd),
+.cust-table-striped > tbody > tr:nth-child(odd) table.inner
+ {
     background: #d9d9d9;
 }
-.cust-table-striped tbody:nth-child(even) {
-    background: #f4f4f4;
+.cust-table-striped > tbody > tr:nth-child(even),
+.cust-table-striped > tbody > tr:nth-child(even) table.inner
+ {
+    background: #f4f4f4 !important;
 }
 
-.cust-table-striped tbody:hover {
-    background: #c1c1c1;
-}
-.cust-table-striped tbody:hover td[rowspan], tr:hover td {
-    background: #c1c1c1;
-}
+/*.cust-table-striped > tbody >  tr:hover {*/
+    /*background: #c1c1c1;*/
+/*}*/
+/*.cust-table-striped tr:hover td[rowspan], tr:hover td {*/
+    /*background: #c1c1c1;*/
+/*}*/
 /*===================
 custom styles for cells
 =====================*/
@@ -322,7 +357,7 @@ style for last update time in table
 td .lastUpdate {
     float: right;
     position: relative;
-    top: -5px;
+    bottom: -5px;
     right: -5px;
 
     font-size: 12px;
@@ -446,4 +481,11 @@ ul.scrollable-menu {
 }
 
 /*Временные стили*/
+/*вложенная таблица интерфейсов*/
+table.inner.interfaces tbody td {
+    display: none;
+}
 
+.cust-tab-content {
+    padding-top:20px;
+}

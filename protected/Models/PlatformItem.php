@@ -39,9 +39,9 @@ class PlatformItem extends Model
 
     protected function validateSerialNumber($val)
     {
-        if (empty(trim($val))) {
-            throw new Exception('Отсутствует серийный номер платформы');
-        }
+//        if (empty(trim($val))) {
+//            throw new Exception('Отсутствует серийный номер платформы');
+//        }
 
         return trim($val);
     }
@@ -57,15 +57,15 @@ class PlatformItem extends Model
             throw new Exception('PlatformItem: Неверный тип Platform');
         }
 
-        $platformItem = PlatformItem::findByPlatformSerial($this->platform, $this->serialNumber);
+//        $platformItem = PlatformItem::findByPlatformSerial($this->platform, $this->serialNumber);
 
-        if (true === $this->isNew && ($platformItem instanceof PlatformItem)) {
-            throw new Exception('Такой PlatformItem уже существует');
-        }
+//        if (true === $this->isNew && ($platformItem instanceof PlatformItem)) {
+//            throw new Exception('Такой PlatformItem уже существует');
+//        }
 
-        if (true === $this->isUpdated && ($platformItem instanceof PlatformItem) && ($platformItem->getPk() != $this->getPk())) {
-            throw new Exception('Такой PlatformItem уже существует');
-        }
+//        if (true === $this->isUpdated && ($platformItem instanceof PlatformItem) && ($platformItem->getPk() != $this->getPk())) {
+//            throw new Exception('Такой PlatformItem уже существует');
+//        }
 
         return true;
     }

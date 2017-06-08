@@ -36,9 +36,9 @@ class SoftwareItem extends Model
 
     public function validateVersion($val)
     {
-        if (empty(trim($val))) {
-            throw new Exception('Пустое значение ver. ПО');
-        }
+//        if (empty(trim($val))) {
+//            throw new Exception('Пустое значение ver. ПО');
+//        }
 
         return true;
     }

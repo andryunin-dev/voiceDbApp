@@ -183,6 +183,7 @@ APP.setLink = function ($linkSelector, $url) {
 };
 
 jQuery(function ($) {
+
     APP.currentPopup = APP.currentPopup || {};
     APP.ctrl = APP.ctrl || [];
     APP.body = APP.body || $('body');

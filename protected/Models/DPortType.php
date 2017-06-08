@@ -29,16 +29,11 @@ class DPortType extends Model
 
     protected function validateType($val)
     {
-        if (empty(trim($val))) {
-            throw new Exception('Пустое название DataPortType');
-        }
+//        if (empty(trim($val))) {
+//            throw new Exception('Пустое название DataPortType');
+//        }
 
         return true;
-    }
-
-    protected function sanitizeType($val)
-    {
-        return trim($val);
     }
 
     protected function validate()
@@ -54,5 +49,10 @@ class DPortType extends Model
         }
 
         return true;
+    }
+
+    public static function getEmpty()
+    {
+        return self::findByColumn('type','');
     }
 }
