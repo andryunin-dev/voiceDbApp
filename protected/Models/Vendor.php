@@ -33,11 +33,16 @@ class Vendor extends Model
         ]
     ];
 
+    public static function getEmpty()
+    {
+        return self::findByColumn('title', '');
+    }
+
     public function validateTitle($val)
     {
-        if (empty(trim($val))) {
-            throw new Exception('Пустое название производителя');
-        }
+//        if (empty(trim($val))) {
+//            throw new Exception('Пустое название производителя');
+//        }
 
         return true;
     }

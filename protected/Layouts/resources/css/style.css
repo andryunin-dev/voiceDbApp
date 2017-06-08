@@ -485,3 +485,7 @@ ul.scrollable-menu {
 table.inner.interfaces tbody td {
     display: none;
 }
+
+.cust-tab-content {
+    padding-top:20px;
+}
