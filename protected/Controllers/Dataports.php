@@ -22,7 +22,8 @@ class Dataports extends Controller
             $logger->pushHandler(new StreamHandler(ROOT_PATH . '/Logs/surveyOfAppliances.log', Logger::DEBUG));
 
 
-            $dataSet = (new Std())->fill(json_decode(file_get_contents('php://input')));
+//            $dataSet = (new Std())->fill(json_decode(file_get_contents('php://input')));
+            $dataSet = (new Std())->fill(json_decode(file_get_contents(realpath(ROOT_PATH . '/Tmp/Test_dataset_2/10.100.240.1-32__2017-05-25__6-43-43.72926900.json'))));
 
             // Check the validity of the input dataset
             if (0 == count($dataSet)) {
@@ -107,6 +108,7 @@ class Dataports extends Controller
                     $dataport->fill([
                         'appliance' => $appliance,
                         'vrf' => $vrf,
+                        'ipAddress' => $dataSetNetwork->ip_address,
                         'macAddress' => $dataSetNetwork->mac,
                         'details' => [
                             'portName' => $dataSetNetwork->interface
