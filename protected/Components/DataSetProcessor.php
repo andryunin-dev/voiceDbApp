@@ -369,9 +369,10 @@ class DataSetProcessor extends Std
             'vendor' => $vendor,
             'platform' => $platformItem,
             'software' => $softwareItem,
+            'lastUpdate' => (new \DateTime('now', new \DateTimeZone('Europe/Moscow')))->format('Y-m-d H:i:sP'),
             'details' => [
                 'hostname' => $hostname,
-            ]
+            ],
         ])->save();
 
         return $appliance;
@@ -452,6 +453,7 @@ class DataSetProcessor extends Std
             'serialNumber' => $serialNumber,
             'appliance' => $appliance,
             'location' => $office,
+            'lastUpdate' => (new \DateTime('now', new \DateTimeZone('Europe/Moscow')))->format('Y-m-d H:i:sP'),
         ])->save();
 
         return $moduleItem;

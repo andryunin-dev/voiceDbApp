@@ -82,7 +82,6 @@ class Appliance extends Model
 
     protected function beforeSave()
     {
-        $this->lastUpdate = (new \DateTime('now', new \DateTimeZone('Europe/Moscow')))->format('Y-m-d H:i:sP');
         return parent::beforeSave();
     }
 
