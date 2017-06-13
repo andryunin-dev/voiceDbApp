@@ -61,7 +61,7 @@ class DataPort extends Model
     {
         $key = 'macAddress';
         if (isset($this->__data[$key]) && !empty($this->__data[$key])) {
-            $data = preg_replace('~(:|\.|-)~', '', $this->__data[$key]);
+            $data = preg_replace('~:~', '', $this->__data[$key]);
 
             return implode('.', [
                 substr($data,0,4),
