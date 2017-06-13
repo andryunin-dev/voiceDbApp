@@ -15,6 +15,7 @@ use T4\Orm\Model;
  * имя порта писать в details->portName
  *
  * @property string $ipAddress
+ * @property int $masklen
  * @property Network $network
  * @property string $macAddress
  * @property string $details
@@ -31,6 +32,7 @@ class DataPort extends Model
         'table' => 'equipment.dataPorts',
         'columns' => [
             'ipAddress' => ['type' => 'string'],
+            'masklen' => ['type' => 'int'],
             'macAddress' => ['type' => 'string'],
             'details' => ['type' => 'json'],
             'comment' => ['type' => 'text'],
@@ -48,8 +50,25 @@ class DataPort extends Model
     protected function getIpAddress()
     {
         $key = 'ipAddress';
-        $currentIpAddress = isset($this->__data[$key]) ? $this->__data[$key] : null;
-        return (new Ip($currentIpAddress, 32))->cidrAddress;
+        $masklen = $this->masklen;
+        if (empty($masklen)) {
+            return isset($this->__data[$key]) ? $this->__data[$key] : null;
+        } else {
+            return isset($this->__data[$key]) ? ($this->__data[$key] . '/' . $masklen) : null;
+        }
+    }
+    public function __set($key, $value)
+    {
+        if ('ipAddress' == $key) {
+            $ip2array = explode('/', $value);
+            if (count($ip2array) > 2) {
+                throw new Exception('Неверный формат IP адреса');
+            } elseif (1 == count($ip2array) && false !== $address = filter_var(array_pop($ip2array), FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+
+            }
+        } else {
+            parent::__set($key, $value);
+        }
     }
 
     protected function getVrf()

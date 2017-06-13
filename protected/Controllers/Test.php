@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Components\Ip;
+use App\Components\IpTools;
 use App\Components\Timer;
 use App\Models\Appliance;
 use App\Models\DPortType;
@@ -22,18 +23,33 @@ class Test extends Controller
 
     public function actionDefault()
     {
-//        var_dump(DPortType::findAll());die;
-//        var_dump(Vendor::findAll());die;
-        var_dump(DPortType::getEmpty());die;
-        var_dump(DPortType::findByColumn('type',null));die;
-        /**
-         * @var ModuleItem $res
-         */
-        $res = ModuleItem::findAll()->first();
-        $res->serialNumber = '0';
-        $res->save();
-        var_dump($res);
-
+        $ip = (new IpTools('192.168.1.1', 24));
+        echo 'object:';
+        var_dump($ip);
+        echo 'is_maskValid:';
+        var_dump($ip->is_maskValid);
+        echo 'masklen:';
+        var_dump($ip->masklen);
+        echo 'mask:';
+        var_dump($ip->mask);
+        echo 'is_ipValid:';
+        var_dump($ip->is_ipValid);
+        echo 'address:';
+        var_dump($ip->address);
+        echo 'cidrAddress:';
+        var_dump($ip->cidrAddress);
+        echo 'is_networkIp:';
+        var_dump($ip->is_networkIp);
+        echo 'network:';
+        var_dump($ip->network);
+        echo 'cidrNetwork:';
+        var_dump($ip->cidrNetwork);
+        echo 'networkSize:';
+        var_dump($ip->networkSize);
+        echo 'broadcast:';
+        var_dump($ip->broadcast);
+        echo 'is_hostIp:';
+        var_dump($ip->is_hostIp);
         die;
     }
 
