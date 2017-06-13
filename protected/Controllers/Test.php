@@ -23,11 +23,13 @@ class Test extends Controller
 
     public function actionDefault()
     {
-        $ip = (new IpTools('192.168.1.1/33'));
+        $ip = (new IpTools('192.168.1.0', '255.255.255.0'));
         echo 'object:';
         var_dump($ip);
         echo 'is_maskValid:';
         var_dump($ip->is_maskValid);
+        echo 'is_maskNull:';
+        var_dump($ip->is_maskNull);
         echo 'masklen:';
         var_dump($ip->masklen);
         echo 'mask:';
@@ -51,6 +53,10 @@ class Test extends Controller
         echo 'is_hostIp:';
         var_dump($ip->is_hostIp);
         die;
+    }
+    public function actionDataport()
+    {
+
     }
 
     public function actionRegions($region = null)

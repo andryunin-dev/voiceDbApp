@@ -17,7 +17,8 @@ namespace App\Components;
  * @property int $masklen           length of mask (1-32)
  * @property bool $is_valid         valid or not this object
  * @property bool $is_ipValid         valid or not ip address
- * @property bool $is_maskValid         valid or not ip address
+ * @property bool $is_maskValid     valid or not mask
+ * @property bool $is_maskNull      mask == null
  *
  * if masklen == 32 then $is_hostIp == true AND $is_networkIp == true
  * @property bool $is_hostIp        current address is host IP
@@ -34,8 +35,8 @@ class IpTools
      * Ip constructor.
      * mask can pass explicitly in ip addresss with CIDR notation or in mask argument.
      * if mask pass in ip address argument value of mask argument ignore.
-     * null mask - is valid value for IP
-     * is_valid == true if ip address valid && 0 < masklen <= MAX_LEN_MASK_IPV4
+     * null mask - is valid value for mask (is_maskValid == true, is_maskNull == true)
+     * is_valid == true if ip address valid && (0 < masklen <= MAX_LEN_MASK_IPV4 || mask == masklen == null)
      * @param string $ip        IP address with or without mask in CIDR notation (10.10.0.0/24, 10.11.12.13 etc.)
      * @param int|string $mask  mask length (integer or numeric string) or mask like 255.255.0.0 etc.
      */
@@ -43,7 +44,7 @@ class IpTools
     {
         $this->innerSet('is_valid', true);
 
-        $ip = str_replace('\\', '/', trim($ip)); // санитация
+        $ip = str_replace('\\', '/', trim($ip)); // light sanitize
         if (empty($ip)) {
             $this->innerErrorAdd('IP адрес не задан');
             $this->innerSet('is_ipValid', false);
@@ -80,6 +81,11 @@ class IpTools
                     $this->innerSet('is_maskValid', false);
                     $this->__unset('mask');
                 }
+            } elseif (null === $mask) {
+                $this->innerSet('mask', $mask);
+                $this->innerSet('masklen', $mask);
+                $this->innerSet('is_maskValid', true);
+                $this->innerSet('is_maskNull', true);
             } else {
                 $this->innerErrorAdd('Неверно задана маска подсети');
                 $this->innerSet('is_maskValid', false);
@@ -103,6 +109,9 @@ class IpTools
             } else {
                 $this->innerSet('is_ipValid', true);
             }
+        }
+        if ($this->innerGet('is_ipValid')) {
+
         }
         if (!$this->innerGet('is_ipValid') || !$this->innerGet('is_maskValid')) {
             $this->innerSet('is_valid', false);
@@ -163,18 +172,21 @@ class IpTools
             case 'is_ipValid':
                 return (isset($this->__data['is_ipValid'])) ? $this->innerGet('is_ipValid') : false;
                 break;
+            case 'is_maskValid':
+                return (isset($this->__data['is_maskValid'])) ? $this->innerGet('is_maskValid') : false;
+                break;
+            case 'is_maskNull':
+                return (isset($this->__data['is_maskNull'])) ? $this->innerGet('is_maskNull') : false;
+                break;
             case 'address':
-                if (true === $this->innerGet('is_ipValid')) {
+                if ($this->innerGet('is_valid')) {
                     return $this->innerGet('address');
                 } else {
                     return false;
                 }
                 break;
-            case 'is_maskValid':
-                return (isset($this->__data['is_maskValid'])) ? $this->innerGet('is_maskValid') : false;
-                break;
             case 'mask':
-                if (true === $this->innerGet('is_maskValid')) {
+                if ($this->innerGet('is_valid')) {
                     return ($this->__isset('mask')) ?
                         $this->innerGet('mask') :
                         $this->innerSet('mask', self::cidr2mask($this->innerGet('masklen')));
@@ -183,7 +195,7 @@ class IpTools
                 }
                 break;
             case 'masklen':
-                if (true === $this->innerGet('is_maskValid')) {
+                if ($this->innerGet('is_valid')) {
                     return ($this->__isset('masklen')) ?
                         $this->innerGet('masklen') :
                         $this->innerSet('masklen', self::mask2cidr($this->innerGet('mask')));
@@ -192,22 +204,22 @@ class IpTools
                 }
                 break;
             case 'cidrAddress':
-                if ($this->innerGet('is_ipValid')) {
-                    if ($this->innerGet('is_maskValid')) {
-                        return ($this->__isset('cidrAddress')) ?
-                            $this->innerGet('cidrAddress') :
-                            $this->innerSet('cidrAddress', $this->innerGet('address') . '/' . $this->masklen);
-                    } else {
+                if ($this->innerGet('is_valid')) {
+                    if ($this->innerGet('is_maskNull')) {
                         return ($this->__isset('cidrAddress')) ?
                             $this->innerGet('cidrAddress') :
                             $this->innerSet('cidrAddress', $this->innerGet('address'));
+                    } else {
+                        return ($this->__isset('cidrAddress')) ?
+                            $this->innerGet('cidrAddress') :
+                            $this->innerSet('cidrAddress', $this->innerGet('address') . '/' . $this->masklen);
                     }
                 } else {
                     return false;
                 }
                 break;
             case 'network':
-                if ($this->innerGet('is_valid')) {
+                if ($this->innerGet('is_valid') && !$this->innerGet('is_maskNull')) {
                     return ($this->__isset('network')) ?
                         $this->innerGet('network') :
                         $this->innerSet('network', long2ip(ip2long($this->innerGet('address')) & ip2long($this->mask)));
@@ -216,7 +228,7 @@ class IpTools
                 }
                 break;
             case 'networkSize':
-                if ($this->innerGet('is_valid')) {
+                if ($this->innerGet('is_valid') && !$this->innerGet('is_maskNull')) {
                     return ($this->__isset('networkSize')) ?
                         $this->innerGet('networkSize') :
                         $this->innerSet('networkSize', 1 << (self::MAX_LEN_MASK_IPV4 - $this->masklen));
@@ -225,7 +237,7 @@ class IpTools
                 }
                 break;
             case 'cidrNetwork':
-                if ($this->innerGet('is_valid')) {
+                if ($this->innerGet('is_valid') && !$this->innerGet('is_maskNull')) {
                     return ($this->__isset('cidrNetwork')) ?
                         $this->innerGet('cidrNetwork') :
                         $this->innerSet('cidrNetwork', $this->network . '/' . $this->masklen);
@@ -234,7 +246,7 @@ class IpTools
                 }
                 break;
             case 'broadcast':
-                if ($this->innerGet('is_valid')) {
+                if ($this->innerGet('is_valid') && !$this->innerGet('is_maskNull')) {
                     return ($this->__isset('broadcast')) ?
                         $this->innerGet('broadcast') :
                         $this->innerSet('broadcast', long2ip(ip2long($this->network) + $this->networkSize - 1));
@@ -243,7 +255,7 @@ class IpTools
                 }
                 break;
              case 'is_hostIp':
-                if ($this->innerGet('is_valid')) {
+                if ($this->innerGet('is_valid') && !$this->innerGet('is_maskNull')) {
                     return ($this->__isset('is_hostIp')) ?
                         $this->innerGet('is_hostIp') :
                         $this->innerSet('is_hostIp', (32 == $this->masklen) || ($this->address != $this->network));
@@ -252,7 +264,7 @@ class IpTools
                 }
                 break;
              case 'is_networkIp':
-                if ($this->innerGet('is_valid')) {
+                if ($this->innerGet('is_valid') && !$this->innerGet('is_maskNull')) {
                     return ($this->__isset('is_networkIp')) ?
                         $this->innerGet('is_networkIp') :
                         $this->innerSet('is_networkIp', (32 == $this->masklen) || ($this->address == $this->network));

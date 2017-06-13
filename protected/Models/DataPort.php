@@ -52,22 +52,54 @@ class DataPort extends Model
     {
         $key = 'ipAddress';
         $masklen = $this->masklen;
-        if (empty($masklen)) {
-            return isset($this->__data[$key]) ? $this->__data[$key] : null;
+        $address = isset($this->__data[$key]) ? $this->__data[$key] : null;
+        $ipObj = new IpTools($address, $masklen);
+        if ($ipObj->is_valid) {
+            return $ipObj->cidrAddress;
         } else {
-            return isset($this->__data[$key]) ? ($this->__data[$key] . '/' . $masklen) : null;
+            return null;
         }
+//        if (empty($masklen)) {
+//            return isset($this->__data[$key]) ? $this->__data[$key] : null;
+//        } else {
+//            return isset($this->__data[$key]) ? ($this->__data[$key] . '/' . $masklen) : null;
+//        }
     }
-    public function __set($key, $value)
+    public function __set($key, $val)
     {
         if ('ipAddress' == $key) {
-            $ip = new IpTools($value);
-            if (false !== $ip->is_maskValid) {
-                $this->masklen = $ip->masklen;
+            //перенес из фреймворка
+            $validateMethod = 'validate' . ucfirst($key);
+            if (method_exists($this, $validateMethod)) {
 
+                $validateResult = $this->$validateMethod($val);
+                if (false === $validateResult) {
+                    return;
+                }
+
+                if ($validateResult instanceof \Generator) {
+                    $errors = new MultiException();
+                    foreach ($validateResult as $error) {
+                        if ($error instanceof \Exception) {
+                            $errors[] = $error;
+                        }
+                    }
+                    if (!$errors->isEmpty()) {
+                        throw $errors;
+                    }
+                }
+                if (isset($this->isNew) && false === $this->isNew) {
+                    $this->isUpdated = true;
+                }
+            }
+            //================
+            $ip = new IpTools($val);
+            if ($ip->is_valid) {
+                parent::__set('masklen', $ip->masklen);
+                parent::__set('address', $ip->address);
             }
         } else {
-            parent::__set($key, $value);
+            parent::__set($key, $val);
         }
     }
 
@@ -123,24 +155,13 @@ class DataPort extends Model
     protected function validateIpAddress($val)
     {
         $ip = new IpTools($val);
-        if (false === $ip->is_ipValid) {
+        if (false === $ip->is_valid) {
             throw new Exception(implode('<br>', $ip->errors));
         }
-        if ($ip->is_valid && false === $ip->is_hostIp) {
+        if ($ip->is_valid && false === $ip->is_maskNull && false === $ip->is_hostIp) {
             throw new Exception($ip->cidrAddress . ' не является адресом хоста' );
         }
         return true;
-    }
-
-    /**
-     * наверное можно убрать санитацию IP
-     *
-     * @param Ip $val
-     * @return mixed
-     */
-    protected function sanitizeIpAddress($val)
-    {
-        return (new Ip($val))->cidrAddress;
     }
 
     /**
@@ -185,7 +206,7 @@ class DataPort extends Model
 
     protected function validate()
     {
-        $ip = new Ip($this->ipAddress);
+        $ip = new IpTools($this->ipAddress);
         if (false === $this->appliance) {
             throw new Exception('Устройство не найдено');
         }
@@ -216,8 +237,8 @@ class DataPort extends Model
      */
     protected function beforeSave()
     {
-        $ip = (new Ip($this->ipAddress));
-        if ($this->isNew) {
+        $ip = (new IpTools($this->ipAddress));
+        if ($this->isNew && !$ip->is_maskNull) {
             if (false === $network = Network::findByAddressVrf($ip->cidrNetwork, $this->vrf)) {
                 $network = (new Network())
                     ->fill([
@@ -229,7 +250,7 @@ class DataPort extends Model
 //                throw new Exception('Данная сеть разбита на подсети. Использование для хостовых IP невозможно.');
             }
             $this->network = $network;
-        } elseif ($this->isUpdated) {
+        } elseif ($this->isUpdated && !$ip->is_maskNull) {
             if (false !== $network = Network::findByAddressVrf($ip->cidrNetwork, $this->vrf)) {
                 //if net for new IP exists, it must not contain subnets.
                 if ($network->children->count() > 0) {
