@@ -135,7 +135,7 @@ class Dataports extends Controller
                 $requestDataports->add($dataport);
             }
 
-            // Find the appliance's dataports which das not in the query, but there are in the database and output them to the log
+            // Find the appliance's dataports which does not in the query, but there are in the database and output them to the log
             $appliance->refresh();
             foreach ($appliance->dataPorts as $dbDataport) {
 
