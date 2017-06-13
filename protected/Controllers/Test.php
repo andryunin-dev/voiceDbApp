@@ -23,7 +23,7 @@ class Test extends Controller
 
     public function actionDefault()
     {
-        $ip = (new IpTools('192.168.1.1', 24));
+        $ip = (new IpTools('192.168.1.1/33'));
         echo 'object:';
         var_dump($ip);
         echo 'is_maskValid:';

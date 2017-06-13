@@ -192,10 +192,16 @@ class IpTools
                 }
                 break;
             case 'cidrAddress':
-                if ($this->innerGet('is_valid')) {
-                    return ($this->__isset('cidrAddress')) ?
-                        $this->innerGet('cidrAddress') :
-                        $this->innerSet('cidrAddress', $this->innerGet('address') . '/' . $this->masklen);
+                if ($this->innerGet('is_ipValid')) {
+                    if ($this->innerGet('is_maskValid')) {
+                        return ($this->__isset('cidrAddress')) ?
+                            $this->innerGet('cidrAddress') :
+                            $this->innerSet('cidrAddress', $this->innerGet('address') . '/' . $this->masklen);
+                    } else {
+                        return ($this->__isset('cidrAddress')) ?
+                            $this->innerGet('cidrAddress') :
+                            $this->innerSet('cidrAddress', $this->innerGet('address'));
+                    }
                 } else {
                     return false;
                 }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Components\Ip;
+use App\Components\IpTools;
 use T4\Core\Collection;
 use T4\Core\Exception;
 use T4\Core\IArrayable;
@@ -60,10 +61,9 @@ class DataPort extends Model
     public function __set($key, $value)
     {
         if ('ipAddress' == $key) {
-            $ip2array = explode('/', $value);
-            if (count($ip2array) > 2) {
-                throw new Exception('Неверный формат IP адреса');
-            } elseif (1 == count($ip2array) && false !== $address = filter_var(array_pop($ip2array), FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+            $ip = new IpTools($value);
+            if (false !== $ip->is_maskValid) {
+                $this->masklen = $ip->masklen;
 
             }
         } else {
@@ -122,11 +122,11 @@ class DataPort extends Model
      */
     protected function validateIpAddress($val)
     {
-        $ip = new Ip($val);
-        if (false === $ip->is_valid) {
+        $ip = new IpTools($val);
+        if (false === $ip->is_ipValid) {
             throw new Exception(implode('<br>', $ip->errors));
         }
-        if (false === $ip->is_hostIp) {
+        if ($ip->is_valid && false === $ip->is_hostIp) {
             throw new Exception($ip->cidrAddress . ' не является адресом хоста' );
         }
         return true;
