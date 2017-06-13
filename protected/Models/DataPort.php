@@ -57,6 +57,22 @@ class DataPort extends Model
         return empty($this->vrf) ? $this->vrf = $this->network->vrf : $this->vrf;
     }
 
+    protected function getMacAddress()
+    {
+        $key = 'macAddress';
+        if (isset($this->__data[$key]) && !empty($this->__data[$key])) {
+            $data = preg_replace('~:~', '', $this->__data[$key]);
+
+            return implode('.', [
+                substr($data,0,4),
+                substr($data,4,4),
+                substr($data,8,4),
+            ]);
+        }
+
+        return null;
+    }
+
     public function fill($data)
     {
         if ($data instanceof IArrayable) {
