@@ -84,6 +84,12 @@ class Test extends Controller
         die;
     }
 
+    public function actionDataport3()
+    {
+        $dp = DataPort::findByIpVrf('1.1.1.2', Vrf::instanceGlobalVrf());
+        var_dump($dp->cidrIpAddress);
+    }
+
     public function actionRegions($region = null)
     {
         $timer = Timer::instance();

@@ -16,6 +16,7 @@ use T4\Orm\Model;
  * имя порта писать в details->portName
  *
  * @property string $ipAddress
+ * @property string $cidrIpAddress
  * @property int $masklen
  * @property Network $network
  * @property string $macAddress
@@ -48,17 +49,23 @@ class DataPort extends Model
 
     public $vrf;
 
-    protected function getIpAddress()
+    protected function getCidrIpAddress()
     {
-        $key = 'ipAddress';
-        $masklen = $this->masklen;
-        $address = isset($this->__data[$key]) ? $this->__data[$key] : null;
-        $ipObj = new IpTools($address, $masklen);
-        if ($ipObj->is_valid) {
-            return $ipObj->cidrAddress;
+        $ip = new IpTools($this->ipAddress, $this->masklen);
+        if ($ip->is_valid) {
+            return $ip->cidrAddress;
         } else {
             return null;
         }
+//        $key = 'ipAddress';
+//        $masklen = $this->masklen;
+//        $address = isset($this->__data[$key]) ? $this->__data[$key] : null;
+//        $ip = new IpTools($address, $masklen);
+//        if ($ipObj->is_valid) {
+//            return $ipObj->cidrAddress;
+//        } else {
+//            return null;
+//        }
 //        if (empty($masklen)) {
 //            return isset($this->__data[$key]) ? $this->__data[$key] : null;
 //        } else {
@@ -131,7 +138,7 @@ class DataPort extends Model
         } else {
             $data = (array)$data;
         }
-        if (array_key_exists('vrf', $data) && $data['vrf'] instanceof Vrf) {
+        if (array_key_exists('vrf', $data) && ($data['vrf'] instanceof Vrf) || null === ($data['vrf'])) {
             $this->vrf = $data['vrf'];
             unset($data['vrf']);
         } else {
@@ -206,7 +213,7 @@ class DataPort extends Model
 
     protected function validate()
     {
-        $ip = new IpTools($this->ipAddress);
+        $ip = new IpTools($this->ipAddress, $this->masklen);
         if (false === $this->appliance) {
             throw new Exception('Устройство не найдено');
         }
@@ -237,7 +244,8 @@ class DataPort extends Model
      */
     protected function beforeSave()
     {
-        $ip = (new IpTools($this->ipAddress));
+        $ip = (new IpTools($this->ipAddress, $this->masklen));
+        //если маска не нулевая, то ищем сетку для него
         if ($this->isNew && !$ip->is_maskNull) {
             if (false === $network = Network::findByAddressVrf($ip->cidrNetwork, $this->vrf)) {
                 $network = (new Network())
