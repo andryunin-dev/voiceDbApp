@@ -184,7 +184,7 @@
 
                                 <div class="col-xs-2">
                                     <input type="hidden" class="form-control" name="data[dataportItem][portId][]" title="current port id" value="{{ dataPort.getPK }}">
-                                    <input type="text" class="form-control" name="data[dataportItem][ip][]" value="{{ dataPort.ipAddress }}" aria-describedby="ip-addr" placeholder="IP адрес" readonly title="IP адрес">
+                                    <input type="text" class="form-control" name="data[dataportItem][ip][]" value="{{ dataPort.cidrIpAddress }}" aria-describedby="ip-addr" placeholder="IP адрес" readonly title="IP адрес">
                                 </div>
                                 <div class="col-xs-2">
                                     <input type="text" class="form-control" name="data[dataportItem][mac][]" value="{{ dataPort.macAddress }}" aria-describedby="mac-addr" placeholder="MAC адрес" title="MAC адрес">

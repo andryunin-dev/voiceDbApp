@@ -3,8 +3,10 @@
 namespace App\Controllers;
 
 use App\Components\Ip;
+use App\Components\IpTools;
 use App\Components\Timer;
 use App\Models\Appliance;
+use App\Models\DataPort;
 use App\Models\DPortType;
 use App\Models\ModuleItem;
 use App\Models\Network;
@@ -22,32 +24,70 @@ class Test extends Controller
 
     public function actionDefault()
     {
-
-        $appliance = Appliance::findByPK(1407);
-        $appliance->fill(
-            [
-                'lastUpdate'=> (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P')
-//                'lastUpdate'=> (new \DateTime('now', new \DateTimeZone('Europe/Moscow')))->format('Y-m-d H:i:s P')
-//                'lastUpdate'=> (new \DateTime())->format('Y-m-d H:i:s')
-            ]
-        )->save();
-        var_dump(new \DateTime($appliance->lastUpdate));
-        echo '--------------------';
-
-        $appliance = Appliance::findByPK(1407);
-        var_dump(((new \DateTime($appliance->lastUpdate))->setTimezone(new \DateTimeZone('Europe/Moscow')))->format('Y-m-d H:i'));
-        var_dump((new \DateTime($appliance->lastUpdate))->setTimezone(new \DateTimeZone('Europe/Moscow')));
-        var_dump((new \DateTime($appliance->lastUpdate))->setTimezone(new \DateTimeZone('America/Toronto')));
-        var_dump((new \DateTime($appliance->lastUpdate))->setTimezone(new \DateTimeZone('America/Los_Angeles')));
-        echo '--------------------';
-
-        $lastUpdateDate = ((new \DateTime($appliance->lastUpdate))->setTimezone(new \DateTimeZone('Europe/Moscow')))->format('d.m.Y');
-        $lastUpdateDateTime = 'last update: ' . ((new \DateTime($appliance->lastUpdate))->setTimezone(new \DateTimeZone('Europe/Moscow')))->format('d.m.Y H:i \M\S\K(P)');
-
-        var_dump($lastUpdateDateTime);
-        var_dump($lastUpdateDate);
+        $ip = (new IpTools('192.168.1.0', '255.255.255.0'));
+        echo 'object:';
+        var_dump($ip);
+        echo 'is_maskValid:';
+        var_dump($ip->is_maskValid);
+        echo 'is_maskNull:';
+        var_dump($ip->is_maskNull);
+        echo 'masklen:';
+        var_dump($ip->masklen);
+        echo 'mask:';
+        var_dump($ip->mask);
+        echo 'is_ipValid:';
+        var_dump($ip->is_ipValid);
+        echo 'address:';
+        var_dump($ip->address);
+        echo 'cidrAddress:';
+        var_dump($ip->cidrAddress);
+        echo 'is_networkIp:';
+        var_dump($ip->is_networkIp);
+        echo 'network:';
+        var_dump($ip->network);
+        echo 'cidrNetwork:';
+        var_dump($ip->cidrNetwork);
+        echo 'networkSize:';
+        var_dump($ip->networkSize);
+        echo 'broadcast:';
+        var_dump($ip->broadcast);
+        echo 'is_hostIp:';
+        var_dump($ip->is_hostIp);
+        die;
+    }
+    public function actionDataport()
+    {
+        $appl = Appliance::findByPK(1419);
+        $dtype = DPortType::findByColumn('type', 'Ethernet');
+        $dp = new DataPort();
+        $dp->fill([
+            'ipAddress' => '1.1.1.1',
+            'isManagement' => true,
+            'appliance' => $appl,
+            'portType' => $dtype,
+            'vrf' => Vrf::instanceGlobalVrf()
+        ]);
+        var_dump($dp);
+        $dp->save();
+        var_dump($dp);
 
         die;
+    }
+    public function actionDataport2()
+    {
+        $dp = DataPort::findByIpVrf('1.1.1.1', Vrf::instanceGlobalVrf());
+        $dp->ipAddress = '1.1.1.2/24';
+        $dp->vrf = Vrf::instanceGlobalVrf();
+        $dp->save();
+        var_dump($dp);
+
+        die;
+    }
+
+    public function actionDataport3()
+    {
+        $dp = DataPort::findByIpVrf('1.1.1.2', Vrf::instanceGlobalVrf());
+        var_dump($dp->cidrIpAddress);
     }
 
     public function actionRegions($region = null)

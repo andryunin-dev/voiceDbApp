@@ -105,7 +105,7 @@
                                         <tbody>
                                         {% for port in noMngmnt %}
                                         <tr>
-                                            <td>{{ port.ipAddress }} {% if not port.details.portName is empty %}({{ port.details.portName }}){% endif %}</td>
+                                            <td>{{ port.cidrIpAddress }} {% if not port.details.portName is empty %}({{ port.details.portName }}){% endif %}</td>
                                         </tr>
                                         </tbody>
 

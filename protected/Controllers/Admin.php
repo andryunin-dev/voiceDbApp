@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Components\Ip;
+use App\Components\IpTools;
 use App\Components\Parser;
 use App\Components\Timer;
 use App\Models\Address;
@@ -1196,39 +1197,18 @@ class Admin extends Controller
                     ]
                 ])
                 ->save();
-            if (!empty($data->managementIp)) {
-                if (!isset($data->managementIpId) && !empty($data->managementIp)) {
-                    $newDPort = (new DataPort())
-                        ->fill([
-                            'vrf' => Vrf::instanceGlobalVrf(),
-                            'appliance' => $currentAppliance,
-                            'ipAddress' => (new Ip($data->managementIp, 32))->cidrAddress,
-                            'isManagement' => true,
-                            'portType' => DPortType::getEmpty()
-                        ]);
+            //если задается новый management IP
+            if (!empty($data->managementIp) && !isset($data->managementIpId)) {
+                $newDPort = (new DataPort())
+                    ->fill([
+                        'vrf' => Vrf::instanceGlobalVrf(),
+                        'appliance' => $currentAppliance,
+                        'ipAddress' => (new IpTools($data->managementIp))->cidrAddress,
+                        'isManagement' => true,
+                        'portType' => DPortType::getEmpty()
+                    ]);
+                $newDPort->save();
 
-                    $newDPort->save();
-
-
-                    //                    $currentDataPortMng = DataPort::findByPK($data->managementIpId);
-//                    $currentDataPortMng
-//                        ->fill([
-//                            'vrf' => $currentDataPortMng->network->vrf,
-//                            'ipAddress' => (new Ip($data->managementIp, 32))->cidrAddress,
-//                        ])
-//                        ->save();
-                }
-//                else {
-//                    (new DataPort())
-//                        ->fill([
-//                            'vrf' => Vrf::instanceGlobalVrf(),
-//                            'appliance' => $currentAppliance,
-//                            'ipAddress' => (new Ip($data->managementIp, 32))->cidrAddress,
-//                            'isManagement' => true,
-//                            'portType' => DPortType::getEmpty()
-//                        ])
-//                        ->save();
-//                }
             }
 
             //если appliance сохранился без ошибок - сохраняем существующие модули к нему
@@ -1276,11 +1256,17 @@ class Admin extends Controller
             // edit data ports
             if (!empty($data->dataportItem->portId)) {
                 foreach ($data->dataportItem->portId as $key => $value) {
-
-                    $vrf = Vrf::findByPK($data->dataportItem->vrfId->$key);
+                    if (is_numeric($data->dataportItem->vrfId->$key)) {
+                        $vrf = Vrf::findByPK($data->dataportItem->vrfId->$key);
+                    } else {
+                        $vrf = null;
+                    }
+                    //$vrf = Vrf::findByPK($data->dataportItem->vrfId->$key);
                     $currentDataPort = DataPort::findByIpVrf($data->dataportItem->ip->$key, $vrf);
                     if (isset($data->managementIpId) && !empty($data->managementIp) && $currentDataPort->getPk() == $data->managementIpId) {
-                        $currentDataPort->ipAddress = (new Ip($data->managementIp, 32))->cidrAddress;
+                        $ip = new IpTools($data->managementIp);
+                        $currentDataPort->ipAddress = $ip->address;
+                        $currentDataPort->masklen = $ip->masklen;
                     }
                     $currentDataPort->fill([
                         'appliance' => $currentAppliance,

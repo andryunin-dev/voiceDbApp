@@ -61,8 +61,11 @@ class Network extends Model
         return (new Ip($val))->cidrAddress;
     }
 
-    protected function validate()
+    public function validate()
     {
+        if (null === $this->vrf) {
+            throw new Exception('VRF не задан');
+        }
         if (! $this->vrf instanceof Vrf) {
             throw new Exception('VRF не найден');
         }
@@ -208,7 +211,7 @@ class Network extends Model
      * @param Vrf $vrf
      * @return Network|bool
      */
-    public static function findByAddressVrf($address, Vrf $vrf)
+    public static function findByAddressVrf($address, $vrf)
     {
         $result = Network::findAllByColumn('address', $address)->filter(function (Network $network) use ($vrf) {
             return ($network->vrf->getPk() == $vrf->getPk());

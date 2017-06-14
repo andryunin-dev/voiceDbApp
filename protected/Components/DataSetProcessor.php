@@ -484,6 +484,7 @@ class DataSetProcessor extends Std
      */
     protected function processDataPortDataSet(Appliance $appliance, $ipAddress)
     {
+        $ipAddress = (new IpTools($ipAddress))->address;
         $vrf = $this->processVrfDataSet();
         $dataPort = DataPort::findByIpVrf($ipAddress, $vrf);
 
