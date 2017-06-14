@@ -79,6 +79,11 @@
                 <ul class="nav navbar-nav navbar-right">
                     <li>
                         <p class="navbar-btn-custom">
+                            <a id="eraseLog" class="btn btn-success btn-xs hidden" href="#" title="Очистить Logs">Очистить</a>
+                        </p>
+                    </li>
+                    <li>
+                        <p class="navbar-btn-custom">
                             <a id="excelExport" class="btn btn-success btn-xs hidden" href="#" title="Экспорт в Excel">Экспорт</a>
                         </p>
                     </li>
@@ -109,6 +114,10 @@
     if ("{{exportUrl}}") {
         $("#excelExport").removeClass("hidden");
         APP.setLink("#excelExport", "{{ exportUrl }}");
+    }
+    if ("{{eraseLogUrl}}") {
+        $("#eraseLog").removeClass("hidden");
+        APP.setLink("#eraseLog", "{{ eraseLogUrl }}");
     }
 </script>
     {% block JS %}
