@@ -18,6 +18,7 @@ class Dataports extends Controller
     public function actionDefault()
     {
         try {
+            Logger::setTimezone(new \DateTimeZone('Europe/Moscow'));
             $logger = new Logger('DS-dataports');
             $logger->pushHandler(new StreamHandler(ROOT_PATH . '/Logs/surveyOfAppliances.log', Logger::DEBUG));
 
