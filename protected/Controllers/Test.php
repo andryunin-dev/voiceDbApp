@@ -6,6 +6,7 @@ use App\Components\Ip;
 use App\Components\IpTools;
 use App\Components\Timer;
 use App\Models\Appliance;
+use App\Models\DataPort;
 use App\Models\DPortType;
 use App\Models\ModuleItem;
 use App\Models\Network;
@@ -56,7 +57,31 @@ class Test extends Controller
     }
     public function actionDataport()
     {
+        $appl = Appliance::findByPK(1419);
+        $dtype = DPortType::findByColumn('type', 'Ethernet');
+        $dp = new DataPort();
+        $dp->fill([
+            'ipAddress' => '1.1.1.1',
+            'isManagement' => true,
+            'appliance' => $appl,
+            'portType' => $dtype,
+            'vrf' => Vrf::instanceGlobalVrf()
+        ]);
+        var_dump($dp);
+        $dp->save();
+        var_dump($dp);
 
+        die;
+    }
+    public function actionDataport2()
+    {
+        $dp = DataPort::findByIpVrf('1.1.1.1', Vrf::instanceGlobalVrf());
+        $dp->ipAddress = '1.1.1.2/24';
+        $dp->vrf = Vrf::instanceGlobalVrf();
+        $dp->save();
+        var_dump($dp);
+
+        die;
     }
 
     public function actionRegions($region = null)

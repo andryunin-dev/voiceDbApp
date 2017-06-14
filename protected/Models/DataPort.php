@@ -46,7 +46,7 @@ class DataPort extends Model
         ]
     ];
 
-    protected $vrf;
+    public $vrf;
 
     protected function getIpAddress()
     {
@@ -96,7 +96,7 @@ class DataPort extends Model
             $ip = new IpTools($val);
             if ($ip->is_valid) {
                 parent::__set('masklen', $ip->masklen);
-                parent::__set('address', $ip->address);
+                parent::__set('ipAddress', $ip->address);
             }
         } else {
             parent::__set($key, $val);
@@ -251,7 +251,7 @@ class DataPort extends Model
             }
             $this->network = $network;
         } elseif ($this->isUpdated && !$ip->is_maskNull) {
-            if (false !== $network = Network::findByAddressVrf($ip->cidrNetwork, $this->vrf)) {
+            if (null !== $this->vrf && false !== $network = Network::findByAddressVrf($ip->cidrNetwork, $this->vrf)) {
                 //if net for new IP exists, it must not contain subnets.
                 if ($network->children->count() > 0) {
 //                    throw new Exception('Данная сеть разбита на подсети. Использование для хостовых IP невозможно.');
@@ -264,6 +264,7 @@ class DataPort extends Model
                         'address' => ($ip->cidrNetwork),
                         'vrf' => $this->vrf
                     ]);
+                $network->validate();
                 //delete old DataPort
                 DataPort::findByPK($this->getPk())->delete();
                 //change current updated Data Port like new object
@@ -293,6 +294,7 @@ class DataPort extends Model
             $oldNetwork = (DataPort::findByPK($this->getPk()))->network;
             $saveResult = parent::save();
             if (false !== $saveResult &&
+                null !== $oldNetwork &&
                 32 == (new Ip($oldNetwork->address))->masklen &&
                 $this->network->address != $oldNetwork->address) {
                 $oldNetwork->delete();
@@ -305,7 +307,7 @@ class DataPort extends Model
 
     protected function afterDelete()
     {
-        if (32 == (new Ip($this->network->address))->masklen) {
+        if (null !== $this->network && 32 == (new IpTools($this->network->address))->masklen) {
             $this->network->delete();
         }
         return parent::afterDelete();
@@ -326,7 +328,7 @@ class DataPort extends Model
      * @param Vrf $vrf
      * @return bool|Collection|DataPort[]
      */
-    public static function findAllByIpVrf($ip, Vrf $vrf)
+    public static function findAllByIpVrf($ip, $vrf)
     {
         $query = (new Query())
             ->select()
@@ -343,7 +345,11 @@ class DataPort extends Model
              * @var DataPort $dPort
              * @var Vrf $vrf
              */
-            return ($dPort->network->vrf->rd == $vrf->rd);
+            if (null === $dPort->network) {
+                return true;
+            } else {
+                return ($dPort->network->vrf->rd == $vrf->rd);
+            }
         });
         return (null === $result) ? false : $result;
     }

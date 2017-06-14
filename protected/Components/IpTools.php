@@ -169,6 +169,9 @@ class IpTools
     public function __get($name)
     {
         switch ($name) {
+            case 'is_valid':
+                return (isset($this->__data['is_ipValid'])) ? $this->innerGet('is_ipValid') : false;
+                break;
             case 'is_ipValid':
                 return (isset($this->__data['is_ipValid'])) ? $this->innerGet('is_ipValid') : false;
                 break;
