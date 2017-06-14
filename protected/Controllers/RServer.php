@@ -26,6 +26,7 @@ class RServer extends Controller
     {
 //        $startTime = microtime(true);
 
+        Logger::setTimezone(new \DateTimeZone('Europe/Moscow'));
         $logger = new Logger('DS');
         $logger->pushHandler(new StreamHandler(ROOT_PATH . '/Logs/surveyOfAppliances.log', Logger::DEBUG));
 
