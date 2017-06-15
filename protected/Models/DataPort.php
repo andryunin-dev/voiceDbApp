@@ -255,14 +255,14 @@ class DataPort extends Model
                     ])
                     ->save();
             } elseif ($network->children->count() > 0) {
-//                throw new Exception('Данная сеть разбита на подсети. Использование для хостовых IP невозможно.');
+                throw new Exception('Сеть ' . $network->address . ' разбита на подсети. Использование для хостовых IP невозможно. Хост IP - ' . $this->cidrIpAddress);
             }
             $this->network = $network;
         } elseif ($this->isUpdated && !$ip->is_maskNull) {
             if (null !== $this->vrf && false !== $network = Network::findByAddressVrf($ip->cidrNetwork, $this->vrf)) {
                 //if net for new IP exists, it must not contain subnets.
                 if ($network->children->count() > 0) {
-//                    throw new Exception('Данная сеть разбита на подсети. Использование для хостовых IP невозможно.');
+                    throw new Exception('Сеть ' . $network->address . ' разбита на подсети. Использование для хостовых IP невозможно. Хост IP - ' . $this->cidrIpAddress);
                 }
                 $this->network = $network;
             } else {
