@@ -17,6 +17,7 @@ class Logs extends Controller
             $logAsArray[$key] = preg_split('~\[host\]=|\[manageIP\]=|\[message\]=|\[dataset\]=~', $value);
         }
         $this->data->records = $logAsArray;
+        $this->data->eraseLogUrl = '/logs/erase';
     }
 
     public function actionErase()
