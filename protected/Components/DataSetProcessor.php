@@ -539,9 +539,9 @@ class DataSetProcessor extends Std
 
     protected function processErrorDataSet()
     {
-        $logger = new Logger('ErrDS');
+        $logger = new Logger('DS-error');
         $logger->pushHandler(new StreamHandler(ROOT_PATH . '/Logs/surveyOfAppliances.log', Logger::DEBUG));
-        $logger->error($this->dataSet->ip . ' ->> ' . $this->dataSet->hostname . ' ->> ' . $this->dataSet->message);
+        $logger->error('[host]=' . ($this->dataSet->hostname ?? '""') . ' [manageIP]=' . ($this->dataSet->ip ?? '""') . ' [message]=' . ($this->dataSet->message ?? '""'));
 
         return true;
     }

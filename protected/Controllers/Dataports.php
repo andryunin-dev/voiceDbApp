@@ -19,10 +19,11 @@ class Dataports extends Controller
     {
         try {
             Logger::setTimezone(new \DateTimeZone('Europe/Moscow'));
-            $logger = new Logger('DS-dataports');
+            $logger = new Logger('DS-dataport');
             $logger->pushHandler(new StreamHandler(ROOT_PATH . '/Logs/surveyOfAppliances.log', Logger::DEBUG));
 
-            $dataSet = (new Std())->fill(json_decode(file_get_contents('php://input')));
+            $rawInput = file_get_contents('php://input');
+            $dataSet = (new Std())->fill(json_decode($rawInput));
 
             // Check the validity of the input dataset
             if (0 == count($dataSet)) {
@@ -141,18 +142,18 @@ class Dataports extends Controller
             foreach ($appliance->dataPorts as $dbDataport) {
 
                 if (!$requestDataports->existsElement(['ipAddress' => $dbDataport->ipAddress])) {
-                    $logger->warning('[host]=' . $appliance->details['hostname'] . ' [manageIP]=' . $dataSet->ip . ' ->> ' . $dbDataport->ipAddress . ' does not in the query, but there is in the database');
+                    $logger->warning('[host]=' . $appliance->details['hostname'] . ' [manageIP]=' . $dataSet->ip . ' [message]=' . $dbDataport->ipAddress . ' does not in the query, but there is in the database' . $rawInput);
                 }
             }
 
         } catch (MultiException $errs ) {
             foreach ($errs as $e) {
                 $err['errors'][] = $e->getMessage();
-                $logger->error('[host]=' . $appliance->details['hostname'] . ' [manageIP]=' . $dataSet->ip . ' ->> ' . $e->getMessage());
+                $logger->error('[host]=' . ($appliance->details['hostname'] ?? '""') . ' [manageIP]=' . ($dataSet->ip ?? '""') . ' [message]=' . ($e->getMessage() ?? '""') . ' [dataset]=' . $rawInput);
             }
         } catch (Exception $e) {
             $err['errors'][] = $e->getMessage();
-            $logger->error('[host]=' . $appliance->details['hostname'] . ' [manageIP]=' . $dataSet->ip . ' ->> ' . $e->getMessage());
+            $logger->error('[host]=' . ($appliance->details['hostname'] ?? '""') . ' [manageIP]=' . ($dataSet->ip ?? '""') . ' [message]=' . ($e->getMessage() ?? '""') . ' [dataset]=' . $rawInput);
         }
 
         // Вернуть ответ
