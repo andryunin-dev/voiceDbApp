@@ -172,7 +172,7 @@ class DataSetProcessor extends Std
             $office = $this->processLocationDataSet($this->dataSet->LotusId);
             $vendor = $this->processVendorDataSet($this->dataSet->platformVendor);
             $platform = $this->processPlatformDataSet($vendor ,$this->dataSet->chassis);
-            $platformItem = $this->processPlatformItemDataSet($platform ,$this->dataSet->platformSerial);
+            $platformItem = $this->processPlatformItemDataSet($platform ,$this->dataSet->platformSerial, $this->dataSet->ip);
             $software = $this->processSoftwareDataSet($vendor ,$this->dataSet->applianceSoft);
             $softwareItem = $this->processSoftwareItemDataSet($software ,$this->dataSet->softwareVersion);
             $applianceType = $this->processApplianceTypeDataSet($this->dataSet->applianceType);
@@ -266,19 +266,23 @@ class DataSetProcessor extends Std
     /**
      * @param Platform $platform
      * @param $serialNumber
+     * @param $ipAddress
      * @return PlatformItem|bool
+     * @throws Exception
      */
-    protected function processPlatformItemDataSet(Platform $platform, $serialNumber)
+    protected function processPlatformItemDataSet(Platform $platform, $serialNumber, $ipAddress)
     {
         $platformItem = PlatformItem::findByPlatformSerial($platform, $serialNumber);
 
         if (!($platformItem instanceof PlatformItem)) {
-            $platformItem = (new PlatformItem())
-                ->fill([
-                    'platform' => $platform,
-                    'serialNumber' => $serialNumber
-                ])
-                ->save();
+            $ipAddress = (new IpTools($ipAddress))->address;
+            $vrf = $this->processVrfDataSet();
+            $dataPort = DataPort::findByIpVrf($ipAddress, $vrf);
+            $platformItem = $dataPort->appliance->platform;
+        }
+
+        if (!($platformItem instanceof PlatformItem)) {
+            throw new Exception('Management IP = ' . $ipAddress . ' PlatformItem not found');
         }
 
         return $platformItem;
@@ -646,8 +650,8 @@ class DataSetProcessor extends Std
         if (!isset($dataSet->hostname)) {
             $errors->add(new Exception('DATASET: No field hostname'));
         }
-        if (!isset($dataSet->ip)) {
-            $errors->add(new Exception('DATASET: No field ip'));
+        if (!(new IpTools($dataSet->ip))->is_valid) {
+            $errors->add(new Exception('DATASET: No field ip or not valid'));
         }
         if (!isset($dataSet->chassis)) {
             $errors->add(new Exception('DATASET: No field chassis'));
