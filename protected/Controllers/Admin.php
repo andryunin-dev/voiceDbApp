@@ -1132,8 +1132,10 @@ class Admin extends Controller
 
             // если указан management IP - создать data port
             if (!empty($data->managementIp)) {
+                $ip = new IpTools($data->managementIp);
                 (new DataPort())->fill([
-                    'ipAddress' => (new Ip($data->managementIp, 32))->cidrAddress,
+                    'ipAddress' => $ip->address,
+                    'masklen' => $ip->masklen,
                     'portType' => DPortType::findByType('Ethernet'),
                     'appliance' => $appliance,
                     'vrf' => Vrf::instanceGlobalVrf(),
