@@ -11,9 +11,12 @@ class Logs extends Controller
     public function actionDefault()
     {
         $logs = file(self::LOGFILE, FILE_IGNORE_NEW_LINES);
-        $this->data->records = array_reverse($logs);
-
-        $this->data->eraseLogUrl = '/logs/erase';
+        $records = array_reverse($logs);
+        $logAsArray = [];
+        foreach ($records as $key => $value) {
+            $logAsArray[$key] = preg_split('~\[host\]=|\[manageIP\]=|\[message\]=|\[dataset\]=~', $value);
+        }
+        $this->data->records = $logAsArray;
     }
 
     public function actionErase()
