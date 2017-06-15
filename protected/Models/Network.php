@@ -86,7 +86,7 @@ class Network extends Model
                 return parent::beforeSave();
             }
             if ($this->parent->hosts->count() > 0) {
-                throw new Exception('Родительская подсеть содержит IP хостов.<br>Разбиение на подсети невозможно');
+                throw new Exception('Родительская подсеть ' . $this->parent->address . ' содержит IP хостов.Разбиение на подсети невозможно. Ошибка вставки дочерней подсети ' . $this->address);
             }
         } elseif (true === $this->isUpdated) {
             foreach ($this->children as $child) {
@@ -124,7 +124,7 @@ class Network extends Model
     protected function beforeDelete()
     {
         if ($this->hosts->count() > 0) {
-            throw new Exception('Подсеть содержит хостовые IP. Удаление невозможно');
+            throw new Exception('Подсеть ' . $this->address . ' содержит хостовые IP. Удаление невозможно');
         }
         if (false === $this->isNew) {
             foreach ($this->children as $child) {

@@ -166,7 +166,7 @@ class DataPort extends Model
             throw new Exception(implode('<br>', $ip->errors));
         }
         if ($ip->is_valid && false === $ip->is_maskNull && false === $ip->is_hostIp) {
-            throw new Exception($ip->cidrAddress . ' не является адресом хоста' );
+            throw new Exception($ip->cidrAddress . ' - не является адресом хоста' );
         }
         return true;
     }
@@ -185,7 +185,7 @@ class DataPort extends Model
             return false;
         }
         if (!empty(trim($val)) && false === filter_var(trim($val), FILTER_VALIDATE_MAC)) {
-            throw new Exception('Неверный формат MAC адреса');
+            throw new Exception($val . ' - Неверный формат MAC адреса');
         }
         return true;
     }
