@@ -1,11 +1,25 @@
 {% extends 'Index.html' %}
 
 {% block main %}
+    {#<div class="panel panel-default">#}
+        {#<div class="panel-body">#}
+            {#{% for record in records %}#}
+                {#<span id="{{ loop.index|trim }}">{{ record }}</span><br>#}
+            {#{% endfor %}#}
+        {#</div>#}
+    {#</div>#}
     <div class="panel panel-default">
         <div class="panel-body">
-            {% for record in records %}
-                <span id="{{ loop.index|trim }}">{{ record }}</span><br>
-            {% endfor %}
+            <table>
+                <tbody style="border: 1px solid #ddd">
+                {% for record in records %}
+                    <tr style="border: 1px solid #ddd; vertical-align: top">
+                        <td class="col-25">{{ record[0] }}</td>
+                        <td><b>[host]</b>: {{ record[1] }}<br><b>[manageIP]</b>: {{ record[2] }}<br><b>[message]</b>: {{ record[3] }}<br><b>[dataset]</b>: {{ record[4] }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 {% endblock %}
