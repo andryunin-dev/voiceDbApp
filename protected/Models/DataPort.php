@@ -254,6 +254,12 @@ class DataPort extends Model
                         'vrf' => $this->vrf
                     ])
                     ->save();
+                $network->refresh();
+                //new network must not contain any subnets
+                if ($network->children->count() > 0) {
+                    $network->delete();
+                    throw new Exception('Ошибка при создании сети ' . $network->address . ' для хоста ' . $this->cidrIpAddress . '. Данная сеть разбита на подсети. Использование для хостовых IP невозможно.');
+                }
             } elseif ($network->children->count() > 0) {
                 throw new Exception('Сеть ' . $network->address . ' разбита на подсети. Использование для хостовых IP невозможно. Хост IP - ' . $this->cidrIpAddress);
             }
@@ -282,9 +288,10 @@ class DataPort extends Model
                 $network->save();
                 $network->refresh();
                 //new network must not contain any subnets
-//                if ($network->children->count() > 0) {
-//                    throw new Exception('Данная сеть разбита на подсети. Использование для хостовых IP невозможно.');
-//                }
+                if ($network->children->count() > 0) {
+                    $network->delete();
+                    throw new Exception('Ошибка при создании сети ' . $network->address . ' для хоста ' . $this->cidrIpAddress . '. Данная сеть разбита на подсети. Использование для хостовых IP невозможно.');
+                }
                 $this->network = $network;
             }
         }
