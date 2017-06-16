@@ -118,7 +118,7 @@ class DataSetProcessor extends Std
             $software = $this->processSoftwareDataSet($vendor ,$dataSetClusterAppliance->applianceSoft);
             $softwareItem = $this->processSoftwareItemDataSet($software ,$dataSetClusterAppliance->softwareVersion);
             $applianceType = $this->processApplianceTypeDataSet($dataSetClusterAppliance->applianceType);
-            $appliance = $this->processApplianceItemDataSet($office, $applianceType, $vendor, $platformItem, $softwareItem,$dataSetClusterAppliance->hostname, $cluster);
+            $appliance = $this->processApplianceItemDataSet($dataSetClusterAppliance->ip, $office, $applianceType, $vendor, $platformItem, $softwareItem,$dataSetClusterAppliance->hostname, $cluster);
             $this->processModulesDataSet($vendor, $appliance, $office,$dataSetClusterAppliance->applianceModules);
 
             // IP address прописываем только у первого Appliance, входящего в состав кластера
@@ -172,11 +172,11 @@ class DataSetProcessor extends Std
             $office = $this->processLocationDataSet($this->dataSet->LotusId);
             $vendor = $this->processVendorDataSet($this->dataSet->platformVendor);
             $platform = $this->processPlatformDataSet($vendor ,$this->dataSet->chassis);
-            $platformItem = $this->processPlatformItemDataSet($platform ,$this->dataSet->platformSerial, $this->dataSet->ip);
+            $platformItem = $this->processPlatformItemDataSet($platform ,$this->dataSet->platformSerial);
             $software = $this->processSoftwareDataSet($vendor ,$this->dataSet->applianceSoft);
             $softwareItem = $this->processSoftwareItemDataSet($software ,$this->dataSet->softwareVersion);
             $applianceType = $this->processApplianceTypeDataSet($this->dataSet->applianceType);
-            $appliance = $this->processApplianceItemDataSet($office, $applianceType, $vendor, $platformItem, $softwareItem,$this->dataSet->hostname);
+            $appliance = $this->processApplianceItemDataSet($this->dataSet->ip, $office, $applianceType, $vendor, $platformItem, $softwareItem,$this->dataSet->hostname);
             $this->processModulesDataSet($vendor, $appliance, $office,$this->dataSet->applianceModules);
             $this->processDataPortDataSet($appliance, $this->dataSet->ip);
 
@@ -266,23 +266,19 @@ class DataSetProcessor extends Std
     /**
      * @param Platform $platform
      * @param $serialNumber
-     * @param $ipAddress
      * @return PlatformItem|bool
-     * @throws Exception
      */
-    protected function processPlatformItemDataSet(Platform $platform, $serialNumber, $ipAddress)
+    protected function processPlatformItemDataSet(Platform $platform, $serialNumber)
     {
         $platformItem = PlatformItem::findByPlatformSerial($platform, $serialNumber);
 
         if (!($platformItem instanceof PlatformItem)) {
-            $ipAddress = (new IpTools($ipAddress))->address;
-            $vrf = $this->processVrfDataSet();
-            $dataPort = DataPort::findByIpVrf($ipAddress, $vrf);
-            $platformItem = $dataPort->appliance->platform;
-        }
-
-        if (!($platformItem instanceof PlatformItem)) {
-            throw new Exception('Management IP = ' . $ipAddress . ' PlatformItem not found');
+            $platformItem = (new PlatformItem())
+                ->fill([
+                    'platform' => $platform,
+                    'serialNumber' => $serialNumber
+                ])
+                ->save();
         }
 
         return $platformItem;
@@ -346,6 +342,7 @@ class DataSetProcessor extends Std
     }
 
     /**
+     * @param $managementIP
      * @param Office $office
      * @param ApplianceType $applianceType
      * @param Vendor $vendor
@@ -356,6 +353,7 @@ class DataSetProcessor extends Std
      * @return Appliance
      */
     protected function processApplianceItemDataSet(
+        $managementIP,
         Office $office,
         ApplianceType $applianceType,
         Vendor $vendor,
@@ -365,7 +363,16 @@ class DataSetProcessor extends Std
         Cluster $cluster = null
     )
     {
-        $appliance = ($platformItem->appliance instanceof Appliance) ? $platformItem->appliance : (new Appliance());
+        $appliance = $platformItem->appliance;
+
+        if (!($appliance instanceof Appliance)) {
+            $ipAddress = (new IpTools($managementIP))->address;
+            $vrf = $this->processVrfDataSet();
+            $appliance = (DataPort::findByIpVrf($ipAddress, $vrf))->appliance;
+        }
+
+        $appliance = (!($appliance instanceof Appliance)) ? (new Appliance()) : $appliance;
+
         $appliance->fill([
             'cluster' => $cluster,
             'location' => $office,
@@ -588,6 +595,9 @@ class DataSetProcessor extends Std
         }
         if (empty($this->dataSet->clusterAppliances)) {
             throw new Exception('DATASET: Empty clusterAppliances');
+        }
+        if (!(new IpTools($this->dataSet->ip))->is_valid) {
+            new Exception('DATASET(cluster): No field ip or not valid');
         }
 
         foreach ($this->dataSet->clusterAppliances as $dataSetAppliance) {
