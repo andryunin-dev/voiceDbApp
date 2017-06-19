@@ -52,6 +52,9 @@
                                 <td>
                                     <span class="vendor">{{ appliance.platform.platform.vendor.title }}</span>
                                     {{ appliance.platform.platform.title }}
+                                    {% if not appliance.comment is empty %}
+                                    <span id="{{ appliance.getPk }}" class="glyphicon glyphicon-info-sign" aria-hidden="true" title="{{ appliance.comment }}">
+                                    {% endif %}
                                     <span class="lastUpdate" data-last-update="{{ appliance.lastUpdateDateTime }}" title="{{ appliance.lastUpdateDateTime }}">{{ appliance.lastUpdateDate }}</span>
                                 </td>
                                 {#Software#}
