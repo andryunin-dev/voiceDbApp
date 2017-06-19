@@ -15,8 +15,6 @@ use App\Models\Software;
 use App\Models\SoftwareItem;
 use App\Models\Vendor;
 use App\Models\Vrf;
-use Monolog\Handler\StreamHandler;
-use Monolog\Logger;
 use T4\Core\Collection;
 use T4\Core\Exception;
 use T4\Core\MultiException;
@@ -36,22 +34,21 @@ class DSPappliance extends Std
 
     /**
      * DSPappliance constructor.
-     * @param null $dataSet
+     * @param Std $dataSet
      * @param Cluster|null $cluster
      */
-    public function __construct($dataSet, Cluster $cluster = null)
+    public function __construct(Std $dataSet = null, Cluster $cluster = null)
     {
         $this->dataSet = $dataSet;
         $this->cluster = $cluster;
     }
 
 
-//-------------------------------------------------------------------------------------------
     /**
      * @return bool
      * @throws Exception
      */
-    protected function run()
+    public function run()
     {
         $this->verifyDataSet();
         $this->beforeProcessDataSet();
@@ -116,7 +113,7 @@ class DSPappliance extends Std
 
         return true;
     }
-//-----------------------------------------------------------------------------------------
+
 
     protected function beforeProcessDataSet()
     {
@@ -427,18 +424,12 @@ class DSPappliance extends Std
     }
 
     /**
-     * @throws Exception
+     * @throws Exception|MultiException
      */
     protected function verifyDataSet()
     {
         if (0 == count($this->dataSet)) {
             throw new Exception('DATASET: Empty an input dataset');
-        }
-        if (!isset($this->dataSet->dataSetType)) {
-            throw new Exception('DATASET: No field dataSetType');
-        }
-        if (empty($this->dataSet->dataSetType)) {
-            throw new Exception('DATASET: Empty dataSetType');
         }
 
         $errors = new MultiException();

@@ -187,7 +187,7 @@
                                     <input type="text" class="form-control" name="data[dataportItem][ip][]" value="{{ dataPort.cidrIpAddress }}" aria-describedby="ip-addr" placeholder="IP адрес" readonly title="IP адрес">
                                 </div>
                                 <div class="col-xs-2">
-                                    <input type="text" class="form-control" name="data[dataportItem][mac][]" value="{{ dataPort.macAddress }}" aria-describedby="mac-addr" placeholder="MAC адрес" title="MAC адрес">
+                                    <input type="text" class="form-control" name="data[dataportItem][mac][]" value="{{ dataPort.formatMacAddress }}" aria-describedby="mac-addr" placeholder="MAC адрес" title="MAC адрес">
                                 </div>
                                 <div class="col-xs-2">
                                     <input id="id-comment" type="text" class="form-control" name="data[dataportItem][comment][]" value="{{ dataPort.comment }}" placeholder="Комментарий" title="Комментарий">
