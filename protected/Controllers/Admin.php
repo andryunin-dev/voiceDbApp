@@ -1175,6 +1175,7 @@ class Admin extends Controller
             if (false === $software = Software::findByPK($data->softwareId)) {
                 throw new Exception('ПО не найдено');
             }
+            $currentAppliance->comment = $data->comment;
             ($currentAppliance->platform)
                 ->fill([
                     'platform' => $platform,

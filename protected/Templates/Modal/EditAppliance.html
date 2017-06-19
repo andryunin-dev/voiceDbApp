@@ -86,7 +86,14 @@
                             {% endif %}
                         </div>
                     </div>
-
+                    <div class="form-group">
+                        <label for="id-comment-appl" class="col-sm-2 control-label">Комментарий</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" name="data[comment]" value="{{ current.comment}}"
+                                   aria-describedby="hostname">
+                        </div>
+                    </div>
+                    {#====================================#}
                     <ul class="nav nav-tabs" role="tablist">
                         <li class="active" aria-controls="tabs-1" role="tab">
                             <a href="#tabs-1">
