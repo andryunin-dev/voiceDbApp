@@ -133,7 +133,9 @@
     <script>
         $("#fixed-header").headerFix({'height': '100%'});
         $( function() {
-            $( "table .glyphicon-info-sign" ).tooltip();
+            $("table .glyphicon-info-sign").tooltipster({
+                theme: 'tooltipster-light'
+            });
         } );
 
         $(".toggler").on(
