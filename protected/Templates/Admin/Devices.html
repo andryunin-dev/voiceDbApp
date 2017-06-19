@@ -54,7 +54,7 @@
                                     {{ appliance.platform.platform.title }}
                                     {% if not appliance.comment is empty %}
                                     <span id="{{ appliance.getPk }}" class="glyphicon glyphicon-info-sign" aria-hidden="true" title="{{ appliance.comment }}">
-                                    {% endif %}
+                                    {% endif %}</span>
                                     <span class="lastUpdate" data-last-update="{{ appliance.lastUpdateDateTime }}" title="{{ appliance.lastUpdateDateTime }}">{{ appliance.lastUpdateDate }}</span>
                                 </td>
                                 {#Software#}
