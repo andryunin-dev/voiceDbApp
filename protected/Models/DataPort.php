@@ -115,7 +115,7 @@ class DataPort extends Model
         return empty($this->vrf) ? $this->vrf = $this->network->vrf : $this->vrf;
     }
 
-    protected function getMacAddress()
+    public function formatMacAddress()
     {
         $key = 'macAddress';
         if (isset($this->__data[$key]) && !empty($this->__data[$key])) {
