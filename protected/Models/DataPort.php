@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Components\Ip;
+use App\Components\IpTools;
 use T4\Core\Collection;
 use T4\Core\Exception;
 use T4\Core\IArrayable;
@@ -15,6 +16,8 @@ use T4\Orm\Model;
  * имя порта писать в details->portName
  *
  * @property string $ipAddress
+ * @property string $cidrIpAddress
+ * @property int $masklen
  * @property Network $network
  * @property string $macAddress
  * @property string $details
@@ -31,6 +34,7 @@ class DataPort extends Model
         'table' => 'equipment.dataPorts',
         'columns' => [
             'ipAddress' => ['type' => 'string'],
+            'masklen' => ['type' => 'int'],
             'macAddress' => ['type' => 'string'],
             'details' => ['type' => 'json'],
             'comment' => ['type' => 'text'],
@@ -43,18 +47,88 @@ class DataPort extends Model
         ]
     ];
 
-    protected $vrf;
+    public $vrf;
 
-    protected function getIpAddress()
+    protected function getCidrIpAddress()
     {
-        $key = 'ipAddress';
-        $currentIpAddress = isset($this->__data[$key]) ? $this->__data[$key] : null;
-        return (new Ip($currentIpAddress, 32))->cidrAddress;
+        $ip = new IpTools($this->ipAddress, $this->masklen);
+        if ($ip->is_valid) {
+            return $ip->cidrAddress;
+        } else {
+            return null;
+        }
+//        $key = 'ipAddress';
+//        $masklen = $this->masklen;
+//        $address = isset($this->__data[$key]) ? $this->__data[$key] : null;
+//        $ip = new IpTools($address, $masklen);
+//        if ($ipObj->is_valid) {
+//            return $ipObj->cidrAddress;
+//        } else {
+//            return null;
+//        }
+//        if (empty($masklen)) {
+//            return isset($this->__data[$key]) ? $this->__data[$key] : null;
+//        } else {
+//            return isset($this->__data[$key]) ? ($this->__data[$key] . '/' . $masklen) : null;
+//        }
+    }
+    public function __set($key, $val)
+    {
+        if ('ipAddress' == $key) {
+            //перенес из фреймворка
+            $validateMethod = 'validate' . ucfirst($key);
+            if (method_exists($this, $validateMethod)) {
+
+                $validateResult = $this->$validateMethod($val);
+                if (false === $validateResult) {
+                    return;
+                }
+
+                if ($validateResult instanceof \Generator) {
+                    $errors = new MultiException();
+                    foreach ($validateResult as $error) {
+                        if ($error instanceof \Exception) {
+                            $errors[] = $error;
+                        }
+                    }
+                    if (!$errors->isEmpty()) {
+                        throw $errors;
+                    }
+                }
+                if (isset($this->isNew) && false === $this->isNew) {
+                    $this->isUpdated = true;
+                }
+            }
+            //================
+            $ip = new IpTools($val);
+            if ($ip->is_valid) {
+                parent::__set('masklen', $ip->masklen);
+                parent::__set('ipAddress', $ip->address);
+            }
+        } else {
+            parent::__set($key, $val);
+        }
     }
 
     protected function getVrf()
     {
         return empty($this->vrf) ? $this->vrf = $this->network->vrf : $this->vrf;
+    }
+
+    public function formatMacAddress()
+    {
+        $key = 'macAddress';
+        if (isset($this->__data[$key]) && !empty($this->__data[$key])) {
+            $data = preg_replace('~:~', '', $this->__data[$key]);
+
+            return implode('.', [
+                substr($data,0,4),
+                substr($data,4,4),
+                substr($data,8,4),
+            ]);
+        }
+
+        return null;
     }
 
     public function fill($data)
@@ -64,7 +138,7 @@ class DataPort extends Model
         } else {
             $data = (array)$data;
         }
-        if (array_key_exists('vrf', $data) && $data['vrf'] instanceof Vrf) {
+        if (array_key_exists('vrf', $data) && ($data['vrf'] instanceof Vrf) || null === ($data['vrf'])) {
             $this->vrf = $data['vrf'];
             unset($data['vrf']);
         } else {
@@ -87,25 +161,14 @@ class DataPort extends Model
      */
     protected function validateIpAddress($val)
     {
-        $ip = new Ip($val);
+        $ip = new IpTools($val);
         if (false === $ip->is_valid) {
             throw new Exception(implode('<br>', $ip->errors));
         }
-        if (false === $ip->is_hostIp) {
-            throw new Exception($ip->cidrAddress . ' не является адресом хоста' );
+        if ($ip->is_valid && false === $ip->is_maskNull && false === $ip->is_hostIp) {
+            throw new Exception($ip->cidrAddress . ' - не является адресом хоста' );
         }
         return true;
-    }
-
-    /**
-     * наверное можно убрать санитацию IP
-     *
-     * @param Ip $val
-     * @return mixed
-     */
-    protected function sanitizeIpAddress($val)
-    {
-        return (new Ip($val))->cidrAddress;
     }
 
     /**
@@ -122,7 +185,7 @@ class DataPort extends Model
             return false;
         }
         if (!empty(trim($val)) && false === filter_var(trim($val), FILTER_VALIDATE_MAC)) {
-            throw new Exception('Неверный формат MAC адреса');
+            throw new Exception($val . ' - Неверный формат MAC адреса');
         }
         return true;
     }
@@ -150,7 +213,7 @@ class DataPort extends Model
 
     protected function validate()
     {
-        $ip = new Ip($this->ipAddress);
+        $ip = new IpTools($this->ipAddress, $this->masklen);
         if (false === $this->appliance) {
             throw new Exception('Устройство не найдено');
         }
@@ -181,8 +244,9 @@ class DataPort extends Model
      */
     protected function beforeSave()
     {
-        $ip = (new Ip($this->ipAddress));
-        if ($this->isNew) {
+        $ip = (new IpTools($this->ipAddress, $this->masklen));
+        //если маска не нулевая, то ищем сетку для него
+        if ($this->isNew && !$ip->is_maskNull) {
             if (false === $network = Network::findByAddressVrf($ip->cidrNetwork, $this->vrf)) {
                 $network = (new Network())
                     ->fill([
@@ -190,15 +254,21 @@ class DataPort extends Model
                         'vrf' => $this->vrf
                     ])
                     ->save();
+                $network->refresh();
+                //new network must not contain any subnets
+                if ($network->children->count() > 0) {
+                    $network->delete();
+                    throw new Exception('Ошибка при создании сети ' . $network->address . ' для хоста ' . $this->cidrIpAddress . '. Данная сеть разбита на подсети. Использование для хостовых IP невозможно.');
+                }
             } elseif ($network->children->count() > 0) {
-//                throw new Exception('Данная сеть разбита на подсети. Использование для хостовых IP невозможно.');
+                throw new Exception('Сеть ' . $network->address . ' разбита на подсети. Использование для хостовых IP невозможно. Хост IP - ' . $this->cidrIpAddress);
             }
             $this->network = $network;
-        } elseif ($this->isUpdated) {
-            if (false !== $network = Network::findByAddressVrf($ip->cidrNetwork, $this->vrf)) {
+        } elseif ($this->isUpdated && !$ip->is_maskNull) {
+            if (null !== $this->vrf && false !== $network = Network::findByAddressVrf($ip->cidrNetwork, $this->vrf)) {
                 //if net for new IP exists, it must not contain subnets.
                 if ($network->children->count() > 0) {
-//                    throw new Exception('Данная сеть разбита на подсети. Использование для хостовых IP невозможно.');
+                    throw new Exception('Сеть ' . $network->address . ' разбита на подсети. Использование для хостовых IP невозможно. Хост IP - ' . $this->cidrIpAddress);
                 }
                 $this->network = $network;
             } else {
@@ -208,6 +278,7 @@ class DataPort extends Model
                         'address' => ($ip->cidrNetwork),
                         'vrf' => $this->vrf
                     ]);
+                $network->validate();
                 //delete old DataPort
                 DataPort::findByPK($this->getPk())->delete();
                 //change current updated Data Port like new object
@@ -217,9 +288,10 @@ class DataPort extends Model
                 $network->save();
                 $network->refresh();
                 //new network must not contain any subnets
-//                if ($network->children->count() > 0) {
-//                    throw new Exception('Данная сеть разбита на подсети. Использование для хостовых IP невозможно.');
-//                }
+                if ($network->children->count() > 0) {
+                    $network->delete();
+                    throw new Exception('Ошибка при создании сети ' . $network->address . ' для хоста ' . $this->cidrIpAddress . '. Данная сеть разбита на подсети. Использование для хостовых IP невозможно.');
+                }
                 $this->network = $network;
             }
         }
@@ -237,6 +309,7 @@ class DataPort extends Model
             $oldNetwork = (DataPort::findByPK($this->getPk()))->network;
             $saveResult = parent::save();
             if (false !== $saveResult &&
+                null !== $oldNetwork &&
                 32 == (new Ip($oldNetwork->address))->masklen &&
                 $this->network->address != $oldNetwork->address) {
                 $oldNetwork->delete();
@@ -249,7 +322,7 @@ class DataPort extends Model
 
     protected function afterDelete()
     {
-        if (32 == (new Ip($this->network->address))->masklen) {
+        if (null !== $this->network && 32 == (new IpTools($this->network->address))->masklen) {
             $this->network->delete();
         }
         return parent::afterDelete();
@@ -270,7 +343,7 @@ class DataPort extends Model
      * @param Vrf $vrf
      * @return bool|Collection|DataPort[]
      */
-    public static function findAllByIpVrf($ip, Vrf $vrf)
+    public static function findAllByIpVrf($ip, $vrf)
     {
         $query = (new Query())
             ->select()
@@ -287,7 +360,11 @@ class DataPort extends Model
              * @var DataPort $dPort
              * @var Vrf $vrf
              */
-            return ($dPort->network->vrf->rd == $vrf->rd);
+            if (null === $dPort->network) {
+                return true;
+            } else {
+                return ($dPort->network->vrf->rd == $vrf->rd);
+            }
         });
         return (null === $result) ? false : $result;
     }

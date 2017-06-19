@@ -86,7 +86,14 @@
                             {% endif %}
                         </div>
                     </div>
-
+                    <div class="form-group">
+                        <label for="id-comment-appl" class="col-sm-2 control-label">Комментарий</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" name="data[comment]" value="{{ current.comment}}"
+                                   aria-describedby="hostname">
+                        </div>
+                    </div>
+                    {#====================================#}
                     <ul class="nav nav-tabs" role="tablist">
                         <li class="active" aria-controls="tabs-1" role="tab">
                             <a href="#tabs-1">
@@ -164,7 +171,7 @@
                         </div>
 
                         <div class="tab-pane" role="tabpanel" id="tabs-2">
-                            {% for dataPort in current.dataPorts %}
+                            {% for dataPort in dataPorts %}
                             <div class="form-group">
                                 <div class="col-xs-2">
                                     <select name="data[dataportItem][portTypeId][]" id="id-data-port-type" class="form-control" title="Тип порта">
@@ -173,21 +180,21 @@
                                         {% endfor %}
                                     </select>
                                 </div>
-                                <div class="col-xs-1">
+                                <div class="col-xs-2">
                                     <input id="id-port-name" type="text" class="form-control" name="data[dataportItem][portName][]" value="{{ dataPort.details.portName }}" placeholder="Name" title="Имя порта">
                                 </div>
 
-                                <div class="col-xs-2">
+                                <div class="col-xs-1">
                                     <input type="hidden" class="form-control" name="data[dataportItem][vrfId][]"  value="{{ dataPort.network.vrf.getPK }}">
                                     <input id="id-vrf" type="text" class="form-control" name="data[dataportItem][vrfName][]" title="VRF" value="{{ dataPort.network.vrf.name }}" readonly>
                                 </div>
 
                                 <div class="col-xs-2">
                                     <input type="hidden" class="form-control" name="data[dataportItem][portId][]" title="current port id" value="{{ dataPort.getPK }}">
-                                    <input type="text" class="form-control" name="data[dataportItem][ip][]" value="{{ dataPort.ipAddress }}" aria-describedby="ip-addr" placeholder="IP адрес" readonly title="IP адрес">
+                                    <input type="text" class="form-control" name="data[dataportItem][ip][]" value="{{ dataPort.cidrIpAddress }}" aria-describedby="ip-addr" placeholder="IP адрес" readonly title="IP адрес">
                                 </div>
                                 <div class="col-xs-2">
-                                    <input type="text" class="form-control" name="data[dataportItem][mac][]" value="{{ dataPort.macAddress }}" aria-describedby="mac-addr" placeholder="MAC адрес" title="MAC адрес">
+                                    <input type="text" class="form-control" name="data[dataportItem][mac][]" value="{{ dataPort.formatMacAddress }}" aria-describedby="mac-addr" placeholder="MAC адрес" title="MAC адрес">
                                 </div>
                                 <div class="col-xs-2">
                                     <input id="id-comment" type="text" class="form-control" name="data[dataportItem][comment][]" value="{{ dataPort.comment }}" placeholder="Комментарий" title="Комментарий">
@@ -212,10 +219,10 @@
                                             {% endfor %}
                                         </select>
                                     </div>
-                                    <div class="col-xs-1">
+                                    <div class="col-xs-2">
                                         <input id="id-port-name" type="text" class="form-control" name="data[newDataport][portName][]" placeholder="Name" title="Имя порта">
                                     </div>
-                                    <div class="col-xs-2">
+                                    <div class="col-xs-1">
                                         <select name="data[newDataport][vrfId][]" id="id-vrf" class="form-control" title="VRF">
                                             <option value="" selected="selected">---------</option>
                                             {% for vrf in vrfs %}

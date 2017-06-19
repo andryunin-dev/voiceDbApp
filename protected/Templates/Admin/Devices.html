@@ -50,9 +50,8 @@
                                 </td>
                                 {#Platform#}
                                 <td>
-                                    <span class="vendor">{{ appliance.platform.platform.vendor.title }}</span>
-                                    {{ appliance.platform.platform.title }}
-                                    <span class="lastUpdate" data-last-update-utc="{{ appliance.lastUpdateDateTime }}"></span>
+                                    {{ appliance.platform.platform.vendor.title }} {{ appliance.platform.platform.title }} {% if not appliance.comment is empty %}<span id="{{ appliance.getPk }}" class="glyphicon glyphicon-info-sign" aria-hidden="true" title="{{ appliance.comment }}"></span>{% endif %}
+                                    <span class="lastUpdate" data-last-update="{{ appliance.lastUpdateDateTime }}" title="{{ appliance.lastUpdateDateTime }}">{{ appliance.lastUpdateDate }}</span>
                                 </td>
                                 {#Software#}
                                 <td>
@@ -98,14 +97,14 @@
                                             {% set noMngmnt = appliance.getNoManagementPorts %}
                                             {% if noMngmnt.count > 0 %}
                                                 <tr>
-                                                    <th class="toggler">другие интерфейсы ({{ noMngmnt.count }})</th>
+                                                    <th class="toggler btn btn-xs btn-grey"><span class=" js-caret caret-right"></span> другие интерфейсы ({{ noMngmnt.count }})</th>
                                                 </tr>
                                             {% endif %}
                                         </theader>
                                         <tbody>
                                         {% for port in noMngmnt %}
                                         <tr>
-                                            <td>{{ port.ipAddress }} {% if not port.details.portName is empty %}({{ port.details.portName }}){% endif %}</td>
+                                            <td>{{ port.cidrIpAddress }} {% if not port.details.portName is empty %}({{ port.details.portName }}){% endif %}</td>
                                         </tr>
                                         </tbody>
 
@@ -142,6 +141,7 @@
             function ($e) {
                 console.log('click');
                 $(this).closest("table").find("tbody tr td").slideToggle("fast")
+                $(this).find(".js-caret").toggleClass("caret-down")
             }
         )
     </script>

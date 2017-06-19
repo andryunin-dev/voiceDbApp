@@ -24,44 +24,53 @@ class RServer extends Controller
 
     public function actionDefault()
     {
-//        $startTime = microtime(true);
-
-        $logger = new Logger('DS');
-        $logger->pushHandler(new StreamHandler(ROOT_PATH . '/Logs/surveyOfAppliances.log', Logger::DEBUG));
-
         try {
-            $inputDataset = json_decode(file_get_contents('php://input'));
-            if (null === $inputDataset) {
-                throw new Exception('DATASET: Not a valid JSON input dataset');
-            }
-            $inputDataset = (new Std())->fill($inputDataset);
+            $rawInput = file_get_contents('php://input');
+            $inputDataset = (new Std())->fill(json_decode($rawInput));
 
-            $res = (new DataSetProcessor($inputDataset))->run();
-            if (false === $res) {
+            if (0 == count($inputDataset)) {
+                Logger::setTimezone(new \DateTimeZone('Europe/Moscow'));
+                $logger = new Logger('DS-appliance');
+                $logger->pushHandler(new StreamHandler(ROOT_PATH . '/Logs/surveyOfAppliances.log', Logger::DEBUG));
+
+                throw new Exception('DATASET: Not a valid JSON format or empty an input dataset');
+            }
+
+            if ('appliance' == $inputDataset->dataSetType) {
+                Logger::setTimezone(new \DateTimeZone('Europe/Moscow'));
+                $logger = new Logger('DS-appliance');
+                $logger->pushHandler(new StreamHandler(ROOT_PATH . '/Logs/surveyOfAppliances.log', Logger::DEBUG));
+            }
+
+            if ('cluster' == $inputDataset->dataSetType) {
+                Logger::setTimezone(new \DateTimeZone('Europe/Moscow'));
+                $logger = new Logger('DS-cluster');
+                $logger->pushHandler(new StreamHandler(ROOT_PATH . '/Logs/surveyOfAppliances.log', Logger::DEBUG));
+            }
+
+
+            $result = (new DataSetProcessor($inputDataset))->run();
+            if (false === $result) {
                 throw new Exception('Dataset Processor: runtime error');
             }
 
         } catch (MultiException $errs) {
             foreach ($errs as $e) {
                 $err['errors'][] = $e->getMessage();
-                $logger->error($inputDataset->ip . '-> ' . $e->getMessage());
+                $logger->error('[host]=' . ($inputDataset->hostname ?? '""') . ' [manageIP]=' . ($inputDataset->ip ?? '""') . ' [message]=' . ($e->getMessage() ?? '""') . ' [dataset]=' . $rawInput);
             }
         } catch (Exception $e) {
-            $err['errors'] = $e->getMessage();
-            $logger->error($inputDataset->ip . '-> ' . $e->getMessage());
+            $err['errors'][] = $e->getMessage();
+            $logger->error('[host]=' . ($inputDataset->hostname ?? '""') . ' [manageIP]=' . ($inputDataset->ip ?? '""') . ' [message]=' . ($e->getMessage() ?? '""') . ' [dataset]=' . $rawInput);
         }
 
-        // Подготовить и вернуть ответ
-        $httpStatusCode = (isset($err['errors'])) ? 400 : 202; // Bad Request OR Accepted
-        $response = (new Collection())->merge(['ip' => $inputDataset->ip]);
-        $response->merge(['httpStatusCode' => $httpStatusCode]);
-        if (400 == $httpStatusCode) {
-            $response->merge($err);
-        }
 
-//        $stopTime = microtime(true);
-//        $logger->error($inputDataset->ip . '-> ' . ($stopTime - $startTime));
-
+        // Вернуть ответ
+        $httpStatusCode = (isset($err)) ? 400 : 202;
+        $response = (new Collection())
+            ->merge(['ip' => $inputDataset->ip])
+            ->merge(['httpStatusCode' => $httpStatusCode])
+            ->merge((400 == $httpStatusCode) ? $err : [] );
         echo(json_encode($response->toArray()));
         die;
     }

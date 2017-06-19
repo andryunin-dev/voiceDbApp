@@ -16,6 +16,7 @@ namespace App\Components;
  * @property string $mask           mask (i.e. 255.255.255.0, 255.240.0.0 etc.)
  * @property int $masklen           length of mask (1-32)
  * @property bool $is_valid         valid or not this object
+ * @property bool $is_ip_valid         valid or not ip address
  *
  * if masklen == 32 then $is_hostIp == true AND $is_networkIp == true
  * @property bool $is_hostIp        current address is host IP
@@ -56,6 +57,9 @@ class Ip
             $this->innerSet('address', filter_var(array_pop($ip2array), FILTER_VALIDATE_IP, FILTER_FLAG_IPV4));
             if (false === $this->innerGet('address')) {
                 $this->innerSet('is_valid', false);
+                $this->innerSet('is_ip_valid', false);
+            } else {
+                $this->innerSet('is_ip_valid', true);
             }
             //analize mask argument
             if (is_numeric($mask) && $mask > 0 && $mask <= self::MAX_LEN_MASK_IPV4 ) {

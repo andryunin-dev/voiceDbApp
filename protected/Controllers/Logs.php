@@ -6,11 +6,27 @@ use T4\Mvc\Controller;
 
 class Logs extends Controller
 {
+    const LOGFILE = ROOT_PATH . '/Logs/surveyOfAppliances.log';
+
     public function actionDefault()
     {
-        $path = ROOT_PATH . '/Logs/surveyOfAppliances.log';
-        $logs = file($path, FILE_IGNORE_NEW_LINES);
-        $this->data->records = array_reverse($logs);
+        $logs = file(self::LOGFILE, FILE_IGNORE_NEW_LINES);
+        $records = array_reverse($logs);
+        $logAsArray = [];
+        foreach ($records as $key => $value) {
+            $logAsArray[$key] = preg_split('~\[host\]=|\[manageIP\]=|\[message\]=|\[dataset\]=~', $value);
+            $logAsArray[$key][0] = preg_replace('~(\[.+\])~','$0<br>', $logAsArray[$key][0]);
+        }
+        $this->data->records = $logAsArray;
+        $this->data->eraseLogUrl = '/logs/erase';
     }
 
+    public function actionErase()
+    {
+        $logfile = fopen(self::LOGFILE, 'w');
+        ftruncate($logfile,0);
+        fclose($logfile);
+        header('Location: /logs');
+        die;
+    }
 }
