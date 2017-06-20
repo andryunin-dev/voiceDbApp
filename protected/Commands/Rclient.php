@@ -95,16 +95,17 @@ class Rclient extends Command
 
     public function actionTestOne()
     {
-        $url = "http://voice.loc/dataports";
-//        $url = "http://voice.loc/rServer";
+//        $url = "http://voice.loc/dataports";
+        $url = "http://voice.loc/rServer";
 //        $url = "http://netcmdb-dev.rs.ru/rServer";
 
-//        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_src');
+        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_src');
 //        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_err');
 //        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_dataset_1_errors');
-        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_dataset_2');
+//        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_dataset_2');
 
-        $filePath = realpath($srcDir . '\\' . '10.100.240.1-32__2017-05-25__6-43-43.72926900.json');
+//        $filePath = realpath($srcDir . '\\' . '10.100.240.1-32__2017-05-25__6-43-43.72926900.json');
+        $filePath = realpath($srcDir . '\\' . '10.7.1.5-32__2017-05-25__6-46-01.30045900.json');
 
 
         $jsondata = file_get_contents($filePath);

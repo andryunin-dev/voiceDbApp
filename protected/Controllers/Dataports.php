@@ -66,10 +66,10 @@ class Dataports extends Controller
             }
 
             // Define VRF of the management IP
-            if ('global' == mb_strtolower($dataSetNetwork->vrf_name)) {
+            if ('global' == mb_strtolower($dataSet->vrf_name)) {
                 $vrf = Vrf::instanceGlobalVrf();
             }
-            if ('global' != mb_strtolower($dataSetNetwork->vrf_name)) {
+            if ('global' != mb_strtolower($dataSet->vrf_name)) {
                 $vrf = Vrf::findByColumn('name', $dataSet->vrf_name);
             }
             if (!($vrf instanceof Vrf)) {

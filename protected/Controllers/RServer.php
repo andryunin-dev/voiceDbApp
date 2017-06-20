@@ -1,10 +1,10 @@
 <?php
-
 namespace App\Controllers;
 
 use App\Components\DSPappliance;
 use App\Components\DSPcluster;
 use App\Components\DSPerror;
+use App\Components\DSPprefixes;
 use App\Components\RLogger;
 use T4\Core\Collection;
 use T4\Core\Exception;
@@ -52,6 +52,11 @@ class RServer extends Controller
                 case 'error':
                     $logger = RLogger::getInstance('DS-error');
                     $result = (new DSPerror($inputDataset))->run();
+                    break;
+
+                case 'prefixes':
+                    $logger = RLogger::getInstance('DS-prefixes');
+                    $result = (new DSPprefixes($inputDataset))->run();
                     break;
 
                 default:
