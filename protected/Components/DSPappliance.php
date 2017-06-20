@@ -174,7 +174,7 @@ class DSPappliance extends Std
      */
     protected function processPlatformItemDataSet(Platform $platform, $serialNumber)
     {
-        $platformItem = (false === $this->appliance->isNew) ? $this->appliance->platform : (new PlatformItem());
+        $platformItem = ($this->appliance->platform instanceof PlatformItem) ? $this->appliance->platform : (new PlatformItem());
 
         $platformItem->fill([
                 'platform' => $platform,
@@ -212,7 +212,7 @@ class DSPappliance extends Std
      */
     protected function processSoftwareItemDataSet(Software $software, $version)
     {
-        $softwareItem = (false === $this->appliance->isNew) ? $this->appliance->software : (new SoftwareItem());
+        $softwareItem = ($this->appliance->software instanceof SoftwareItem) ? $this->appliance->software : (new SoftwareItem());
 
         $softwareItem->fill([
             'software' => $software,
