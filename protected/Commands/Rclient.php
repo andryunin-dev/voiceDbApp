@@ -3,6 +3,7 @@
 namespace App\Commands;
 
 use T4\Console\Command;
+use T4\Core\Std;
 
 class Rclient extends Command
 {
@@ -40,7 +41,7 @@ class Rclient extends Command
 //            echo ' request ' . $n++ . '  ->  ' . $result->httpStatusCode  . $statusCode . PHP_EOL;
 
             curl_close($curl);
-//var_dump($result->errors);
+
             if (400 == $result->httpStatusCode){
                 rename($filePath, $errDir . '\\' . $file);
             }
@@ -99,17 +100,15 @@ class Rclient extends Command
         $url = "http://voice.loc/rServer";
 //        $url = "http://netcmdb-dev.rs.ru/rServer";
 
-        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_src');
+//        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_src');
 //        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_err');
 //        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_dataset_1_errors');
-//        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_dataset_2');
+        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_dataset_2');
 
-//        $filePath = realpath($srcDir . '\\' . '10.100.240.1-32__2017-05-25__6-43-43.72926900.json');
-        $filePath = realpath($srcDir . '\\' . '10.7.1.5-32__2017-05-25__6-46-01.30045900.json');
+        $filePath = realpath($srcDir . '\\' . '10.100.240.1-32__2017-05-25__6-43-43.72926900.json');
 
 
         $jsondata = file_get_contents($filePath);
-
         $curl = curl_init($url);
         curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
         curl_setopt($curl, CURLOPT_HEADER, false);
@@ -120,5 +119,42 @@ class Rclient extends Command
         var_dump($result);
 
         curl_close($curl);
+    }
+
+    public function actionCount()
+    {
+        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_src');
+
+        $count = 0;
+        $files = scandir($srcDir);
+        foreach ($files as $file) {
+            $count++;
+        }
+
+        echo $count . ' file';
+    }
+
+    public function actionFind()
+    {
+        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_src');
+
+        $files = scandir($srcDir);
+        foreach ($files as $file) {
+            if ('.' == $file || '..' == $file) {
+                continue;
+            }
+
+            $filePath = realpath($srcDir . '\\' . $file);
+
+            $jsondata = file_get_contents($filePath);
+            $inputDataset = (new Std())->fill(json_decode($jsondata));
+            $pattern = 'cluster';
+
+            if ($pattern == $inputDataset->dataSetType) {
+                echo $file . PHP_EOL;
+            }
+        }
+
+        echo 'The end ...';
     }
 }

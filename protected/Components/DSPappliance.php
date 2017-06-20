@@ -34,10 +34,10 @@ class DSPappliance extends Std
 
     /**
      * DSPappliance constructor.
-     * @param Std $dataSet
+     * @param null $dataSet
      * @param Cluster|null $cluster
      */
-    public function __construct(Std $dataSet = null, Cluster $cluster = null)
+    public function __construct($dataSet = null, Cluster $cluster = null)
     {
         $this->dataSet = $dataSet;
         $this->cluster = $cluster;
@@ -66,14 +66,24 @@ class DSPappliance extends Std
                 throw new Exception('Location not found, LotusId = ' . $this->dataSet->LotusId);
             }
 
+            /**
+             * << Варианты устройств в БД >>
+             *
+             * Case "platformSerial - ЕСТЬ, managementIp - ЕСТЬ"  -> полноценное устройство. Ищем устройство по platformSerial
+             * Case "platformSerial - ЕСТЬ, managementIp - НЕТ"  -> устройство в составе кластера. Первому устройству в dataset присваиваем managementIp кластера
+             * Case "platformSerial - НЕТ, managementIp - ЕСТЬ"  -> пустое устройство заведенное из вэб интерфейса
+             *
+             */
+
             // Case "Find appliance by platformSerial"
             if (!empty($this->dataSet->platformSerial)) {
                 $this->appliance = Appliance::findByVendorTitlePlatformSerial($this->dataSet->platformVendor, $this->dataSet->platformSerial);
             }
 
             // Case "Find appliance by management IP"
-            if (!($this->appliance instanceof Appliance)) {
-                $this->appliance = (DataPort::findByIpVrf($this->dataSet->ip, Vrf::instanceGlobalVrf()))->appliance;
+            if (!($this->appliance instanceof Appliance) && !empty($this->dataSet->ip)) {
+                $managementIP = (new IpTools($this->dataSet->ip))->address;
+                $this->appliance = (DataPort::findByIpVrf($managementIP, Vrf::instanceGlobalVrf()))->appliance;
             }
 
             // Case "Appliance is not found by platformSerial and management IP"
@@ -101,7 +111,9 @@ class DSPappliance extends Std
             ])->save();
             $usedModules = $this->processUsedModulesDataSet($vendor, $office);
             $this->processNotUsedModulesDataSet($usedModules);
-            $this->processDataPortDataSet();
+            if (!empty($this->dataSet->ip)) {
+                $this->processDataPortDataSet();
+            }
 
             Appliance::getDbConnection()->commitTransaction();
             $this->dbUnLock();
@@ -122,7 +134,6 @@ class DSPappliance extends Std
             '-CHASSIS',
             'CHASSIS',
         ];
-
         foreach ($matches as $match) {
             $this->dataSet->chassis = mb_ereg_replace($match, '', $this->dataSet->chassis, "i");
         }
@@ -329,8 +340,10 @@ class DSPappliance extends Std
 
     protected function processDataPortDataSet()
     {
+        $ipAddress = (new IpTools($this->dataSet->ip))->address;
+
         $vrf = $this->processVrfDataSet();
-        $dataPort = DataPort::findByIpVrf($this->dataSet->ip, $vrf);
+        $dataPort = DataPort::findByIpVrf($ipAddress, $vrf);
 
         if ($dataPort instanceof DataPort) {
             $dataPort->fill([
@@ -344,7 +357,7 @@ class DSPappliance extends Std
             $portType = $this->processPortTypeDataSet();
 
             (new DataPort())->fill([
-                'ipAddress' => $this->dataSet->ip,
+                'ipAddress' => $ipAddress,
                 'portType' => $portType,
                 'appliance' => $this->appliance,
                 'vrf' => $vrf,
@@ -481,8 +494,8 @@ class DSPappliance extends Std
         if (!isset($this->dataSet->hostname)) {
             $errors->add(new Exception('DATASET: No field hostname'));
         }
-        if (!(new IpTools($this->dataSet->ip))->is_valid) {
-            $errors->add(new Exception('DATASET: No field ip or not valid'));
+        if (!isset($this->dataSet->ip)) {
+            $errors->add(new Exception('DATASET: No field ip'));
         }
         if (!isset($this->dataSet->chassis)) {
             $errors->add(new Exception('DATASET: No field chassis'));

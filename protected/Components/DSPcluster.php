@@ -10,12 +10,14 @@ use T4\Core\Std;
 class DSPcluster extends Std
 {
     protected $dataSet;
+    protected $firstClusterAppliance = true;
+
 
     /**
      * DSPcluster constructor.
-     * @param Std $dataSet
+     * @param null $dataSet
      */
-    public function __construct(Std $dataSet = null)
+    public function __construct($dataSet = null)
     {
         $this->dataSet = $dataSet;
     }
@@ -35,7 +37,17 @@ class DSPcluster extends Std
         }
 
         foreach ($this->dataSet->clusterAppliances as $dataSetClusterAppliance) {
-            new DSPappliance($dataSetClusterAppliance, $cluster);
+
+            // IP address прописываем только у первого Appliance, входящего в состав кластера
+            if (true !== $this->firstClusterAppliance) {
+                $dataSetClusterAppliance->ip = '';
+                (new DSPappliance($dataSetClusterAppliance, $cluster))->run();
+            }
+
+            if (true === $this->firstClusterAppliance) {
+                $ap = (new DSPappliance($dataSetClusterAppliance, $cluster))->run();
+                $this->firstClusterAppliance = false;
+            }
         }
 
         return true;

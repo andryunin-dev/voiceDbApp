@@ -13,9 +13,9 @@ class DSPerror extends Std
 
     /**
      * DSPerror constructor.
-     * @param Std|null $dataSet
+     * @param null $dataSet
      */
-    public function __construct(Std $dataSet = null)
+    public function __construct($dataSet = null)
     {
         $this->dataSet = $dataSet;
     }
