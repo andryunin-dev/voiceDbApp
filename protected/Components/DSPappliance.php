@@ -59,7 +59,7 @@ class DSPappliance extends Std
                 throw new Exception('Can not get the lock file');
             }
 
-            Appliance::getDbConnection()->beginTransaction();
+            $transaction = Appliance::getDbConnection()->beginTransaction();
 
             $office = Office::findByLotusId($this->dataSet->LotusId);
             if (!($office instanceof Office)) {
@@ -79,6 +79,10 @@ class DSPappliance extends Std
             if (!empty($this->dataSet->platformSerial)) {
                 $this->appliance = Appliance::findByVendorTitlePlatformSerial($this->dataSet->platformVendor, $this->dataSet->platformSerial);
             }
+            if ($this->appliance instanceof Appliance) {
+                $vendor = $this->appliance->vendor;
+                $platform = $this->appliance->platform->platform;
+            }
 
             // Case "Find appliance by management IP"
             if (!($this->appliance instanceof Appliance) && !empty($this->dataSet->ip)) {
@@ -91,8 +95,8 @@ class DSPappliance extends Std
                 $this->appliance = new Appliance();
             }
 
-            $vendor = $this->processVendorDataSet();
-            $platform = $this->processPlatformDataSet($vendor ,$this->dataSet->chassis);
+            $vendor = $vendor ?? $this->processVendorDataSet();
+            $platform = $platform ?? $this->processPlatformDataSet($vendor ,$this->dataSet->chassis);
             $platformItem = $this->processPlatformItemDataSet($platform ,$this->dataSet->platformSerial);
             $software = $this->processSoftwareDataSet($vendor ,$this->dataSet->applianceSoft);
             $softwareItem = $this->processSoftwareItemDataSet($software ,$this->dataSet->softwareVersion);
@@ -119,7 +123,9 @@ class DSPappliance extends Std
             $this->dbUnLock();
 
         } catch (Exception $e) {
-            Appliance::getDbConnection()->rollbackTransaction();
+            if (true === $transaction) {
+                Appliance::getDbConnection()->rollbackTransaction();
+            }
             throw new Exception($e->getMessage());
         }
 
@@ -223,12 +229,15 @@ class DSPappliance extends Std
      */
     protected function processSoftwareItemDataSet(Software $software, $version)
     {
-        $softwareItem = ($this->appliance->software instanceof SoftwareItem) ? $this->appliance->software : (new SoftwareItem());
+        $softwareItem = SoftwareItem::findBySoftwareVersion($software, $version);
 
-        $softwareItem->fill([
-            'software' => $software,
-            'version' => $version
-        ])->save();
+        if (!($softwareItem instanceof SoftwareItem)) {
+            $softwareItem = (new SoftwareItem())
+                ->fill([
+                    'software' => $software,
+                    'version' => $version
+                ])->save();
+        }
 
         return $softwareItem;
     }
