@@ -7,6 +7,7 @@
 
                     {#hidden field with current appliance ID#}
                     <input type="hidden" class="form-control" name="data[currentId]" title="current appliance id" value="{{ current.getPK }}">
+                    {#Location#}
                     <div class="form-group">
                         <label for="id-office" class="col-sm-2 control-label">Офис</label>
                         <div class="col-sm-9"><select name="data[officeId]" id="id-office" class="form-control">
@@ -16,7 +17,7 @@
                             </select>
                         </div>
                     </div>
-
+                    {#Vendor#}
                     <div class="form-group">
                         <label for="id-vendor" class="col-sm-2 control-label">Производитель</label>
                         <div class="col-sm-9"><select name="data[vendorId]" id="id-vendor" class="form-control">
@@ -26,7 +27,7 @@
                             </select>
                         </div>
                     </div>
-
+                    {#appliance type#}
                     <div class="form-group">
                         <label for="id-appliance-type" class="col-sm-2 control-label">Тип (роль)</label>
                         <div class="col-sm-5">
@@ -37,7 +38,7 @@
                             </select>
                         </div>
                     </div>
-
+                    {#platform - type, serial number#}
                     <div class="form-group">
                         <label for="id-platform" class="col-sm-2 control-label">Платформа</label>
                         <div class="col-sm-5">
@@ -52,7 +53,7 @@
                             <input type="text" class="form-control" name="data[platformSn]" value="{{ current.platform.serialNumber }}" aria-describedby="hw-sn">
                         </div>
                     </div>
-
+                    {#software - type, version#}
                     <div class="form-group">
                         <label for="id-software" class="col-sm-2 control-label">ПО</label>
                         <div class="col-sm-5">
@@ -67,7 +68,7 @@
                             <input type="text" class="form-control" name="data[softwareVersion]" value="{{ current.software.version }}" aria-describedby="sw-ver">
                         </div>
                     </div>
-
+                    {#hostname, management IP#}
                     <div class="form-group">
                         <div class="col-sm-5 col-sm-offset-2">
                             <div class="input-group">
@@ -86,14 +87,27 @@
                             {% endif %}
                         </div>
                     </div>
+                    {#comment for appliance#}
                     <div class="form-group">
-                        <label for="id-comment-appl" class="col-sm-2 control-label">Комментарий</label>
+                        <label id="lb-comment-appl" for="id-comment-appl" class="col-sm-2 control-label">Комментарий</label>
                         <div class="col-sm-9">
-                            <input type="text" class="form-control" name="data[comment]" value="{{ current.comment}}"
-                                   aria-describedby="hostname">
+                            <textarea id="id-comment-appl" class="form-control" style="max-width: 100%" name="data[comment]"  rows="1" aria-describedby="lb-comment-appl" placeholder="комментарий к устройству">{{ current.comment}}</textarea>
                         </div>
                     </div>
-                    {#====================================#}
+                    {#checkbox inUse#}
+                    <div class="form-group">
+                        {#<label id="lb-comment-appl" for="id-comment-appl" class="col-sm-2 control-label">Комментарий</label>#}
+                        <div class="col-sm-9 col-lg-offset-2">
+                            <div class="custom-box checkbox-container">
+                                {% if (false == current.inUse) %}
+                                    <input type="hidden" name="data[applianceInUse]" value="0">
+                                {% endif %}
+                                <input type="checkbox" id="item-id-{{ current.getPK }}" name="data[applianceInUse]" value="1" {% if (current.inUse) %}checked{% endif %}>
+                                <label class="icon-check-off" for="item-id-{{ current.getPK }}">Устройство используется</label>
+                            </div>
+                        </div>
+                    </div>
+                    {#===============TABS=====================#}
                     <ul class="nav nav-tabs" role="tablist">
                         <li class="active" aria-controls="tabs-1" role="tab">
                             <a href="#tabs-1">
@@ -116,24 +130,27 @@
                             </a>
                         </li>
                     </ul>
-
-
+                    {#MODULES AND PORTS#}
                     <div class="tab-content cust-tab-content">
-
                         <div class="tab-pane active" role="tabpanel" id="tabs-1">
                             {% for currentModuleItem in current.modules %}
+                            {#existed module items#}
                             <div class="form-group">
+                                {#module#}
                                 <div class="col-xs-4">
                                     <input type="hidden" class="form-control" name="data[moduleItem][moduleId][]"  value="{{ currentModuleItem.module.getPK }}">
                                     <input id="id-module" type="text" class="form-control" name="data[moduleItem][moduleTitle][]" title="Модуль" value="{{ currentModuleItem.module.title }} ({{ currentModuleItem.module.vendor.title }})" readonly>
                                 </div>
+                                {#serial number#}
                                 <div class="col-xs-3">
                                     <input type="hidden" class="form-control" name="data[moduleItem][id][]" title="current module id" value="{{ currentModuleItem.getPK }}">
                                     <input type="text" class="form-control {% if (currentModuleItem.notFound) %}item-not-found{% elseif (currentModuleItem.inUse is defined and false == currentModuleItem.inUse) %}item-not-use{% endif %}" name="data[moduleItem][sn][]" title="Серийный номер" value="{{ currentModuleItem.serialNumber }}" placeholder="Серийный номер" readonly>
                                 </div>
+                                {#comment#}
                                 <div class="col-xs-3">
-                                    <input type="text" class="form-control" name="data[moduleItem][comment][]" title="Комментарий" value="{{ currentModuleItem.comment }}" placeholder="Комментарий">
+                                    <textarea class="form-control" style="max-width: 100%" name="data[moduleItem][comment][]" title="{{ currentModuleItem.comment }}" rows="1" placeholder="Комментарий к модулю">{{ currentModuleItem.comment }}</textarea>
                                 </div>
+                                {#checkbox#}
                                 <div class="col-xs-2 custom-box checkbox-container">
                                     {% if (false == currentModuleItem.notFound) %}
                                     {% if (false == currentModuleItem.inUse) %}
@@ -148,6 +165,7 @@
                             {#===========Template for new module=====================#}
                             <template class="js-add-module">
                                 <div class="form-group">
+                                    {#module#}
                                     <div class="col-xs-4">
                                         <select id="id-module" class="form-control" name="data[newModule][id][]" title="Модуль">
                                             <option value="" selected="selected">---------</option>
@@ -156,12 +174,15 @@
                                             {% endfor %}
                                         </select>
                                     </div>
+                                    {#serail number#}
                                     <div class="col-xs-3">
                                         <input type="text" class="form-control" name="data[newModule][sn][]" placeholder="Серийный номер">
                                     </div>
+                                    {#comment#}
                                     <div class="col-xs-3">
-                                        <input type="text" class="form-control" name="data[newModule][comment][]" placeholder="Комментарий">
+                                        <textarea class="form-control" style="max-width: 100%" name="data[newModule][comment][]"  rows="1" title="Комментарий" placeholder="Комментарий к модулю"></textarea>
                                     </div>
+                                    {#checkbox inUse#}
                                     <div class="col-xs-2 custom-box checkbox-container">
                                         <input type="checkbox" id="item-id-{{ currentModuleItem.getPK }}" name="data[newModule][inUse][]" value="checked" checked>
                                         <label class="icon-check-off" for="item-id-{{ currentModuleItem.getPK }}">In use</label>
@@ -169,10 +190,11 @@
                                 </div>
                             </template>
                         </div>
-
+                        {#existed DataPorts#}
                         <div class="tab-pane" role="tabpanel" id="tabs-2">
                             {% for dataPort in dataPorts %}
                             <div class="form-group">
+                                {#Port type#}
                                 <div class="col-xs-2">
                                     <select name="data[dataportItem][portTypeId][]" id="id-data-port-type" class="form-control" title="Тип порта">
                                         {% for portType in portTypes %}
@@ -180,25 +202,29 @@
                                         {% endfor %}
                                     </select>
                                 </div>
+                                {#port name#}
                                 <div class="col-xs-2">
                                     <input id="id-port-name" type="text" class="form-control" name="data[dataportItem][portName][]" value="{{ dataPort.details.portName }}" placeholder="Name" title="Имя порта">
                                 </div>
-
+                                {#vrf name#}
                                 <div class="col-xs-1">
                                     <input type="hidden" class="form-control" name="data[dataportItem][vrfId][]"  value="{{ dataPort.network.vrf.getPK }}">
                                     <input id="id-vrf" type="text" class="form-control" name="data[dataportItem][vrfName][]" title="VRF" value="{{ dataPort.network.vrf.name }}" readonly>
                                 </div>
-
+                                {#IP address#}
                                 <div class="col-xs-2">
                                     <input type="hidden" class="form-control" name="data[dataportItem][portId][]" title="current port id" value="{{ dataPort.getPK }}">
                                     <input type="text" class="form-control" name="data[dataportItem][ip][]" value="{{ dataPort.cidrIpAddress }}" aria-describedby="ip-addr" placeholder="IP адрес" readonly title="IP адрес">
                                 </div>
+                                {#mac address#}
                                 <div class="col-xs-2">
                                     <input type="text" class="form-control" name="data[dataportItem][mac][]" value="{{ dataPort.formatMacAddress }}" aria-describedby="mac-addr" placeholder="MAC адрес" title="MAC адрес">
                                 </div>
+                                {#comment for data port#}
                                 <div class="col-xs-2">
-                                    <input id="id-comment" type="text" class="form-control" name="data[dataportItem][comment][]" value="{{ dataPort.comment }}" placeholder="Комментарий" title="Комментарий">
+                                    <textarea class="form-control" style="max-width: 100%" name="data[dataportItem][comment][]"  rows="1" title="{{ dataPort.comment}}" placeholder="комментарий к порту">{{ dataPort.comment}}</textarea>
                                 </div>
+                                {#checkbox isManagement#}
                                 <div class="col-xs-1 custom-box checkbox-container" >
                                     {% if (false == dataPort.isManagement) %}
                                     <input type="hidden" name="data[dataportItem][isManagement][]" value="0">
@@ -211,6 +237,7 @@
                             {#===========Template for new data port=====================#}
                             <template class="js-add-dataport">
                                 <div class="form-group">
+                                    {#port type#}
                                     <div class="col-xs-2">
                                         <select name="data[newDataport][portTypeId][]" id="id-data-port-type" class="form-control" title="Тип порта">
                                             <option value="" selected="selected">---------</option>
@@ -219,9 +246,11 @@
                                             {% endfor %}
                                         </select>
                                     </div>
+                                    {#port name#}
                                     <div class="col-xs-2">
                                         <input id="id-port-name" type="text" class="form-control" name="data[newDataport][portName][]" placeholder="Name" title="Имя порта">
                                     </div>
+                                    {#VRF#}
                                     <div class="col-xs-1">
                                         <select name="data[newDataport][vrfId][]" id="id-vrf" class="form-control" title="VRF">
                                             <option value="" selected="selected">---------</option>
@@ -232,24 +261,24 @@
                                             {% endfor %}
                                         </select>
                                     </div>
+                                    {#IP address#}
                                     <div class="col-xs-2">
                                         <input type="hidden" class="form-control" name="data[newDataport][portId][]">
                                         <input type="text" class="form-control" name="data[newDataport][ip][]" aria-describedby="ip-addr" placeholder="IP адрес" title="IP адрес">
                                     </div>
+                                    {#mac address#}
                                     <div class="col-xs-2">
                                         <input type="text" class="form-control" name="data[newDataport][mac][]" aria-describedby="mac-addr" placeholder="MAC адрес" title="MAC адрес">
                                     </div>
+                                    {#comment#}
                                     <div class="col-xs-2">
-                                        <input id="id-comment" type="text" class="form-control" name="data[newDataport][comment][]" placeholder="Комментарий" title="Комментарий">
+                                        <textarea class="form-control" style="max-width: 100%" name="data[newDataport][comment][]"  rows="1" title="комментарий к порту" placeholder="комментарий к порту"></textarea>
                                     </div>
-
-
+                                    {#checkbox isManagement#}
                                     <div class="col-xs-1 custom-box checkbox-container" >
                                         <input type="checkbox" id="item-id-isManagement" name="data[newDataport][isManagement][]" value="1">
                                         <label class="icon-check-off" for="item-id-isManagement" title="Management IP">Mng</label>
                                     </div>
-
-
                                 </div>
                             </template>
                         </div>

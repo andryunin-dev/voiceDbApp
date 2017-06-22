@@ -2,6 +2,7 @@
     <div class="container-fluid">
         <div class="row">
             <form class="form-horizontal" action="/admin/addAppliance" method="post" role="form">
+                {#office#}
                 <div class="form-group">
                     <label for="id-office" class="col-sm-3 control-label">Офис*</label>
                     <div class="col-sm-9"><select name="data[officeId]" id="id-office" class="form-control">
@@ -12,7 +13,7 @@
                         </select>
                     </div>
                 </div>
-
+                {#Vendor#}
                 <div class="form-group">
                     <label for="id-vendor" class="col-sm-3 control-label">Производитель</label>
                     <div class="col-sm-9"><select name="data[vendorId]" id="id-vendor" class="form-control">
@@ -22,7 +23,7 @@
                         </select>
                     </div>
                 </div>
-
+                {#type#}
                 <div class="form-group">
                     <label for="id-appliance-type" class="col-sm-3 control-label">Тип (роль)*</label>
                     <div class="col-sm-5">
@@ -34,7 +35,7 @@
                         </select>
                     </div>
                 </div>
-
+                {#platform#}
                 <div class="form-group">
                     <label for="id-platform" class="col-sm-3 control-label">Платформа</label>
                     <div class="col-sm-5">
@@ -49,7 +50,7 @@
                         <input type="text" class="form-control" name="data[platformSn]" placeholder="Серийный номер" aria-describedby="hw-sn">
                     </div>
                 </div>
-
+                {#soft#}
                 <div class="form-group">
                     <label for="id-software" class="col-sm-3 control-label">ПО</label>
                     <div class="col-sm-5">
@@ -64,7 +65,7 @@
                         <input type="text" class="form-control" name="data[softwareVersion]" placeholder="Версия ПО" aria-describedby="sw-ver">
                     </div>
                 </div>
-
+                {#hostname, management IP#}
                 <div class="form-group">
                     <label for="id-software" class="col-sm-3 control-label"></label>
                     <div class="col-sm-5">
@@ -76,6 +77,22 @@
                     <div class="col-sm-4 input-group">
                         <span class="input-group-addon" id="id-mngmnt">management IP</span>
                         <input type="text" class="form-control" name="data[managementIp]" placeholder="management IP" aria-describedby="management IP">
+                    </div>
+                </div>
+                {#comment for appliance#}
+                <div class="form-group">
+                    <label id="lb-comment-appl" for="id-comment-appl" class="col-sm-3 control-label">Комментарий</label>
+                    <div class="col-sm-9">
+                        <textarea id="id-comment-appl" class="form-control" style="max-width: 100%" name="data[comment]"  rows="1" aria-describedby="lb-comment-appl" placeholder="комментарий к устройству">{{ current.comment}}</textarea>
+                    </div>
+                </div>
+                {#checkbox inUse#}
+                <div class="form-group">
+                    <div class="col-sm-9 col-sm-offset-3">
+                        <div class="custom-box checkbox-container">
+                            <input type="checkbox" id="item-id-new-appl" name="data[applianceInUse]" value="1" checked>
+                            <label class="icon-check-off" for="item-id-new-appl">Устройство используется</label>
+                        </div>
                     </div>
                 </div>
                 <!--add module items-->
@@ -91,9 +108,10 @@
                         </div>
                     </div>
                     <div class="panel-body js-add-module">
-
+                    {#===========Template for new modules===========#}
                         <template class="js-add-module">
                             <div class="form-group">
+                                {#module#}
                                 <div class="col-xs-4">
                                     <select name="data[module][id][]" id="id-module" class="form-control">
                                         <option value="" selected="selected">---------</option>
@@ -102,12 +120,16 @@
                                         {% endfor %}
                                     </select>
                                 </div>
+                                {#serial number#}
                                 <div class="col-xs-3">
                                     <input type="text" class="form-control" name="data[module][sn][]" placeholder="Серийный номер">
                                 </div>
+                                {#comment for module#}
                                 <div class="col-xs-3">
-                                    <input type="text" class="form-control" name="data[module][comment][]" placeholder="Комментарий">
+                                    <textarea class="form-control" style="max-width: 100%" name="data[module][comment][]"  rows="1" placeholder="комментарий к модулю">{{ current.comment}}</textarea>
+                                    {#<input type="text" class="form-control" name="data[module][comment][]" placeholder="Комментарий">#}
                                 </div>
+                                {#checkbox inUse#}
                                 <div class="col-xs-2 custom-box checkbox-container">
                                     <input type="checkbox" id="item-id-{{ currentModuleItem.getPK }}" name="data[module][inUse][]" value="checked" checked>
                                     <label class="icon-check-off" for="item-id-{{ currentModuleItem.getPK }}">In use</label>

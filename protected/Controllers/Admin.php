@@ -1103,10 +1103,12 @@ class Admin extends Controller
                     'platform' => $platformItem,
                     'software' => $softwareItem,
                     'type' => $applianceType,
+                    'inUse' => $data->applianceInUse,
+                    'comment' => $data->comment,
                     'details' => [
-                        'hostname' => $data->hostname
-                    ]
-                ])
+                                'hostname' => $data->hostname
+                            ]
+                        ])
                 ->save();
 
             //если appliance сохранился без ошибок - сохраняем модули к нему
@@ -1176,6 +1178,7 @@ class Admin extends Controller
                 throw new Exception('ПО не найдено');
             }
             $currentAppliance->comment = $data->comment;
+            $currentAppliance->inUse = $data->applianceInUse;
             ($currentAppliance->platform)
                 ->fill([
                     'platform' => $platform,
