@@ -1,6 +1,7 @@
 <?php
 namespace App\Components;
 
+use App\Exceptions\DblockException;
 use App\Models\Appliance;
 use App\Models\ApplianceType;
 use App\Models\Cluster;
@@ -59,12 +60,13 @@ class DSPappliance extends Std
         $this->beforeProcessDataSet();
 
         try {
+
             // Заблокировать DB на запись
             if (false === $this->dbLock()) {
-                throw new Exception('Can not get the lock file');
+                throw new DblockException('Can not get the lock file');
             }
 
-            $transaction = Appliance::getDbConnection()->beginTransaction();
+            Appliance::getDbConnection()->beginTransaction();
 
             $office = Office::findByLotusId($this->dataSet->LotusId);
             if (!($office instanceof Office)) {
@@ -144,11 +146,12 @@ class DSPappliance extends Std
             $this->dbUnLock();
 
         } catch (Exception $e) {
-            if (true === $transaction) {
-                Appliance::getDbConnection()->rollbackTransaction();
-            }
+            Appliance::getDbConnection()->rollbackTransaction();
+            throw new Exception($e->getMessage());
+        } catch (DblockException $e) {
             throw new Exception($e->getMessage());
         }
+
 
         $this->debugLogger->info('END: ' . '[ip]=' . $this->dataSet->ip);
 
