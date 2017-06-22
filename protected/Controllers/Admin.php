@@ -1269,6 +1269,10 @@ class Admin extends Controller
             // edit data ports
             if (!empty($data->dataportItem->portId)) {
                 foreach ($data->dataportItem->portId as $key => $value) {
+                    //IE возвращает пустой массив
+                    if (!is_numeric($value)) {
+                        continue;
+                    }
                     if (is_numeric($data->dataportItem->vrfId->$key)) {
                         $vrf = Vrf::findByPK($data->dataportItem->vrfId->$key);
                     } else {
@@ -1298,6 +1302,10 @@ class Admin extends Controller
             // save new data ports
             if (!empty($data->newDataport->portId)) {
                 foreach ($data->newDataport->portId as $key => $value) {
+                    //IE возвращает пустой массив
+                    if (!is_numeric($value)) {
+                        continue;
+                    }
                     if (!is_numeric($data->newDataport->vrfId->$key)) {
                         throw new Exception('VRF не выбран');
                     }
