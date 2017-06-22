@@ -159,7 +159,7 @@ class ModuleItem extends Model
 
     public function lastUpdateDateTime()
     {
-        return $this->lastUpdate ? (new \DateTime($this->lastUpdate))->format('Y-m-d H:i') : null;
+        return $this->lastUpdate ? ('last update: ' . ((new \DateTime($this->lastUpdate))->setTimezone(new \DateTimeZone('Europe/Moscow')))->format('d.m.Y H:i \M\S\K(P)')) : null;
     }
 
 }

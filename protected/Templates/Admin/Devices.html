@@ -76,7 +76,7 @@
                                                 {% else %}
                                                     {% set colorClass = "" %}
                                                 {% endif %}
-                                                <td class="{{ colorClass }}">
+                                                <td class="{{ colorClass }}" {% if moduleItem.notFound %}title="{{ moduleItem.lastUpdateDateTime }}"{% endif %}>
                                                     {{ moduleItem.module.title }}
                                                     {% if not moduleItem.comment is empty %}
                                                         <span id="{{ moduleItem.getPk }}" class="glyphicon glyphicon-info-sign" aria-hidden="true" title="{{ moduleItem.comment }}"></span>
