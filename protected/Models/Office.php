@@ -73,6 +73,7 @@ class Office extends Model
         if (empty($this->status)) {
             throw new Exception('Статус не найден');
         }
+        //TODO: здесь нужно вставить проверку при изменении LotusId
         if (false === $this->isNew()) {
             return true;
         }
