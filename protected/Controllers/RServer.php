@@ -1,10 +1,11 @@
 <?php
-
 namespace App\Controllers;
 
-use App\Components\DataSetProcessor;
-use Monolog\Handler\StreamHandler;
-use Monolog\Logger;
+use App\Components\DSPappliance;
+use App\Components\DSPcluster;
+use App\Components\DSPerror;
+use App\Components\DSPprefixes;
+use App\Components\RLogger;
 use T4\Core\Collection;
 use T4\Core\Exception;
 use T4\Core\MultiException;
@@ -24,46 +25,69 @@ class RServer extends Controller
 
     public function actionDefault()
     {
+        $debugLogger = RLogger::getInstance('RServer', realpath(ROOT_PATH . '/Logs/debug.log'));
+
         try {
             $rawInput = file_get_contents('php://input');
             $inputDataset = (new Std())->fill(json_decode($rawInput));
 
-            if (0 == count($inputDataset)) {
-                Logger::setTimezone(new \DateTimeZone('Europe/Moscow'));
-                $logger = new Logger('DS-appliance');
-                $logger->pushHandler(new StreamHandler(ROOT_PATH . '/Logs/surveyOfAppliances.log', Logger::DEBUG));
+            $logger = RLogger::getInstance('R-Server');
 
+            if (0 == count($inputDataset)) {
                 throw new Exception('DATASET: Not a valid JSON format or empty an input dataset');
             }
-
-            if ('appliance' == $inputDataset->dataSetType) {
-                Logger::setTimezone(new \DateTimeZone('Europe/Moscow'));
-                $logger = new Logger('DS-appliance');
-                $logger->pushHandler(new StreamHandler(ROOT_PATH . '/Logs/surveyOfAppliances.log', Logger::DEBUG));
+            if (empty($inputDataset->dataSetType)) {
+                throw new Exception('DATASET: No field dataSetType or empty dataSetType');
             }
 
-            if ('cluster' == $inputDataset->dataSetType) {
-                Logger::setTimezone(new \DateTimeZone('Europe/Moscow'));
-                $logger = new Logger('DS-cluster');
-                $logger->pushHandler(new StreamHandler(ROOT_PATH . '/Logs/surveyOfAppliances.log', Logger::DEBUG));
+            $debugLogger->info('START: ' . '[ip]=' . $inputDataset->ip . '; [dataSetType]=' . $inputDataset->dataSetType);
+
+            switch ($inputDataset->dataSetType) {
+                case 'appliance':
+                    $logger = RLogger::getInstance('DS-appliance');
+                    $result = (new DSPappliance($inputDataset))->run();
+                    break;
+
+                case 'cluster':
+                    $logger = RLogger::getInstance('DS-cluster');
+                    $result = (new DSPcluster($inputDataset))->run();
+                    break;
+
+                case 'error':
+                    $logger = RLogger::getInstance('DS-error');
+                    $result = (new DSPerror($inputDataset))->run();
+                    break;
+
+                case 'prefixes':
+                    $logger = RLogger::getInstance('DS-prefixes');
+                    $result = (new DSPprefixes($inputDataset))->run();
+                    break;
+
+                default:
+                    throw new Exception('DATASET: Not known dataSetType');
             }
 
-
-            $result = (new DataSetProcessor($inputDataset))->run();
-            if (false === $result) {
-                throw new Exception('Dataset Processor: runtime error');
+            if (true !== $result) {
+                throw new Exception('Runtime error');
             }
 
         } catch (MultiException $errs) {
             foreach ($errs as $e) {
                 $err['errors'][] = $e->getMessage();
                 $logger->error('[host]=' . ($inputDataset->hostname ?? '""') . ' [manageIP]=' . ($inputDataset->ip ?? '""') . ' [message]=' . ($e->getMessage() ?? '""') . ' [dataset]=' . $rawInput);
+
+                $debugLogger->error('rserver: ' . '[ip]=' . $inputDataset->ip . '; [error]=' . ($e->getMessage() ?? '""') . '; [dataset]=' . $rawInput);
+
             }
         } catch (Exception $e) {
             $err['errors'][] = $e->getMessage();
             $logger->error('[host]=' . ($inputDataset->hostname ?? '""') . ' [manageIP]=' . ($inputDataset->ip ?? '""') . ' [message]=' . ($e->getMessage() ?? '""') . ' [dataset]=' . $rawInput);
+
+            $debugLogger->error('rserver: ' . '[ip]=' . $inputDataset->ip . '; [error]=' . ($e->getMessage() ?? '""') . '; [dataset]=' . $rawInput);
         }
 
+        $debugLogger->info('END: ' . '[ip]=' . $inputDataset->ip . '; [dataSetType]=' . $inputDataset->dataSetType);
+        $debugLogger->info('---------------------------------------');
 
         // Вернуть ответ
         $httpStatusCode = (isset($err)) ? 400 : 202;
@@ -74,6 +98,7 @@ class RServer extends Controller
         echo(json_encode($response->toArray()));
         die;
     }
+
 
     public function actionInfile()
     {

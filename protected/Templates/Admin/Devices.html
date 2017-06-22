@@ -23,11 +23,16 @@
                         <tbody>
                     {% for office in offices %}
                         {% for appliance in office.appliances %}
+                            {% if appliance.inUse is defined and false == appliance.inUse %}
+                                {% set applColorClass = "item-not-use" %}
+                            {% else %}
+                                {% set applColorClass = "" %}
+                            {% endif %}
                             <tr>
                                 {#Region#}
                                 <td><a href="/admin/devices?reg={{ office.address.city.region.getPK }}" >{{ office.address.city.region.title }}</a></td>
                                 {#Office#}
-                                <td><a href="/admin/devices?loc={{ office.getPK }}" >{{ office.title }}</a></td>
+                                <td><a href="/admin/devices?loc={{ office.getPK }}" >{{ office.title }}</a> {% if not office.comment is empty %}<span id="{{ office.getPk }}_{{ appliance.getPk }}" class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>{% endif %}</td>
                                 {#Hostname#}
                                 <td>
                                     {% set mngmnt = appliance.getManagementIp %}
@@ -49,7 +54,7 @@
                                     </b>
                                 </td>
                                 {#Platform#}
-                                <td>
+                                <td class="{{ applColorClass }}">
                                     {{ appliance.platform.platform.vendor.title }} {{ appliance.platform.platform.title }} {% if not appliance.comment is empty %}<span id="{{ appliance.getPk }}" class="glyphicon glyphicon-info-sign" aria-hidden="true" title="{{ appliance.comment }}"></span>{% endif %}
                                     <span class="lastUpdate" data-last-update="{{ appliance.lastUpdateDateTime }}" title="{{ appliance.lastUpdateDateTime }}">{{ appliance.lastUpdateDate }}</span>
                                 </td>
@@ -71,10 +76,10 @@
                                                 {% else %}
                                                     {% set colorClass = "" %}
                                                 {% endif %}
-                                                <td class="{{ colorClass }}">
+                                                <td class="{{ colorClass }}" {% if moduleItem.notFound %}title="{{ moduleItem.lastUpdateDateTime }}"{% endif %}>
                                                     {{ moduleItem.module.title }}
                                                     {% if not moduleItem.comment is empty %}
-                                                    <span id="{{ moduleItem.getPk }}" class="glyphicon glyphicon-info-sign" aria-hidden="true" title="{{ moduleItem.comment }}">
+                                                        <span id="{{ moduleItem.getPk }}" class="glyphicon glyphicon-info-sign" aria-hidden="true" title="{{ moduleItem.comment }}"></span>
                                                     {% endif %}
                                                 </td>
                                             </tr>

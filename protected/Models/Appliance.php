@@ -13,6 +13,7 @@ use T4\Orm\Model;
  * @property string $details
  * @property string $comment
  * @property string $lastUpdate
+ * @property boolean $inUse
  *
  * @property ApplianceType $type
  * @property Office $location
@@ -32,7 +33,8 @@ class Appliance extends Model
         'columns' => [
             'details' => ['type' => 'json'],
             'comment' => ['type' => 'text'],
-            'lastUpdate' => ['type' => 'datetime']
+            'lastUpdate' => ['type' => 'datetime'],
+            'inUse' => ['type' => 'boolean']
         ],
         'relations' => [
             'type' => ['type' => self::BELONGS_TO, 'model' => ApplianceType::class, 'by' => '__type_id'],
@@ -134,5 +136,19 @@ class Appliance extends Model
         }
 
         return false;
+    }
+
+    /**
+     * @param string $vendorTitle
+     * @param string $platformSerial
+     * @return Appliance|bool
+     */
+    public static function findByVendorTitlePlatformSerial(string $vendorTitle, string $platformSerial)
+    {
+        return (self::findAll())->filter(
+            function($appliance) use ($vendorTitle, $platformSerial) {
+                return $vendorTitle == $appliance->vendor->title && $platformSerial == $appliance->platform->serialNumber;
+            }
+        )->first();
     }
 }
