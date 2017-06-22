@@ -28,12 +28,10 @@ class RServer extends Controller
         $debugLogger = RLogger::getInstance('RServer', realpath(ROOT_PATH . '/Logs/debug.log'));
 
         try {
-            $rawInput = '{"platformSerial": "FOC0631Z271", "applianceModules": [], "LotusId": "132", "hostname": "angrsk-75kvrt1-sw-1.net.rs.ru", "applianceType": "switch", "softwareVersion": "12.1(22)EA14", "chassis": "WS-C2950T-24", "platformTitle": "Cisco Catalyst c2950 switch with 24 10/100 BaseTX ports and 2 10/100/1000 BaseT ports", "ip": "10.100.133.2/32", "dataSetType": "appliance", "applianceSoft": "C2950-I6K2L2Q4-M", "platformVendor": "CISCO"}';
-
-//            $rawInput = file_get_contents('php://input');
+            $rawInput = file_get_contents('php://input');
             $inputDataset = (new Std())->fill(json_decode($rawInput));
 
-            $logger = RLogger::getInstance('RServer');
+            $logger = RLogger::getInstance('R-Server');
 
             if (0 == count($inputDataset)) {
                 throw new Exception('DATASET: Not a valid JSON format or empty an input dataset');
@@ -89,6 +87,7 @@ class RServer extends Controller
         }
 
         $debugLogger->info('END: ' . '[ip]=' . $inputDataset->ip . '; [dataSetType]=' . $inputDataset->dataSetType);
+        $debugLogger->info('---------------------------------------');
 
         // Вернуть ответ
         $httpStatusCode = (isset($err)) ? 400 : 202;
