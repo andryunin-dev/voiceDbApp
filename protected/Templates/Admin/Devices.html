@@ -32,7 +32,7 @@
                                 {#Region#}
                                 <td><a href="/admin/devices?reg={{ office.address.city.region.getPK }}" >{{ office.address.city.region.title }}</a></td>
                                 {#Office#}
-                                <td><a href="/admin/devices?loc={{ office.getPK }}" >{{ office.title }}</a></td>
+                                <td><a href="/admin/devices?loc={{ office.getPK }}" >{{ office.title }}</a> {% if not office.comment is empty %}<span id="{{ office.getPk }}_{{ appliance.getPk }}" class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>{% endif %}</td>
                                 {#Hostname#}
                                 <td>
                                     {% set mngmnt = appliance.getManagementIp %}

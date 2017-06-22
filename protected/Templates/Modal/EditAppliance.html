@@ -17,6 +17,13 @@
                             </select>
                         </div>
                     </div>
+                    {#comment for office#}
+                    <div class="form-group">
+                        <label id="lb-comment-office" for="id-comment-office" class="col-sm-2 control-label">Комментарий к офису</label>
+                        <div class="col-sm-9">
+                            <textarea id="id-comment-office" class="form-control" style="max-width: 100%" name="data[officeComment]"  rows="3" aria-describedby="lb-comment-office" title="{{ current.location.comment}}" placeholder="комментарий к оффису">{{ current.location.comment}}</textarea>
+                        </div>
+                    </div>
                     {#Vendor#}
                     <div class="form-group">
                         <label for="id-vendor" class="col-sm-2 control-label">Производитель</label>
@@ -89,7 +96,7 @@
                     </div>
                     {#comment for appliance#}
                     <div class="form-group">
-                        <label id="lb-comment-appl" for="id-comment-appl" class="col-sm-2 control-label">Комментарий</label>
+                        <label id="lb-comment-appl" for="id-comment-appl" class="col-sm-2 control-label">Комментарий к устройству</label>
                         <div class="col-sm-9">
                             <textarea id="id-comment-appl" class="form-control" style="max-width: 100%" name="data[comment]"  rows="1" aria-describedby="lb-comment-appl" title="{{ current.comment}}" placeholder="комментарий к устройству">{{ current.comment}}</textarea>
                         </div>

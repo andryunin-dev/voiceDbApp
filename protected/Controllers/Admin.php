@@ -453,23 +453,25 @@ class Admin extends Controller
             if ($office->title != trim($data->title) && false !== Office::findByColumn('title', trim($data->title))) {
                 throw new Exception('Офис с таким названием существует');
             }
-
-            $newAddress = (new Address())
-                ->fill([
-                    'address' => $data->address,
-                    'city' => $city
-                ])
-                ->save();
+            if ($oldAddress->address != $data->address) {
+                $newAddress = (new Address())
+                    ->fill([
+                        'address' => $data->address,
+                        'city' => $city
+                    ])
+                    ->save();
+                $office->fill(['address' => $newAddress])->save();
+                $oldAddress->delete();
+            }
             //собираем офис с изменениями
             $office
                 ->fill([
                     'title' =>$data->title,
                     'status' => $status,
                     'lotusId' => $data->lotusId,
-                    'address' => $newAddress
+                    'comment' => $data->comment
                 ])
                 ->save();
-            $oldAddress->delete();
 
             Office::getDbConnection()->commitTransaction();
 
@@ -1176,6 +1178,11 @@ class Admin extends Controller
             }
             if (false === $software = Software::findByPK($data->softwareId)) {
                 throw new Exception('ПО не найдено');
+            }
+            //сохранение комментария к офису
+            //сохраняем изменения в комменте только если не поменялся офис
+            if ($currentAppliance->location->getPk() == $office->getPk() && $office->comment != $data->officeComment) {
+                $office->fill(['comment' => $data->officeComment])->save();
             }
             $currentAppliance->comment = $data->comment;
             $currentAppliance->inUse = $data->applianceInUse;

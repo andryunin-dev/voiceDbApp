@@ -1,4 +1,4 @@
-<div id="edit-office" role="dialog" title="Новый офис">
+<div id="edit-office" role="dialog" title="Редактирование офиса">
     <div class="container-fluid">
         <div class="row">
             <form class="form-horizontal" action="/admin/editOffice" method="post" role="form">
@@ -65,6 +65,13 @@
                                value="{{ office.address.address }}">
                     </div>
                 </div>
+                {#comment#}
+                <div class="form-group">
+                    <label id="lb-comment-office" for="id-comment-office" class="col-sm-4 control-label">Комментарий</label>
+                    <div class="col-sm-8">
+                        <textarea id="id-comment-office" class="form-control" style="max-width: 100%" name="data[comment]"  rows="4" aria-describedby="lb-comment-office" title="{{ office.comment}}" placeholder="комментарий">{{ office.comment}}</textarea>
+                    </div>
+                </div>
 
                 <div class="col-sm-offset-3 col-sm-8">
                         <button class="btn btn-success" type="submit">Сохранить</button>
@@ -81,7 +88,7 @@
         APP.popups.push({
             path: "{{ path }}",
             popupSelector: "#edit-office",
-            width: "auto"
+            width: "50%"
         });
     </script>
 </div>
