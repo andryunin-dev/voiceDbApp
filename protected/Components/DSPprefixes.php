@@ -1,6 +1,7 @@
 <?php
 namespace App\Components;
 
+use App\Exceptions\DblockException;
 use App\Models\DataPort;
 use App\Models\DPortType;
 use App\Models\Vrf;
@@ -12,8 +13,8 @@ use T4\Core\Std;
 
 class DSPprefixes extends Std
 {
-    const SLEEPTIME = 100000; // микросекунды
-    const ITERATIONS = 520; // Колличество попыток получить доступ к db.lock файлу
+    const SLEEPTIME = 500; // микросекунды
+    const ITERATIONS = 6000000; // Колличество попыток получить доступ к db.lock файлу
     const DBLOCKFILE = ROOT_PATH_PROTECTED . '/db.lock';
 
     protected $dataSet;
@@ -36,7 +37,7 @@ class DSPprefixes extends Std
         try {
             // Заблокировать DB на запись
             if (false === $this->dbLock()) {
-                throw new Exception('Can not get the lock file');
+                throw new DblockException('Can not get the lock file');
             }
 
             DataPort::getDbConnection()->beginTransaction();
@@ -119,6 +120,8 @@ class DSPprefixes extends Std
 
         } catch (Exception $e) {
             DataPort::getDbConnection()->rollbackTransaction();
+            throw new Exception($e->getMessage());
+        } catch (DblockException $e) {
             throw new Exception($e->getMessage());
         }
 
