@@ -102,6 +102,9 @@ class DSPappliance extends Std
             // Case "Appliance is not found by platformSerial and management IP"
             if (!($this->appliance instanceof Appliance)) {
                 $this->appliance = new Appliance();
+                $this->appliance->fill([
+                    'inUse' => true,
+                ]);
             }
 
             $vendor = $vendor ?? $this->processVendorDataSet();

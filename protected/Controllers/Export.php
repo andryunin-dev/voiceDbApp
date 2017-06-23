@@ -65,6 +65,9 @@ class Export extends Controller
                     ->setCellValue('N' . $n, $module->comment)
                     ->getStyle('A' . $n . ':N' . $n)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
 
+                if (false === $appliance->inUse) {
+                    $spreadsheet->getActiveSheet()->getStyle('A' . $n . ':N' . $n)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB(Color::COLOR_YELLOW);
+                }
                 if (false === $module->inUse && false === $module->notFound) {
                     $spreadsheet->getActiveSheet()->getStyle('K' . $n . ':M' . $n)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB(Color::COLOR_YELLOW);
                 }
