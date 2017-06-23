@@ -1,6 +1,7 @@
 <?php
 namespace App\Components;
 
+use App\Exceptions\DblockException;
 use App\Models\DataPort;
 use App\Models\DPortType;
 use App\Models\Vrf;
@@ -12,8 +13,8 @@ use T4\Core\Std;
 
 class DSPprefixes extends Std
 {
-    const SLEEPTIME = 100000; // микросекунды
-    const ITERATIONS = 520; // Колличество попыток получить доступ к db.lock файлу
+    const SLEEPTIME = 500; // микросекунды
+    const ITERATIONS = 6000000; // Колличество попыток получить доступ к db.lock файлу
     const DBLOCKFILE = ROOT_PATH_PROTECTED . '/db.lock';
 
     protected $dataSet;
@@ -34,13 +35,6 @@ class DSPprefixes extends Std
         $this->verifyDataSet();
 
         try {
-            // Заблокировать DB на запись
-            if (false === $this->dbLock()) {
-                throw new Exception('Can not get the lock file');
-            }
-
-            DataPort::getDbConnection()->beginTransaction();
-
             // Define VRF of the management IP
             if ('global' == mb_strtolower($this->dataSet->vrf_name)) {
                 $vrf = Vrf::instanceGlobalVrf();
@@ -53,7 +47,7 @@ class DSPprefixes extends Std
             }
 
             // Find the dataport of the management IP by its VRF and IP
-            $dataport = DataPort::findByIpVrf($this->dataSet->ip, $vrf);
+            $dataport = DataPort::findByIpVrf((new IpTools($this->dataSet->ip))->address, $vrf);
             if (!($dataport instanceof DataPort)) {
                 throw new Exception('The management IP '. $this->dataSet->ip .' does not exist in the database');
             }
@@ -61,6 +55,13 @@ class DSPprefixes extends Std
             // Find the appliance which has the dataport
             $appliance = $dataport->appliance;
 
+
+            // Заблокировать DB на запись
+            if (false === $this->dbLock()) {
+                throw new DblockException('Can not get the lock file');
+            }
+
+            DataPort::getDbConnection()->beginTransaction();
 
             $requestDataports = new Collection();
             // For each dataport in the request
@@ -119,6 +120,8 @@ class DSPprefixes extends Std
 
         } catch (Exception $e) {
             DataPort::getDbConnection()->rollbackTransaction();
+            throw new Exception($e->getMessage());
+        } catch (DblockException $e) {
             throw new Exception($e->getMessage());
         }
 
