@@ -28,6 +28,18 @@
                             {% else %}
                                 {% set applColorClass = "" %}
                             {% endif %}
+                            {% if appliance.type|lower == 'switch' %}
+                                {% set applianceType = "SW" %}
+                            {% elseif appliance.type|lower == 'router' %}
+                                {% set applianceType = "R" %}
+                            {% elseif appliance.type|lower == 'cucm' %}
+                                {% set applianceType = "CM" %}
+                            {% elseif appliance.type|lower == 'phone' %}
+                                {% set applianceType = "TEL" %}
+                            {% else %}
+                                {% set applianceType = appliance.type| upper %}
+                            {% endif %}
+
                             <tr>
                                 {#Region#}
                                 <td><a href="/admin/devices?reg={{ office.address.city.region.getPK }}" >{{ office.address.city.region.title }}</a></td>
@@ -43,14 +55,9 @@
                                     {% endif %}
                                 </td>
                                 {#Type#}
-                                <td style="vertical-align:middle; text-align:center">
+                                <td style="vertical-align:middle; text-align:center" title="{{ appliance.type }}">
                                     <b>
-                                        {% if appliance.type|lower == 'switch' %}
-                                            SW
-                                        {% elseif appliance.type|lower == 'router' %}
-                                            R
-                                        {% else %}
-                                        {% endif %}
+                                        {{ applianceType }}
                                     </b>
                                 </td>
                                 {#Platform#}
