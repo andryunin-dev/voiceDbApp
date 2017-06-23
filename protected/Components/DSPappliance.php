@@ -361,8 +361,7 @@ class DSPappliance extends Std
      */
     protected function processModuleItemDataSet(Office $office, Module $module, $serialNumber)
     {
-//        $moduleItem = ModuleItem::findByVendorSerial($module->vendor->title, $serialNumber);
-        $moduleItem = ModuleItem::findByModuleSerial($module, $serialNumber);
+        $moduleItem = ModuleItem::findByVendorSerial($module->vendor->title, $serialNumber);
 
         $moduleItem = ($moduleItem instanceof ModuleItem) ? $moduleItem : (new ModuleItem());
         $moduleItem->found();
