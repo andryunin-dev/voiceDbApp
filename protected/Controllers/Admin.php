@@ -25,6 +25,8 @@ use App\Models\SoftwareItem;
 use App\Models\Vendor;
 use App\Models\VPortType;
 use App\Models\Vrf;
+use App\ViewModels\GeoDev_View;
+use App\ViewModels\GeoDevModulePort_View;
 use T4\Core\Collection;
 use T4\Core\Exception;
 use T4\Core\MultiException;
@@ -952,9 +954,23 @@ class Admin extends Controller
             $this->data->offices = (new Collection())->add($office);
             $this->data->regions = $office->address->city->region;
         }
+        if (!empty($_GET['cluster'])) {
+            $office = Office::findByPK((int) $_GET['loc']);
+            $this->data->offices = (new Collection())->add($office);
+            $this->data->regions = $office->address->city->region;
+        }
         $this->data->activeLink->devices = true;
         $this->data->exportUrl = '/export/hardInvExcel';
         $timer->fix('end action');
+    }
+
+    public function actionDevices2() {
+        $res = GeoDevModulePort_View::findByColumn('appliance_id', 2431);
+        var_dump($res->getManagementIp());
+//        var_dump(json_decode($res->moduleInfo));
+        var_dump((new Collection(json_decode($res->portInfo))));
+        die;
+        $this->data->geoDevs = GeoDevModulePort_View::findAll();
     }
 
     public function actionPortTypes()
