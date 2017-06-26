@@ -35,13 +35,6 @@ class DSPprefixes extends Std
         $this->verifyDataSet();
 
         try {
-            // Заблокировать DB на запись
-            if (false === $this->dbLock()) {
-                throw new DblockException('Can not get the lock file');
-            }
-
-            DataPort::getDbConnection()->beginTransaction();
-
             // Define VRF of the management IP
             if ('global' == mb_strtolower($this->dataSet->vrf_name)) {
                 $vrf = Vrf::instanceGlobalVrf();
@@ -54,7 +47,7 @@ class DSPprefixes extends Std
             }
 
             // Find the dataport of the management IP by its VRF and IP
-            $dataport = DataPort::findByIpVrf($this->dataSet->ip, $vrf);
+            $dataport = DataPort::findByIpVrf((new IpTools($this->dataSet->ip))->address, $vrf);
             if (!($dataport instanceof DataPort)) {
                 throw new Exception('The management IP '. $this->dataSet->ip .' does not exist in the database');
             }
@@ -62,6 +55,13 @@ class DSPprefixes extends Std
             // Find the appliance which has the dataport
             $appliance = $dataport->appliance;
 
+
+            // Заблокировать DB на запись
+            if (false === $this->dbLock()) {
+                throw new DblockException('Can not get the lock file');
+            }
+
+            DataPort::getDbConnection()->beginTransaction();
 
             $requestDataports = new Collection();
             // For each dataport in the request
@@ -89,7 +89,8 @@ class DSPprefixes extends Std
                         'ipAddress' => $dataSetNetwork->ip_address,
                         'macAddress' => $dataSetNetwork->mac,
                         'details' => [
-                            'portName' => $dataSetNetwork->interface
+                            'portName' => $dataSetNetwork->interface,
+                            'description' => $dataSetNetwork->description,
                         ]
                     ])->save();
                 }
@@ -106,7 +107,8 @@ class DSPprefixes extends Std
                         'macAddress' => $dataSetNetwork->mac,
                         'isManagement' => false,
                         'details' => [
-                            'portName' => $dataSetNetwork->interface
+                            'portName' => $dataSetNetwork->interface,
+                            'description' => $dataSetNetwork->description,
                         ]
                     ])->save();
                 }
@@ -224,6 +226,9 @@ class DSPprefixes extends Std
                 }
                 if (!isset($dataSetNetwork->vrf_rd)) {
                     $errors->add('DATASET: Networks - Missing field vrf_rd');
+                }
+                if (!isset($dataSetNetwork->description)) {
+                    $errors->add('DATASET: Networks - Missing field description');
                 }
             }
         }
