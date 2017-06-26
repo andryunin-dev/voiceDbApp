@@ -108,9 +108,36 @@ class Export extends Controller
         exit;
     }
 
-    public function actionIp()
+    public function actionIpAppliances()
     {
-        $dataports = DataPort::findAllByColumn('isManagement', true);
+        $switch = 'switch';
+        $router = 'router';
+
+        $dataports = (DataPort::findAllByColumn('isManagement', true))->filter(
+            function ($dataport) use ($router, $switch) {
+                return $router == $dataport->appliance->type->type || $switch == $dataport->appliance->type->type;
+            }
+        );
+
+        // Semicolon format
+        $outputData = '';
+        foreach ($dataports as $dataport) {
+            $outputData .= $dataport->appliance->details->hostname . ',' . preg_replace('~/.+~', '', $dataport->ipAddress) . ',' . $dataport->appliance->location->lotusId . ';';
+        }
+        echo $outputData;
+
+        die;
+    }
+
+    public function actionIpCucm()
+    {
+        $cucm = 'cucm';
+
+        $dataports = (DataPort::findAllByColumn('isManagement', true))->filter(
+            function ($dataport) use ($cucm) {
+                return $cucm == $dataport->appliance->type->type;
+            }
+        );
 
         // Semicolon format
         $outputData = '';

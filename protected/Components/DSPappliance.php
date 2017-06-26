@@ -60,6 +60,12 @@ class DSPappliance extends Std
         $this->beforeProcessDataSet();
 
         try {
+            $office = Office::findByLotusId($this->dataSet->LotusId);
+            if (!($office instanceof Office)) {
+                throw new Exception('Location not found, LotusId = ' . $this->dataSet->LotusId);
+            }
+            $this->debugLogger->info('process: ' . '[ip]=' . $this->dataSet->ip . '; [office]=' . $office->title);
+
 
             // Заблокировать DB на запись
             if (false === $this->dbLock()) {
@@ -67,13 +73,6 @@ class DSPappliance extends Std
             }
 
             Appliance::getDbConnection()->beginTransaction();
-
-            $office = Office::findByLotusId($this->dataSet->LotusId);
-            if (!($office instanceof Office)) {
-                throw new Exception('Location not found, LotusId = ' . $this->dataSet->LotusId);
-            }
-
-            $this->debugLogger->info('process: ' . '[ip]=' . $this->dataSet->ip . '; [office]=' . $office->title);
 
             /**
              * << Варианты устройств в БД >>
@@ -91,6 +90,7 @@ class DSPappliance extends Std
             if ($this->appliance instanceof Appliance) {
                 $vendor = $this->appliance->vendor;
                 $platform = $this->appliance->platform->platform;
+                $platformItem = $this->appliance->platform;
             }
 
             // Case "Find appliance by management IP"
@@ -107,13 +107,13 @@ class DSPappliance extends Std
                 ]);
             }
 
-            $vendor = $vendor ?? $this->processVendorDataSet();
+            $vendor = $vendor ?? $this->processVendorDataSet($this->dataSet->platformVendor);
             $this->debugLogger->info('process: ' . '[ip]=' . $this->dataSet->ip . '; [vendor]=' . $vendor->title);
 
             $platform = $platform ?? $this->processPlatformDataSet($vendor ,$this->dataSet->chassis);
             $this->debugLogger->info('process: ' . '[ip]=' . $this->dataSet->ip . '; [platform]=' . $platform->title);
 
-            $platformItem = $this->processPlatformItemDataSet($platform ,$this->dataSet->platformSerial);
+            $platformItem = $platformItem ?? $this->processPlatformItemDataSet($platform ,$this->dataSet->platformSerial);
             $this->debugLogger->info('process: ' . '[ip]=' . $this->dataSet->ip . '; [platformItem]=' . $platformItem->serialNumber);
 
             $software = $this->processSoftwareDataSet($vendor ,$this->dataSet->applianceSoft);
@@ -175,11 +175,16 @@ class DSPappliance extends Std
     }
 
     /**
+     * @param $title
      * @return Vendor|bool
      */
-    protected function processVendorDataSet()
+    protected function processVendorDataSet($title)
     {
-        $vendor = Vendor::findByTitle($this->dataSet->platformVendor);
+        if (false === $this->appliance->isNew && $title == $this->appliance->vendor->title) {
+            return $this->appliance->vendor;
+        }
+
+        $vendor = Vendor::findByTitle($title);
 
         if (!($vendor instanceof Vendor)) {
             $vendor = (new Vendor())
@@ -199,6 +204,10 @@ class DSPappliance extends Std
      */
     protected function processPlatformDataSet(Vendor $vendor, $title)
     {
+        if (false === $this->appliance->isNew && $vendor->title == $this->appliance->vendor->title && $title == $this->appliance->platform->platform->title) {
+            return $this->appliance->platform->platform;
+        }
+
         $platform = Platform::findByVendorTitle($vendor, $title);
 
         if (!($platform instanceof Platform)) {
@@ -220,12 +229,13 @@ class DSPappliance extends Std
      */
     protected function processPlatformItemDataSet(Platform $platform, $serialNumber)
     {
-        $platformItem = ($this->appliance->platform instanceof PlatformItem) ? $this->appliance->platform : (new PlatformItem());
+        $platformItem = (false === $this->appliance->isNew && $this->appliance->platform instanceof PlatformItem) ? $this->appliance->platform : (new PlatformItem());
 
         $platformItem->fill([
                 'platform' => $platform,
                 'serialNumber' => $serialNumber
-        ])->save();
+            ])
+            ->save();
 
         return $platformItem;
     }
@@ -237,6 +247,10 @@ class DSPappliance extends Std
      */
     protected function processSoftwareDataSet(Vendor $vendor, $title)
     {
+        if (false === $this->appliance->isNew && $vendor->title == $this->appliance->vendor->title && $title == $this->appliance->software->software->title) {
+            return $this->appliance->software->software;
+        }
+
         $software = Software::findByVendorTitle($vendor, $title);
 
         if (!($software instanceof Software)) {
@@ -258,15 +272,13 @@ class DSPappliance extends Std
      */
     protected function processSoftwareItemDataSet(Software $software, $version)
     {
-        $softwareItem = SoftwareItem::findBySoftwareVersion($software, $version);
+        $softwareItem = (false === $this->appliance->isNew && $this->appliance->software instanceof SoftwareItem) ? $this->appliance->software : (new SoftwareItem());
 
-        if (!($softwareItem instanceof SoftwareItem)) {
-            $softwareItem = (new SoftwareItem())
-                ->fill([
-                    'software' => $software,
-                    'version' => $version
-                ])->save();
-        }
+        $softwareItem->fill([
+                'software' => $software,
+                'version' => $version
+            ])
+            ->save();
 
         return $softwareItem;
     }
@@ -277,6 +289,10 @@ class DSPappliance extends Std
      */
     protected function processApplianceTypeDataSet($type)
     {
+        if (false === $this->appliance->isNew && $type == $this->appliance->type->type) {
+            return $this->appliance->type;
+        }
+
         $applianceType = ApplianceType::findByType($type);
 
         if (!($applianceType instanceof ApplianceType)) {
@@ -330,8 +346,6 @@ class DSPappliance extends Std
                     'title' => $title,
                     'description' => $description,
                 ])->save();
-
-            $vendor->refresh(); //TODO возможно это не нужно, надо проверить
         }
 
         return $module;
@@ -345,18 +359,23 @@ class DSPappliance extends Std
      */
     protected function processModuleItemDataSet(Office $office, Module $module, $serialNumber)
     {
-        $module->refresh();
         $moduleItem = ModuleItem::findByVendorSerial($module->vendor->title, $serialNumber);
 
         $moduleItem = ($moduleItem instanceof ModuleItem) ? $moduleItem : (new ModuleItem());
         $moduleItem->found();
         $moduleItem->fill([
             'module' => $module,
-            'serialNumber' => $serialNumber,
             'appliance' => $this->appliance,
             'location' => $office,
             'lastUpdate'=> (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P'),
-        ])->save();
+        ]);
+        if (true === $moduleItem->isNew()) {
+            $moduleItem->fill([
+                'serialNumber' => $serialNumber,
+                'inUse' => true,
+            ]);
+        }
+        $moduleItem->save();
 
         return $moduleItem;
     }
@@ -503,11 +522,11 @@ class DSPappliance extends Std
         if (!is_numeric($this->dataSet->LotusId)) {
             $errors->add(new Exception('DATASET: LotusId is not valid'));
         }
-        if (!isset($this->dataSet->platformVendor)) {
-            $errors->add(new Exception('DATASET: No field platformVendor'));
+        if (empty($this->dataSet->platformVendor)) {
+            $errors->add(new Exception('DATASET: Empty or No field platformVendor'));
         }
-        if (!isset($this->dataSet->platformSerial)) {
-            $errors->add(new Exception('DATASET: No field platformSerial'));
+        if (empty($this->dataSet->platformSerial)) {
+            $errors->add(new Exception('DATASET: Empty or No field platformSerial'));
         }
         if (!isset($this->dataSet->applianceType)) {
             $errors->add(new Exception('DATASET: No field applianceType'));
