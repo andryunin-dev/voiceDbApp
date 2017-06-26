@@ -103,7 +103,7 @@ class DSPappliance extends Std
             if (!($this->appliance instanceof Appliance)) {
                 $this->appliance = new Appliance();
                 $this->appliance->fill([
-                    'inUse' => true
+                    'inUse' => true,
                 ]);
             }
 
