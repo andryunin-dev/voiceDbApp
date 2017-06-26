@@ -89,7 +89,8 @@ class DSPprefixes extends Std
                         'ipAddress' => $dataSetNetwork->ip_address,
                         'macAddress' => $dataSetNetwork->mac,
                         'details' => [
-                            'portName' => $dataSetNetwork->interface
+                            'portName' => $dataSetNetwork->interface,
+                            'description' => $dataSetNetwork->description,
                         ]
                     ])->save();
                 }
@@ -106,7 +107,8 @@ class DSPprefixes extends Std
                         'macAddress' => $dataSetNetwork->mac,
                         'isManagement' => false,
                         'details' => [
-                            'portName' => $dataSetNetwork->interface
+                            'portName' => $dataSetNetwork->interface,
+                            'description' => $dataSetNetwork->description,
                         ]
                     ])->save();
                 }
@@ -224,6 +226,9 @@ class DSPprefixes extends Std
                 }
                 if (!isset($dataSetNetwork->vrf_rd)) {
                     $errors->add('DATASET: Networks - Missing field vrf_rd');
+                }
+                if (!isset($dataSetNetwork->description)) {
+                    $errors->add('DATASET: Networks - Missing field description');
                 }
             }
         }

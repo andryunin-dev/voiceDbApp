@@ -14,8 +14,6 @@ class Rclient extends Command
 
         $srcDir = realpath(ROOT_PATH . '/Tmp/Test_inventory');
 //        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_src');
-        $okDir = realpath(ROOT_PATH . '/Tmp/Test_ok');
-        $errDir = realpath(ROOT_PATH . '/Tmp/Test_err');
 
         $files = array_slice(scandir($srcDir), 2);
 
@@ -33,23 +31,12 @@ class Rclient extends Command
             curl_setopt($curl, CURLOPT_HEADER, false);
             curl_setopt($curl, CURLOPT_POSTFIELDS, $jsondata);
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-            $result =  json_decode(curl_exec($curl));
+//            $result =  json_decode(curl_exec($curl));
 
             $result =  curl_exec($curl);
-            var_dump($result);
-
-//            $statusCode = (400 == $result->httpStatusCode) ? ' Bad Request' : ' Accepted';
-//            echo ' request ' . $n++ . '  ->  ' . $result->httpStatusCode  . $statusCode . PHP_EOL;
+            var_dump($n++ . '->> ' . $result);
 
             curl_close($curl);
-
-//            if (400 == $result->httpStatusCode){
-//                rename($filePath, $errDir . '\\' . $file);
-//            }
-//
-//            if (202 == $result->httpStatusCode){
-//                rename($filePath, $okDir . '\\' . $file);
-//            }
         }
     }
 

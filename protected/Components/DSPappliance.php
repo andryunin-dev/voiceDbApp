@@ -204,7 +204,7 @@ class DSPappliance extends Std
      */
     protected function processPlatformDataSet(Vendor $vendor, $title)
     {
-        if (false === $this->appliance->isNew && false === $this->appliance->isNew && $vendor->title == $this->appliance->vendor->title && $title == $this->appliance->platform->platform->title) {
+        if (false === $this->appliance->isNew && $vendor->title == $this->appliance->vendor->title && $title == $this->appliance->platform->platform->title) {
             return $this->appliance->platform->platform;
         }
 
@@ -336,7 +336,7 @@ class DSPappliance extends Std
      */
     protected function processModuleDataSet(Vendor $vendor, $title, $description)
     {
-//        $vendor->refresh(); //TODO возможно это не нужно, надо проверить
+        $vendor->refresh();
 
         $module = Module::findByVendorTitle($vendor, $title);
         if (!($module instanceof Module)) {
@@ -346,8 +346,6 @@ class DSPappliance extends Std
                     'title' => $title,
                     'description' => $description,
                 ])->save();
-
-            $vendor->refresh();
         }
 
         return $module;
@@ -367,13 +365,17 @@ class DSPappliance extends Std
         $moduleItem->found();
         $moduleItem->fill([
             'module' => $module,
-            'serialNumber' => $serialNumber,
             'appliance' => $this->appliance,
             'location' => $office,
             'lastUpdate'=> (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P'),
-        ])->save();
-
-        $module->refresh();
+        ]);
+        if (true === $moduleItem->isNew()) {
+            $moduleItem->fill([
+                'serialNumber' => $serialNumber,
+                'inUse' => true,
+            ]);
+        }
+        $moduleItem->save();
 
         return $moduleItem;
     }
