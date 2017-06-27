@@ -32,6 +32,7 @@ use T4\Core\Collection;
 use T4\Core\Exception;
 use T4\Core\MultiException;
 use T4\Core\Std;
+use T4\Http\Request;
 use T4\Mvc\Controller;
 
 class Admin extends Controller
@@ -966,6 +967,22 @@ class Admin extends Controller
     }
 
     public function actionDevices2() {
+        $http = new Request();
+        if (empty($http->get->sort)) {
+            $sort = 'region,city,office,hostname';
+        } else {
+            switch ($http->get->sort) {
+                case 'region':
+                    $sort = 'region,city,office,hostname';
+                    break;
+                case 'city':
+                    break;
+                case 'office':
+                    break;
+                case 'hostname':
+                    break;
+            }
+        }
         $res = GeoDevModulePort_View::findByColumn('appliance_id', 2431);
 //        var_dump($res);
 //        var_dump($res->modules);
