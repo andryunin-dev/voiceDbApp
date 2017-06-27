@@ -25,6 +25,9 @@ use App\Models\SoftwareItem;
 use App\Models\Vendor;
 use App\Models\VPortType;
 use App\Models\Vrf;
+use App\ViewModels\GeoDev_View;
+use App\ViewModels\GeoDevModulePort_View;
+use App\ViewModels\ModuleItem_View;
 use T4\Core\Collection;
 use T4\Core\Exception;
 use T4\Core\MultiException;
@@ -952,9 +955,33 @@ class Admin extends Controller
             $this->data->offices = (new Collection())->add($office);
             $this->data->regions = $office->address->city->region;
         }
+        if (!empty($_GET['cluster'])) {
+            $office = Office::findByPK((int) $_GET['loc']);
+            $this->data->offices = (new Collection())->add($office);
+            $this->data->regions = $office->address->city->region;
+        }
         $this->data->activeLink->devices = true;
         $this->data->exportUrl = '/export/hardInvExcel';
         $timer->fix('end action');
+    }
+
+    public function actionDevices2() {
+        $res = GeoDevModulePort_View::findByColumn('appliance_id', 2431);
+//        var_dump($res);
+//        var_dump($res->modules);
+//        var_dump($res->noManagementPorts);
+//        die;
+//        var_dump($res->managementIp);
+//        $resCollection = new Collection();
+//        foreach (json_decode($res->moduleInfo) as $item) {
+//            $resCollection->add(new ModuleItem_View($item));
+//        }
+//        var_dump($resCollection);
+//        var_dump(new ModuleItem_View(json_decode($res->moduleInfo)));
+//        var_dump(json_decode($res->moduleInfo));
+//        var_dump((new Collection(json_decode($res->portInfo))));
+//        die;
+        $this->data->geoDevs = GeoDevModulePort_View::findAll();
     }
 
     public function actionPortTypes()
@@ -1291,7 +1318,7 @@ class Admin extends Controller
                         'portType' => DPortType::findByPK($data->dataportItem->portTypeId->$key),
                         'isManagement' => $data->dataportItem->isManagement->$key,
                         'macAddress' => $data->dataportItem->mac->$key,
-                        'comment' => $data->dataportItem->comment->$key,
+//                        'comment' => $data->dataportItem->comment->$key,
                         'details' => [
                             'portName' => $data->dataportItem->portName->$key
                         ],
