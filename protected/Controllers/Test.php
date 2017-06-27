@@ -24,6 +24,8 @@ class Test extends Controller
 
     public function actionDefault()
     {
+        var_dump(json_decode(null));
+        die;
         $appliance = (DataPort::findByIpVrf('10.100.240.211', Vrf::instanceGlobalVrf()))->appliance;
         var_dump($appliance);
         die;

@@ -1,0 +1,161 @@
+{% extends 'Index.html' %}
+
+{% block main %}
+    {% set width = {reg: 'col-7', office: 'col-15', host: 'col-10', type: 'col-3', devices: 'col-10', soft: 'col-10', module: 'col-10', interface: 'col-15', action: 'col-4'} %}
+    <div class="row">
+        <main class="devices">
+            <div class="">
+                <table id="fixed-header" class="bg-default table table-condensed table-bordered cust-table-striped no-cut-long-text">
+                    <thead>
+                        <tr class="text-middle text-center">
+                            <th class="bg-primary {{ width.reg }}">Регион</th>
+                            <th class="bg-primary {{ width.office }}">Офис</th>
+                            <th class="bg-primary {{ width.host }}">hostname</th>
+                            <th class="bg-primary {{ width.type }}">Тип</th>
+                            <th class="bg-primary {{ width.devices }}">Оборудование<a class="btn btn-success btn-xs btn-custom pull-right" href="/modal/addAppliance" role="button" data-action="get-popup" title="добавить устройство"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></a></th>
+                            <th class="bg-primary {{ width.soft }}">ПО</th>
+                            <th class="bg-primary {{ width.module }}">Модуль</th>
+                            <th class="bg-primary {{ width.interface }}">Интерфейсы</th>
+                            <th class="bg-primary {{ width.action }}">Action</th>
+
+                        </tr>
+                    </thead>
+                        <tbody>
+                    {% for geoDev in geoDevs %}
+                            {% if not geoDev.appliance_id is empty and geoDev.appInUse is defined and false == geoDev.appInUse %}
+                                {% set applColorClass = "item-not-use" %}
+                            {% else %}
+                                {% set applColorClass = "" %}
+                            {% endif %}
+                            {% if geoDev.appType|lower == 'switch' %}
+                                {% set applianceType = "SW" %}
+                            {% elseif geoDev.appType|lower == 'router' %}
+                                {% set applianceType = "R" %}
+                            {% elseif geoDev.appType|lower == 'cucm' %}
+                                {% set applianceType = "CM" %}
+                            {% elseif geoDev.appType|lower == 'phone' %}
+                                {% set applianceType = "TEL" %}
+                            {% else %}
+                                {% set applianceType = geoDev.appType| upper %}
+                            {% endif %}
+
+                            <tr>
+                                {#Region#}
+                                <td><a href="/admin/devices?reg={{ geoDev.region_id }}" >{{ geoDev.region }}</a></td>
+                                {#Office#}
+                                <td><a href="/admin/devices?loc={{ geoDev.office_id }}" >{{ geoDev.office }}</a> {% if not geoDev.appComment is empty %}<span id="{{ geoDev.office_id }}_{{ geoDev.appliance_id }}" class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>{% endif %}</td>
+                                {#Hostname#}
+                                <td>
+                                    {% set mngmnt = geoDev.managementIp %}
+                                    {% if false != mngmnt %}
+                                        <a href="ssh://{{ mngmnt }}" >{{ geoDev.hostname }}</a>
+                                    {% else %}
+                                        {{ geoDev.hostname }}
+                                    {% endif %}
+                                </td>
+                                {#Type#}
+                                <td style="vertical-align:middle; text-align:center" title="{{ geoDev.appType }}">
+                                    <b>
+                                        {{ applianceType }}
+                                    </b>
+                                </td>
+                                {#Platform#}
+                                <td class="{{ applColorClass }}">
+                                    {{ geoDev.platformVendor }} {{ geoDev.platformTitle }} {% if not geoDev.appComment is empty %}<span id="{{ geoDev.appliance_id }}" class="glyphicon glyphicon-info-sign" aria-hidden="true" title="{{ geoDev.appComment }}"></span>{% endif %}
+                                    <span class="lastUpdate" data-last-update="{{ geoDev.lastUpdateDateTime }}" title="{{ geoDev.lastUpdateDateTime }}">{{ geoDev.lastUpdateDate }}</span>
+                                </td>
+                                {#Software#}
+                                <td>
+                                    {{ geoDev.softwareTitle }} {{ geoDev.softwareVersion }}
+                                </td>
+                                {#ModuleItems#}
+                                <td class="cell-container">
+                                    <table class="inner table table-bordered">
+                                        <tbody>
+                                        {% for moduleItem in geoDev.modules %}
+                                            <tr>
+                                                {% if moduleItem.notFound %}
+                                                    {% set colorClass = "item-not-found" %}
+                                                {% elseif moduleItem.inUse is defined and false == moduleItem.inUse %}
+                                                    {% set colorClass = "item-not-use" %}
+                                                {% else %}
+                                                    {% set colorClass = "" %}
+                                                {% endif %}
+                                                <td class="{{ colorClass }}" {% if moduleItem.notFound %}title="{{ moduleItem.lastUpdateDateTime }}"{% endif %}>
+                                                    {{ moduleItem.title }}
+                                                    {% if not moduleItem.comment is empty %}
+                                                        <span id="{{ moduleItem.moduleItem_id }}" class="glyphicon glyphicon-info-sign" aria-hidden="true" title="{{ moduleItem.comment }}"></span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </td>
+                                {#Interfaces#}
+                                <td class="cell-container">
+                                    <table class="inner table table-bordered interfaces">
+                                        <theader>
+                                            {% set mngmnt = geoDev.managementIp %}
+                                            {% if false != mngmnt %}
+                                            <tr>
+                                                <th>
+                                                    <a href="ssh://{{ mngmnt }}" >{{ mngmnt }}</a>
+                                                </th>
+                                            </tr>
+                                            {% endif %}
+                                            {% set noMngmnt = geoDev.noManagementPorts %}
+                                            {% if noMngmnt.count > 0 %}
+                                                <tr>
+                                                    <th class="toggler btn btn-xs btn-grey"><span class=" js-caret caret-right"></span> другие интерфейсы ({{ noMngmnt.count }})</th>
+                                                </tr>
+                                            {% endif %}
+                                        </theader>
+                                        <tbody>
+                                        {% for port in noMngmnt %}
+                                        <tr>
+                                            <td>{{ port.cidrIpAddress }} {% if not port.details.portName is empty %}({{ port.details.portName }}){% endif %}</td>
+                                        </tr>
+                                        </tbody>
+
+                                        {% endfor %}
+                                    </table>
+                                </td>
+                                {#Action#}
+                                <td class="text-center">
+                                    {% if not geoDev.appliance_id is empty %}
+                                    <a class="btn btn-success btn-xs" href="/modal/editAppliance?id={{ geoDev.appliance_id }}" role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать устройство"></span></a>
+                                    {% if user.level > 5 %}
+                                    <a class="btn btn-danger btn-xs" href="/admin/delAppliance?id={{ geoDev.appliance_id }}" role="button"
+                                           data-action="delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" title="удалить устройство"></span></a>
+                                    {% endif %} {#user level#}
+                                    {% endif %} {#geoDev.appliance_id#}
+                                </td>
+                            </tr>
+                    {% endfor %}    {#geoDevs#}
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+{% endblock %}
+
+{% block JS %}
+    <script>
+        $("#fixed-header").headerFix({'height': '100%'});
+        $( function() {
+            $("table .glyphicon-info-sign").tooltipster({
+                theme: 'tooltipster-light'
+            });
+        } );
+
+        $(".toggler").on(
+            "click",
+            function ($e) {
+                console.log('click');
+                $(this).closest("table").find("tbody tr td").slideToggle("fast")
+                $(this).find(".js-caret").toggleClass("caret-down")
+            }
+        )
+    </script>
+{% endblock %}
