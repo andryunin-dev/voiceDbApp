@@ -39,6 +39,12 @@ use T4\Orm\Model;
  * @property int $softwareVersion
  * @property string $moduleInfo
  * @property string $portInfo
+ *
+ * @property string $managementIp
+ *
+ * @property Collection|ModuleItem_View[] $modules
+ * @property Collection|DataPort_View[] $dataPorts
+ * @property Collection|DataPort_View[] $noManagementPorts
  */
 class GeoDevModulePort_View extends Model
 {
@@ -54,6 +60,7 @@ class GeoDevModulePort_View extends Model
             'lotusId' => ['type' => 'int'],
             'officeComment' => ['type' => 'string'],
             'officeDetails' => ['type' => 'jsonb'],
+            'officeAddress' => ['type' => 'string'],
             'appliance_id' => ['type' => 'int', 'length' => 'big'],
             'location_id' => ['type' => 'int', 'length' => 'big'],
             'appLastUpdate' => ['type' => 'time'],
@@ -61,6 +68,8 @@ class GeoDevModulePort_View extends Model
             'hostname' => ['type' => 'string'],
             'appDetails' => ['type' => 'jsonb'],
             'appComment' => ['type' => 'string'],
+            'appType_id' => ['type' => 'int', 'length' => 'big'],
+            'appType' => ['type' => 'string'],
             'cluster_id' => ['type' => 'int', 'length' => 'big'],
             'clusterTitle' => ['type' => 'string'],
             'clusterDetails' => ['type' => 'jsonb'],
@@ -84,7 +93,7 @@ class GeoDevModulePort_View extends Model
         return false;
     }
 
-    public function getManagementIp()
+    protected function getManagementIp()
     {
         $portInfo = new Collection(json_decode($this->portInfo));
         $mngIp = $portInfo->filter(
@@ -98,5 +107,59 @@ class GeoDevModulePort_View extends Model
         }
 
         return false;
+    }
+
+    protected function getModules()
+    {
+        $moduleInfo = json_decode($this->moduleInfo);
+        if (empty($moduleInfo)) {
+            return false;
+        }
+        $resCollection = new Collection();
+        foreach ($moduleInfo as $item) {
+            $resCollection->add(new ModuleItem_View($item));
+        }
+        return $resCollection;
+    }
+
+    protected function getDataPorts()
+    {
+        $portInfo = json_decode($this->portInfo);
+        if (empty($portInfo)) {
+            return false;
+        }
+        $resCollection = new Collection();
+        foreach ($portInfo as $item) {
+            $resCollection->add(new DataPort_View($item));
+        }
+        return $resCollection;
+
+    }
+
+    protected function getNoManagementPorts()
+    {
+        $portInfo = json_decode($this->portInfo);
+        if (empty($portInfo)) {
+            return false;
+        }
+        $mngIp = $this->managementIp;
+        $resCollection = new Collection();
+        foreach ($portInfo as $item) {
+            $port = new DataPort_View($item);
+            if ($port->ipAddress != $mngIp) {
+                $resCollection->add($port);
+            }
+        }
+        return $resCollection;
+    }
+
+    public function lastUpdateDate()
+    {
+        return $this->lastUpdate ? (new \DateTime($this->lastUpdate))->format('Y-m-d') : null;
+    }
+
+    public function lastUpdateDateTime()
+    {
+        return $this->lastUpdate ? ('last update: ' . ((new \DateTime($this->lastUpdate))->setTimezone(new \DateTimeZone('Europe/Moscow')))->format('d.m.Y H:i \M\S\K(P)')) : null;
     }
 }

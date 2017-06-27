@@ -22,31 +22,31 @@
                     </thead>
                         <tbody>
                     {% for geoDev in geoDevs %}
-                            {% if geoDev.inUse is defined and false == geoDev.inUse %}
+                            {% if not geoDev.appliance_id is empty and geoDev.appInUse is defined and false == geoDev.appInUse %}
                                 {% set applColorClass = "item-not-use" %}
                             {% else %}
                                 {% set applColorClass = "" %}
                             {% endif %}
-                            {% if geoDev.type|lower == 'switch' %}
+                            {% if geoDev.appType|lower == 'switch' %}
                                 {% set applianceType = "SW" %}
-                            {% elseif geoDev.type|lower == 'router' %}
+                            {% elseif geoDev.appType|lower == 'router' %}
                                 {% set applianceType = "R" %}
-                            {% elseif geoDev.type|lower == 'cucm' %}
+                            {% elseif geoDev.appType|lower == 'cucm' %}
                                 {% set applianceType = "CM" %}
-                            {% elseif geoDev.type|lower == 'phone' %}
+                            {% elseif geoDev.appType|lower == 'phone' %}
                                 {% set applianceType = "TEL" %}
                             {% else %}
-                                {% set applianceType = geoDev.type| upper %}
+                                {% set applianceType = geoDev.appType| upper %}
                             {% endif %}
 
                             <tr>
                                 {#Region#}
                                 <td><a href="/admin/devices?reg={{ geoDev.region_id }}" >{{ geoDev.region }}</a></td>
                                 {#Office#}
-                                <td><a href="/admin/devices?loc={{ geoDev.office_id }}" >{{ geoDev.office }}</a> {% if not geoDev.comment is empty %}<span id="{{ geoDev.office_id }}_{{ geoDev.appliance_id }}" class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>{% endif %}</td>
+                                <td><a href="/admin/devices?loc={{ geoDev.office_id }}" >{{ geoDev.office }}</a> {% if not geoDev.appComment is empty %}<span id="{{ geoDev.office_id }}_{{ geoDev.appliance_id }}" class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>{% endif %}</td>
                                 {#Hostname#}
                                 <td>
-                                    {% set mngmnt = geoDev.getManagementIp %}
+                                    {% set mngmnt = geoDev.managementIp %}
                                     {% if false != mngmnt %}
                                         <a href="ssh://{{ mngmnt }}" >{{ geoDev.hostname }}</a>
                                     {% else %}
@@ -54,26 +54,25 @@
                                     {% endif %}
                                 </td>
                                 {#Type#}
-                                <td style="vertical-align:middle; text-align:center" title="{{ geoDev.type }}">
+                                <td style="vertical-align:middle; text-align:center" title="{{ geoDev.appType }}">
                                     <b>
                                         {{ applianceType }}
                                     </b>
                                 </td>
                                 {#Platform#}
                                 <td class="{{ applColorClass }}">
-                                    {{ appliance.platform.platform.vendor.title }} {{ appliance.platform.platform.title }} {% if not appliance.comment is empty %}<span id="{{ appliance.getPk }}" class="glyphicon glyphicon-info-sign" aria-hidden="true" title="{{ appliance.comment }}"></span>{% endif %}
-                                    <span class="lastUpdate" data-last-update="{{ appliance.lastUpdateDateTime }}" title="{{ appliance.lastUpdateDateTime }}">{{ appliance.lastUpdateDate }}</span>
+                                    {{ geoDev.platformVendor }} {{ geoDev.platformTitle }} {% if not geoDev.appComment is empty %}<span id="{{ geoDev.appliance_id }}" class="glyphicon glyphicon-info-sign" aria-hidden="true" title="{{ geoDev.appComment }}"></span>{% endif %}
+                                    <span class="lastUpdate" data-last-update="{{ geoDev.lastUpdateDateTime }}" title="{{ geoDev.lastUpdateDateTime }}">{{ geoDev.lastUpdateDate }}</span>
                                 </td>
                                 {#Software#}
                                 <td>
-                                    <span class="sw-title">{{ appliance.software.software.title }}</span>
-                                    {{ appliance.software.version }}
+                                    {{ geoDev.softwareTitle }} {{ geoDev.softwareVersion }}
                                 </td>
                                 {#ModuleItems#}
                                 <td class="cell-container">
                                     <table class="inner table table-bordered">
                                         <tbody>
-                                        {% for moduleItem in appliance.modules %}
+                                        {% for moduleItem in geoDev.modules %}
                                             <tr>
                                                 {% if moduleItem.notFound %}
                                                     {% set colorClass = "item-not-found" %}
@@ -83,9 +82,9 @@
                                                     {% set colorClass = "" %}
                                                 {% endif %}
                                                 <td class="{{ colorClass }}" {% if moduleItem.notFound %}title="{{ moduleItem.lastUpdateDateTime }}"{% endif %}>
-                                                    {{ moduleItem.module.title }}
+                                                    {{ moduleItem.title }}
                                                     {% if not moduleItem.comment is empty %}
-                                                        <span id="{{ moduleItem.getPk }}" class="glyphicon glyphicon-info-sign" aria-hidden="true" title="{{ moduleItem.comment }}"></span>
+                                                        <span id="{{ moduleItem.moduleItem_id }}" class="glyphicon glyphicon-info-sign" aria-hidden="true" title="{{ moduleItem.comment }}"></span>
                                                     {% endif %}
                                                 </td>
                                             </tr>
@@ -97,7 +96,7 @@
                                 <td class="cell-container">
                                     <table class="inner table table-bordered interfaces">
                                         <theader>
-                                            {% set mngmnt = appliance.getManagementIp %}
+                                            {% set mngmnt = geoDev.managementIp %}
                                             {% if false != mngmnt %}
                                             <tr>
                                                 <th>
@@ -105,7 +104,7 @@
                                                 </th>
                                             </tr>
                                             {% endif %}
-                                            {% set noMngmnt = appliance.getNoManagementPorts %}
+                                            {% set noMngmnt = geoDev.noManagementPorts %}
                                             {% if noMngmnt.count > 0 %}
                                                 <tr>
                                                     <th class="toggler btn btn-xs btn-grey"><span class=" js-caret caret-right"></span> другие интерфейсы ({{ noMngmnt.count }})</th>
@@ -124,11 +123,13 @@
                                 </td>
                                 {#Action#}
                                 <td class="text-center">
-                                    <a class="btn btn-success btn-xs" href="/modal/editAppliance?id={{ appliance.getPK }}" role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать устройство"></span></a>
+                                    {% if not geoDev.appliance_id is empty %}
+                                    <a class="btn btn-success btn-xs" href="/modal/editAppliance?id={{ geoDev.appliance_id }}" role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать устройство"></span></a>
                                     {% if user.level > 5 %}
-                                    <a class="btn btn-danger btn-xs" href="/admin/delAppliance?id={{ appliance.getPK }}" role="button"
+                                    <a class="btn btn-danger btn-xs" href="/admin/delAppliance?id={{ geoDev.appliance_id }}" role="button"
                                            data-action="delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" title="удалить устройство"></span></a>
-                                    {% endif %}
+                                    {% endif %} {#user level#}
+                                    {% endif %} {#geoDev.appliance_id#}
                                 </td>
                             </tr>
                     {% endfor %}    {#geoDevs#}

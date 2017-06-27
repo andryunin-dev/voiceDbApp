@@ -48,6 +48,9 @@ class m_1498472317_create_views
             appliances.details AS "applDetails",
             appliances."comment" AS "appComment",
 
+            "appTypes".__id AS "appType_id",
+            "appTypes".type AS "appType",
+
             clusters.__id AS cluster_id,
             clusters.title AS "clusterTitle",
             clusters.details AS "clusterDetails",
@@ -64,6 +67,7 @@ class m_1498472317_create_views
             software.title AS "softwareTitle",
             "softwareItem".version AS "softwareVersion"
         FROM equipment.appliances AS appliances
+            LEFT JOIN equipment."applianceTypes" AS "appTypes" ON appliances.__type_id = "appTypes".__id
             LEFT JOIN equipment."platformItems" AS "platformItem" ON appliances.__platform_item_id = "platformItem".__id
             LEFT JOIN equipment.platforms AS platform ON "platformItem".__platform_id = platform.__id
             LEFT JOIN equipment.vendors AS "platformVendor" ON platform.__vendor_id = "platformVendor".__id
@@ -108,6 +112,9 @@ class m_1498472317_create_views
             appliances.details AS "applDetails",
             appliances."comment" AS "appComment",
 
+            "appTypes".__id AS "appType_id",
+            "appTypes".type AS "appType",
+
             clusters.__id AS cluster_id,
             clusters.title AS "clusterTitle",
             clusters.details AS "clusterDetails",
@@ -124,6 +131,7 @@ class m_1498472317_create_views
             software.title AS "softwareTitle",
             "softwareItem".version AS "softwareVersion"
         FROM equipment.appliances AS appliances
+            LEFT JOIN equipment."applianceTypes" AS "appTypes" ON appliances.__type_id = "appTypes".__id
             LEFT JOIN equipment."platformItems" AS "platformItem" ON appliances.__platform_item_id = "platformItem".__id
             LEFT JOIN equipment.platforms AS platform ON "platformItem".__platform_id = platform.__id
             LEFT JOIN equipment.vendors AS "platformVendor" ON platform.__vendor_id = "platformVendor".__id
@@ -135,32 +143,32 @@ class m_1498472317_create_views
 
     ), module_info AS (
         SELECT
-            "moduleItems".__appliance_id AS __applianse_id,
-            "moduleItems".__id AS "itemId",
+            "moduleItems".__appliance_id AS appliance_id,
+            "moduleItems".__id AS "moduleItem_id",
             "moduleItems"."serialNumber" AS "serialNumber",
             "moduleItems"."inventoryNumber" AS "inventoryNumber",
-            "moduleItems"."details" AS "itemDetails",
-            "moduleItems"."comment" AS "itemComment",
+            "moduleItems"."details" AS "details",
+            "moduleItems"."comment" AS "comment",
             "moduleItems"."inUse" AS "inUse",
             "moduleItems"."notFound" AS "notFound",
-            "moduleItems"."lastUpdate" AS "itemLastUpdate",
-            "modules".__id AS "__module_id",
-            "modules".title AS "moduleTitle",
-            "modules".description AS "moduleDescription"
+            "moduleItems"."lastUpdate" AS "lastUpdate",
+            "modules".__id AS "module_id",
+            "modules".title AS "title",
+            "modules".description AS "description"
 
         FROM equipment."moduleItems" AS "moduleItems"
             JOIN equipment.modules AS modules ON "moduleItems".__module_id = modules.__id
     ), port_info AS (
         SELECT
-            "dPorts".__appliance_id AS __applianse_id,
-            "dPorts".__network_id AS __network_id,
+            "dPorts".__appliance_id AS appliance_id,
+            "dPorts".__network_id AS network_id,
             "dPorts"."ipAddress" AS "ipAddress",
             "dPorts"."masklen" AS "masklen",
             "dPorts"."macAddress" AS "macAddress",
             "dPorts"."details" AS "details",
             "dPorts"."comment" AS "comment",
             "dPorts"."isManagement" AS "isManagement",
-            "dPorts"."__type_port_id" AS "__type_port_id",
+            "dPorts"."__type_port_id" AS "portType_id",
             "dPortTypes".type AS "portType"
         FROM equipment."dataPorts" AS "dPorts"
             JOIN equipment."dataPortTypes" AS "dPortTypes" ON "dPorts".__type_port_id = "dPortTypes".__id
@@ -169,13 +177,13 @@ class m_1498472317_create_views
         ( SELECT array_to_json(array_agg(to_jsonb(t))) FROM (
                                                                 SELECT *
                                                                 FROM module_info
-                                                                WHERE appliance_id = module_info.__applianse_id
-                                                                ORDER BY module_info."moduleTitle") AS t
+                                                                WHERE devices.appliance_id = module_info.appliance_id
+                                                                ORDER BY module_info."title") AS t
         ) AS "moduleInfo",
         ( SELECT array_to_json(array_agg(to_jsonb(t))) FROM (
                                                                 SELECT *
                                                                 FROM port_info
-                                                                WHERE appliance_id = port_info.__applianse_id
+                                                                WHERE devices.appliance_id = port_info.appliance_id
                                                                 ORDER BY port_info."ipAddress") AS t
         ) AS "portInfo"
     FROM geo

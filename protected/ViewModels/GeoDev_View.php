@@ -57,6 +57,8 @@ class GeoDev_View extends Model
             'hostname' => ['type' => 'string'],
             'appDetails' => ['type' => 'jsonb'],
             'appComment' => ['type' => 'string'],
+            'appType_id' => ['type' => 'int', 'length' => 'big'],
+            'appType' => ['type' => 'string'],
             'cluster_id' => ['type' => 'int', 'length' => 'big'],
             'clusterTitle' => ['type' => 'string'],
             'clusterDetails' => ['type' => 'jsonb'],

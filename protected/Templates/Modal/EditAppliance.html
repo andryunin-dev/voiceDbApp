@@ -227,9 +227,9 @@
                                 <div class="col-xs-2">
                                     <input type="text" class="form-control" name="data[dataportItem][mac][]" value="{{ dataPort.formatMacAddress }}" aria-describedby="mac-addr" placeholder="MAC адрес" title="MAC адрес">
                                 </div>
-                                {#comment for data port#}
+                                {#description data port from device config#}
                                 <div class="col-xs-2">
-                                    <textarea class="form-control" style="max-width: 100%" name="data[dataportItem][comment][]"  rows="1" title="{{ dataPort.comment}}" placeholder="комментарий к порту">{{ dataPort.comment}}</textarea>
+                                    <textarea class="form-control" style="max-width: 100%" rows="1" title="{{ dataPort.details.description}}" placeholder="description from config" readonly>{{ dataPort.details.description}}</textarea>
                                 </div>
                                 {#checkbox isManagement#}
                                 <div class="col-xs-1 custom-box checkbox-container" >
