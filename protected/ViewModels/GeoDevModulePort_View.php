@@ -88,6 +88,19 @@ class GeoDevModulePort_View extends Model
         ]
     ];
 
+    protected static $sortOrders = [
+        'default' => 'region, city, office, hostname, appliance_id',
+        'region' => 'region, city, office, hostname, appliance_id',
+        'city' => 'city, office, hostname, appliance_id',
+        'office' => 'office, hostname, appliance_id, city',
+        'hostname' => 'hostname, appliance_id',
+    ];
+
+    public static function sortOrder($orderName)
+    {
+        return (array_key_exists($orderName, self::$sortOrders)) ? self::$sortOrders[$orderName] : self::$sortOrders['default'];
+    }
+
     protected function beforeSave()
     {
         return false;

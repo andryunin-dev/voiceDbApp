@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Components\Ip;
 use App\Components\IpTools;
 use App\Components\Parser;
+use App\Components\RequestExt;
 use App\Components\Timer;
 use App\Models\Address;
 use App\Models\Appliance;
@@ -967,23 +968,11 @@ class Admin extends Controller
     }
 
     public function actionDevices2() {
-        $http = new Request();
-        if (empty($http->get->sort)) {
-            $sort = 'region,city,office,hostname';
-        } else {
-            switch ($http->get->sort) {
-                case 'region':
-                    $sort = 'region,city,office,hostname';
-                    break;
-                case 'city':
-                    break;
-                case 'office':
-                    break;
-                case 'hostname':
-                    break;
-            }
-        }
-        $res = GeoDevModulePort_View::findByColumn('appliance_id', 2431);
+        $http = new RequestExt();
+        var_dump($http->addGetParam(['test2' => 23]));
+        var_dump($http);die;
+//        var_dump(GeoDevModulePort_View::sortOrder($http->get->sort));die;
+//        $res = GeoDevModulePort_View::findByColumn('appliance_id', 2431);
 //        var_dump($res);
 //        var_dump($res->modules);
 //        var_dump($res->noManagementPorts);
@@ -998,7 +987,8 @@ class Admin extends Controller
 //        var_dump(json_decode($res->moduleInfo));
 //        var_dump((new Collection(json_decode($res->portInfo))));
 //        die;
-        $this->data->geoDevs = GeoDevModulePort_View::findAll();
+        $this->data->geoDevs = GeoDevModulePort_View::findAll(['order' => GeoDevModulePort_View::sortOrder($http->get->order)]);
+        $this->data->http = $http;
     }
 
     public function actionPortTypes()

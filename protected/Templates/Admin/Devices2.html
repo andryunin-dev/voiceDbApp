@@ -22,28 +22,33 @@
                     </thead>
                         <tbody>
                     {% for geoDev in geoDevs %}
-                            {% if not geoDev.appliance_id is empty and geoDev.appInUse is defined and false == geoDev.appInUse %}
-                                {% set applColorClass = "item-not-use" %}
-                            {% else %}
-                                {% set applColorClass = "" %}
-                            {% endif %}
-                            {% if geoDev.appType|lower == 'switch' %}
-                                {% set applianceType = "SW" %}
-                            {% elseif geoDev.appType|lower == 'router' %}
-                                {% set applianceType = "R" %}
-                            {% elseif geoDev.appType|lower == 'cucm' %}
-                                {% set applianceType = "CM" %}
-                            {% elseif geoDev.appType|lower == 'phone' %}
-                                {% set applianceType = "TEL" %}
-                            {% else %}
-                                {% set applianceType = geoDev.appType| upper %}
-                            {% endif %}
+                        {% if not geoDev.appliance_id is empty and geoDev.appInUse is defined and false == geoDev.appInUse %}
+                            {% set applColorClass = "item-not-use" %}
+                        {% else %}
+                            {% set applColorClass = "" %}
+                        {% endif %}
+                        {% if not geoDev.appType %}
+                            {% set applianceType = "" %}
+                        {% elseif geoDev.appType|lower == 'switch' %}
+                            {% set applianceType = "SW" %}
+                        {% elseif geoDev.appType|lower == 'router' %}
+                            {% set applianceType = "R" %}
+                        {% elseif geoDev.appType|lower == 'cucm' %}
+                            {% set applianceType = "CM" %}
+                        {% elseif geoDev.appType|lower == 'phone' %}
+                            {% set applianceType = "TEL" %}
+                        {% else %}
+                            {% set applianceType = geoDev.appType| upper %}
+                        {% endif %}
 
                             <tr>
                                 {#Region#}
-                                <td><a href="/admin/devices?reg={{ geoDev.region_id }}" >{{ geoDev.region }}</a></td>
+                                <td><a href="{{ http.addGetParam('reg', geoDev.region_id).urlRel }}" >{{ geoDev.region }}</a></td>
+                                {#Region#}
+                                {#<td><a href="/admin/devices?reg={{ geoDev.region_id }}" >{{ geoDev.region }}</a></td>#}
                                 {#Office#}
-                                <td><a href="/admin/devices?loc={{ geoDev.office_id }}" >{{ geoDev.office }}</a> {% if not geoDev.appComment is empty %}<span id="{{ geoDev.office_id }}_{{ geoDev.appliance_id }}" class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>{% endif %}</td>
+                                <td><a href="{{ http.addGetParam('loc',  geoDev.office_id).urlRel }}" >{{ geoDev.office }}</a> {% if not geoDev.appComment is empty %}<span id="{{ geoDev.office_id }}_{{ geoDev.appliance_id }}" class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>{% endif %}</td>
+                                {#<td><a href="/admin/devices?loc={{ geoDev.office_id }}" >{{ geoDev.office }}</a> {% if not geoDev.appComment is empty %}<span id="{{ geoDev.office_id }}_{{ geoDev.appliance_id }}" class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>{% endif %}</td>#}
                                 {#Hostname#}
                                 <td>
                                     {% set mngmnt = geoDev.managementIp %}
@@ -52,12 +57,18 @@
                                     {% else %}
                                         {{ geoDev.hostname }}
                                     {% endif %}
+                                    {% if geoDev.cluster_id %}
+                                        <br>
+                                        <a href="{{ http.addGetParam('cl', geoDev.cluster_id).urlRel }}">(кластер)</a>
+                                    {% endif %}
                                 </td>
                                 {#Type#}
                                 <td style="vertical-align:middle; text-align:center" title="{{ geoDev.appType }}">
-                                    <b>
-                                        {{ applianceType }}
-                                    </b>
+                                    <a href="{{ http.addGetParam('type',  geoDev.appType_id).urlRel }}">
+                                        <b>
+                                            {{ applianceType }}
+                                        </b>
+                                    </a>
                                 </td>
                                 {#Platform#}
                                 <td class="{{ applColorClass }}">
