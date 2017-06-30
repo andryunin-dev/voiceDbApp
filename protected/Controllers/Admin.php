@@ -5,7 +5,9 @@ namespace App\Controllers;
 use App\Components\Ip;
 use App\Components\IpTools;
 use App\Components\Parser;
+use App\Components\RequestExt;
 use App\Components\Timer;
+use App\Components\UrlExt;
 use App\Models\Address;
 use App\Models\Appliance;
 use App\Models\ApplianceType;
@@ -32,6 +34,7 @@ use T4\Core\Collection;
 use T4\Core\Exception;
 use T4\Core\MultiException;
 use T4\Core\Std;
+use T4\Dbal\QueryBuilder;
 use T4\Http\Request;
 use T4\Mvc\Controller;
 
@@ -319,6 +322,7 @@ class Admin extends Controller
         };
 
         $this->data->offices = Office::findAll()->uasort($asc);
+        $this->data->navbar->count = $this->data->offices->count();
         $this->data->activeLink->offices = true;
     }
 
@@ -922,7 +926,7 @@ class Admin extends Controller
         }
     }
 
-    public function actionDevices()
+    public function actionDevices_old()
     {
         $timer = Timer::instance();
         $timer->fix('start action');
@@ -961,44 +965,62 @@ class Admin extends Controller
             $this->data->offices = (new Collection())->add($office);
             $this->data->regions = $office->address->city->region;
         }
+        if (!empty($_GET['debug'])) {
+            $this->data->offices = Office::findAll(['order' => 'title']);
+            $this->data->regions = Region::findAll(['order' => 'title']);
+        }
+
         $this->data->activeLink->devices = true;
         $this->data->exportUrl = '/export/hardInvExcel';
         $timer->fix('end action');
     }
 
-    public function actionDevices2() {
-        $http = new Request();
-        if (empty($http->get->sort)) {
-            $sort = 'region,city,office,hostname';
+    public function actionDevices() {
+        $timer = Timer::instance();
+        $timer->fix('start action');
+
+        $getParams = [
+            'reg' => ['clause' => 'region_id = :region_id', 'param' => ':region_id'],
+            'city' => ['clause' => 'city_id = :city_id', 'param' => ':city_id'],
+            'loc' => ['clause' => 'location_id = :location_id', 'param' => ':location_id'],
+            'cl' => ['clause' => 'cluster_id = :cluster_id', 'param' => ':cluster_id'],
+            'type' => ['clause' => '"appType_id" = :appType_id', 'param' => ':appType_id'],
+            'pl' => ['clause' => '"platform_id" = :platform_id', 'param' => ':platform_id']
+        ];
+        $http = new Request;
+        $this->data->url = new UrlExt($http->url->toArrayRecursive());
+        $where = [];
+        $params = [];
+        $order = GeoDevModulePort_View::sortOrder();
+
+        if (0 == $http->get->count()) {
+            $order = GeoDevModulePort_View::sortOrder();
         } else {
-            switch ($http->get->sort) {
-                case 'region':
-                    $sort = 'region,city,office,hostname';
-                    break;
-                case 'city':
-                    break;
-                case 'office':
-                    break;
-                case 'hostname':
-                    break;
+            $getParams = new Std($getParams);
+//            var_dump($getParams);die;
+            foreach ($http->get as $key => $val) {
+                if (! isset($getParams->$key)) {
+                    continue;
+                }
+                if ('order' == $key) {
+                    $order = GeoDevModulePort_View::sortOrder($val);
+                    continue;
+                }
+                $where[] = $getParams->$key->clause;
+                $params[$getParams->$key->param] = $val;
             }
         }
-        $res = GeoDevModulePort_View::findByColumn('appliance_id', 2431);
-//        var_dump($res);
-//        var_dump($res->modules);
-//        var_dump($res->noManagementPorts);
-//        die;
-//        var_dump($res->managementIp);
-//        $resCollection = new Collection();
-//        foreach (json_decode($res->moduleInfo) as $item) {
-//            $resCollection->add(new ModuleItem_View($item));
-//        }
-//        var_dump($resCollection);
-//        var_dump(new ModuleItem_View(json_decode($res->moduleInfo)));
-//        var_dump(json_decode($res->moduleInfo));
-//        var_dump((new Collection(json_decode($res->portInfo))));
-//        die;
-        $this->data->geoDevs = GeoDevModulePort_View::findAll();
+        $where = implode(' AND ', $where);
+        $query = (new QueryBuilder())
+            ->select()
+            ->from(GeoDevModulePort_View::getTableName())
+            ->where($where)
+            ->params($params)
+            ->order($order);
+//        var_dump($query);
+        $this->data->geoDevs = GeoDevModulePort_View::findAllByQuery($query);
+        $this->data->navbar->count = $this->data->geoDevs->count();
+        $timer->fix('end action');
     }
 
     public function actionPortTypes()

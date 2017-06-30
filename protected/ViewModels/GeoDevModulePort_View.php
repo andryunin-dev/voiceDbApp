@@ -78,6 +78,7 @@ class GeoDevModulePort_View extends Model
             'platformVendor' => ['type' => 'string'],
             'platformItem_id' => ['type' => 'int', 'length' => 'big'],
             'platformTitle' => ['type' => 'string'],
+            'platform_id' => ['type' => 'int', 'length' => 'big'],
             'softwareVendor_id' => ['type' => 'int', 'length' => 'big'],
             'softwareVendor' => ['type' => 'string'],
             'softwareItem_id' => ['type' => 'int', 'length' => 'big'],
@@ -87,6 +88,19 @@ class GeoDevModulePort_View extends Model
             'portInfo' => ['type' => 'jsonb']
         ]
     ];
+
+    protected static $sortOrders = [
+        'default' => 'region, city, office, hostname, appliance_id',
+        'region' => 'region, city, office, hostname, appliance_id',
+        'city' => 'city, office, hostname, appliance_id',
+        'office' => 'office, hostname, appliance_id, city',
+        'hostname' => 'hostname, appliance_id',
+    ];
+
+    public static function sortOrder($orderName = 'default')
+    {
+        return (array_key_exists($orderName, self::$sortOrders)) ? self::$sortOrders[$orderName] : self::$sortOrders['default'];
+    }
 
     protected function beforeSave()
     {

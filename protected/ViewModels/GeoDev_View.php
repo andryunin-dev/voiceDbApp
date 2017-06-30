@@ -67,6 +67,7 @@ class GeoDev_View extends Model
             'platformVendor' => ['type' => 'string'],
             'platformItem_id' => ['type' => 'int', 'length' => 'big'],
             'platformTitle' => ['type' => 'string'],
+            'platform_id' => ['type' => 'int', 'length' => 'big'],
             'softwareVendor_id' => ['type' => 'int', 'length' => 'big'],
             'softwareVendor' => ['type' => 'string'],
             'softwareItem_id' => ['type' => 'int', 'length' => 'big'],
