@@ -78,6 +78,7 @@ class GeoDevModulePort_View extends Model
             'platformVendor' => ['type' => 'string'],
             'platformItem_id' => ['type' => 'int', 'length' => 'big'],
             'platformTitle' => ['type' => 'string'],
+            'platform_id' => ['type' => 'int', 'length' => 'big'],
             'softwareVendor_id' => ['type' => 'int', 'length' => 'big'],
             'softwareVendor' => ['type' => 'string'],
             'softwareItem_id' => ['type' => 'int', 'length' => 'big'],
@@ -96,7 +97,7 @@ class GeoDevModulePort_View extends Model
         'hostname' => 'hostname, appliance_id',
     ];
 
-    public static function sortOrder($orderName)
+    public static function sortOrder($orderName = 'default')
     {
         return (array_key_exists($orderName, self::$sortOrders)) ? self::$sortOrders[$orderName] : self::$sortOrders['default'];
     }
