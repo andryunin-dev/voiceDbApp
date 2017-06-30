@@ -322,6 +322,7 @@ class Admin extends Controller
         };
 
         $this->data->offices = Office::findAll()->uasort($asc);
+        $this->data->navbar->count = $this->data->offices->count();
         $this->data->activeLink->offices = true;
     }
 
@@ -1018,6 +1019,7 @@ class Admin extends Controller
             ->order($order);
 //        var_dump($query);
         $this->data->geoDevs = GeoDevModulePort_View::findAllByQuery($query);
+        $this->data->navbar->count = $this->data->geoDevs->count();
         $timer->fix('end action');
     }
 
