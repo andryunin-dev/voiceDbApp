@@ -2,6 +2,8 @@
 namespace App\Components;
 
 use T4\Core\Collection;
+use T4\Core\Exception;
+use T4\Core\MultiException;
 use T4\Core\Std;
 
 class CucmPhones extends Std
@@ -21,8 +23,8 @@ class CucmPhones extends Std
                 'ciphers' => 'HIGH',
             ]
         ]);
-        $username = 'netcmdbAXL';
-        $password = 'Dth.dAXL71';
+        $username = '';
+        $password = '';
         $schema = 'sch7_1';
 
         // AXL client
@@ -53,7 +55,9 @@ class CucmPhones extends Std
      */
     public function run()
     {
-        // Get all phones with the 'Any' status
+//        $debugLogger = RLogger::getInstance('CmPhones', realpath(ROOT_PATH . '/Logs/debug.log'));
+
+        // Get all phones from the publisher
         $anyPhones = $this->axlClient->ExecuteSQLQuery(['sql' => '
                     SELECT d."name" AS Device,
                           d."description",
@@ -77,10 +81,11 @@ class CucmPhones extends Std
                           WHERE n2."tkpatternusage" = 3 AND
                                 n2."dnorpattern" LIKE "5%"
                 '])->return->row;
-//        var_dump($phones);
-
+//        var_dump($anyPhones);
+//die;
 
         // Poll the registered phones
+        $items = [];
         $n = 0;
         foreach ($anyPhones as $phone) {
             $items['SelectItem[' . $n .']']['Item'] = $phone->device;
@@ -97,48 +102,80 @@ class CucmPhones extends Std
         ]);
         $cmNodes = ($registeredPhones['SelectCmDeviceResult'])->CmNodes;
 //        var_dump($cmNodes);
-
+//die;
         $registeredPhones = new Collection();
         foreach ($cmNodes as $cmNode) {
             if ('ok' == strtolower($cmNode->ReturnCode)) {
                 foreach ($cmNode->CmDevices as $cmDevice) {
                     $phone = (new Std())->fill([
                         'cmName' => $cmNode->Name,
-                        'Name' => $cmDevice->Name,
-                        'IpAddress' => $cmDevice->IpAddress,
-                        'DirNumber' => $cmDevice->DirNumber,
-                        'Description' => $cmDevice->Description,
-                        'TimeStamp' => $cmDevice->TimeStamp,
-                        'Httpd' => $cmDevice->Httpd,
+                        'Name' => $cmDevice->Name, // SEP0019AA4498D6
+                        'IpAddress' => $cmDevice->IpAddress, // 10.101.64.16
+                        'Description' => $cmDevice->Description, // Lenina52-UKP_FO-1400
+                        'Httpd' => $cmDevice->Httpd, // Yes
+                        'Status' => $cmDevice->Status, // Registered
                     ]);
                     $registeredPhones->add($phone);
                 }
             }
         }
 //        var_dump($registeredPhones);
+//die;
 
-
+        $errors = new MultiException();
         foreach ($registeredPhones as $phone) {
-// TODO сделать try catch для ""file_get_contents('http://' . $phone->IpAddress . '/DeviceInformationX')""
-            if ('yes' == strtolower($phone->Httpd)) {
-//                $data = new \SimpleXMLElement(file_get_contents('http://' . $phone->IpAddress . '/DeviceInformationX'));
+            try {
 
-                $data = file_get_contents('http://' . $phone->IpAddress . '/DeviceInformationX');
-                var_dump($data);
+                $str = '<?xml version="1.0" encoding="iso-8859-1"?>
+                            <DeviceInformation>
+                                <MACAddress>001111111111</MACAddress>
+                                <HostName>SEP000000000000</HostName>
+                                <phoneDN>1301</phoneDN>
+                                <appLoadID>CP7905080003SCCP070409A</appLoadID>
+                                <bootLoadID>LD0100BOOT021112A</bootLoadID>
+                                <versionID>8.0.3(070409A)</versionID>
+                                <hardwareRevision>0x0005 0x0000</hardwareRevision>
+                                <serialNumber>INM08321NVJ</serialNumber>
+                                <modelNumber>CP-7905G</modelNumber>
+                                <HWFeatures>0x00000002</HWFeatures>
+                                <BTXMLCardsVersion>LD04-25-2002#0</BTXMLCardsVersion>
+                                <MessageWaiting>NO</MessageWaiting>
+                            </DeviceInformation>';
+
+//                $response = xml_parse_into_struct(xml_parser_create(), file_get_contents('http://' . $phone->IpAddress . '/DeviceInformationX'), $values);
+//                var_dump($values);
+
+//                if (1 != $response) {
+//                    throw new MultiException($phone->IpAddress . ' - Wrong XML');
+//                }
+//
+//                foreach ($values as $k => $v) {
+//                    if ('MACAddress' == $k || 'phoneDN' == $k || 'versionID' == $k || 'serialNumber' == $k || 'modelNumber' == $k) {
+//                        $phone->fill([
+//                            $k => $v,
+//                        ]);
+//                    }
+//                }
+
+//                $phone->fill([
+//                    'MACAddress' => $data->MACAddress,
+//                    'phoneDN' => $data->phoneDN,
+//                    'versionID' => $data->versionID,
+//                    'serialNumber' => $data->serialNumber,
+//                    'modelNumber' => $data->modelNumber,
+//                ]);
+
+            } catch (Exception $e) {
+                echo $e->getMessage();
+                $errors->add('[phone]=' . ($phone->Name ?? '""') . ' [ip]=' . ($phone->IpAddress ?? '""') . ' [message]=' . ($e->getMessage() ?? '""'));
             }
-//            $phone->fill([
-//                'MACAddress' => $data->MACAddress,
-//                'phoneDN' => $data->phoneDN,
-//                'appLoadID' => $data->appLoadID,
-//                'versionID' => $data->versionID,
-//                'serialNumber' => $data->serialNumber,
-//                'modelNumber' => $data->modelNumber,
-//            ]);
         }
+//        var_dump($errors);
 //        var_dump($registeredPhones);
 
 
 
+        echo 'OKK';
         return true;
     }
 }

@@ -10,7 +10,8 @@ class Cm extends Controller
 {
     public function actionDefault()
     {
-        $cucmPhones = new CucmPhones('10.101.2.132');
+//        $cucmPhones = new CucmPhones('10.101.2.132');
+        $cucmPhones = new CucmPhones('10.101.2.10');
 //        var_dump($cucmPhones);
         var_dump($cucmPhones->run());
         die;
