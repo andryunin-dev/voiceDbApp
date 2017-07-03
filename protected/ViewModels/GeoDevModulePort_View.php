@@ -63,7 +63,7 @@ class GeoDevModulePort_View extends Model
             'officeAddress' => ['type' => 'string'],
             'appliance_id' => ['type' => 'int', 'length' => 'big'],
             'location_id' => ['type' => 'int', 'length' => 'big'],
-            'appLastUpdate' => ['type' => 'time'],
+            'appLastUpdate' => ['type' => 'datetime'],
             'appInUse' => ['type' => 'boolean'],
             'hostname' => ['type' => 'string'],
             'appDetails' => ['type' => 'jsonb'],
@@ -169,11 +169,11 @@ class GeoDevModulePort_View extends Model
 
     public function lastUpdateDate()
     {
-        return $this->appLastUpdate ? (new \DateTime($this->lastUpdate))->format('Y-m-d') : null;
+        return $this->appLastUpdate ? (new \DateTime($this->appLastUpdate))->format('Y-m-d') : null;
     }
 
     public function lastUpdateDateTime()
     {
-        return $this->appLastUpdate ? ('last update: ' . ((new \DateTime($this->lastUpdate))->setTimezone(new \DateTimeZone('Europe/Moscow')))->format('d.m.Y H:i \M\S\K(P)')) : null;
+        return $this->appLastUpdate ? ('last update: ' . ((new \DateTime($this->appLastUpdate))->setTimezone(new \DateTimeZone('Europe/Moscow')))->format('d.m.Y H:i \M\S\K(P)')) : null;
     }
 }

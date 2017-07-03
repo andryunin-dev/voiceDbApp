@@ -123,9 +123,9 @@
                                     <tr>
                                         <td>{{ port.cidrIpAddress }} {% if not port.details.portName is empty %}({{ port.details.portName }}){% endif %}</td>
                                     </tr>
+                                    {% endfor %}
                                     </tbody>
 
-                                    {% endfor %}
                                 </table>
                             </td>
                             {#Action#}
