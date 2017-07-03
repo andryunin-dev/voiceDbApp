@@ -169,11 +169,11 @@ class GeoDevModulePort_View extends Model
 
     public function lastUpdateDate()
     {
-        return $this->lastUpdate ? (new \DateTime($this->lastUpdate))->format('Y-m-d') : null;
+        return $this->appLastUpdate ? (new \DateTime($this->lastUpdate))->format('Y-m-d') : null;
     }
 
     public function lastUpdateDateTime()
     {
-        return $this->lastUpdate ? ('last update: ' . ((new \DateTime($this->lastUpdate))->setTimezone(new \DateTimeZone('Europe/Moscow')))->format('d.m.Y H:i \M\S\K(P)')) : null;
+        return $this->appLastUpdate ? ('last update: ' . ((new \DateTime($this->lastUpdate))->setTimezone(new \DateTimeZone('Europe/Moscow')))->format('d.m.Y H:i \M\S\K(P)')) : null;
     }
 }

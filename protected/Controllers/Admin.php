@@ -1020,6 +1020,7 @@ class Admin extends Controller
 //        var_dump($query);
         $this->data->geoDevs = GeoDevModulePort_View::findAllByQuery($query);
         $this->data->navbar->count = $this->data->geoDevs->count();
+        $this->data->exportUrl = '/export/hardInvExcel';
         $timer->fix('end action');
     }
 
