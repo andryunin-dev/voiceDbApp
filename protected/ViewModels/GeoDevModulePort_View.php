@@ -4,6 +4,7 @@ namespace App\ViewModels;
 
 use App\Components\IpTools;
 use T4\Core\Collection;
+use T4\Core\Std;
 use T4\Orm\Model;
 
 /**
@@ -109,62 +110,59 @@ class GeoDevModulePort_View extends Model
 
     protected function getManagementIp()
     {
-        $portInfo = new Collection(json_decode($this->portInfo));
-        $mngIp = $portInfo->filter(
-            function($port) {
+        $res = $this->dataPorts->filter(
+            function ($port) {
                 return true === $port->isManagement;
             }
         )->first();
 
-        if (! empty($mngIp)) {
-            return $mngIp->ipAddress;
+        if (! empty($res)) {
+            return $res->ipAddress;
         }
-
         return false;
     }
 
     protected function getModules()
     {
-        $moduleInfo = json_decode($this->moduleInfo);
-        if (empty($moduleInfo)) {
-            return false;
+        $src = json_decode($this->moduleInfo);
+        $res = new Collection();
+        if (empty($src)) {
+            return $res;
         }
-        $resCollection = new Collection();
-        foreach ($moduleInfo as $item) {
-            $resCollection->add(new ModuleItem_View($item));
+        foreach ($src as $item) {
+            $moduleItem = new ModuleItem_View($item);
+            $details = empty($moduleItem->details) ? new Std() : new Std($moduleItem->details->toArrayRecursive());
+            $moduleItem->details = $details;
+            $res->add($moduleItem);
         }
-        return $resCollection;
+        return $res;
     }
 
     protected function getDataPorts()
     {
-        $portInfo = json_decode($this->portInfo);
-        if (empty($portInfo)) {
-            return false;
+        $src = json_decode($this->portInfo);
+        $res = new Collection();
+        if (empty($src)) {
+            return $res;
         }
-        $resCollection = new Collection();
-        foreach ($portInfo as $item) {
-            $resCollection->add(new DataPort_View($item));
+        foreach ($src as $port) {
+            $dataPort = new DataPort_View($port);
+            $details = empty($dataPort->details) ? new Std() : new Std($dataPort->details->toArrayRecursive());
+            $dataPort->details = $details;
+            $res->add($dataPort);
         }
-        return $resCollection;
-
+        return $res;
     }
 
     protected function getNoManagementPorts()
     {
-        $portInfo = json_decode($this->portInfo);
-        if (empty($portInfo)) {
-            return false;
-        }
-        $mngIp = $this->managementIp;
-        $resCollection = new Collection();
-        foreach ($portInfo as $item) {
-            $port = new DataPort_View($item);
-            if ($port->ipAddress != $mngIp) {
-                $resCollection->add($port);
+        $res = $this->dataPorts->filter(
+            function ($port) {
+                return false === $port->isManagement;
             }
-        }
-        return $resCollection;
+        );
+
+        return $res;
     }
 
     public function lastUpdateDate()

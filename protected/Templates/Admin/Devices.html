@@ -120,7 +120,7 @@
                                     </theader>
                                     <tbody>
                                     {% for port in noMngmnt %}
-                                    <tr>
+                                    <tr title="{{ port.details.description }}">
                                         <td>{{ port.cidrIpAddress }} {% if not port.details.portName is empty %}({{ port.details.portName }}){% endif %}</td>
                                     </tr>
                                     {% endfor %}

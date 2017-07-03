@@ -52,7 +52,7 @@ class GeoDev_View extends Model
             'officeDetails' => ['type' => 'jsonb'],
             'appliance_id' => ['type' => 'int', 'length' => 'big'],
             'location_id' => ['type' => 'int', 'length' => 'big'],
-            'appLastUpdate' => ['type' => 'time'],
+            'appLastUpdate' => ['type' => 'datetime'],
             'appInUse' => ['type' => 'boolean'],
             'hostname' => ['type' => 'string'],
             'appDetails' => ['type' => 'jsonb'],
