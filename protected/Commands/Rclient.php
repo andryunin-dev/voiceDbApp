@@ -10,10 +10,12 @@ class Rclient extends Command
     public function actionDefault()
     {
 //        $url = "http://vm-utk-reg.rs.ru/rServer";
-        $url = "http://voice.loc/rServer";
+        $url = "http://netcmdb-dev.rs.ru/rServer";
+//        $url = "http://voice.loc/rServer";
 
-        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_inventory');
+//        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_inventory');
 //        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_src');
+        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_ok');
 
         $files = array_slice(scandir($srcDir), 2);
 
@@ -85,16 +87,17 @@ class Rclient extends Command
     public function actionTestOne()
     {
 //        $url = "http://voice.loc/dataports";
-//        $url = "http://voice.loc/rServer";
-        $url = "http://netcmdb-dev.rs.ru/rServer";
+        $url = "http://voice.loc/rServer";
+//        $url = "http://netcmdb-dev.rs.ru/rServer";
 
 
 //        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_src');
-        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_err');
+//        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_err');
+        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_ok');
 //        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_dataset_1_errors');
 //        $srcDir = realpath(ROOT_PATH . '/Tmp/Test_inventory');
 
-        $filePath = realpath($srcDir . '\\' . '10.101.6.135-32__2017-06-20__13-51-21.33845800.json');
+        $filePath = realpath($srcDir . '\\' . '1.json');
 
 
         $jsondata = file_get_contents($filePath);
