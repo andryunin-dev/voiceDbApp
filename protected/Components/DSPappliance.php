@@ -96,7 +96,10 @@ class DSPappliance extends Std
             // Case "Find appliance by management IP"
             if (!($this->appliance instanceof Appliance) && !empty($this->dataSet->ip)) {
                 $managementIP = (new IpTools($this->dataSet->ip))->address;
-                $this->appliance = (DataPort::findByIpVrf($managementIP, Vrf::instanceGlobalVrf()))->appliance;
+                $appliance = (DataPort::findByIpVrf($managementIP, Vrf::instanceGlobalVrf()))->appliance;
+                if ('' === $appliance->platform->serialNumber) {
+                    $this->appliance = $appliance;
+                }
             }
 
             // Case "Appliance is not found by platformSerial and management IP"
