@@ -192,7 +192,7 @@ class DSPappliance extends Std
      */
     protected function processVendorDataSet($title)
     {
-        if (false === $this->appliance->isNew && $title == $this->appliance->vendor->title) {
+        if (false === $this->appliance->isNew() && $title == $this->appliance->vendor->title) {
             return $this->appliance->vendor;
         }
 
@@ -216,7 +216,7 @@ class DSPappliance extends Std
      */
     protected function processPlatformDataSet(Vendor $vendor, $title)
     {
-        if (false === $this->appliance->isNew && $vendor->title == $this->appliance->vendor->title && $title == $this->appliance->platform->platform->title) {
+        if (false === $this->appliance->isNew() && $vendor->title == $this->appliance->vendor->title && $title == $this->appliance->platform->platform->title) {
             return $this->appliance->platform->platform;
         }
 
@@ -241,7 +241,7 @@ class DSPappliance extends Std
      */
     protected function processPlatformItemDataSet(Platform $platform, $serialNumber)
     {
-        $platformItem = (false === $this->appliance->isNew && $this->appliance->platform instanceof PlatformItem) ? $this->appliance->platform : (new PlatformItem());
+        $platformItem = (false === $this->appliance->isNew() && $this->appliance->platform instanceof PlatformItem) ? $this->appliance->platform : (new PlatformItem());
 
         $platformItem->fill([
                 'platform' => $platform,
@@ -259,7 +259,7 @@ class DSPappliance extends Std
      */
     protected function processSoftwareDataSet(Vendor $vendor, $title)
     {
-        if (false === $this->appliance->isNew && $vendor->title == $this->appliance->vendor->title && $title == $this->appliance->software->software->title) {
+        if (false === $this->appliance->isNew() && $vendor->title == $this->appliance->vendor->title && $title == $this->appliance->software->software->title) {
             return $this->appliance->software->software;
         }
 
@@ -284,7 +284,7 @@ class DSPappliance extends Std
      */
     protected function processSoftwareItemDataSet(Software $software, $version)
     {
-        $softwareItem = (false === $this->appliance->isNew && $this->appliance->software instanceof SoftwareItem) ? $this->appliance->software : (new SoftwareItem());
+        $softwareItem = (false === $this->appliance->isNew()) ? $this->appliance->software : (new SoftwareItem());
 
         $softwareItem->fill([
                 'software' => $software,
@@ -301,7 +301,7 @@ class DSPappliance extends Std
      */
     protected function processApplianceTypeDataSet($type)
     {
-        if (false === $this->appliance->isNew && $type == $this->appliance->type->type) {
+        if (false === $this->appliance->isNew() && $type == $this->appliance->type->type) {
             return $this->appliance->type;
         }
 
