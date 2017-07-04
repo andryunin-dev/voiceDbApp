@@ -25,7 +25,7 @@ class RServer extends Controller
 
     public function actionDefault()
     {
-        $debugLogger = RLogger::getInstance('RServer', realpath(ROOT_PATH . '/Logs/debug.log'));
+//        $debugLogger = RLogger::getInstance('RServer', realpath(ROOT_PATH . '/Logs/debug.log'));
 
         try {
             $rawInput = file_get_contents('php://input');
@@ -40,7 +40,7 @@ class RServer extends Controller
                 throw new Exception('DATASET: No field dataSetType or empty dataSetType');
             }
 
-            $debugLogger->info('START: ' . '[ip]=' . $inputDataset->ip . '; [dataSetType]=' . $inputDataset->dataSetType);
+//            $debugLogger->info('START: ' . '[ip]=' . $inputDataset->ip . '; [dataSetType]=' . $inputDataset->dataSetType);
 
             switch ($inputDataset->dataSetType) {
                 case 'appliance':
@@ -76,18 +76,18 @@ class RServer extends Controller
                 $err['errors'][] = $e->getMessage();
                 $logger->error('[host]=' . ($inputDataset->hostname ?? '""') . ' [manageIP]=' . ($inputDataset->ip ?? '""') . ' [message]=' . ($e->getMessage() ?? '""') . ' [dataset]=' . $rawInput);
 
-                $debugLogger->error('rserver: ' . '[ip]=' . $inputDataset->ip . '; [error]=' . ($e->getMessage() ?? '""') . '; [dataset]=' . $rawInput);
+//                $debugLogger->error('rserver: ' . '[ip]=' . $inputDataset->ip . '; [error]=' . ($e->getMessage() ?? '""') . '; [dataset]=' . $rawInput);
 
             }
         } catch (Exception $e) {
             $err['errors'][] = $e->getMessage();
             $logger->error('[host]=' . ($inputDataset->hostname ?? '""') . ' [manageIP]=' . ($inputDataset->ip ?? '""') . ' [message]=' . ($e->getMessage() ?? '""') . ' [dataset]=' . $rawInput);
 
-            $debugLogger->error('rserver: ' . '[ip]=' . $inputDataset->ip . '; [error]=' . ($e->getMessage() ?? '""') . '; [dataset]=' . $rawInput);
+//            $debugLogger->error('rserver: ' . '[ip]=' . $inputDataset->ip . '; [error]=' . ($e->getMessage() ?? '""') . '; [dataset]=' . $rawInput);
         }
 
-        $debugLogger->info('END: ' . '[ip]=' . $inputDataset->ip . '; [dataSetType]=' . $inputDataset->dataSetType);
-        $debugLogger->info('---------------------------------------');
+//        $debugLogger->info('END: ' . '[ip]=' . $inputDataset->ip . '; [dataSetType]=' . $inputDataset->dataSetType);
+//        $debugLogger->info('---------------------------------------');
 
         // Вернуть ответ
         $httpStatusCode = (isset($err)) ? 400 : 202;
