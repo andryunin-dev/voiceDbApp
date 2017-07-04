@@ -1,0 +1,162 @@
+{% extends 'Index.html' %}
+
+{% block main %}
+    {% set width = {reg: 'col-7', office: 'col-15', host: 'col-10', type: 'col-3', devices: 'col-10', soft: 'col-10', module: 'col-10', interface: 'col-15', action: 'col-4'} %}
+    <div class="row">
+        <main class="devices">
+            <div class="">
+                <table id="fixed-header" class="bg-default table table-condensed table-bordered cust-table-striped no-cut-long-text">
+                    <thead>
+                        <tr class="text-middle text-center">
+                            <th class="bg-primary {{ width.reg }}">Регион</th>
+                            <th class="bg-primary {{ width.office }}">Офис</th>
+                            <th class="bg-primary {{ width.host }}">hostname</th>
+                            <th class="bg-primary {{ width.type }}">Тип</th>
+                            <th class="bg-primary {{ width.devices }}">Оборудование<a class="btn btn-success btn-xs btn-custom pull-right" href="/modal/addAppliance" role="button" data-action="get-popup" title="добавить устройство"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></a></th>
+                            <th class="bg-primary {{ width.soft }}">ПО</th>
+                            <th class="bg-primary {{ width.module }}">Модуль</th>
+                            <th class="bg-primary {{ width.interface }}">Интерфейсы</th>
+                            <th class="bg-primary {{ width.action }}">Action</th>
+
+                        </tr>
+                    </thead>
+                        <tbody>
+                    {% for office in offices %}
+                        {% for appliance in office.appliances %}
+                            {% if appliance.inUse is defined and false == appliance.inUse %}
+                                {% set applColorClass = "item-not-use" %}
+                            {% else %}
+                                {% set applColorClass = "" %}
+                            {% endif %}
+                            {% if appliance.type|lower == 'switch' %}
+                                {% set applianceType = "SW" %}
+                            {% elseif appliance.type|lower == 'router' %}
+                                {% set applianceType = "R" %}
+                            {% elseif appliance.type|lower == 'cucm' %}
+                                {% set applianceType = "CM" %}
+                            {% elseif appliance.type|lower == 'phone' %}
+                                {% set applianceType = "TEL" %}
+                            {% else %}
+                                {% set applianceType = appliance.type| upper %}
+                            {% endif %}
+
+                            <tr>
+                                {#Region#}
+                                <td><a href="/admin/devices?reg={{ office.address.city.region.getPK }}" >{{ office.address.city.region.title }}</a></td>
+                                {#Office#}
+                                <td><a href="/admin/devices?loc={{ office.getPK }}" >{{ office.title }}</a> {% if not office.comment is empty %}<span id="{{ office.getPk }}_{{ appliance.getPk }}" class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>{% endif %}</td>
+                                {#Hostname#}
+                                <td>
+                                    {% set mngmnt = appliance.getManagementIp %}
+                                    {% if false != mngmnt %}
+                                        <a href="ssh://{{ mngmnt }}" >{{ appliance.details.hostname }}</a>
+                                    {% else %}
+                                        {{ appliance.details.hostname }}
+                                    {% endif %}
+                                </td>
+                                {#Type#}
+                                <td style="vertical-align:middle; text-align:center" title="{{ appliance.type }}">
+                                    <b>
+                                        {{ applianceType }}
+                                    </b>
+                                </td>
+                                {#Platform#}
+                                <td class="{{ applColorClass }}">
+                                    {{ appliance.platform.platform.vendor.title }} {{ appliance.platform.platform.title }} {% if not appliance.comment is empty %}<span id="{{ appliance.getPk }}" class="glyphicon glyphicon-info-sign" aria-hidden="true" title="{{ appliance.comment }}"></span>{% endif %}
+                                    <span class="lastUpdate" data-last-update="{{ appliance.lastUpdateDateTime }}" title="{{ appliance.lastUpdateDateTime }}">{{ appliance.lastUpdateDate }}</span>
+                                </td>
+                                {#Software#}
+                                <td>
+                                    <span class="sw-title">{{ appliance.software.software.title }}</span>
+                                    {{ appliance.software.version }}
+                                </td>
+                                {#ModuleItems#}
+                                <td class="cell-container">
+                                    <table class="inner table table-bordered">
+                                        <tbody>
+                                        {% for moduleItem in appliance.modules %}
+                                            <tr>
+                                                {% if moduleItem.notFound %}
+                                                    {% set colorClass = "item-not-found" %}
+                                                {% elseif moduleItem.inUse is defined and false == moduleItem.inUse %}
+                                                    {% set colorClass = "item-not-use" %}
+                                                {% else %}
+                                                    {% set colorClass = "" %}
+                                                {% endif %}
+                                                <td class="{{ colorClass }}" {% if moduleItem.notFound %}title="{{ moduleItem.lastUpdateDateTime }}"{% endif %}>
+                                                    {{ moduleItem.module.title }}
+                                                    {% if not moduleItem.comment is empty %}
+                                                        <span id="{{ moduleItem.getPk }}" class="glyphicon glyphicon-info-sign" aria-hidden="true" title="{{ moduleItem.comment }}"></span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </td>
+                                {#Interfaces#}
+                                <td class="cell-container">
+                                    <table class="inner table table-bordered interfaces">
+                                        <theader>
+                                            {% set mngmnt = appliance.getManagementIp %}
+                                            {% if false != mngmnt %}
+                                            <tr>
+                                                <th>
+                                                    <a href="ssh://{{ mngmnt }}" >{{ mngmnt }}</a>
+                                                </th>
+                                            </tr>
+                                            {% endif %}
+                                            {% set noMngmnt = appliance.getNoManagementPorts %}
+                                            {% if noMngmnt.count > 0 %}
+                                                <tr>
+                                                    <th class="toggler btn btn-xs btn-grey"><span class=" js-caret caret-right"></span> другие интерфейсы ({{ noMngmnt.count }})</th>
+                                                </tr>
+                                            {% endif %}
+                                        </theader>
+                                        <tbody>
+                                        {% for port in noMngmnt %}
+                                        <tr>
+                                            <td {% if not port.details.description is empty %}title="{{ port.details.description }}" {% endif %}>{{ port.cidrIpAddress }} {% if not port.details.portName is empty %}({{ port.details.portName }}){% endif %}</td>
+                                        </tr>
+                                        </tbody>
+
+                                        {% endfor %}
+                                    </table>
+                                </td>
+                                {#Action#}
+                                <td class="text-center">
+                                    <a class="btn btn-success btn-xs" href="/modal/editAppliance?id={{ appliance.getPK }}" role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать устройство"></span></a>
+                                    {% if user.level > 5 %}
+                                    <a class="btn btn-danger btn-xs" href="/admin/delAppliance?id={{ appliance.getPK }}" role="button"
+                                           data-action="delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" title="удалить устройство"></span></a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}   {#appliances#}
+                    {% endfor %}    {#offices#}
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+{% endblock %}
+
+{% block JS %}
+    <script>
+        $("#fixed-header").headerFix({'height': '100%'});
+        $( function() {
+            $("table .glyphicon-info-sign").tooltipster({
+                theme: 'tooltipster-light'
+            });
+        } );
+
+        $(".toggler").on(
+            "click",
+            function ($e) {
+                console.log('click');
+                $(this).closest("table").find("tbody tr td").slideToggle("fast")
+                $(this).find(".js-caret").toggleClass("caret-down")
+            }
+        )
+    </script>
+{% endblock %}
