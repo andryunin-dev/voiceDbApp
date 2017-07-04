@@ -37,6 +37,7 @@ class ModuleItem_View extends Model
             'inUse' => ['type' => 'boolean'],
             'notFound' => ['type' => 'boolean'],
             'lastUpdate' => ['type' => 'datetime'],
+            'moduleItemAge' => ['type' => 'int'],
             'module_id' => ['type' => 'int', 'length' => 'big'],
             'title' => ['type' => 'string'],
             'description' => ['type' => 'string']
