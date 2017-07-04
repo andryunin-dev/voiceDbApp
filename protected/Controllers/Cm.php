@@ -12,6 +12,16 @@ class Cm extends Controller
     {
 //        $cucmPhones = new CucmPhones('10.101.2.132');
         $cucmPhones = new CucmPhones('10.101.2.10');
+//        $cucmPhones = new CucmPhones('10.101.165.10');
+//        $cucmPhones = new CucmPhones('10.101.3.10');
+//        $cucmPhones = new CucmPhones('10.101.2.210');
+//        $cucmPhones = new CucmPhones('10.101.6.130');
+//        $cucmPhones = new CucmPhones('10.101.3.131');
+//        $cucmPhones = new CucmPhones('10.101.3.80');
+//        $cucmPhones = new CucmPhones('10.101.192.10');
+//        $cucmPhones = new CucmPhones('10.101.15.10');
+//        $cucmPhones = new CucmPhones('10.101.164.10');
+//        $cucmPhones = new CucmPhones('10.101.165.210');
 //        var_dump($cucmPhones);
         var_dump($cucmPhones->run());
         die;
