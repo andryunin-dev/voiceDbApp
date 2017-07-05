@@ -36,6 +36,7 @@ use T4\Core\Exception;
 use T4\Core\MultiException;
 use T4\Core\Std;
 use T4\Dbal\QueryBuilder;
+use T4\Http\Helpers;
 use T4\Http\Request;
 use T4\Mvc\Controller;
 
@@ -528,7 +529,11 @@ class Admin extends Controller
 
         $this->data->platforms = PlatformStatistic::findAll();
 
-        $this->data->settings->activeTab = 'platforms';
+        if (Helpers::issetCookie('netcmdb_devparts_tab')) {
+            $this->data->settings->activeTab = Helpers::getCookie('netcmdb_devparts_tab');
+        } else {
+            $this->data->settings->activeTab = 'platforms';
+        }
         $this->data->activeLink->dictionary = true;
     }
 
