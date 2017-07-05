@@ -83,6 +83,7 @@ class GeoDevModulePort_View extends Model
             'softwareVendor_id' => ['type' => 'int', 'length' => 'big'],
             'softwareVendor' => ['type' => 'string'],
             'softwareItem_id' => ['type' => 'int', 'length' => 'big'],
+            'software_id' => ['type' => 'int', 'length' => 'big'],
             'softwareTitle' => ['type' => 'string'],
             'softwareVersion' => ['type' => 'string'],
             'moduleInfo' => ['type' => 'jsonb'],

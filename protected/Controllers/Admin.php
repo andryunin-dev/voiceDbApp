@@ -523,6 +523,7 @@ class Admin extends Controller
         $this->data->software = Software::findAll(['order' => 'title']);
         $this->data->modules = Module::findAll(['order' => 'title']);
         $this->data->applianceTypes = ApplianceType::findAll(['order' => 'type']);
+        $this->data->devsUrl = new UrlExt('/admin/devices');
 
         $this->data->settings->activeTab = 'platforms';
         $this->data->activeLink->dictionary = true;
@@ -985,7 +986,8 @@ class Admin extends Controller
             'loc' => ['clause' => 'location_id = :location_id', 'param' => ':location_id'],
             'cl' => ['clause' => 'cluster_id = :cluster_id', 'param' => ':cluster_id'],
             'type' => ['clause' => '"appType_id" = :appType_id', 'param' => ':appType_id'],
-            'pl' => ['clause' => '"platform_id" = :platform_id', 'param' => ':platform_id']
+            'pl' => ['clause' => '"platform_id" = :platform_id', 'param' => ':platform_id'],
+            'soft' => ['clause' => '"software_id" = :software_id', 'param' => ':software_id']
         ];
         $http = new Request;
         $this->data->url = new UrlExt($http->url->toArrayRecursive());
