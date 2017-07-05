@@ -6,6 +6,7 @@ use App\Components\Ip;
 use App\Components\IpTools;
 use App\Components\Parser;
 use App\Components\RequestExt;
+use App\Components\Statistics\PlatformStatistic;
 use App\Components\Timer;
 use App\Components\UrlExt;
 use App\Models\Address;
@@ -519,11 +520,13 @@ class Admin extends Controller
     public function actionDevparts()
     {
         $this->data->vendors = Vendor::findAll(['order' => 'title']);
-        $this->data->platforms = Platform::findAll(['order' => 'title']);
+//        $this->data->platforms = Platform::findAll(['order' => 'title']);
         $this->data->software = Software::findAll(['order' => 'title']);
         $this->data->modules = Module::findAll(['order' => 'title']);
         $this->data->applianceTypes = ApplianceType::findAll(['order' => 'type']);
         $this->data->devsUrl = new UrlExt('/admin/devices');
+
+        $this->data->platforms = PlatformStatistic::findAll();
 
         $this->data->settings->activeTab = 'platforms';
         $this->data->activeLink->dictionary = true;
@@ -987,7 +990,11 @@ class Admin extends Controller
             'cl' => ['clause' => 'cluster_id = :cluster_id', 'param' => ':cluster_id'],
             'type' => ['clause' => '"appType_id" = :appType_id', 'param' => ':appType_id'],
             'pl' => ['clause' => '"platform_id" = :platform_id', 'param' => ':platform_id'],
-            'soft' => ['clause' => '"software_id" = :software_id', 'param' => ':software_id']
+            'soft' => ['clause' => '"software_id" = :software_id', 'param' => ':software_id'],
+            'activeAge' => ['clause' => '"appAge" < :appAge', 'param' => ':appAge'],
+            'noActiveAge' => ['clause' => '("appAge" >= :appAge OR "appAge" ISNULL)', 'param' => ':appAge'],
+            'inUse' => ['clause' => '"appInUse" = :appInUse', 'param' => ':appInUse']
+
         ];
         $http = new Request;
         $this->data->url = new UrlExt($http->url->toArrayRecursive());
@@ -1023,6 +1030,7 @@ class Admin extends Controller
         $this->data->geoDevs = GeoDevModulePort_View::findAllByQuery($query);
         $this->data->navbar->count = $this->data->geoDevs->count();
         $this->data->exportUrl = '/export/hardInvExcel';
+        $this->data->maxAge = 25;
         $timer->fix('end action');
     }
 

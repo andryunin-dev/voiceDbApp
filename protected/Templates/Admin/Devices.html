@@ -69,7 +69,7 @@
                             {#Platform#}
                             <td class="{{ applColorClass }}"><a href="{{ url.cloneToShortUrl.replaceQuery({'pl':  geoDev.platform_id}) }}">
                                 {{ geoDev.platformVendor }} {{ geoDev.platformTitle }}</a> {% if not geoDev.appComment is empty %}<span id="{{ geoDev.appliance_id }}" class="glyphicon glyphicon-info-sign" aria-hidden="true" title="{{ geoDev.appComment }}"></span>{% endif %}
-                                <span class="lastUpdate" data-last-update="{{ geoDev.lastUpdateDateTime }}" title="{{ geoDev.lastUpdateDateTime }}">{{ geoDev.lastUpdateDate }}</span>
+                                <span class="lastUpdate {% if geoDev.appAge is null or geoDev.appAge >= maxAge %} stale {% endif %}" data-last-update="{{ geoDev.lastUpdateDateTime }}" title="{{ geoDev.lastUpdateDateTime }}">{{ geoDev.lastUpdateDate }}</span>
                             </td>
                             {#Software#}
                             <td>
