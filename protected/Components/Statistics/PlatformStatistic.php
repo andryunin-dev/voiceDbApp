@@ -49,7 +49,7 @@ class PlatformStatistic extends Std
                 sum(CASE WHEN devs."appAge" < :max_age AND NOT devs."appInUse" THEN 1 ELSE 0 END ) AS "active_notInUse",
                 sum(CASE WHEN devs."appInUse" THEN 1 ELSE 0 END ) AS "inUse",
                 sum(CASE WHEN NOT devs."appInUse" THEN 1 ELSE 0 END ) AS "notInUse"
-            FROM view.geo_dev AS devs
+            FROM view.geo_dev AS devs WHERE devs.platform_id NOTNULL 
             GROUP BY devs.platform_id ,devs."platformTitle", devs."platformVendor"
             ORDER BY ' . self::$order;
         $app = Application::instance();
