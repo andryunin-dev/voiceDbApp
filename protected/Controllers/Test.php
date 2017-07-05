@@ -3,21 +3,22 @@
 namespace App\Controllers;
 
 use App\Components\Ip;
-use App\Components\IpTools;
+use App\Components\Statistics\PlatformStatistic;
 use App\Components\Timer;
 use App\Models\Appliance;
 use App\Models\DataPort;
 use App\Models\DPortType;
-use App\Models\ModuleItem;
 use App\Models\Network;
 use App\Models\Office;
 use App\Models\Region;
 use App\Models\Vendor;
 use App\Models\Vrf;
-use App\ViewModels\DevsStatistic;
 use App\ViewModels\GeoDev_View;
 use T4\Core\Exception;
 use T4\Core\MultiException;
+use T4\Core\Std;
+use T4\Dbal\Connection;
+use T4\Dbal\Query;
 use T4\Dbal\QueryBuilder;
 use T4\Mvc\Controller;
 
@@ -27,8 +28,13 @@ class Test extends Controller
 
     public function actionDefault()
     {
+        $res = PlatformStatistic::findAll();
+        var_dump($res);
+        die;
+
+
         $sql = '
-SELECT devs."platformTitle", devs."platformVendor",
+SELECT devs."platformTitle" AS platformTitle, devs."platformVendor" AS "platformVendor",
     count(devs.appliance_id) AS total,
     sum(CASE WHEN devs."appAge" < :max_age THEN 1 ELSE 0 END ) AS active,
     sum(CASE WHEN devs."appAge" < :max_age AND devs."appInUse" THEN 1 ELSE 0 END ) AS "active_inUse",
@@ -36,11 +42,17 @@ SELECT devs."platformTitle", devs."platformVendor",
     sum(CASE WHEN devs."appInUse" THEN 1 ELSE 0 END ) AS "inUse",
     sum(CASE WHEN NOT devs."appInUse" THEN 1 ELSE 0 END ) AS "notInUse"
 FROM view.geo_dev AS devs
-GROUP BY devs.platform_id ,devs."platformTitle", devs."platformVendor"';
-        $query = (new QueryBuilder($sql));
-//        $query->params([':max_age' => 25]);
+GROUP BY devs.platform_id ,devs."platformTitle", devs."platformVendor"
+ORDER BY "platformTitle", "platformVendor"';
+
+        /**
+         * @var Connection $con
+         */
+        $con = $this->app->db->default;
+        $query = new Query($sql);
         var_dump($query);
-        $res = GeoDev_View::findAllByQuery($query, [':max_age' => 25]);
+
+        $res = $con->query($query, [':max_age' => 25])->fetchAllObjects(Std::class);
         var_dump($res);
         die;
     }

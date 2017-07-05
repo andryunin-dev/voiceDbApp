@@ -329,7 +329,8 @@ custom styles for cells
 }
 
 .item-not-found,
-.item-not-found:hover {
+.item-not-found:hover,
+.stale {
     color: #e4e4e4 !important;
     background: #d42b48 !important;
 }
