@@ -3,7 +3,6 @@ namespace App\Components;
 
 use T4\Core\Collection;
 use T4\Core\Exception;
-use T4\Core\MultiException;
 use T4\Core\Std;
 
 class CucmPhones extends Std
@@ -20,7 +19,7 @@ class CucmPhones extends Std
             'ssl' => [
                 'verify_peer' => false,
                 'verify_peer_name' => false,
-                'ciphers' => 'HIGH,!ADH',
+                'ciphers' => 'HIGH',
             ]
         ]);
         $username = 'netcmdbAXL';
@@ -51,124 +50,144 @@ class CucmPhones extends Std
     }
 
     /**
-     * @return bool
+     * @return Collection
+     * @throws Exception
      */
     public function run()
     {
-//        $debugLogger = RLogger::getInstance('CmPhones', realpath(ROOT_PATH . '/Logs/debug.log'));
-//die;
+        // ---------- AXL ------------------------------------------------------
+        // Get all CmNodes from the publisher
+        $listCmNodes = new Collection();
+        $cms = ($this->axlClient->ListAllProcessNodes())->return->processNode;
+        foreach ($cms as $cm) {
+            $listCmNodes->add((new Std())
+                ->fill([
+                    'cmNodeIpAddress' => $cm->name,
+                    'cmNodeName' => $cm->description,
+                ])
+            );
+        }
+
         // Get all phones from the publisher
-//        $anyPhones = $this->axlClient->ExecuteSQLQuery(['sql' => '
-//                    SELECT d."name" AS Device,
-//                          d."description",
-//                          css."name" AS css,
-//                          css2."name" AS name_off_clause,
-//                          dp."name" AS dPool,
-//                          n2."dnorpattern" AS prefix,
-//                          n."dnorpattern",
-//                          n."alertingname" AS FIO,
-//                          partition."name" AS pt,
-//                          tm."name" AS type
-//                    FROM device AS d
-//                    INNER JOIN callingsearchspace AS css ON css."pkid" = d."fkcallingsearchspace"
-//                    INNER JOIN devicenumplanmap AS dmap ON dmap."fkdevice" = d."pkid" AND d."tkclass" = 1
-//                    INNER JOIN typemodel AS tm ON d."tkmodel" = tm."enum"
-//                    INNER JOIN numplan AS n ON dmap."fknumplan" = n."pkid"
-//                    INNER JOIN routepartition AS partition ON partition."pkid" = n."fkroutepartition"
-//                    INNER JOIN DevicePool AS dp ON dp."pkid" = d.fkDevicePool
-//                    INNER JOIN callingsearchspace AS css2 ON css2."clause" LIKE "%" || partition."name" || "%"
-//                    INNER JOIN numplan AS n2 ON n2."fkcallingsearchspace_translation" = css2."pkid"
-//                          WHERE n2."tkpatternusage" = 3 AND
-//                                n2."dnorpattern" LIKE "5%"
-//                '])->return->row;
-//        var_dump($anyPhones);
-//die;
-
-        // Poll the registered phones
-//        $items = [];
-//        $n = 0;
-//        foreach ($anyPhones as $phone) {
-//            $items['SelectItem[' . $n .']']['Item'] = $phone->device;
-//            $n++;
-//        }
-//        $registeredPhones = $this->risPortClient->SelectCmDevice('',[
-//            'MaxReturnedDevices' => 1000,
-//            'Class' => 'Phone',
-//            'Model' => 255,
-//            'Status' => 'Registered',
-//            'NodeName' => '',
-//            'SelectBy' => 'Name',
-//            'SelectItems' => $items,
-//        ]);
-//        $cmNodes = ($registeredPhones['SelectCmDeviceResult'])->CmNodes;
-//        var_dump($cmNodes);
-//die;
-//        $registeredPhones = new Collection();
-//        foreach ($cmNodes as $cmNode) {
-//            if ('ok' == strtolower($cmNode->ReturnCode)) {
-//                foreach ($cmNode->CmDevices as $cmDevice) {
-//                    $phone = (new Std())->fill([
-//                        'cmName' => $cmNode->Name,
-//                        'Name' => $cmDevice->Name, // SEP0019AA4498D6
-//                        'IpAddress' => $cmDevice->IpAddress, // 10.101.64.16
-//                        'Description' => $cmDevice->Description, // Lenina52-UKP_FO-1400
-//                        'Httpd' => $cmDevice->Httpd, // Yes
-//                        'Status' => $cmDevice->Status, // Registered
-//                    ]);
-//                    $registeredPhones->add($phone);
-//                }
-//            }
-//        }
-//        var_dump($registeredPhones);
-//die;
-
-        $response = simplexml_load_file('http://10.101.64.16/DeviceInformationX');
-//        $response = simplexml_load_file('http://10.101.202.18/DeviceInformationX');
-//        $response = simplexml_load_file('http://10.101.202.91/DeviceInformationX');
-        var_dump($response);
-        var_dump($response->MACAddress);
-die;
-
-        $errors = new MultiException();
-        foreach ($registeredPhones as $phone) {
-            try {
+        $phones = $this->axlClient->ExecuteSQLQuery(['sql' => '
+                    SELECT d."name" AS Device,
+                          d."description",
+                          css."name" AS css,
+                          css2."name" AS name_off_clause,
+                          dp."name" AS dPool,
+                          n2."dnorpattern" AS prefix,
+                          n."dnorpattern",
+                          n."alertingname" AS FIO,
+                          partition."name" AS pt,
+                          tm."name" AS type
+                    FROM device AS d
+                    INNER JOIN callingsearchspace AS css ON css."pkid" = d."fkcallingsearchspace"
+                    INNER JOIN devicenumplanmap AS dmap ON dmap."fkdevice" = d."pkid" AND d."tkclass" = 1
+                    INNER JOIN typemodel AS tm ON d."tkmodel" = tm."enum"
+                    INNER JOIN numplan AS n ON dmap."fknumplan" = n."pkid"
+                    INNER JOIN routepartition AS partition ON partition."pkid" = n."fkroutepartition"
+                    INNER JOIN DevicePool AS dp ON dp."pkid" = d.fkDevicePool
+                    INNER JOIN callingsearchspace AS css2 ON css2."clause" LIKE "%" || partition."name" || "%"
+                    INNER JOIN numplan AS n2 ON n2."fkcallingsearchspace_translation" = css2."pkid"
+                          WHERE n2."tkpatternusage" = 3 AND
+                                n2."dnorpattern" LIKE "5%"
+                '])->return->row;
+        if (is_null($phones)) {
+            throw new Exception('AXL:Publisher [' . $this->publisherIP . '] - Phones not found');
+        }
+        $allPhones = new Collection();
+        foreach ($phones as $phone) {
+            $allPhones->add($phone);
+        }
 
 
-//                $response = xml_parse_into_struct(xml_parser_create(), file_get_contents('http://' . $phone->IpAddress . '/DeviceInformationX'), $values);
-                $response = simplexml_load_file('http://' . $phone->IpAddress . '/DeviceInformationX');
-                var_dump($response);
+        // ---------- RisPort ------------------------------------------------------
+        // Poll the registered phones by risport service
+        $n = 0;
+        foreach ($allPhones as $phone) {
+            $items['SelectItem[' . $n .']']['Item'] = $phone->device;
+            $n++;
+        }
+        $registeredPhones = $this->risPortClient->SelectCmDevice('',[
+            'MaxReturnedDevices' => 1000,
+            'Class' => 'Phone',
+            'Model' => 255,
+            'Status' => 'Registered',
+            'NodeName' => '',
+            'SelectBy' => 'Name',
+            'SelectItems' => $items,
+        ]);
 
-//                if (1 != $response) {
-//                    throw new MultiException($phone->IpAddress . ' - Wrong XML');
-//                }
-//
-//                foreach ($values as $k => $v) {
-//                    if ('MACAddress' == $k || 'phoneDN' == $k || 'versionID' == $k || 'serialNumber' == $k || 'modelNumber' == $k) {
-//                        $phone->fill([
-//                            $k => $v,
-//                        ]);
-//                    }
-//                }
+        if (0 === ($registeredPhones['SelectCmDeviceResult'])->TotalDevicesFound) {
+            throw new Exception('RisPort:Publisher [' . $this->publisherIP . '] - Registered phones not found');
+        }
 
-//                $phone->fill([
-//                    'MACAddress' => $data->MACAddress,
-//                    'phoneDN' => $data->phoneDN,
-//                    'versionID' => $data->versionID,
-//                    'serialNumber' => $data->serialNumber,
-//                    'modelNumber' => $data->modelNumber,
-//                ]);
+        $cmNodes = ($registeredPhones['SelectCmDeviceResult'])->CmNodes;
+        $registeredPhones = new Collection();
+        foreach ($cmNodes as $cmNode) {
+            if ('ok' == strtolower($cmNode->ReturnCode)) {
+                $node = $listCmNodes->findByAttributes(['cmNodeIpAddress' => $cmNode->Name]);
 
-            } catch (Exception $e) {
-                echo $e->getMessage();
-                $errors->add('[phone]=' . ($phone->Name ?? '""') . ' [ip]=' . ($phone->IpAddress ?? '""') . ' [message]=' . ($e->getMessage() ?? '""'));
+                foreach ($cmNode->CmDevices as $cmDevice) {
+                    $registeredPhones->add(
+                        (new Std())->fill([
+                            'cmName' => $node->cmNodeName,
+                            'cmIpAddress' => $node->cmNodeIpAddress,
+                            'Name' => $cmDevice->Name,
+                            'IpAddress' => $cmDevice->IpAddress,
+                            'Description' => $cmDevice->Description,
+                            'Status' => $cmDevice->Status,
+                        ])
+                    );
+                }
             }
         }
-//        var_dump($errors);
-//        var_dump($registeredPhones);
+
+        // Добавим недостающие поля для RegisteredPhones из AllPhones
+        foreach ($registeredPhones as $registeredPhone) {
+            $phone = $allPhones->findByAttributes(['device' => $registeredPhone->Name]);
+            if (is_null($phone)) {
+                // TODO записать в лог о том, что телефон вроде бы как есть, а его нет
+            }
+            $registeredPhone->fill([
+                'css' => $phone->css,
+                'name_off_clause' => $phone->name_off_clause,
+                'dpool' => $phone->dpool,
+                'prefix' => $phone->prefix,
+                'dnorpattern' => $phone->dnorpattern,
+                'fio' => $phone->fio,
+                'pt' => $phone->pt,
+                'type' => $phone->type,
+            ]);
+        }
 
 
+        // ---------- Web Interface - DeviceInformationX -----------------------
+        // Опросить RegisteredPhones по их IpAddress через вэб интерфейс
+        $polledPhones = new Collection();
+        foreach ($registeredPhones as $phone) {
+            $phoneData = simplexml_load_file('http://' . $phone->IpAddress . '/DeviceInformationX');
+            if (false !== $phoneData) {
+                $polledPhones->add($phoneData);
+            } else {
+                // Todo записать в лог о том, что у телефона нет вэб доступа
+            }
+        }
 
-        echo 'OKK';
-        return true;
+        // Добавим недостающие поля для RegisteredPhones из PolledPhones
+        foreach ($registeredPhones as $registeredPhone) {
+            $phone = $polledPhones->findByAttributes(['HostName' => $registeredPhone->Name]);
+            if (!is_null($phone)) {
+                $registeredPhone->fill([
+                    'MACAddress' => $phone->MACAddress->__toString(),
+                    'phoneDN' => $phone->phoneDN->__toString(),
+                    'versionID' => $phone->versionID->__toString(),
+                    'serialNumber' => $phone->serialNumber->__toString(),
+                    'modelNumber' => $phone->modelNumber->__toString(),
+                ]);
+            }
+        }
+
+        return $registeredPhones;
     }
 }

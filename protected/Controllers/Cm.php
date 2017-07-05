@@ -2,6 +2,9 @@
 namespace App\Controllers;
 
 use App\Components\CucmPhones;
+use App\Components\DSPphones;
+use App\Models\Cluster;
+use T4\Core\Collection;
 use T4\Core\Exception;
 use T4\Core\Std;
 use T4\Mvc\Controller;
@@ -11,7 +14,7 @@ class Cm extends Controller
     public function actionDefault()
     {
 //        $cucmPhones = new CucmPhones('10.101.2.132');
-        $cucmPhones = new CucmPhones('10.101.2.10');
+//        $cucmPhones = new CucmPhones('10.101.2.10');
 //        $cucmPhones = new CucmPhones('10.101.165.10');
 //        $cucmPhones = new CucmPhones('10.101.3.10');
 //        $cucmPhones = new CucmPhones('10.101.2.210');
@@ -22,8 +25,58 @@ class Cm extends Controller
 //        $cucmPhones = new CucmPhones('10.101.15.10');
 //        $cucmPhones = new CucmPhones('10.101.164.10');
 //        $cucmPhones = new CucmPhones('10.101.165.210');
-//        var_dump($cucmPhones);
-        var_dump($cucmPhones->run());
+
+//        $phones = $cucmPhones->run();
+//        var_dump($phones);
+//        die;
+
+        $phones = new Collection();
+        $phones->add(
+            (new Std())->fill([
+                'cmName' => 'rs-cucm1-nsk',
+                'cmIpAddress' => '10.101.2.11',
+                'Name' =>  'SEP00152B67D6C5',
+                'IpAddress' =>  '10.101.158.195',
+                'Description' =>  'Pavlovskiy 203',
+                'Status' =>  'Registered',
+                'css' =>  'CSS_Abon50_Out_City',
+                'name_off_clause' =>  'CSS_Sys30_TP_CTI',
+                'dpool' =>  'DP_BRN_Shumakova',
+                'prefix' =>  '5110.XXX',
+                'dnorpattern' =>  203,
+                'fio' =>  'Molodykh E.A.',
+                'pt' =>  'P_Phone',
+                'type' =>  'Cisco 7912',
+                'MACAddress' =>  '00152B67D6C5',
+                'phoneDN' =>  '203',
+                'versionID' =>  '8.0.3(070409A)',
+                'serialNumber' =>  'INM09331F4R',
+                'modelNumber' =>  'CP-7912G',
+            ])
+        );
+
+        $phones->add(
+            (new Std())->fill([
+                'cmName' => 'rs-cucm1-nsk',
+                'cmIpAddress' => '10.101.2.11',
+                'Name' =>  'SEP001906C2DD81',
+                'IpAddress' =>  '10.101.194.9',
+                'Description' =>  'Proletarskay 133',
+                'Status' =>  'Registered',
+                'css' =>  'CSS_Abon80_Out_Russia',
+                'name_off_clause' =>  'CSS_Sys30_TP_CTI',
+                'dpool' =>  'DP_BRN_Pushkin',
+                'prefix' =>  '5110.XXX',
+                'dnorpattern' =>  '133',
+                'fio' =>  'Kiseleva S.A.',
+                'pt' =>  'P_Phone',
+                'type' =>  'Cisco 7912',
+            ])
+        );
+
+
+        $result = (new DSPphones($phones))->run();
+        var_dump($result);
         die;
 
 
