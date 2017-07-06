@@ -12,19 +12,19 @@
                         <div>
                             <!-- Nav tabs -->
                             <ul class="nav nav-tabs" role="tablist">
-                                <li aria-controls="types" role="tab">
+                                <li {% if settings.activeTab == 'types' %}class="active"{% endif %} aria-controls="types" role="tab">
                                     <a href="#types">Тип(роль)</a>
                                 </li>
-                                <li class="active" aria-controls="platforms" role="tab">
+                                <li  {% if settings.activeTab == 'platforms' %}class="active"{% endif %} aria-controls="platforms" role="tab">
                                     <a href="#platforms">Платформы</a>
                                 </li>
-                                <li aria-controls="modules" role="tab">
+                                <li {% if settings.activeTab == 'modules' %}class="active"{% endif %} aria-controls="modules" role="tab">
                                     <a href="#modules">Модули</a>
                                 </li>
-                                <li aria-controls="software" role="tab">
+                                <li {% if settings.activeTab == 'software' %}class="active"{% endif %} aria-controls="software" role="tab">
                                     <a href="#software">ПО</a>
                                 </li>
-                                <li aria-controls="vendors" role="tab">
+                                <li {% if settings.activeTab == 'vendors' %}class="active"{% endif %} aria-controls="vendors" role="tab">
                                     <a href="#vendors">Производители</a>
                                 </li>
                                 <!-- кластеры доделать потом
@@ -36,7 +36,7 @@
                             <!-- Tab panels -->
                             <div class="tab-content">
                                 <!-- Types -->
-                                <div class="tab-pane" role="tabpanel" id="types">
+                                <div class="tab-pane {% if settings.activeTab == 'types' %}active{% endif %}" role="tabpanel" id="types">
                                     <table class="bg-default table table-condensed table-bordered table-hover table-striped no-cut-long-text">
                                         <thead>
                                             <tr>
@@ -60,7 +60,7 @@
                                     </table>
                                 </div>
                                 <!-- Platforms -->
-                                <div class="tab-pane active" role="tabpanel" id="platforms">
+                                <div class="tab-pane {% if settings.activeTab == 'platforms' %}active{% endif %}" role="tabpanel" id="platforms">
                                     <table class="bg-default table table-condensed table-bordered table-hover table-striped no-cut-long-text">
                                         <thead>
                                         <tr>
@@ -114,7 +114,7 @@
                                     </table>
                                 </div>
                                 <!-- Modules -->
-                                <div class="tab-pane" role="tabpanel" id="modules">
+                                <div class="tab-pane {% if settings.activeTab == 'modules' %}active{% endif %}" role="tabpanel" id="modules">
                                     <table class="bg-default table table-condensed table-bordered table-hover table-striped cut-long-text">
                                         <thead>
                                         <tr>
@@ -143,7 +143,7 @@
                                     </table>
                                 </div>
                                 <!-- Software -->
-                                <div class="tab-pane" role="tabpanel" id="software">
+                                <div class="tab-pane {% if settings.activeTab == 'software' %}active{% endif %}" role="tabpanel" id="software">
                                     <table class="bg-default table table-condensed table-bordered table-hover table-striped cut-long-text">
                                         <thead>
                                             <tr>
@@ -169,11 +169,11 @@
                                     </table>
                                 </div>
                                 <!-- Clusters -->
-                                <div class="tab-pane" role="tabpanel" id="clusters">
+                                <div class="tab-pane {% if settings.activeTab == 'clusters' %}active{% endif %}" role="tabpanel" id="clusters">
                                     ...
                                 </div>
                                 <!-- Vendors -->
-                                <div class="tab-pane" role="tabpanel" id="vendors">
+                                <div class="tab-pane {% if settings.activeTab == 'vendors' %}active{% endif %}" role="tabpanel" id="vendors">
                                     <table class="bg-default table table-condensed table-bordered table-hover table-striped cut-long-text">
                                         <thead>
                                         <tr>
@@ -208,7 +208,7 @@
         APP.settings = APP.settings || {};
         APP.settings.tablist = $('[role=tablist]');
         APP.settings.panels = $('[role=tabpanel]');
-        APP.settings.activeTab = 'platforms';
+        APP.settings.activeTab = $.cookie('netcmdb_devparts_tab');
         APP.settings.tablist.on(
                 "click",
                 "[role=tab]",
@@ -218,6 +218,7 @@
                     //console.log($(this).attr("aria-controls"));
                     APP.settings.tablist.children('[role=tab]').removeClass("active");
                     APP.settings.activeTab = $(this).attr("aria-controls");
+                    $.cookie('netcmdb_devparts_tab', APP.settings.activeTab,{ expires: 30, path: '/' } );
                     $(this).addClass("active");
                     //переключение панелей
                     APP.settings.panels.removeClass("active");

@@ -1,0 +1,7 @@
+{% extends 'Index.html' %}
+
+{% block main %}
+    {% for key, val in cookies %}
+        <p>{{ key }} - {{ val }}</p>
+{% endfor %}
+{% endblock %}

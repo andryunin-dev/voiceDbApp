@@ -25,7 +25,7 @@ use T4\Orm\Model;
  */
 class PlatformStatistic extends Std
 {
-    protected static $age = 25;
+    protected static $age = 73;
     protected static $order = '"platformTitle", "platformVendor"';
     public function __construct($data = null)
     {
@@ -54,7 +54,7 @@ class PlatformStatistic extends Std
             ORDER BY ' . self::$order;
         $app = Application::instance();
         $con = $app->db->default;
-        $res = $con->query($sql, [':max_age' => 25])->fetchAllObjects(self::class);
+        $res = $con->query($sql, [':max_age' => self::$age])->fetchAllObjects(self::class);
         return new Collection($res);
     }
 }
