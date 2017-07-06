@@ -36,7 +36,7 @@
                             <!-- Tab panels -->
                             <div class="tab-content">
                                 <!-- Types -->
-                                <div class="tab-pane {% if settings.activeTab == 'Types' %}active{% endif %}" role="tabpanel" id="types">
+                                <div class="tab-pane {% if settings.activeTab == 'types' %}active{% endif %}" role="tabpanel" id="types">
                                     <table class="bg-default table table-condensed table-bordered table-hover table-striped no-cut-long-text">
                                         <thead>
                                             <tr>
@@ -208,7 +208,7 @@
         APP.settings = APP.settings || {};
         APP.settings.tablist = $('[role=tablist]');
         APP.settings.panels = $('[role=tabpanel]');
-        APP.settings.activeTab = $.cookie('netcmdb_devparts_tab')
+        APP.settings.activeTab = $.cookie('netcmdb_devparts_tab');
         APP.settings.tablist.on(
                 "click",
                 "[role=tab]",

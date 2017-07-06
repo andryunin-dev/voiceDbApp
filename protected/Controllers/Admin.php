@@ -529,11 +529,7 @@ class Admin extends Controller
 
         $this->data->platforms = PlatformStatistic::findAll();
 
-        if (Helpers::issetCookie('netcmdb_devparts_tab')) {
-            $this->data->settings->activeTab = Helpers::getCookie('netcmdb_devparts_tab');
-        } else {
-            $this->data->settings->activeTab = 'platforms';
-        }
+        $this->data->settings->activeTab = (Helpers::issetCookie('netcmdb_devparts_tab')) ? Helpers::getCookie('netcmdb_devparts_tab') : 'platforms';
         $this->data->activeLink->dictionary = true;
     }
 
@@ -1035,7 +1031,7 @@ class Admin extends Controller
         $this->data->geoDevs = GeoDevModulePort_View::findAllByQuery($query);
         $this->data->navbar->count = $this->data->geoDevs->count();
         $this->data->exportUrl = '/export/hardInvExcel';
-        $this->data->maxAge = 25;
+        $this->data->maxAge = 73;
         $timer->fix('end action');
     }
 

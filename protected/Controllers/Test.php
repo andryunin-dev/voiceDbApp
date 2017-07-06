@@ -20,6 +20,7 @@ use T4\Core\Std;
 use T4\Dbal\Connection;
 use T4\Dbal\Query;
 use T4\Dbal\QueryBuilder;
+use T4\Http\Helpers;
 use T4\Mvc\Controller;
 
 class Test extends Controller
@@ -55,6 +56,13 @@ ORDER BY "platformTitle", "platformVendor"';
         $res = $con->query($query, [':max_age' => 25])->fetchAllObjects(Std::class);
         var_dump($res);
         die;
+    }
+
+    public function actionCookies()
+    {
+//        var_dump($_COOKIE);
+        var_dump(Helpers::getCookie('netcmdb_devparts_tab'));
+         $this->data->cookies = $_COOKIE;
     }
     public function actionDataport()
     {
