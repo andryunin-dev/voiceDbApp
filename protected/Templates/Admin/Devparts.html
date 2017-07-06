@@ -3,7 +3,7 @@
 {% block main %}
     <div class="row">
         <main class="devices">
-            <div class="col-xs-8">
+            <div class="col-xs-12">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h3 class="panel-title">Vendors, Hardware, Software, Clusters</h3>
@@ -61,25 +61,53 @@
                                 </div>
                                 <!-- Platforms -->
                                 <div class="tab-pane active" role="tabpanel" id="platforms">
-                                    <table class="bg-default table table-condensed table-bordered table-hover table-striped cut-long-text">
+                                    <table class="bg-default table table-condensed table-bordered table-hover table-striped no-cut-long-text">
                                         <thead>
                                         <tr>
                                             <th class="bg-primary">Платформа<a class="btn btn-success btn-xs pull-right" href="/modal/addPlatform" role="button" data-action="get-popup"><span class="glyphicon glyphicon-plus" aria-hidden="true" title="добавить"></span></a>
                                             </th>
-                                            <th class="bg-primary col-xs-4">Производитель</th>
-                                            <th class="bg-primary col-xs-3">Действия</th>
+                                            <th class="bg-primary col-15">Производитель</th>
+                                            <th class="bg-primary col-10">Всего устройств</th>
+                                            <th class="bg-primary col-10">Активных</th>
+                                            <th class="bg-primary col-10">Активных<br>(not InUse)</th>
+                                            <th class="bg-primary col-10">Неактивных</th>
+                                            {% if user.level > 5 %}
+                                            <th class="bg-primary col-10">Действия</th>
+                                            {% endif %}
                                         </tr>
                                         </thead>
                                         <!--Данные-->
                                         <tbody>
                                         {% for platform in platforms %}
                                             <tr>
-                                                <td>{{ platform.title }} <a href="{{ devsUrl.cloneToShortUrl.addQuery({'pl': platform.getPk}) }}"><span class="pull-right">({{ platform.platformItems.count }} items)</span></a></td>
-                                                <td>{{ platform.vendor.title }}</td>
-                                                <td class="text-center">
-                                                    <a class="btn btn-success btn-xs" href="/modal/editPlatform?id={{ platform.getPK }}" role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать"></span></a>
-                                                    <a class="btn btn-danger btn-xs" href="/admin/delPlatform?id={{ platform.getPK }}" role="button"  data-action="delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" title="удалить"></span></a>
+                                                <td><a href="{{ devsUrl.cloneToShortUrl.addQuery({'pl': platform.platform_id}) }}">{{ platform.platformTitle }}</a></td>
+                                                <td>{{ platform.platformVendor }}</td>
+                                                <td title="Всего устройств">
+                                                    <a href="{{ devsUrl.cloneToShortUrl.addQuery({'pl': platform.platform_id}) }}">
+                                                        {{ platform.total }}
+                                                    </a>
                                                 </td>
+                                                <td title="Активных">
+                                                    <a href="{{ devsUrl.cloneToShortUrl.addQuery({'pl': platform.platform_id, 'activeAge': platform.age}) }}">
+                                                        {{ platform.active }}
+                                                    </a>
+                                                </td>
+                                                <td title="Активных (not inUse)">
+                                                    <a href="{{ devsUrl.cloneToShortUrl.addQuery({'pl': platform.platform_id, 'inUse': 'true', 'activeAge': platform.age, 'inUse': 'false'}) }}">
+                                                        {{ platform.active_notInUse }}
+                                                    </a>
+                                                </td>
+                                                <td title="Неактивных">
+                                                    <a href="{{ devsUrl.cloneToShortUrl.addQuery({'pl': platform.platform_id, 'noActiveAge': platform.age}) }}">
+                                                        {{ platform.notActive }}
+                                                    </a>
+                                                </td>
+                                                {% if user.level > 5 %}
+                                                <td class="text-center">
+                                                    <a class="btn btn-success btn-xs" href="/modal/editPlatform?id={{ platform.platform_id }}" role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать"></span></a>
+                                                    <a class="btn btn-danger btn-xs" href="/admin/delPlatform?id={{ platform.platform_id }}" role="button"  data-action="delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" title="удалить"></span></a>
+                                                </td>
+                                                {% endif %}
                                             </tr>
                                         {% endfor %}
                                         </tbody>

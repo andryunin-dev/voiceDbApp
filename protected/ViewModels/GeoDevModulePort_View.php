@@ -21,6 +21,7 @@ use T4\Orm\Model;
  * @property int $appliance_id
  * @property int $location_id
  * @property string $appLastUpdate
+ * @property string $appAge
  * @property bool $appInUse
  * @property int $hostname
  * @property string $appDetails
@@ -65,6 +66,7 @@ class GeoDevModulePort_View extends Model
             'appliance_id' => ['type' => 'int', 'length' => 'big'],
             'location_id' => ['type' => 'int', 'length' => 'big'],
             'appLastUpdate' => ['type' => 'datetime'],
+            'appAge' => ['type' => 'int'],
             'appInUse' => ['type' => 'boolean'],
             'hostname' => ['type' => 'string'],
             'appDetails' => ['type' => 'jsonb'],
