@@ -42,14 +42,16 @@
                                             <tr>
                                                 <th class="bg-primary">Тип(роль)<a class="btn btn-success btn-xs pull-right" href="/modal/addApplianceType" role="button" data-action="get-popup"><span class="glyphicon glyphicon-plus" aria-hidden="true" title="добавить"></span></a>
                                                 </th>
-                                                <th class="bg-primary col-xs-3">Действия</th>
+                                                <th class="bg-primary col-10">Действия</th>
                                             </tr>
                                         </thead>
                                         <!--Данные-->
                                         <tbody>
                                         {% for applianceType in applianceTypes %}
                                             <tr>
-                                                <td>{{ applianceType }} <a href="{{ devsUrl.cloneToShortUrl.addQuery({'type': applianceType.getPk}) }}"><span class="pull-right">({{ applianceType.appliances.count }} items)</span></a></td>
+                                                <td>{{ applianceType }}
+                                                    {#<a href="{{ devsUrl.cloneToShortUrl.addQuery({'type': applianceType.getPk}) }}"><span class="pull-right">({{ applianceType.appliances.count }} items)</span></a>#}
+                                                </td>
                                                 <td class="text-center">
                                                     <a class="btn btn-success btn-xs" href="/modal/editApplianceType?id={{ applianceType.getPK }}" role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать"></span></a>
                                                     <a class="btn btn-danger btn-xs" href="/admin/delApplianceType?id={{ applianceType.getPK }}" role="button" data-action="delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" title="удалить"></span></a>
@@ -64,50 +66,24 @@
                                     <table class="bg-default table table-condensed table-bordered table-hover table-striped no-cut-long-text">
                                         <thead>
                                         <tr>
-                                            <th class="bg-primary">Платформа<a class="btn btn-success btn-xs pull-right" href="/modal/addPlatform" role="button" data-action="get-popup"><span class="glyphicon glyphicon-plus" aria-hidden="true" title="добавить"></span></a>
+                                            <th class="bg-primary">Платформа <a class="btn btn-success btn-xs pull-right" href="/modal/addPlatform" role="button" data-action="get-popup"><span class="glyphicon glyphicon-plus" aria-hidden="true" title="добавить"></span></a>
                                             </th>
                                             <th class="bg-primary col-15">Производитель</th>
-                                            <th class="bg-primary col-10">Всего устройств</th>
-                                            <th class="bg-primary col-10">Активных</th>
-                                            <th class="bg-primary col-10">Активных<br>(not InUse)</th>
-                                            <th class="bg-primary col-10">Неактивных</th>
-                                            {% if user.level > 5 %}
                                             <th class="bg-primary col-10">Действия</th>
-                                            {% endif %}
                                         </tr>
                                         </thead>
                                         <!--Данные-->
                                         <tbody>
                                         {% for platform in platforms %}
                                             <tr>
-                                                <td><a href="{{ devsUrl.cloneToShortUrl.addQuery({'pl': platform.platform_id}) }}">{{ platform.platformTitle }}</a></td>
-                                                <td>{{ platform.platformVendor }}</td>
-                                                <td title="Всего устройств">
-                                                    <a href="{{ devsUrl.cloneToShortUrl.addQuery({'pl': platform.platform_id}) }}">
-                                                        {{ platform.total }}
-                                                    </a>
+                                                <td>{{ platform.title }}
+                                                    {#<a href="{{ devsUrl.cloneToShortUrl.addQuery({'pl': platform.getPk}) }}"><span class="pull-right">({{ platform.platformItems.count }} items)</span></a>#}
                                                 </td>
-                                                <td title="Активных">
-                                                    <a href="{{ devsUrl.cloneToShortUrl.addQuery({'pl': platform.platform_id, 'activeAge': platform.age}) }}">
-                                                        {{ platform.active }}
-                                                    </a>
-                                                </td>
-                                                <td title="Активных (not inUse)">
-                                                    <a href="{{ devsUrl.cloneToShortUrl.addQuery({'pl': platform.platform_id, 'inUse': 'true', 'activeAge': platform.age, 'inUse': 'false'}) }}">
-                                                        {{ platform.active_notInUse }}
-                                                    </a>
-                                                </td>
-                                                <td title="Неактивных">
-                                                    <a href="{{ devsUrl.cloneToShortUrl.addQuery({'pl': platform.platform_id, 'noActiveAge': platform.age}) }}">
-                                                        {{ platform.notActive }}
-                                                    </a>
-                                                </td>
-                                                {% if user.level > 5 %}
+                                                <td>{{ platform.vendor.title }}</td>
                                                 <td class="text-center">
-                                                    <a class="btn btn-success btn-xs" href="/modal/editPlatform?id={{ platform.platform_id }}" role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать"></span></a>
-                                                    <a class="btn btn-danger btn-xs" href="/admin/delPlatform?id={{ platform.platform_id }}" role="button"  data-action="delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" title="удалить"></span></a>
+                                                    <a class="btn btn-success btn-xs" href="/modal/editPlatform?id={{ platform.getPk }}" role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать"></span></a>
+                                                    <a class="btn btn-danger btn-xs" href="/admin/delPlatform?id={{ platform.getPk }}" role="button"  data-action="delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" title="удалить"></span></a>
                                                 </td>
-                                                {% endif %}
                                             </tr>
                                         {% endfor %}
                                         </tbody>
@@ -120,11 +96,11 @@
                                         <tr>
                                             <th class="bg-primary">Название<a class="btn btn-success btn-xs pull-right" href="/modal/addModule" role="button" data-action="get-popup"><span class="glyphicon glyphicon-plus" aria-hidden="true" title="добавить"></span></a>
                                             </th>
-                                            <th class="bg-primary col-xs-4">
+                                            <th class="bg-primary col-15">
                                                 <span class="th-divider-left">Производитель</span>
                                                 <span class="th-divider-right"></span>
                                             </th>
-                                            <th class="bg-primary col-xs-3">Действия</th>
+                                            <th class="bg-primary col-10">Действия</th>
                                         </tr>
                                         </thead>
                                         <!--Данные-->
@@ -149,15 +125,17 @@
                                             <tr>
                                                 <th class="bg-primary">Тип ПО<a class="btn btn-success btn-xs pull-right" href="/modal/addSoftware" role="button" data-action="get-popup"><span class="glyphicon glyphicon-plus" aria-hidden="true" title="добавить"></span></a>
                                                 </th>
-                                                <th class="bg-primary col-xs-4">Производитель</th>
-                                                <th class="bg-primary col-xs-3">Действия</th>
+                                                <th class="bg-primary col-15">Производитель</th>
+                                                <th class="bg-primary col-10">Действия</th>
                                             </tr>
                                         </thead>
                                         <!--Данные-->
                                         <tbody>
                                         {% for softItem in software %}
                                             <tr>
-                                                <td>{{ softItem.title }} <a href="{{ devsUrl.cloneToShortUrl.addQuery({'soft': softItem.getPk}) }}"><span class="pull-right">({{ softItem.softwareItems.count }} items)</span></a></td>
+                                                <td>{{ softItem.title }}
+                                                    {#<a href="{{ devsUrl.cloneToShortUrl.addQuery({'soft': softItem.getPk}) }}"><span class="pull-right">({{ softItem.softwareItems.count }} items)</span></a>#}
+                                                </td>
                                                 <td>{{ softItem.vendor.title }}</td>
                                                 <td class="text-center">
                                                     <a class="btn btn-success btn-xs" href="/modal/editSoftware?id={{ softItem.getPK }}" role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать"></span></a>
@@ -179,7 +157,7 @@
                                         <tr>
                                             <th class="bg-primary">Производитель<a class="btn btn-success btn-xs pull-right" href="/modal/addVendor" role="button" data-action="get-popup"><span class="glyphicon glyphicon-plus" aria-hidden="true" title="добавить"></span></a>
                                             </th>
-                                            <th class="bg-primary col-xs-3">Действия</th>
+                                            <th class="bg-primary col-10">Действия</th>
                                         </tr>
                                         </thead>
                                         <!--Данные-->

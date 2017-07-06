@@ -1,4 +1,8 @@
 {% extends 'Index.html' %}
+{% block navBarInfo %}
+    <p class="navbar-text col-xs-4 text-center">Выбрано записей: {{ navbar.count }}</p>
+{% endblock %}
+
 {% block main %}
     {% set width = {reg: 'col-7', office: 'col-15', host: 'col-10', type: 'col-3', devices: 'col-10', soft: 'col-10', module: 'col-10', interface: 'col-15', action: 'col-4'} %}
     <div class="row">

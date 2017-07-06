@@ -2,11 +2,9 @@
 
 namespace App\Controllers;
 
-use App\Components\Ip;
 use App\Components\IpTools;
 use App\Components\Parser;
-use App\Components\RequestExt;
-use App\Components\Statistics\PlatformStatistic;
+use App\Components\Reports\PlatformReport;
 use App\Components\Timer;
 use App\Components\UrlExt;
 use App\Models\Address;
@@ -28,9 +26,7 @@ use App\Models\SoftwareItem;
 use App\Models\Vendor;
 use App\Models\VPortType;
 use App\Models\Vrf;
-use App\ViewModels\GeoDev_View;
 use App\ViewModels\GeoDevModulePort_View;
-use App\ViewModels\ModuleItem_View;
 use T4\Core\Collection;
 use T4\Core\Exception;
 use T4\Core\MultiException;
@@ -521,13 +517,13 @@ class Admin extends Controller
     public function actionDevparts()
     {
         $this->data->vendors = Vendor::findAll(['order' => 'title']);
-//        $this->data->platforms = Platform::findAll(['order' => 'title']);
+        $this->data->platforms = Platform::findAll(['order' => 'title']);
         $this->data->software = Software::findAll(['order' => 'title']);
         $this->data->modules = Module::findAll(['order' => 'title']);
         $this->data->applianceTypes = ApplianceType::findAll(['order' => 'type']);
         $this->data->devsUrl = new UrlExt('/admin/devices');
 
-        $this->data->platforms = PlatformStatistic::findAll();
+//        $this->data->platforms = PlatformReport::findAll();
 
         $this->data->settings->activeTab = (Helpers::issetCookie('netcmdb_devparts_tab')) ? Helpers::getCookie('netcmdb_devparts_tab') : 'platforms';
         $this->data->activeLink->dictionary = true;
@@ -994,7 +990,8 @@ class Admin extends Controller
             'soft' => ['clause' => '"software_id" = :software_id', 'param' => ':software_id'],
             'activeAge' => ['clause' => '"appAge" < :appAge', 'param' => ':appAge'],
             'noActiveAge' => ['clause' => '("appAge" >= :appAge OR "appAge" ISNULL)', 'param' => ':appAge'],
-            'inUse' => ['clause' => '"appInUse" = :appInUse', 'param' => ':appInUse']
+            'inUse' => ['clause' => '"appInUse" = :appInUse', 'param' => ':appInUse'],
+            'ven' => ['clause' => '"platformVendor_id" = :platformVendor_id', 'param' => ':platformVendor_id']
 
         ];
         $http = new Request;
@@ -1032,6 +1029,7 @@ class Admin extends Controller
         $this->data->navbar->count = $this->data->geoDevs->count();
         $this->data->exportUrl = '/export/hardInvExcel';
         $this->data->maxAge = 73;
+        $this->data->activeLink->devices = true;
         $timer->fix('end action');
     }
 
