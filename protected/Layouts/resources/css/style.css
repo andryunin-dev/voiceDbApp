@@ -181,6 +181,9 @@ table {
     width: 100%;
     table-layout: fixed;
 }
+.table-hover > tbody > tr:hover {
+    background-color: #d4d4d4;
+}
 
 /*Column width in percents*/
 .col-1 {
