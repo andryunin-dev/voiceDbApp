@@ -25,6 +25,7 @@ use T4\Orm\Model;
  * @property Collection|VoicePort[] $voicePorts
  * @property Collection|DataPort[] $dataPorts
  * @property Collection|ModuleItem[] $modules
+ * @property PhoneInfo $phoneInfo
  */
 class Appliance extends Model
 {
@@ -45,7 +46,8 @@ class Appliance extends Model
             'software' => ['type' => self::BELONGS_TO, 'model' => SoftwareItem::class, 'by' => '__software_item_id'],
             'voicePorts' => ['type' => self::HAS_MANY, 'model' => VoicePort::class],
             'dataPorts' => ['type' => self::HAS_MANY, 'model' => DataPort::class],
-            'modules' => ['type' => self::HAS_MANY, 'model' => ModuleItem::class]
+            'modules' => ['type' => self::HAS_MANY, 'model' => ModuleItem::class],
+//            'phoneInfo' => ['type' => self::HAS_ONE, 'model' => PhoneInfo::class],
         ]
     ];
 

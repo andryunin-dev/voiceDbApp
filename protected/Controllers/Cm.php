@@ -33,46 +33,43 @@ class Cm extends Controller
         $phones = new Collection();
         $phones->add(
             (new Std())->fill([
-                'cmName' => 'rs-cucm1-nsk',
+                'cmName' => 'rs-cucm1-nsk', // 1
                 'cmIpAddress' => '10.101.2.11',
-                'Name' =>  'SEP00152B67D6C5',
-                'IpAddress' =>  '10.101.158.195',
-                'Description' =>  'Pavlovskiy 203',
-                'Status' =>  'Registered',
-                'css' =>  'CSS_Abon50_Out_City',
-                'name_off_clause' =>  'CSS_Sys30_TP_CTI',
-                'dpool' =>  'DP_BRN_Shumakova',
-                'prefix' =>  '5110.XXX',
-                'dnorpattern' =>  203,
-                'fio' =>  'Molodykh E.A.',
-                'pt' =>  'P_Phone',
-                'type' =>  'Cisco 7912',
-                'MACAddress' =>  '00152B67D6C5',
-                'phoneDN' =>  '203',
-                'versionID' =>  '8.0.3(070409A)',
-                'serialNumber' =>  'INM09331F4R',
-                'modelNumber' =>  'CP-7912G',
+                'name' =>  'SEP00152B67D6C5', // 1 2
+                'ipAddress' =>  '10.101.158.195', // 1
+                'description' =>  'Pavlovskiy 203', // 2
+                'status' =>  'Registered', // 2
+                'css' =>  'CSS_Abon50_Out_City', // 2
+                'devicePool' =>  'DP_BRN_Shumakova', // 2
+                'prefix' =>  '5110.XXX', // 2
+                'phoneDN' =>  203, // 2
+                'alertingName' =>  'Molodykh E.A.', // 2
+                'partition' =>  'P_Phone', //2
+                'type' =>  'Cisco 7912', // 1 2
+                'macAddress' =>  '00152B67D6C5', //- 2
+                'versionID' =>  '8.0.3(070409A)', //- 1
+                'serialNumber' =>  'INM09331F4R', //- 1
+                'modelNumber' =>  'CP-7912G', //- 1
             ])
         );
 
-        $phones->add(
-            (new Std())->fill([
-                'cmName' => 'rs-cucm1-nsk',
-                'cmIpAddress' => '10.101.2.11',
-                'Name' =>  'SEP001906C2DD81',
-                'IpAddress' =>  '10.101.194.9',
-                'Description' =>  'Proletarskay 133',
-                'Status' =>  'Registered',
-                'css' =>  'CSS_Abon80_Out_Russia',
-                'name_off_clause' =>  'CSS_Sys30_TP_CTI',
-                'dpool' =>  'DP_BRN_Pushkin',
-                'prefix' =>  '5110.XXX',
-                'dnorpattern' =>  '133',
-                'fio' =>  'Kiseleva S.A.',
-                'pt' =>  'P_Phone',
-                'type' =>  'Cisco 7912',
-            ])
-        );
+//        $phones->add(
+//            (new Std())->fill([
+//                'cmName' => 'rs-cucm1-nsk',
+//                'cmIpAddress' => '10.101.2.11',
+//                'name' =>  'SEP001906C2DD81',
+//                'ipAddress' =>  '10.101.194.9',
+//                'description' =>  'Proletarskay 133',
+//                'status' =>  'Registered',
+//                'css' =>  'CSS_Abon80_Out_Russia',
+//                'devicePool' =>  'DP_BRN_Pushkin',
+//                'prefix' =>  '5110.XXX',
+//                'phoneDN' =>  '133',
+//                'alertingName' =>  'Kiseleva S.A.',
+//                'partition' =>  'P_Phone',
+//                'type' =>  'Cisco 7912',
+//            ])
+//        );
 
 
         $result = (new DSPphones($phones))->run();

@@ -133,10 +133,10 @@ class CucmPhones extends Std
                         (new Std())->fill([
                             'cmName' => $node->cmNodeName,
                             'cmIpAddress' => $node->cmNodeIpAddress,
-                            'Name' => $cmDevice->Name,
-                            'IpAddress' => $cmDevice->IpAddress,
-                            'Description' => $cmDevice->Description,
-                            'Status' => $cmDevice->Status,
+                            'name' => $cmDevice->Name,
+                            'ipAddress' => $cmDevice->IpAddress,
+                            'description' => $cmDevice->Description,
+                            'status' => $cmDevice->Status,
                         ])
                     );
                 }
@@ -151,12 +151,11 @@ class CucmPhones extends Std
             }
             $registeredPhone->fill([
                 'css' => $phone->css,
-                'name_off_clause' => $phone->name_off_clause,
-                'dpool' => $phone->dpool,
+                'devicePool' => $phone->dpool,
                 'prefix' => $phone->prefix,
-                'dnorpattern' => $phone->dnorpattern,
-                'fio' => $phone->fio,
-                'pt' => $phone->pt,
+                'phoneDN' => $phone->dnorpattern,
+                'alertingName' => $phone->fio,
+                'partition' => $phone->pt,
                 'type' => $phone->type,
             ]);
         }
@@ -179,8 +178,7 @@ class CucmPhones extends Std
             $phone = $polledPhones->findByAttributes(['HostName' => $registeredPhone->Name]);
             if (!is_null($phone)) {
                 $registeredPhone->fill([
-                    'MACAddress' => $phone->MACAddress->__toString(),
-                    'phoneDN' => $phone->phoneDN->__toString(),
+                    'macAddress' => $phone->MACAddress->__toString(),
                     'versionID' => $phone->versionID->__toString(),
                     'serialNumber' => $phone->serialNumber->__toString(),
                     'modelNumber' => $phone->modelNumber->__toString(),

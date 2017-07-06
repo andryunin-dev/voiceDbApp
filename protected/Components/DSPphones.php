@@ -11,6 +11,7 @@ use App\Models\DPortType;
 use App\Models\Module;
 use App\Models\ModuleItem;
 use App\Models\Office;
+use App\Models\PhoneInfo;
 use App\Models\Platform;
 use App\Models\PlatformItem;
 use App\Models\Software;
@@ -43,28 +44,54 @@ class DSPphones extends Std
 
     public function run()
     {
-        $location = (Office::findAll())->first()->lotusId;
-        foreach ($this->dataSets as $dataSet) {
-            $applianceDataSet = (new Std())->fill([
-                'applianceType' => self::PHONE,
-                'platformVendor' => self::VENDOR,
-                'platformTitle' => $dataSet->modelNumber,
-                'platformSerial' => ($dataSet->serialNumber) ?? $dataSet->Name,
-                'applianceSoft' => self::PHONESOFT,
-                'softwareVersion' => $dataSet->versionID,
-                'ip' => $dataSet->IpAddress,
-                'LotusId' => $location,
-                'hostname' => $dataSet->cmName,
-                'chassis' => $dataSet->modelNumber,
-                'applianceModules' => [],
-            ]);
-//            var_dump($applianceDataSet);
+//        $location = (Office::findAll())->first()->lotusId;
 
-            $result = (new DSPappliance($applianceDataSet))->run();
-            var_dump($result);
+//// todo -- сделать проверку новый телефон или нет, чтобы не затереть некоторые поля, например (softwareVersion, platformSerial, platformTitle, platformTitle)
+//
+        foreach ($this->dataSets as $dataSet) {
+//            $phoneDataSet = (new Std())->fill([
+//                'applianceType' => self::PHONE,
+//                'platformVendor' => self::VENDOR,
+//                'platformTitle' => ($dataSet->modelNumber) ?? $dataSet->type,
+//                'platformSerial' => ($dataSet->serialNumber) ?? $dataSet->name,
+//                'applianceSoft' => self::PHONESOFT,
+//                'softwareVersion' => $dataSet->versionID,
+//                'ip' => $dataSet->ipAddress,
+//                'LotusId' => $location,
+//                'hostname' => $dataSet->cmName,
+//                'chassis' => ($dataSet->modelNumber) ?? $dataSet->type,
+//                'applianceModules' => [],
+//            ]);
+////            var_dump($phoneDataSet);
+//
+//            $phone = (new DSPappliance($phoneDataSet))->returnAppliance();
+//            var_dump($phone);
+
+
+
+            $phone = Appliance::findByPK(2274);
+
+            $phoneInfo = (new PhoneInfo())->fill([
+//                'phone' => $phone,
+//                'type' => $dataSet->type,
+//                'name' => $dataSet->name,
+//                'macAddress' => ($dataSet->macAddress) ?? substr($dataSet->name,-12),
+//                'prefix' => preg_replace('~\..+~','',$dataSet->prefix),
+//                'phoneDN' => $dataSet->phoneDN,
+//                'status' => $dataSet->status,
+//                'description' => $dataSet->description,
+//                'css' => $dataSet->css,
+//                'devicePool' => $dataSet->devicePool,
+//                'alertingName' => $dataSet->alertingName,
+//                'partition' => $dataSet->partition,
+            ])
+            ->save();
+            var_dump($phoneInfo);
+            die;
 
         }
 
+        die;
 
         return true;
     }

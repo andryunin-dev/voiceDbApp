@@ -52,7 +52,6 @@ class DSPappliance extends Std
     /**
      * @return bool
      * @throws Exception
-     * @throws LocationException
      */
     public function run()
     {
@@ -173,6 +172,11 @@ class DSPappliance extends Std
         return true;
     }
 
+
+    public function returnAppliance()
+    {
+        return (true === $this->run()) ? $this->appliance : false;
+    }
 
     protected function beforeProcessDataSet()
     {
