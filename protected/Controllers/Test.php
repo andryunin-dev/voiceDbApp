@@ -3,7 +3,10 @@
 namespace App\Controllers;
 
 use App\Components\Ip;
-use App\Components\Statistics\PlatformStatistic;
+use App\Components\Reports\ApplianceTypeReport;
+use App\Components\Reports\SoftReport;
+use App\Components\Reports\VendorReport;
+use App\Components\Statistics\PlatformReport;
 use App\Components\Timer;
 use App\Models\Appliance;
 use App\Models\DataPort;
@@ -29,7 +32,7 @@ class Test extends Controller
 
     public function actionDefault()
     {
-        $res = PlatformStatistic::findAll();
+        $res = PlatformReport::findAll();
         var_dump($res);
         die;
 
@@ -63,6 +66,11 @@ ORDER BY "platformTitle", "platformVendor"';
 //        var_dump($_COOKIE);
         var_dump(Helpers::getCookie('netcmdb_devparts_tab'));
          $this->data->cookies = $_COOKIE;
+    }
+
+    public function actionReport()
+    {
+        var_dump(VendorReport::findAll());die;
     }
     public function actionDataport()
     {
