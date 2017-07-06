@@ -1,0 +1,270 @@
+{% extends 'Index.html' %}
+
+{% block main %}
+    <div class="row">
+        <main class="reports">
+            <div class="col-xs-12">
+                <div class="panel panel-default">
+                    {#<div class="panel-heading">#}
+                        {#<h3 class="panel-title">Reports</h3>#}
+                    {#</div>#}
+                    <div class="panel-body">
+                        <div>
+                            <!-- Nav tabs -->
+                            <ul class="nav nav-tabs" role="tablist">
+                                <li {% if settings.activeTab == 'types' %}class="active"{% endif %} aria-controls="types" role="tab">
+                                    <a href="#types">По типам(ролям)</a>
+                                </li>
+                                <li  {% if settings.activeTab == 'platforms' %}class="active"{% endif %} aria-controls="platforms" role="tab">
+                                    <a href="#platforms">По платформам</a>
+                                </li>
+                                <li {% if settings.activeTab == 'modules' %}class="active"{% endif %} aria-controls="modules" role="tab">
+                                    <a href="#modules">По модулям</a>
+                                </li>
+                                <li {% if settings.activeTab == 'software' %}class="active"{% endif %} aria-controls="software" role="tab">
+                                    <a href="#software">По ПО</a>
+                                </li>
+                                <li {% if settings.activeTab == 'vendors' %}class="active"{% endif %} aria-controls="vendors" role="tab">
+                                    <a href="#vendors">По производителям</a>
+                                </li>
+                            </ul>
+                            <!-- Tab panels -->
+                            <div class="tab-content">
+                                <!-- Types -->
+                                <div class="tab-pane {% if settings.activeTab == 'types' %}active{% endif %}" role="tabpanel" id="types">
+                                    <table id="fix-header-type" class="bg-default table table-condensed table-bordered table-hover table-striped no-cut-long-text">
+                                        <thead>
+                                            <tr>
+                                                <th class="bg-primary">Тип(роль)</th>
+                                                <th class="bg-primary col-15">Производитель</th>
+                                                <th class="bg-primary col-10">Всего устройств</th>
+                                                <th class="bg-primary col-10">Активных</th>
+                                                <th class="bg-primary col-10">Активных<br>(not InUse)</th>
+                                                <th class="bg-primary col-10">Неактивных</th>
+                                            </tr>
+                                        </thead>
+                                        <!--Данные-->
+                                        <tbody>
+                                        {% for appType in types %}
+                                            <tr>
+                                                <td><a href="{{ devsUrl.cloneToShortUrl.addQuery({'ven': appType.platformVendor_id, 'type': appType.appType_id}) }}">{{ appType.appType }}</a></td>
+                                                <td>{{ appType.platformVendor }}</td>
+                                                <td title="Всего устройств">
+                                                    <a href="{{ devsUrl.cloneToShortUrl.addQuery({'ven': appType.platformVendor_id, 'type': appType.appType_id}) }}">
+                                                        {{ appType.total }}
+                                                    </a>
+                                                </td>
+                                                <td title="Активных">
+                                                    <a href="{{ devsUrl.cloneToShortUrl.addQuery({'ven': appType.platformVendor_id, 'type': appType.appType_id, 'activeAge': appType.age}) }}">
+                                                        {{ appType.active }}
+                                                    </a>
+                                                </td>
+                                                <td title="Активных (not inUse)">
+                                                    <a href="{{ devsUrl.cloneToShortUrl.addQuery({'ven': appType.platformVendor_id, 'type': appType.appType_id, 'inUse': 'true', 'activeAge': appType.age, 'inUse': 'false'}) }}">
+                                                        {{ appType.active_notInUse }}
+                                                    </a>
+                                                </td>
+                                                <td title="Неактивных">
+                                                    <a href="{{ devsUrl.cloneToShortUrl.addQuery({'ven': appType.platformVendor_id, 'pl': appType.appType_id, 'noActiveAge': appType.age}) }}">
+                                                        {{ appType.notActive }}
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                       </tbody>
+                                    </table>
+                                </div>
+                                <!-- Platforms -->
+                                <div class="tab-pane {% if settings.activeTab == 'platforms' %}active{% endif %}" role="tabpanel" id="platforms">
+                                    <table id="fix-header-pl" class="bg-default table table-condensed table-bordered table-hover table-striped no-cut-long-text">
+                                        <thead>
+                                        <tr>
+                                            <th class="bg-primary">Платформа</a>
+                                            </th>
+                                            <th class="bg-primary col-15">Производитель</th>
+                                            <th class="bg-primary col-10">Всего устройств</th>
+                                            <th class="bg-primary col-10">Активных</th>
+                                            <th class="bg-primary col-10">Активных<br>(not InUse)</th>
+                                            <th class="bg-primary col-10">Неактивных</th>
+                                        </tr>
+                                        </thead>
+                                        <!--Данные-->
+                                        <tbody>
+                                        {% for platform in platforms %}
+                                            <tr>
+                                                <td><a href="{{ devsUrl.cloneToShortUrl.addQuery({'ven': platform.platformVendor_id, 'pl': platform.platform_id}) }}">{{ platform.platformTitle }}</a></td>
+                                                <td>{{ platform.platformVendor }}</td>
+                                                <td title="Всего устройств">
+                                                    <a href="{{ devsUrl.cloneToShortUrl.addQuery({'ven': platform.platformVendor_id, 'pl': platform.platform_id}) }}">
+                                                        {{ platform.total }}
+                                                    </a>
+                                                </td>
+                                                <td title="Активных">
+                                                    <a href="{{ devsUrl.cloneToShortUrl.addQuery({'ven': platform.platformVendor_id, 'pl': platform.platform_id, 'activeAge': platform.age}) }}">
+                                                        {{ platform.active }}
+                                                    </a>
+                                                </td>
+                                                <td title="Активных (not inUse)">
+                                                    <a href="{{ devsUrl.cloneToShortUrl.addQuery({'ven': platform.platformVendor_id, 'pl': platform.platform_id, 'inUse': 'true', 'activeAge': platform.age, 'inUse': 'false'}) }}">
+                                                        {{ platform.active_notInUse }}
+                                                    </a>
+                                                </td>
+                                                <td title="Неактивных">
+                                                    <a href="{{ devsUrl.cloneToShortUrl.addQuery({'ven': platform.platformVendor_id, 'pl': platform.platform_id, 'noActiveAge': platform.age}) }}">
+                                                        {{ platform.notActive }}
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <!-- Modules -->
+                                <div class="tab-pane {% if settings.activeTab == 'modules' %}active{% endif %}" role="tabpanel" id="modules">
+                                    <table id="fix-header-mdl" class="bg-default table table-condensed table-bordered table-hover table-striped no-cut-long-text">
+                                        <thead>
+                                        <tr>
+                                            <th class="bg-primary">Название</th>
+                                            <th class="bg-primary col-15">Производитель</th>
+                                            <th class="bg-primary col-10">Всего устройств</th>
+                                            <th class="bg-primary col-10">Активных</th>
+                                            <th class="bg-primary col-10">Активных<br>(not InUse)</th>
+                                            <th class="bg-primary col-10">Неактивных</th>
+                                        </tr>
+                                        </thead>
+                                        <!--Данные-->
+                                        <tbody>
+                                        {% for moduleItem in modules %}
+                                            <tr>
+                                                <td>{{ moduleItem.title }}</td>
+                                                <td>{{ moduleItem.vendor.title }}</td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <!-- Software -->
+                                <div class="tab-pane {% if settings.activeTab == 'software' %}active{% endif %}" role="tabpanel" id="software">
+                                    <table class="bg-default table table-condensed table-bordered table-hover table-striped cut-long-text">
+                                        <thead>
+                                            <tr>
+                                                <th class="bg-primary">Тип ПО</th>
+                                                <th class="bg-primary col-15">Производитель</th>
+                                                <th class="bg-primary col-10">Всего устройств</th>
+                                                <th class="bg-primary col-10">Активных</th>
+                                                <th class="bg-primary col-10">Активных<br>(not InUse)</th>
+                                                <th class="bg-primary col-10">Неактивных</th>
+                                            </tr>
+                                        </thead>
+                                        <!--Данные-->
+                                        <tbody>
+                                        {% for soft in softs %}
+                                            <tr>
+                                                <td><a href="{{ devsUrl.cloneToShortUrl.addQuery({'ven': soft.platformVendor_id, 'soft': soft.soft_id}) }}">{{ soft.softTitle }}</a></td>
+                                                <td>{{ soft.platformVendor }}</td>
+                                                <td title="Всего устройств">
+                                                    <a href="{{ devsUrl.cloneToShortUrl.addQuery({'ven': soft.platformVendor_id, 'soft': soft.soft_id}) }}">
+                                                        {{ soft.total }}
+                                                    </a>
+                                                </td>
+                                                <td title="Активных">
+                                                    <a href="{{ devsUrl.cloneToShortUrl.addQuery({'ven': soft.platformVendor_id, 'soft': soft.soft_id, 'activeAge': soft.age}) }}">
+                                                        {{ soft.active }}
+                                                    </a>
+                                                </td>
+                                                <td title="Активных (not inUse)">
+                                                    <a href="{{ devsUrl.cloneToShortUrl.addQuery({'ven': soft.platformVendor_id, 'soft': soft.soft_id, 'inUse': 'true', 'activeAge': soft.age, 'inUse': 'false'}) }}">
+                                                        {{ soft.active_notInUse }}
+                                                    </a>
+                                                </td>
+                                                <td title="Неактивных">
+                                                    <a href="{{ devsUrl.cloneToShortUrl.addQuery({'ven': soft.platformVendor_id, 'soft': soft.soft_id, 'noActiveAge': soft.age}) }}">
+                                                        {{ soft.notActive }}
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <!-- Clusters -->
+                                <div class="tab-pane {% if settings.activeTab == 'clusters' %}active{% endif %}" role="tabpanel" id="clusters">
+                                    ...
+                                </div>
+                                <!-- Vendors -->
+                                <div class="tab-pane {% if settings.activeTab == 'vendors' %}active{% endif %}" role="tabpanel" id="vendors">
+                                    <table class="bg-default table table-condensed table-bordered table-hover table-striped cut-long-text">
+                                        <thead>
+                                        <tr>
+                                            <th class="bg-primary">Производитель</th>
+                                            <th class="bg-primary col-10">Всего устройств</th>
+                                            <th class="bg-primary col-10">Активных</th>
+                                            <th class="bg-primary col-10">Активных<br>(not InUse)</th>
+                                            <th class="bg-primary col-10">Неактивных</th>
+                                        </tr>
+                                        </thead>
+                                        <!--Данные-->
+                                        <tbody>
+                                        {% for vendor in vendors %}
+                                            <tr>
+                                                <td><a href="{{ devsUrl.cloneToShortUrl.addQuery({'ven': vendor.vendor_id}) }}">{{ vendor.vendorTitle }}</a></td>
+                                                <td title="Всего устройств">
+                                                    <a href="{{ devsUrl.cloneToShortUrl.addQuery({'ven': vendor.vendor_id}) }}">
+                                                        {{ vendor.total }}
+                                                    </a>
+                                                </td>
+                                                <td title="Активных">
+                                                    <a href="{{ devsUrl.cloneToShortUrl.addQuery({'ven': vendor.vendor_id, 'activeAge': vendor.age}) }}">
+                                                        {{ vendor.active }}
+                                                    </a>
+                                                </td>
+                                                <td title="Активных (not inUse)">
+                                                    <a href="{{ devsUrl.cloneToShortUrl.addQuery({'ven': vendor.vendor_id, 'inUse': 'true', 'activeAge': vendor.age, 'inUse': 'false'}) }}">
+                                                        {{ vendor.active_notInUse }}
+                                                    </a>
+                                                </td>
+                                                <td title="Неактивных">
+                                                    <a href="{{ devsUrl.cloneToShortUrl.addQuery({'ven': vendor.vendor_id, 'noActiveAge': vendor.age}) }}">
+                                                        {{ vendor.notActive }}
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        var APP = APP || {};
+        APP.settings = APP.settings || {};
+        APP.settings.tablist = $('[role=tablist]');
+        APP.settings.panels = $('[role=tabpanel]');
+        APP.settings.activeTab = $.cookie('netcmdb_report_tab');
+        APP.settings.tablist.on(
+                "click",
+                "[role=tab]",
+                function (event) {
+                    event.preventDefault();
+                    //переключение табов
+                    //console.log($(this).attr("aria-controls"));
+                    APP.settings.tablist.children('[role=tab]').removeClass("active");
+                    APP.settings.activeTab = $(this).attr("aria-controls");
+                    $.cookie('netcmdb_report_tab', APP.settings.activeTab,{ expires: 30, path: '/' } );
+                    $(this).addClass("active");
+                    //переключение панелей
+                    APP.settings.panels.removeClass("active");
+                    APP.settings.panels.filter("#" + APP.settings.activeTab).addClass("active");
+                }
+        );
+    </script>
+{% endblock %}

@@ -77,8 +77,13 @@
                             <li><a href="/admin/NetworksTree">Networks(Tree)</a></li>
                         </ul>
                     </li>
+                    <li {% if activeLink.report == true %}class="active" {% endif %}>
+                        <a href="/report">Reports</a>
+                    </li>
+
                 </ul>
-                <p class="navbar-text col-xs-4 text-center">Выбрано записей: {{ navbar.count }}</p>
+                {% block navBarInfo %}
+                {% endblock %}
                 <ul class="nav navbar-nav navbar-right">
                     <li>
                         <p class="navbar-btn-custom">
