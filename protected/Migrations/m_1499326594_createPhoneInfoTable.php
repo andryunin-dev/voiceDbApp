@@ -11,8 +11,23 @@ class m_1499326594_createPhoneInfoTable
     {
         $sql['create_table_equipment.phoneInfo'] = 'CREATE TABLE equipment."phoneInfo" (
             __id SERIAL,
-            "name" VARCHAR(30),
-            PRIMARY KEY (__id)
+            __appliance_id BIGINT NOT NULL,
+            "name" VARCHAR(30) NOT NULL,
+            "type" VARCHAR(100),
+            "macAddress" MACADDR,
+            "prefix" INTEGER,
+            "phoneDN" INTEGER,
+            "status" VARCHAR(20),
+            "description" TEXT,
+            "css" VARCHAR(200),
+            "devicePool" VARCHAR(200),
+            "alertingName" VARCHAR(200),
+            "partition" VARCHAR(200),
+            PRIMARY KEY (__id),
+            CONSTRAINT fk_phone_id FOREIGN KEY (__appliance_id)
+            REFERENCES equipment."appliances" (__id)
+            ON UPDATE CASCADE 
+            ON DELETE RESTRICT
         )';
 
         // For main DB
@@ -32,7 +47,7 @@ class m_1499326594_createPhoneInfoTable
 
     public function down()
     {
-        $sql['create_table_equipment.phoneInfo'] = 'DROP TABLE equipment."phoneInfo"';
+        $sql['drop_table_equipment.phoneInfo'] = 'DROP TABLE equipment."phoneInfo"';
 
         // For main DB
         foreach ($sql as $key => $query) {

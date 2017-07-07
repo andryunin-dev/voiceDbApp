@@ -47,7 +47,7 @@ class Appliance extends Model
             'voicePorts' => ['type' => self::HAS_MANY, 'model' => VoicePort::class],
             'dataPorts' => ['type' => self::HAS_MANY, 'model' => DataPort::class],
             'modules' => ['type' => self::HAS_MANY, 'model' => ModuleItem::class],
-//            'phoneInfo' => ['type' => self::HAS_ONE, 'model' => PhoneInfo::class],
+            'phoneInfo' => ['type' => self::HAS_ONE, 'model' => PhoneInfo::class],
         ]
     ];
 
@@ -150,6 +150,20 @@ class Appliance extends Model
         return (self::findAll())->filter(
             function($appliance) use ($vendorTitle, $platformSerial) {
                 return $vendorTitle == $appliance->vendor->title && $platformSerial == $appliance->platform->serialNumber;
+            }
+        )->first();
+    }
+
+    /**
+     * @param string $type
+     * @param string $platformSerial
+     * @return Appliance|bool
+     */
+    public static function findByTypeSerial(string $type, string $platformSerial)
+    {
+        return (self::findAll())->filter(
+            function($appliance) use ($type, $platformSerial) {
+                return $type == $appliance->type->type && $platformSerial == $appliance->platform->serialNumber;
             }
         )->first();
     }

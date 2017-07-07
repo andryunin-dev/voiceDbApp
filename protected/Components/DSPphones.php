@@ -44,54 +44,71 @@ class DSPphones extends Std
 
     public function run()
     {
-//        $location = (Office::findAll())->first()->lotusId;
+        $location = (Office::findAll())->first()->lotusId;
 
 //// todo -- сделать проверку новый телефон или нет, чтобы не затереть некоторые поля, например (softwareVersion, platformSerial, platformTitle, platformTitle)
-//
+
         foreach ($this->dataSets as $dataSet) {
-//            $phoneDataSet = (new Std())->fill([
-//                'applianceType' => self::PHONE,
-//                'platformVendor' => self::VENDOR,
-//                'platformTitle' => ($dataSet->modelNumber) ?? $dataSet->type,
+
+            $phoneDataSet = (new Std())->fill([
+                'applianceType' => self::PHONE,
+                'platformVendor' => self::VENDOR,
+                'platformTitle' => ($dataSet->modelNumber) ?? $dataSet->type,
 //                'platformSerial' => ($dataSet->serialNumber) ?? $dataSet->name,
-//                'applianceSoft' => self::PHONESOFT,
-//                'softwareVersion' => $dataSet->versionID,
-//                'ip' => $dataSet->ipAddress,
-//                'LotusId' => $location,
-//                'hostname' => $dataSet->cmName,
-//                'chassis' => ($dataSet->modelNumber) ?? $dataSet->type,
-//                'applianceModules' => [],
-//            ]);
-////            var_dump($phoneDataSet);
+                'applianceSoft' => self::PHONESOFT,
+                'softwareVersion' => $dataSet->versionID,
+                'ip' => $dataSet->ipAddress,
+                'LotusId' => $location,
+                'hostname' => $dataSet->cmName,
+                'chassis' => ($dataSet->modelNumber) ?? $dataSet->type,
+                'applianceModules' => [],
+            ]);
+//var_dump($phoneDataSet);
+//die;
+
+//            if (isset($dataSet->serialNumber)) {
+//                $phone = Appliance::findByTypeSerial(self::PHONE, $dataSet->serialNumber);
 //
-//            $phone = (new DSPappliance($phoneDataSet))->returnAppliance();
-//            var_dump($phone);
+//                if ($phone instanceof Appliance) {
+//                    $phoneDataSet->fill([
+//                        'platformSerial' => $dataSet->serialNumber,
+//                    ]);
+//                }
+//
+////                $dataSet->serialNumber == $phone->platform->serialNumber
+//            }
+//var_dump($phone);
+//            die;
 
+            $phone = (new DSPappliance($phoneDataSet))->returnAppliance();
+var_dump($phone);
+//var_dump($phone->phoneInfo);
+//die;
 
-
-            $phone = Appliance::findByPK(2274);
-
-            $phoneInfo = (new PhoneInfo())->fill([
-//                'phone' => $phone,
-//                'type' => $dataSet->type,
-//                'name' => $dataSet->name,
-//                'macAddress' => ($dataSet->macAddress) ?? substr($dataSet->name,-12),
-//                'prefix' => preg_replace('~\..+~','',$dataSet->prefix),
-//                'phoneDN' => $dataSet->phoneDN,
-//                'status' => $dataSet->status,
-//                'description' => $dataSet->description,
-//                'css' => $dataSet->css,
-//                'devicePool' => $dataSet->devicePool,
-//                'alertingName' => $dataSet->alertingName,
-//                'partition' => $dataSet->partition,
-            ])
-            ->save();
-            var_dump($phoneInfo);
-            die;
+            $phoneInfo = $phone->phoneInfo;
+            if (!($phoneInfo instanceof PhoneInfo)) {
+                $phoneInfo = new PhoneInfo();
+            }
+//var_dump($phoneInfo);
+//die;
+            $phoneInfo->fill([
+                'phone' => $phone,
+                'type' => $dataSet->type,
+                'name' => $dataSet->name,
+                'macAddress' => ($dataSet->macAddress) ?? substr($dataSet->name,-12),
+                'prefix' => preg_replace('~\..+~','',$dataSet->prefix),
+                'phoneDN' => $dataSet->phoneDN,
+                'status' => $dataSet->status,
+                'description' => $dataSet->description,
+                'css' => $dataSet->css,
+                'devicePool' => $dataSet->devicePool,
+                'alertingName' => $dataSet->alertingName,
+                'partition' => $dataSet->partition,
+            ])->save();
+var_dump($phoneInfo);
+//die;
 
         }
-
-        die;
 
         return true;
     }
