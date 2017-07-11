@@ -4,7 +4,6 @@ namespace App\Controllers;
 
 use App\Components\IpTools;
 use App\Components\Parser;
-use App\Components\Reports\PlatformReport;
 use App\Components\Timer;
 use App\Components\UrlExt;
 use App\Models\Address;
@@ -988,6 +987,7 @@ class Admin extends Controller
             'type' => ['clause' => '"appType_id" = :appType_id', 'param' => ':appType_id'],
             'pl' => ['clause' => '"platform_id" = :platform_id', 'param' => ':platform_id'],
             'soft' => ['clause' => '"software_id" = :software_id', 'param' => ':software_id'],
+            'softVer' => ['clause' => '"softwareVersion" = :softwareVersion', 'param' => ':softwareVersion'],
             'activeAge' => ['clause' => '"appAge" < :appAge', 'param' => ':appAge'],
             'noActiveAge' => ['clause' => '("appAge" >= :appAge OR "appAge" ISNULL)', 'param' => ':appAge'],
             'inUse' => ['clause' => '"appInUse" = :appInUse', 'param' => ':appInUse'],
