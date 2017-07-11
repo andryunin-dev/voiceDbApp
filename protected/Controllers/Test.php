@@ -3,10 +3,8 @@
 namespace App\Controllers;
 
 use App\Components\Ip;
-use App\Components\Reports\ApplianceTypeReport;
 use App\Components\Reports\SoftReport;
 use App\Components\Reports\VendorReport;
-use App\Components\Statistics\PlatformReport;
 use App\Components\Timer;
 use App\Models\Appliance;
 use App\Models\DataPort;
@@ -14,15 +12,12 @@ use App\Models\DPortType;
 use App\Models\Network;
 use App\Models\Office;
 use App\Models\Region;
-use App\Models\Vendor;
 use App\Models\Vrf;
-use App\ViewModels\GeoDev_View;
 use T4\Core\Exception;
 use T4\Core\MultiException;
 use T4\Core\Std;
 use T4\Dbal\Connection;
 use T4\Dbal\Query;
-use T4\Dbal\QueryBuilder;
 use T4\Http\Helpers;
 use T4\Mvc\Controller;
 
@@ -32,7 +27,7 @@ class Test extends Controller
 
     public function actionDefault()
     {
-        $res = PlatformReport::findAll();
+        $res = SoftReport::findAll();
         var_dump($res);
         die;
 

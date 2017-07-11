@@ -13,6 +13,7 @@ use T4\Mvc\Application;
  *
  * @property string $soft_id
  * @property string $softTitle
+ * @property string $softVersion
  * @property string $platformVendor
  * @property string $platformVendor_id
  * @property int $total
@@ -26,7 +27,7 @@ use T4\Mvc\Application;
 class SoftReport extends Std
 {
     protected static $age = 73;
-    protected static $order = '"softTitle", "platformVendor"';
+    protected static $order = '"softTitle", "softVersion", "platformVendor"';
     public function __construct($data = null)
     {
         parent::__construct($data);
@@ -41,7 +42,7 @@ class SoftReport extends Std
     {
         self::$age = $age ?? self::$age;
         $sql = '
-            SELECT devs.software_id AS soft_id, devs."softwareTitle" AS "softTitle", devs."platformVendor_id" AS "platformVendor_id", devs."platformVendor" AS "platformVendor",
+            SELECT devs.software_id AS soft_id, devs."softwareTitle" AS "softTitle", devs."softwareVersion" AS "softVersion", devs."platformVendor_id" AS "platformVendor_id", devs."platformVendor" AS "platformVendor",
                 count(devs.appliance_id) AS total,
                 sum(CASE WHEN devs."appAge" < :max_age THEN 1 ELSE 0 END ) AS active,
                 sum(CASE WHEN devs."appAge" >= :max_age OR devs."appAge" ISNULL THEN 1 ELSE 0 END ) AS "notActive",
@@ -50,7 +51,7 @@ class SoftReport extends Std
                 sum(CASE WHEN devs."appInUse" THEN 1 ELSE 0 END ) AS "inUse",
                 sum(CASE WHEN NOT devs."appInUse" THEN 1 ELSE 0 END ) AS "notInUse"
             FROM view.geo_dev AS devs WHERE devs.platform_id NOTNULL 
-            GROUP BY devs.software_id ,devs."softwareTitle", devs."platformVendor_id", devs."platformVendor"
+            GROUP BY devs.software_id ,devs."softwareTitle", devs."softwareVersion" , devs."platformVendor_id", devs."platformVendor"
             ORDER BY ' . self::$order;
         $app = Application::instance();
         $con = $app->db->default;
