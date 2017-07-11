@@ -3,7 +3,7 @@
 {% block main %}
     <div class="row">
         <main class="devices">
-            <div class="col-xs-8">
+            <div class="col-xs-12">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h3 class="panel-title">Vendors, Hardware, Software, Clusters</h3>
@@ -12,19 +12,19 @@
                         <div>
                             <!-- Nav tabs -->
                             <ul class="nav nav-tabs" role="tablist">
-                                <li aria-controls="types" role="tab">
+                                <li {% if settings.activeTab == 'types' %}class="active"{% endif %} aria-controls="types" role="tab">
                                     <a href="#types">Тип(роль)</a>
                                 </li>
-                                <li class="active" aria-controls="platforms" role="tab">
+                                <li  {% if settings.activeTab == 'platforms' %}class="active"{% endif %} aria-controls="platforms" role="tab">
                                     <a href="#platforms">Платформы</a>
                                 </li>
-                                <li aria-controls="modules" role="tab">
+                                <li {% if settings.activeTab == 'modules' %}class="active"{% endif %} aria-controls="modules" role="tab">
                                     <a href="#modules">Модули</a>
                                 </li>
-                                <li aria-controls="software" role="tab">
+                                <li {% if settings.activeTab == 'software' %}class="active"{% endif %} aria-controls="software" role="tab">
                                     <a href="#software">ПО</a>
                                 </li>
-                                <li aria-controls="vendors" role="tab">
+                                <li {% if settings.activeTab == 'vendors' %}class="active"{% endif %} aria-controls="vendors" role="tab">
                                     <a href="#vendors">Производители</a>
                                 </li>
                                 <!-- кластеры доделать потом
@@ -36,20 +36,22 @@
                             <!-- Tab panels -->
                             <div class="tab-content">
                                 <!-- Types -->
-                                <div class="tab-pane" role="tabpanel" id="types">
+                                <div class="tab-pane {% if settings.activeTab == 'types' %}active{% endif %}" role="tabpanel" id="types">
                                     <table class="bg-default table table-condensed table-bordered table-hover table-striped no-cut-long-text">
                                         <thead>
                                             <tr>
                                                 <th class="bg-primary">Тип(роль)<a class="btn btn-success btn-xs pull-right" href="/modal/addApplianceType" role="button" data-action="get-popup"><span class="glyphicon glyphicon-plus" aria-hidden="true" title="добавить"></span></a>
                                                 </th>
-                                                <th class="bg-primary col-xs-3">Действия</th>
+                                                <th class="bg-primary col-10">Действия</th>
                                             </tr>
                                         </thead>
                                         <!--Данные-->
                                         <tbody>
                                         {% for applianceType in applianceTypes %}
                                             <tr>
-                                                <td>{{ applianceType }} <a href="{{ devsUrl.cloneToShortUrl.addQuery({'type': applianceType.getPk}) }}"><span class="pull-right">({{ applianceType.appliances.count }} items)</span></a></td>
+                                                <td>{{ applianceType }}
+                                                    {#<a href="{{ devsUrl.cloneToShortUrl.addQuery({'type': applianceType.getPk}) }}"><span class="pull-right">({{ applianceType.appliances.count }} items)</span></a>#}
+                                                </td>
                                                 <td class="text-center">
                                                     <a class="btn btn-success btn-xs" href="/modal/editApplianceType?id={{ applianceType.getPK }}" role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать"></span></a>
                                                     <a class="btn btn-danger btn-xs" href="/admin/delApplianceType?id={{ applianceType.getPK }}" role="button" data-action="delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" title="удалить"></span></a>
@@ -60,25 +62,27 @@
                                     </table>
                                 </div>
                                 <!-- Platforms -->
-                                <div class="tab-pane active" role="tabpanel" id="platforms">
-                                    <table class="bg-default table table-condensed table-bordered table-hover table-striped cut-long-text">
+                                <div class="tab-pane {% if settings.activeTab == 'platforms' %}active{% endif %}" role="tabpanel" id="platforms">
+                                    <table class="bg-default table table-condensed table-bordered table-hover table-striped no-cut-long-text">
                                         <thead>
                                         <tr>
-                                            <th class="bg-primary">Платформа<a class="btn btn-success btn-xs pull-right" href="/modal/addPlatform" role="button" data-action="get-popup"><span class="glyphicon glyphicon-plus" aria-hidden="true" title="добавить"></span></a>
+                                            <th class="bg-primary">Платформа <a class="btn btn-success btn-xs pull-right" href="/modal/addPlatform" role="button" data-action="get-popup"><span class="glyphicon glyphicon-plus" aria-hidden="true" title="добавить"></span></a>
                                             </th>
-                                            <th class="bg-primary col-xs-4">Производитель</th>
-                                            <th class="bg-primary col-xs-3">Действия</th>
+                                            <th class="bg-primary col-15">Производитель</th>
+                                            <th class="bg-primary col-10">Действия</th>
                                         </tr>
                                         </thead>
                                         <!--Данные-->
                                         <tbody>
                                         {% for platform in platforms %}
                                             <tr>
-                                                <td>{{ platform.title }} <a href="{{ devsUrl.cloneToShortUrl.addQuery({'pl': platform.getPk}) }}"><span class="pull-right">({{ platform.platformItems.count }} items)</span></a></td>
+                                                <td>{{ platform.title }}
+                                                    {#<a href="{{ devsUrl.cloneToShortUrl.addQuery({'pl': platform.getPk}) }}"><span class="pull-right">({{ platform.platformItems.count }} items)</span></a>#}
+                                                </td>
                                                 <td>{{ platform.vendor.title }}</td>
                                                 <td class="text-center">
-                                                    <a class="btn btn-success btn-xs" href="/modal/editPlatform?id={{ platform.getPK }}" role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать"></span></a>
-                                                    <a class="btn btn-danger btn-xs" href="/admin/delPlatform?id={{ platform.getPK }}" role="button"  data-action="delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" title="удалить"></span></a>
+                                                    <a class="btn btn-success btn-xs" href="/modal/editPlatform?id={{ platform.getPk }}" role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать"></span></a>
+                                                    <a class="btn btn-danger btn-xs" href="/admin/delPlatform?id={{ platform.getPk }}" role="button"  data-action="delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" title="удалить"></span></a>
                                                 </td>
                                             </tr>
                                         {% endfor %}
@@ -86,17 +90,17 @@
                                     </table>
                                 </div>
                                 <!-- Modules -->
-                                <div class="tab-pane" role="tabpanel" id="modules">
+                                <div class="tab-pane {% if settings.activeTab == 'modules' %}active{% endif %}" role="tabpanel" id="modules">
                                     <table class="bg-default table table-condensed table-bordered table-hover table-striped cut-long-text">
                                         <thead>
                                         <tr>
                                             <th class="bg-primary">Название<a class="btn btn-success btn-xs pull-right" href="/modal/addModule" role="button" data-action="get-popup"><span class="glyphicon glyphicon-plus" aria-hidden="true" title="добавить"></span></a>
                                             </th>
-                                            <th class="bg-primary col-xs-4">
+                                            <th class="bg-primary col-15">
                                                 <span class="th-divider-left">Производитель</span>
                                                 <span class="th-divider-right"></span>
                                             </th>
-                                            <th class="bg-primary col-xs-3">Действия</th>
+                                            <th class="bg-primary col-10">Действия</th>
                                         </tr>
                                         </thead>
                                         <!--Данные-->
@@ -115,21 +119,23 @@
                                     </table>
                                 </div>
                                 <!-- Software -->
-                                <div class="tab-pane" role="tabpanel" id="software">
+                                <div class="tab-pane {% if settings.activeTab == 'software' %}active{% endif %}" role="tabpanel" id="software">
                                     <table class="bg-default table table-condensed table-bordered table-hover table-striped cut-long-text">
                                         <thead>
                                             <tr>
                                                 <th class="bg-primary">Тип ПО<a class="btn btn-success btn-xs pull-right" href="/modal/addSoftware" role="button" data-action="get-popup"><span class="glyphicon glyphicon-plus" aria-hidden="true" title="добавить"></span></a>
                                                 </th>
-                                                <th class="bg-primary col-xs-4">Производитель</th>
-                                                <th class="bg-primary col-xs-3">Действия</th>
+                                                <th class="bg-primary col-15">Производитель</th>
+                                                <th class="bg-primary col-10">Действия</th>
                                             </tr>
                                         </thead>
                                         <!--Данные-->
                                         <tbody>
                                         {% for softItem in software %}
                                             <tr>
-                                                <td>{{ softItem.title }} <a href="{{ devsUrl.cloneToShortUrl.addQuery({'soft': softItem.getPk}) }}"><span class="pull-right">({{ softItem.softwareItems.count }} items)</span></a></td>
+                                                <td>{{ softItem.title }}
+                                                    {#<a href="{{ devsUrl.cloneToShortUrl.addQuery({'soft': softItem.getPk}) }}"><span class="pull-right">({{ softItem.softwareItems.count }} items)</span></a>#}
+                                                </td>
                                                 <td>{{ softItem.vendor.title }}</td>
                                                 <td class="text-center">
                                                     <a class="btn btn-success btn-xs" href="/modal/editSoftware?id={{ softItem.getPK }}" role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать"></span></a>
@@ -141,17 +147,17 @@
                                     </table>
                                 </div>
                                 <!-- Clusters -->
-                                <div class="tab-pane" role="tabpanel" id="clusters">
+                                <div class="tab-pane {% if settings.activeTab == 'clusters' %}active{% endif %}" role="tabpanel" id="clusters">
                                     ...
                                 </div>
                                 <!-- Vendors -->
-                                <div class="tab-pane" role="tabpanel" id="vendors">
+                                <div class="tab-pane {% if settings.activeTab == 'vendors' %}active{% endif %}" role="tabpanel" id="vendors">
                                     <table class="bg-default table table-condensed table-bordered table-hover table-striped cut-long-text">
                                         <thead>
                                         <tr>
                                             <th class="bg-primary">Производитель<a class="btn btn-success btn-xs pull-right" href="/modal/addVendor" role="button" data-action="get-popup"><span class="glyphicon glyphicon-plus" aria-hidden="true" title="добавить"></span></a>
                                             </th>
-                                            <th class="bg-primary col-xs-3">Действия</th>
+                                            <th class="bg-primary col-10">Действия</th>
                                         </tr>
                                         </thead>
                                         <!--Данные-->
@@ -180,7 +186,7 @@
         APP.settings = APP.settings || {};
         APP.settings.tablist = $('[role=tablist]');
         APP.settings.panels = $('[role=tabpanel]');
-        APP.settings.activeTab = 'platforms';
+        APP.settings.activeTab = $.cookie('netcmdb_devparts_tab');
         APP.settings.tablist.on(
                 "click",
                 "[role=tab]",
@@ -190,6 +196,7 @@
                     //console.log($(this).attr("aria-controls"));
                     APP.settings.tablist.children('[role=tab]').removeClass("active");
                     APP.settings.activeTab = $(this).attr("aria-controls");
+                    $.cookie('netcmdb_devparts_tab', APP.settings.activeTab,{ expires: 30, path: '/' } );
                     $(this).addClass("active");
                     //переключение панелей
                     APP.settings.panels.removeClass("active");

@@ -53,6 +53,7 @@ class GeoDev_View extends Model
             'appliance_id' => ['type' => 'int', 'length' => 'big'],
             'location_id' => ['type' => 'int', 'length' => 'big'],
             'appLastUpdate' => ['type' => 'datetime'],
+            'applAge' => ['type' => 'int'],
             'appInUse' => ['type' => 'boolean'],
             'hostname' => ['type' => 'string'],
             'appDetails' => ['type' => 'jsonb'],

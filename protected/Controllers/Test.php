@@ -3,19 +3,22 @@
 namespace App\Controllers;
 
 use App\Components\Ip;
-use App\Components\IpTools;
+use App\Components\Reports\SoftReport;
+use App\Components\Reports\VendorReport;
 use App\Components\Timer;
 use App\Models\Appliance;
 use App\Models\DataPort;
 use App\Models\DPortType;
-use App\Models\ModuleItem;
 use App\Models\Network;
 use App\Models\Office;
 use App\Models\Region;
-use App\Models\Vendor;
 use App\Models\Vrf;
 use T4\Core\Exception;
 use T4\Core\MultiException;
+use T4\Core\Std;
+use T4\Dbal\Connection;
+use T4\Dbal\Query;
+use T4\Http\Helpers;
 use T4\Mvc\Controller;
 
 class Test extends Controller
@@ -24,83 +27,45 @@ class Test extends Controller
 
     public function actionDefault()
     {
-        var_dump(json_decode(null));
-        die;
-        $appliance = (DataPort::findByIpVrf('10.100.240.211', Vrf::instanceGlobalVrf()))->appliance;
-        var_dump($appliance);
-        die;
-
-        $appliance = Appliance::findByVendorTitlePlatformSerial('CISCO', 'FOC0935368D');
-        var_dump($appliance);
-        die;
-
-        $appliance = Appliance::findAll();
-        var_dump(($appliance->first())->platform->serialNumber);
-        die;
-
-        $ap = new Appliance();
-
-        var_dump('type ->>');
-        var_dump($ap->type);
-
-        var_dump('location ->>');
-        var_dump($ap->location);
-
-        var_dump('cluster ->>');
-        var_dump($ap->cluster);
-
-        var_dump('vendor ->>');
-        var_dump($ap->vendor);
-
-        var_dump('platform ->>');
-        var_dump($ap->platform);
-
-        var_dump('software ->>');
-        var_dump($ap->software);
-
-        var_dump('voicePorts ->>');
-        var_dump($ap->voicePorts);
-
-        var_dump('dataPorts ->>');
-        var_dump($ap->dataPorts);
-
-        var_dump('modules ->>');
-        var_dump($ap->modules);
-
-
+        $res = SoftReport::findAll();
+        var_dump($res);
         die;
 
 
-        $ip = (new IpTools('192.168.1.0', '255.255.255.0'));
-        echo 'object:';
-        var_dump($ip);
-        echo 'is_maskValid:';
-        var_dump($ip->is_maskValid);
-        echo 'is_maskNull:';
-        var_dump($ip->is_maskNull);
-        echo 'masklen:';
-        var_dump($ip->masklen);
-        echo 'mask:';
-        var_dump($ip->mask);
-        echo 'is_ipValid:';
-        var_dump($ip->is_ipValid);
-        echo 'address:';
-        var_dump($ip->address);
-        echo 'cidrAddress:';
-        var_dump($ip->cidrAddress);
-        echo 'is_networkIp:';
-        var_dump($ip->is_networkIp);
-        echo 'network:';
-        var_dump($ip->network);
-        echo 'cidrNetwork:';
-        var_dump($ip->cidrNetwork);
-        echo 'networkSize:';
-        var_dump($ip->networkSize);
-        echo 'broadcast:';
-        var_dump($ip->broadcast);
-        echo 'is_hostIp:';
-        var_dump($ip->is_hostIp);
+        $sql = '
+SELECT devs."platformTitle" AS platformTitle, devs."platformVendor" AS "platformVendor",
+    count(devs.appliance_id) AS total,
+    sum(CASE WHEN devs."appAge" < :max_age THEN 1 ELSE 0 END ) AS active,
+    sum(CASE WHEN devs."appAge" < :max_age AND devs."appInUse" THEN 1 ELSE 0 END ) AS "active_inUse",
+    sum(CASE WHEN devs."appAge" < :max_age AND NOT devs."appInUse" THEN 1 ELSE 0 END ) AS "active_notInUse",
+    sum(CASE WHEN devs."appInUse" THEN 1 ELSE 0 END ) AS "inUse",
+    sum(CASE WHEN NOT devs."appInUse" THEN 1 ELSE 0 END ) AS "notInUse"
+FROM view.geo_dev AS devs
+GROUP BY devs.platform_id ,devs."platformTitle", devs."platformVendor"
+ORDER BY "platformTitle", "platformVendor"';
+
+        /**
+         * @var Connection $con
+         */
+        $con = $this->app->db->default;
+        $query = new Query($sql);
+        var_dump($query);
+
+        $res = $con->query($query, [':max_age' => 25])->fetchAllObjects(Std::class);
+        var_dump($res);
         die;
+    }
+
+    public function actionCookies()
+    {
+//        var_dump($_COOKIE);
+        var_dump(Helpers::getCookie('netcmdb_devparts_tab'));
+         $this->data->cookies = $_COOKIE;
+    }
+
+    public function actionReport()
+    {
+        var_dump(VendorReport::findAll());die;
     }
     public function actionDataport()
     {
