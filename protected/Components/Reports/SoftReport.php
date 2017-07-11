@@ -27,7 +27,7 @@ use T4\Mvc\Application;
 class SoftReport extends Std
 {
     protected static $age = 73;
-    protected static $order = '"softTitle", "platformVendor"';
+    protected static $order = '"softTitle", "softVersion", "platformVendor"';
     public function __construct($data = null)
     {
         parent::__construct($data);
