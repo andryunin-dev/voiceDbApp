@@ -64,7 +64,7 @@
                             </td>
                             {#Type#}
                             <td style="vertical-align:middle; text-align:center" title="{{ geoDev.appType }}">
-                                <a href="{{ url.cloneToShortUrl.addQuery({'type':  geoDev.appType_id}) }}">
+                                <a href="{{ url.cloneToShortUrl.replaceQuery({'type':  geoDev.appType_id}) }}">
                                     <b>
                                         {{ applianceType }}
                                     </b>
