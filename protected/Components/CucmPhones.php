@@ -22,8 +22,8 @@ class CucmPhones extends Std
                 'ciphers' => 'HIGH',
             ]
         ]);
-        $username = 'netcmdbAXL';
-        $password = 'Dth.dAXL71';
+        $username = $this->app->config->axl->username;
+        $password = $this->app->config->axl->password;
         $schema = 'sch7_1';
 
         // AXL client
@@ -145,10 +145,7 @@ class CucmPhones extends Std
 
         // Добавим недостающие поля для RegisteredPhones из AllPhones
         foreach ($registeredPhones as $registeredPhone) {
-            $phone = $allPhones->findByAttributes(['device' => $registeredPhone->Name]);
-            if (is_null($phone)) {
-                // TODO записать в лог о том, что телефон вроде бы как есть, а его нет
-            }
+            $phone = $allPhones->findByAttributes(['device' => $registeredPhone->name]);
             $registeredPhone->fill([
                 'css' => $phone->css,
                 'devicePool' => $phone->dpool,
@@ -160,12 +157,11 @@ class CucmPhones extends Std
             ]);
         }
 
-
         // ---------- Web Interface - DeviceInformationX -----------------------
         // Опросить RegisteredPhones по их IpAddress через вэб интерфейс
         $polledPhones = new Collection();
         foreach ($registeredPhones as $phone) {
-            $phoneData = simplexml_load_file('http://' . $phone->IpAddress . '/DeviceInformationX');
+            $phoneData = simplexml_load_file('http://' . $phone->ipAddress . '/DeviceInformationX');
             if (false !== $phoneData) {
                 $polledPhones->add($phoneData);
             } else {
@@ -175,13 +171,14 @@ class CucmPhones extends Std
 
         // Добавим недостающие поля для RegisteredPhones из PolledPhones
         foreach ($registeredPhones as $registeredPhone) {
-            $phone = $polledPhones->findByAttributes(['HostName' => $registeredPhone->Name]);
+            $phone = $polledPhones->findByAttributes(['HostName' => $registeredPhone->name]);
             if (!is_null($phone)) {
                 $registeredPhone->fill([
                     'macAddress' => $phone->MACAddress->__toString(),
-                    'versionID' => $phone->versionID->__toString(),
                     'serialNumber' => $phone->serialNumber->__toString(),
                     'modelNumber' => $phone->modelNumber->__toString(),
+                    'versionID' => $phone->versionID->__toString(),
+                    'appLoadID' => $phone->appLoadID->__toString(),
                 ]);
             }
         }

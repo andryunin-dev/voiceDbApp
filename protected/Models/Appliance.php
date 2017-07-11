@@ -167,4 +167,30 @@ class Appliance extends Model
             }
         )->first();
     }
+
+    /**
+     * @param string $type
+     * @return Collection Appliance|bool
+     */
+    public static function findAllByType(string $type)
+    {
+        return (self::findAll())->filter(
+            function($appliance) use ($type) {
+                return $type == $appliance->type->type;
+            }
+        );
+    }
+
+    /**
+     * @param string $ip
+     * @return Appliance|bool
+     */
+    public static function findByManagementIP(string $ip)
+    {
+        return (Appliance::findAll())->filter(
+            function($appliance) use($ip) {
+                return $ip == $appliance->getManagementIp();
+            }
+        )->first();
+    }
 }
