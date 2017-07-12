@@ -11,7 +11,6 @@ class PhoneInfo extends Model
         'columns' => [
             'type' => ['type' => 'string'],
             'name' => ['type' => 'string'],
-            'macAddress' => ['type' => 'string'],
             'prefix' => ['type' => 'int'],
             'phoneDN' => ['type' => 'int'],
             'status' => ['type' => 'string'],

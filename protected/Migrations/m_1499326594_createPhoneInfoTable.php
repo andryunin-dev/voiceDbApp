@@ -14,7 +14,6 @@ class m_1499326594_createPhoneInfoTable
             __appliance_id BIGINT NOT NULL,
             "name" VARCHAR(30) NOT NULL,
             "type" VARCHAR(100),
-            "macAddress" MACADDR,
             "prefix" INTEGER,
             "phoneDN" INTEGER,
             "status" VARCHAR(20),

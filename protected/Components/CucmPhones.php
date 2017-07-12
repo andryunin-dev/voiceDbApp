@@ -4,15 +4,19 @@ namespace App\Components;
 use T4\Core\Collection;
 use T4\Core\Exception;
 use T4\Core\Std;
+use T4\Mvc\Application;
 
 class CucmPhones extends Std
 {
     protected $axlClient;
     protected $risPortClient;
     protected $publisherIP;
+    protected $schema = 'sch7_1';
 
     public function __construct($ip)
     {
+        $axlConfig = (Application::instance())->config->axl;
+
         // Common client's options
         $publisherIP = (new IpTools($ip))->address;
         $context = stream_context_create([
@@ -22,12 +26,11 @@ class CucmPhones extends Std
                 'ciphers' => 'HIGH',
             ]
         ]);
-        $username = $this->app->config->axl->username;
-        $password = $this->app->config->axl->password;
-        $schema = 'sch7_1';
+        $username = $axlConfig->username;
+        $password = $axlConfig->password;
 
         // AXL client
-        $this->axlClient = new \SoapClient(realpath(ROOT_PATH . '/AXLscheme/' . $schema . '/AXLAPI.wsdl'), [
+        $this->axlClient = new \SoapClient(realpath(ROOT_PATH . '/AXLscheme/' . $this->schema . '/AXLAPI.wsdl'), [
             'trace' => true,
             'exception' => true,
             'location' => 'https://' . $publisherIP . ':8443/axl',

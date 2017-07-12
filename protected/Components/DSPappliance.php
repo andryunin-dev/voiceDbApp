@@ -430,6 +430,7 @@ class DSPappliance extends Std
         if ($dataPort instanceof DataPort) {
             $dataPort->fill([
                 'appliance' => $this->appliance,
+                'macAddress' => ($this->dataSet->macAddress) ?? '',
                 'vrf' => $vrf,
                 'isManagement' => true,
             ])->save();
@@ -440,6 +441,7 @@ class DSPappliance extends Std
 
             (new DataPort())->fill([
                 'ipAddress' => $ipAddress,
+                'macAddress' => ($this->dataSet->macAddress) ?? '',
                 'portType' => $portType,
                 'appliance' => $this->appliance,
                 'vrf' => $vrf,

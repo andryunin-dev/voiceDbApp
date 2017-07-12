@@ -49,6 +49,12 @@ class DSPphone extends Std
 
         // Create a DataSet for a phone(appliance)
         $softwareVersion = (1 == preg_match('~6921~', $this->dataSet->type)) ? $this->dataSet->appLoadID : $this->dataSet->versionID;
+        $macAddress = ($this->dataSet->macAddress) ?? substr($this->dataSet->name,-12);
+        $macAddress = implode('.', [
+            substr($macAddress,0,4),
+            substr($macAddress,4,4),
+            substr($macAddress,8,4),
+        ]);
         $phoneDataSet = (new Std())->fill([
             'applianceType' => self::PHONE,
             'platformVendor' => self::VENDOR,
@@ -57,6 +63,7 @@ class DSPphone extends Std
             'applianceSoft' => self::PHONESOFT,
             'softwareVersion' => $softwareVersion,
             'ip' => $this->dataSet->ipAddress,
+            'macAddress' => $macAddress,
             'LotusId' => $location->lotusId,
             'hostname' => $this->dataSet->cmName,
             'chassis' => ($this->dataSet->modelNumber) ?? $this->dataSet->type,
@@ -79,7 +86,6 @@ class DSPphone extends Std
             'phone' => $phone,
             'type' => $this->dataSet->type,
             'name' => $this->dataSet->name,
-            'macAddress' => ($this->dataSet->macAddress) ?? substr($this->dataSet->name,-12), //---
             'prefix' => preg_replace('~\..+~','',$this->dataSet->prefix),
             'phoneDN' => $this->dataSet->phoneDN,
             'status' => $this->dataSet->status,
