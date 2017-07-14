@@ -9,7 +9,7 @@ class PhoneInfo extends Model
     protected static $schema = [
         'table' => 'equipment.phoneInfo',
         'columns' => [
-            'type' => ['type' => 'string'],
+            'model' => ['type' => 'string'],
             'name' => ['type' => 'string'],
             'prefix' => ['type' => 'int'],
             'phoneDN' => ['type' => 'int'],
