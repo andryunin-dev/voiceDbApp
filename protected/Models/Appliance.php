@@ -154,7 +154,6 @@ class Appliance extends Model
         )->first();
     }
 
-<<<<<<< HEAD
     /**
      * @param string $type
      * @param string $platformSerial
@@ -193,7 +192,8 @@ class Appliance extends Model
                 return $ip == $appliance->getManagementIp();
             }
         )->first();
-=======
+    }
+
     public function delete()
     {
         if ($this->isNew()) {
@@ -211,6 +211,5 @@ class Appliance extends Model
         $this->platform->delete();
 
         return $result;
->>>>>>> upstream/release
     }
 }
