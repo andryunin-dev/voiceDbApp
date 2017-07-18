@@ -52,7 +52,7 @@ class DSPappliance extends Std
 
 
     /**
-     * @return bool
+     * @return Appliance
      * @throws Exception
      */
     public function run()
@@ -185,13 +185,7 @@ class DSPappliance extends Std
 
 //        $this->debugLogger->info('END: ' . '[ip]=' . $this->dataSet->ip);
 
-        return true;
-    }
-
-
-    public function returnAppliance()
-    {
-        return (true === $this->run()) ? $this->appliance : false;
+        return $this->appliance;
     }
 
     protected function beforeProcessDataSet()

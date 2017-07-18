@@ -13,7 +13,9 @@ class Phone extends Appliance
 {
     const PHONE = 'phone';
     const RISPHONETYPE = 'Phone';
-    const MAXRETURNEDDEVICES = 1000; // max 1000
+    const MAXRETURNEDDEVICES = 1000; // max 1000 (ограничение RisPort Service)
+    const MAXREQUESTSCOUNT = 15; // ограничение RisPort Service
+    const TIMEINTERVAL = 60; // секунды
     const ALLMODELS = 255; // All phone's models
     const PHONESTATUS = 'Registered';
     const PHONESOFT = 'Phone Soft';
@@ -24,16 +26,9 @@ class Phone extends Appliance
     protected $debugLogger;
 
 
-    public function __construct($data = null)
+    public function __construct()
     {
         $this->debugLogger = RLogger::getInstance('Phone', realpath(ROOT_PATH . '/Logs/debug.log'));
-        parent::__construct($data);
-    }
-
-
-    // Todo - реализовать получение данных для одного телефона
-    public static function getByNameFromCucm(string $ip, string $name)
-    {
     }
 
 
@@ -108,17 +103,42 @@ class Phone extends Appliance
         $ris = (new RisPortClient($ip))->connection;
 
         // ЕСЛИ кол-во опрашиваемых ($phones) телефонов БОЛЬШЕ, чем кол-во (MAXRETURNEDDEVICES) отдаваемых callmanager за один запрос,
-        // ТО опрашивать callmanager будем по телефонам из коллекции $phones в несколько запросов
+        // ТО опрашивать callmanager будем по телефонам из коллекции $phones в несколько запросов (не более 15 запросов в минуту)
         // 1 запрос - кол-во телефонов = MAXRETURNEDDEVICES
-        // TODO - доделать по ограничению кол-ва запросов в минуту (не более 15 запросов в минуту)
         $registeredPhones = new Collection();
         if (self::MAXRETURNEDDEVICES < $phones->count()) {
-            $n = 0;
+            $phonesCount = 0; // кол-во телефонов в запросе
+            $requestsCount = 0; // кол-во запросов
             foreach ($phones as $phone) {
                 $items[] = ['Item' => $phone->device];
-                $n++;
+                $phonesCount++;
 
-                if (self::MAXRETURNEDDEVICES == $n) {
+                if (self::MAXRETURNEDDEVICES == $phonesCount) {
+                    // На старте включаем секундомер
+                    if (0 === $requestsCount) {
+                        $startTime = (int)microtime(true);
+                        $currentCountOfTime = (int)microtime(true) - $startTime;
+                    }
+
+                    // Считаем кол-во запросов
+                    $requestsCount++;
+
+                    // ЕСЛИ  кол-во времени прошедшее с момента первого запроса превысило self::TIMEINTERVAL
+                    // ТО начинаем считать запросы заново
+                    if ($currentCountOfTime >= self::TIMEINTERVAL) {
+                        $requestsCount = 1;
+                        $startTime = (int)microtime(true);
+                    } else {
+
+                        // ЕСЛИ кол-во запросов превысило self::MAXREQUESTSCOUNT за время меньшее. чем self::TIMEINTERVAL
+                        // ТО ждем до self::MAXREQUESTSCOUNT и начинаем считать запросы заново
+                        if ($requestsCount > self::MAXREQUESTSCOUNT) {
+                            sleep(self::TIMEINTERVAL - $currentCountOfTime);
+                            $requestsCount = 1;
+                            $startTime = (int)microtime(true);
+                        }
+                    }
+
                     $risPhones = $ris->SelectCmDevice('',[
                         'MaxReturnedDevices' => self::MAXRETURNEDDEVICES,
                         'Class' => self::RISPHONETYPE,
@@ -145,7 +165,11 @@ class Phone extends Appliance
                             }
                         }
                     }
-                    $n = 0;
+
+                    // Фиксируем кол-во времени прошедшее с момента первого запроса
+                    $currentCountOfTime = (int)microtime(true) - $startTime;
+
+                    $phonesCount = 0;
                     $items = [];
                 }
             }
@@ -375,9 +399,9 @@ class Phone extends Appliance
             // IF найден PhoneInfo по его имени (значит нашли и Phone)
             // THEN Update Phone
             if (($this->phoneInfo = PhoneInfo::findByColumn('name', $this->name)) instanceof PhoneInfo) {
-                $this->appliance = (new DSPappliance($phoneDataSet, $this->phoneInfo->phone))->returnAppliance();
+                $this->appliance = (new DSPappliance($phoneDataSet, $this->phoneInfo->phone))->run();
             } else {
-                $this->appliance = (new DSPappliance($phoneDataSet))->returnAppliance();
+                $this->appliance = (new DSPappliance($phoneDataSet))->run();
                 $this->phoneInfo = new PhoneInfo();
             }
 
