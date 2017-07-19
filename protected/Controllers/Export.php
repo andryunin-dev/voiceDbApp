@@ -47,7 +47,38 @@ class Export extends Controller
         // Body
         $n = 2;
         foreach ($appliances as $appliance) {
-            foreach ($appliance->modules as $module) {
+            if (0 < $appliance->modules->count()) {
+                foreach ($appliance->modules as $module) {
+                    $spreadsheet->setActiveSheetIndex(0)
+                        ->setCellValue('A' . $n, $n-1)
+                        ->setCellValue('B' . $n, $appliance->location->address->city->region->title)
+                        ->setCellValue('C' . $n, $appliance->location->title)
+                        ->setCellValue('D' . $n, $appliance->details->hostname)
+                        ->setCellValue('E' . $n, $appliance->type)
+                        ->setCellValue('F' . $n, $appliance->platform->platform->vendor->title . ' ' .$appliance->platform->platform->title)
+                        ->setCellValue('G' . $n, $appliance->platform->serialNumber)
+                        ->setCellValue('H' . $n, $appliance->software->software->title)
+                        ->setCellValue('I' . $n, $appliance->software->version)
+                        ->setCellValue('J' . $n, (new \DateTime($appliance->lastUpdate))->format('d-m-Y'))
+                        ->setCellValue('K' . $n, $module->module->title)
+                        ->setCellValue('L' . $n, $module->serialNumber)
+                        ->setCellValue('M' . $n, (new \DateTime($module->lastUpdate))->format('d-m-Y'))
+                        ->setCellValue('N' . $n, $module->comment)
+                        ->getStyle('A' . $n . ':N' . $n)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+
+                    if (false === $appliance->inUse) {
+                        $spreadsheet->getActiveSheet()->getStyle('A' . $n . ':N' . $n)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB(Color::COLOR_YELLOW);
+                    }
+                    if (false === $module->inUse && false === $module->notFound) {
+                        $spreadsheet->getActiveSheet()->getStyle('K' . $n . ':M' . $n)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB(Color::COLOR_YELLOW);
+                    }
+                    if (false === $module->inUse && true === $module->notFound) {
+                        $spreadsheet->getActiveSheet()->getStyle('K' . $n . ':M' . $n)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB(Color::COLOR_RED);
+                    }
+
+                    $n++;
+                }
+            } else {
                 $spreadsheet->setActiveSheetIndex(0)
                     ->setCellValue('A' . $n, $n-1)
                     ->setCellValue('B' . $n, $appliance->location->address->city->region->title)
