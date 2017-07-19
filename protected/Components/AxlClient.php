@@ -1,8 +1,8 @@
 <?php
 namespace App\Components;
 
+use T4\Console\Application;
 use T4\Core\Std;
-use T4\Mvc\Application;
 
 class AxlClient extends Std
 {
