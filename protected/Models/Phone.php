@@ -64,7 +64,7 @@ class Phone extends Appliance
                     'model' => $axlPhone->type,
                 ]);
             } else {
-                $logger->info('PHONE: ' . '[name]=' . $phone->ipAddress . ' is not found in AXL');
+                $logger->info('PHONE: ' . '[name]=' . $phone->name . ' [ip]=' . $phone->ipAddress . ' is not found in AXL on the [publisher]=' . $ip);
             }
         }
 
