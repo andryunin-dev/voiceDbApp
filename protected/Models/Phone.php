@@ -64,7 +64,7 @@ class Phone extends Appliance
                     'model' => $axlPhone->type,
                 ]);
             } else {
-                $logger->info('PHONE: ' . '[name]=' . $phone->name . ' [ip]=' . $phone->ipAddress . ' is not found in AXL on the [publisher]=' . $ip);
+                $logger->info('PHONE: ' . '[name]=' . $phone->name . ' [ip]=' . $phone->ipAddress . ' [publisher]=' . $ip . ' [message]=It is not found in AXL on the publisher');
             }
         }
 
@@ -80,7 +80,7 @@ class Phone extends Appliance
                     'appLoadID' => $phoneData->appLoadID->__toString(),
                 ]);
             } else {
-                $logger->info('PHONE: ' . '[name]=' . $phone->ipAddress . ' does not have web access');
+                $logger->info('PHONE: ' . '[name]=' . $phone->name . ' [ip]=' . $phone->ipAddress . ' [publisher]=' . $ip . ' [message]=It does not have web access');
             }
         }
 
