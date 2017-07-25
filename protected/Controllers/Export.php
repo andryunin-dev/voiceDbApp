@@ -15,10 +15,69 @@ class Export extends Controller
 {
     public function actionHardInvExcel()
     {
+        $appliances = Appliance::findAll();
         $spreadsheet = new Spreadsheet();
 
+// ------ Worksheet - 'Appliances' ----------------------
+        $spreadsheet->getActiveSheet()->setTitle('Appliances');
+
         // HEADER
-        $spreadsheet->setActiveSheetIndex(0)
+        $spreadsheet->getActiveSheet()
+            ->setCellValue('A1', '№п/п')
+            ->setCellValue('B1', 'Регион')
+            ->setCellValue('C1', 'Офис')
+            ->setCellValue('D1', 'Hostname')
+            ->setCellValue('E1', 'Type')
+            ->setCellValue('F1', 'Device')
+            ->setCellValue('G1', 'Device ser')
+            ->setCellValue('H1', 'Software')
+            ->setCellValue('I1', 'Software ver.')
+            ->setCellValue('J1', 'Appl. last update')
+            ->setCellValue('K1', 'Comment');
+
+        // Format
+        $columns = ['A','B','C','D','E','F','G','H','I','J','K'];
+        foreach ($columns as $column) {
+            $spreadsheet->getActiveSheet()->getColumnDimension($column)->setAutoSize(true);
+        }
+        $spreadsheet->getActiveSheet()->getStyle('A:K')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+        $spreadsheet->getActiveSheet()->getStyle('A1:K1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        // Body
+        $n = 2;
+        foreach ($appliances as $appliance) {
+            $spreadsheet->getActiveSheet()
+                ->setCellValue('A' . $n, $n-1)
+                ->setCellValue('B' . $n, $appliance->location->address->city->region->title)
+                ->setCellValue('C' . $n, $appliance->location->title)
+                ->setCellValue('D' . $n, $appliance->details->hostname)
+                ->setCellValue('E' . $n, $appliance->type)
+                ->setCellValue('F' . $n, $appliance->platform->platform->vendor->title . ' ' .$appliance->platform->platform->title)
+                ->setCellValue('G' . $n, $appliance->platform->serialNumber)
+                ->setCellValue('H' . $n, $appliance->software->software->title)
+                ->setCellValue('I' . $n, $appliance->software->version)
+                ->setCellValue('J' . $n, (new \DateTime($appliance->lastUpdate))->format('d-m-Y'))
+                ->setCellValue('K' . $n, $appliance->comment)
+                ->getStyle('A' . $n . ':K' . $n)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+
+            if (false === $appliance->inUse) {
+                $spreadsheet->getActiveSheet()->getStyle('A' . $n . ':K' . $n)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB(Color::COLOR_YELLOW);
+            }
+
+            $n++;
+        }
+
+        // Autofilter
+        $spreadsheet->getActiveSheet()->setAutoFilter('B1:K' . ($n-1));
+        $spreadsheet->getActiveSheet()->freezePane('A2');
+
+
+// ------ Worksheet - 'Appliances with modules' ----------------------
+        $objWorkSheet1 = $spreadsheet->createSheet(1);
+        $objWorkSheet1->setTitle('Appliances with modules');
+
+        // HEADER
+        $objWorkSheet1
             ->setCellValue('A1', '№п/п')
             ->setCellValue('B1', 'Регион')
             ->setCellValue('C1', 'Офис')
@@ -34,21 +93,50 @@ class Export extends Controller
             ->setCellValue('M1', 'Module last update')
             ->setCellValue('N1', 'Comment');
 
-        $appliances = Appliance::findAll();
-
         // Format
         $columns = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N'];
         foreach ($columns as $column) {
-            $spreadsheet->getActiveSheet()->getColumnDimension($column)->setAutoSize(true);
+            $objWorkSheet1->getColumnDimension($column)->setAutoSize(true);
         }
-        $spreadsheet->getActiveSheet()->getStyle('A:N')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
-        $spreadsheet->getActiveSheet()->getStyle('A1:N1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $objWorkSheet1->getStyle('A:N')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+        $objWorkSheet1->getStyle('A1:N1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
         // Body
         $n = 2;
         foreach ($appliances as $appliance) {
-            foreach ($appliance->modules as $module) {
-                $spreadsheet->setActiveSheetIndex(0)
+            if (0 < $appliance->modules->count()) {
+                foreach ($appliance->modules as $module) {
+                    $objWorkSheet1
+                        ->setCellValue('A' . $n, $n-1)
+                        ->setCellValue('B' . $n, $appliance->location->address->city->region->title)
+                        ->setCellValue('C' . $n, $appliance->location->title)
+                        ->setCellValue('D' . $n, $appliance->details->hostname)
+                        ->setCellValue('E' . $n, $appliance->type)
+                        ->setCellValue('F' . $n, $appliance->platform->platform->vendor->title . ' ' .$appliance->platform->platform->title)
+                        ->setCellValue('G' . $n, $appliance->platform->serialNumber)
+                        ->setCellValue('H' . $n, $appliance->software->software->title)
+                        ->setCellValue('I' . $n, $appliance->software->version)
+                        ->setCellValue('J' . $n, (new \DateTime($appliance->lastUpdate))->format('d-m-Y'))
+                        ->setCellValue('K' . $n, $module->module->title)
+                        ->setCellValue('L' . $n, $module->serialNumber)
+                        ->setCellValue('M' . $n, (new \DateTime($module->lastUpdate))->format('d-m-Y'))
+                        ->setCellValue('N' . $n, $module->comment)
+                        ->getStyle('A' . $n . ':N' . $n)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+
+                    if (false === $appliance->inUse) {
+                        $objWorkSheet1->getStyle('A' . $n . ':N' . $n)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB(Color::COLOR_YELLOW);
+                    }
+                    if (false === $module->inUse && false === $module->notFound) {
+                        $objWorkSheet1->getStyle('K' . $n . ':N' . $n)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB(Color::COLOR_YELLOW);
+                    }
+                    if (false === $module->inUse && true === $module->notFound) {
+                        $objWorkSheet1->getStyle('K' . $n . ':N' . $n)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB(Color::COLOR_RED);
+                    }
+
+                    $n++;
+                }
+            } else {
+                $objWorkSheet1
                     ->setCellValue('A' . $n, $n-1)
                     ->setCellValue('B' . $n, $appliance->location->address->city->region->title)
                     ->setCellValue('C' . $n, $appliance->location->title)
@@ -59,20 +147,10 @@ class Export extends Controller
                     ->setCellValue('H' . $n, $appliance->software->software->title)
                     ->setCellValue('I' . $n, $appliance->software->version)
                     ->setCellValue('J' . $n, (new \DateTime($appliance->lastUpdate))->format('d-m-Y'))
-                    ->setCellValue('K' . $n, $module->module->title)
-                    ->setCellValue('L' . $n, $module->serialNumber)
-                    ->setCellValue('M' . $n, (new \DateTime($module->lastUpdate))->format('d-m-Y'))
-                    ->setCellValue('N' . $n, $module->comment)
                     ->getStyle('A' . $n . ':N' . $n)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
 
                 if (false === $appliance->inUse) {
-                    $spreadsheet->getActiveSheet()->getStyle('A' . $n . ':N' . $n)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB(Color::COLOR_YELLOW);
-                }
-                if (false === $module->inUse && false === $module->notFound) {
-                    $spreadsheet->getActiveSheet()->getStyle('K' . $n . ':M' . $n)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB(Color::COLOR_YELLOW);
-                }
-                if (false === $module->inUse && true === $module->notFound) {
-                    $spreadsheet->getActiveSheet()->getStyle('K' . $n . ':M' . $n)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB(Color::COLOR_RED);
+                    $objWorkSheet1->getStyle('A' . $n . ':N' . $n)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB(Color::COLOR_YELLOW);
                 }
 
                 $n++;
@@ -80,12 +158,11 @@ class Export extends Controller
         }
 
         // Autofilter
-        $spreadsheet->getActiveSheet()->setAutoFilter('B1:N' . ($n-1));
-        $spreadsheet->getActiveSheet()->freezePane('A2');
+        $objWorkSheet1->setAutoFilter('B1:N' . ($n-1));
+        $objWorkSheet1->freezePane('A2');
 
-        // Rename worksheet
-        $spreadsheet->getActiveSheet()->setTitle('Appliances');
 
+// ------ Export ----------------------
         // Set active sheet index to the first sheet, so Excel opens this as the first sheet
         $spreadsheet->setActiveSheetIndex(0);
 
@@ -105,8 +182,10 @@ class Export extends Controller
 
         $writer = IOFactory::createWriter($spreadsheet, 'Excel2007');
         $writer->save('php://output');
+
         exit;
     }
+
 
     public function actionIpAppliances()
     {

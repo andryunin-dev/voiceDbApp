@@ -50,6 +50,8 @@ use T4\Orm\Model;
  */
 class GeoDevModulePort_View extends Model
 {
+    use DevTypesTrait;
+
     protected static $schema = [
         'table' => 'view.geo_dev_module_port',
         'columns' => [

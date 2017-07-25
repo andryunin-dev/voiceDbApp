@@ -1001,6 +1001,8 @@ class Admin extends Controller
         $params = [];
         $order = GeoDevModulePort_View::sortOrder();
         $maxAge = 73;
+        $networkDevFilter = implode(',', GeoDevModulePort_View::allDevTypes_id());
+        $where[] = '"appType_id" IN (' . $networkDevFilter . ')';
 
         if (0 == $http->get->count()) {
             $order = GeoDevModulePort_View::sortOrder();
