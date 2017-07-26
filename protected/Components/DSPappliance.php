@@ -433,6 +433,11 @@ class DSPappliance extends Std
     {
         $ipAddress = (new IpTools($this->dataSet->ip))->address;
 
+        if (isset($this->dataSet->subNetMask)) {
+            $result = (new IpTools($ipAddress, $this->dataSet->subNetMask))->masklen;
+            $masklen = (false != $result) ? $result : null;
+        }
+
         $vrf = $this->processVrfDataSet();
 //        $this->debugLogger->info('process: ' . '[ip]=' . $this->dataSet->ip . '; [vrf]=' . $vrf->name);
 
@@ -444,6 +449,7 @@ class DSPappliance extends Std
                 'macAddress' => ($this->dataSet->macAddress) ?? '',
                 'vrf' => $vrf,
                 'isManagement' => true,
+                'masklen' => $masklen,
             ])->save();
         }
 
@@ -457,6 +463,7 @@ class DSPappliance extends Std
                 'appliance' => $this->appliance,
                 'vrf' => $vrf,
                 'isManagement' => true,
+                'masklen' => $masklen,
             ])->save();
         }
 

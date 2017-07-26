@@ -3,6 +3,7 @@ namespace App\Models;
 
 use App\Components\AxlClient;
 use App\Components\DSPappliance;
+use App\Components\IpTools;
 use App\Components\RisPortClient;
 use App\Components\RLogger;
 use T4\Core\Collection;
@@ -68,23 +69,63 @@ class Phone extends Appliance
             }
         }
 
-        // Опросить кажждый телефон по его IP через WEB Interface - DeviceInformationX
+        // Опросить кажждый телефон по его IP через WEB Interface
         foreach ($registeredPhones as $phone) {
+            // ------------------- DeviceInformationX -------------------------------------
             $phoneData = simplexml_load_file('http://' . $phone->ipAddress . '/DeviceInformationX');
+
+            if (false === $phoneData) {
+                $logger->info('PHONE: ' . '[name]=' . $phone->name . ' [ip]=' . $phone->ipAddress . ' [publisher]=' . $ip . ' [message]=It does not have web access');
+                continue;
+            }
+
+            $phone->fill([
+                'macAddress' => trim($phoneData->MACAddress->__toString()),
+                'serialNumber' => trim($phoneData->serialNumber->__toString()),
+                'modelNumber' => trim($phoneData->modelNumber->__toString()),
+                'versionID' => trim($phoneData->versionID->__toString()),
+                'appLoadID' => trim($phoneData->appLoadID->__toString()),
+                'timezone' => trim($phoneData->timezone->__toString()),
+            ]);
+
+            // ------------------- NetworkConfigurationX -------------------------------------
+            $phoneData = simplexml_load_file('http://' . $phone->ipAddress . '/NetworkConfigurationX');
             if (false !== $phoneData) {
                 $phone->fill([
-                    'macAddress' => $phoneData->MACAddress->__toString(),
-                    'serialNumber' => $phoneData->serialNumber->__toString(),
-                    'modelNumber' => $phoneData->modelNumber->__toString(),
-                    'versionID' => $phoneData->versionID->__toString(),
-                    'appLoadID' => $phoneData->appLoadID->__toString(),
+                    'dhcpEnabled' => trim($phoneData->DHCPEnabled->__toString()),
+                    'dncpServer' => trim($phoneData->DHCPServer->__toString()),
+                    'domainName' => trim($phoneData->DomainName->__toString()),
+                    'subNetMask' => trim($phoneData->SubNetMask->__toString()),
+                    'tftpServer1' => trim($phoneData->TFTPServer1->__toString()),
+                    'tftpServer2' => trim($phoneData->TFTPServer2->__toString()),
+                    'defaultRouter1' => trim($phoneData->DefaultRouter1->__toString()),
+                    'dnsServer1' => trim($phoneData->DNSServer1->__toString()),
+                    'dnsServer2' => trim($phoneData->DNSServer2->__toString()),
+                    'callManager1' => trim($phoneData->CallManager1->__toString()),
+                    'callManager2' => trim($phoneData->CallManager2->__toString()),
+                    'callManager3' => trim($phoneData->CallManager3->__toString()),
+                    'callManager4' => trim($phoneData->CallManager4->__toString()),
+                    'vlanId' => trim($phoneData->VLANId->__toString()),
+                    'userLocale' => trim($phoneData->UserLocale->__toString()),
                 ]);
             } else {
-                $logger->info('PHONE: ' . '[name]=' . $phone->name . ' [ip]=' . $phone->ipAddress . ' [publisher]=' . $ip . ' [message]=It does not have web access');
+                $logger->info('PHONE: ' . '[model]=' . $phone->model . ' [ip]=' . $phone->ipAddress . ' [publisher]=' . $ip . ' [message]=It does not have web access by XML for NetworkConfigurationX');
+            }
+
+            // ------------------- PortInformationX -------------------------------------
+            $phoneData = simplexml_load_file('http://' . $phone->ipAddress . '/PortInformationX?1');
+            if (false !== $phoneData) {
+                $phone->fill([
+                    'cdpNeighborDeviceId' => trim($phoneData->CDPNeighborDeviceId->__toString()),
+                    'cdpNeighborIP' => trim($phoneData->CDPNeighborIP->__toString()),
+                    'cdpNeighborPort' => trim($phoneData->CDPNeighborPort->__toString()),
+                ]);
+            } else {
+                $logger->info('PHONE: ' . '[model]=' . $phone->model . ' [ip]=' . $phone->ipAddress . ' [publisher]=' . $ip . ' [message]=It does not have web access by XML for PortInformationX');
             }
         }
 
-        // Возвращать только те телефоны по которым были ответы от AXL, RIS, WEB
+        // Возвращать только те телефоны по которым были ответы от AXL, RIS, DeviceInformationX
         return $registeredPhones->filter(
             function ($phone) {
                 return isset($phone->versionID) && isset($phone->model) && isset($phone->ipAddress);
@@ -96,6 +137,9 @@ class Phone extends Appliance
     /**
      * Получить данные по зарегистрированным телефонам из cucm используя RisPort
      *
+     * @param string $ip
+     * @param Collection $phones
+     * @param Collection $nodes
      * @return Collection
      */
     protected static function getAllFromCucmRis(string $ip, Collection $phones, Collection $nodes)
@@ -388,6 +432,7 @@ class Phone extends Appliance
                 'applianceSoft' => self::PHONESOFT,
                 'softwareVersion' => $softwareVersion,
                 'ip' => $this->ipAddress,
+                'subNetMask' => $this->subNetMask,
                 'macAddress' => $macAddress,
                 'LotusId' => $cucmLocation->lotusId,
                 'hostname' => '',
@@ -420,6 +465,24 @@ class Phone extends Appliance
                 'devicePool' => $this->devicePool,
                 'alertingName' => $this->alertingName,
                 'partition' => $this->partition,
+                'timezone' => $this->timezone,
+                'dhcpEnabled' => ('yes' == strtolower($this->dhcpEnabled)) ? true : false,
+                'dncpServer' => (new IpTools($this->dncpServer))->address,
+                'domainName' => $this->domainName,
+                'tftpServer1' => (new IpTools($this->tftpServer1))->address,
+                'tftpServer2' => (new IpTools($this->tftpServer2))->address,
+                'defaultRouter1' => (new IpTools($this->defaultRouter1))->address,
+                'dnsServer1' => (new IpTools($this->dnsServer1))->address,
+                'dnsServer2' => (new IpTools($this->dnsServer2))->address,
+                'callManager1' => $this->callManager1,
+                'callManager2' => $this->callManager2,
+                'callManager3' => $this->callManager3,
+                'callManager4' => $this->callManager4,
+                'vlanId' => $this->vlanId,
+                'userLocale' => $this->userLocale,
+                'cdpNeighborDeviceId' => $this->cdpNeighborDeviceId,
+                'cdpNeighborIP' =>(new IpTools($this->cdpNeighborIP))->address,
+                'cdpNeighborPort' => $this->cdpNeighborPort,
             ])->save();
 
             $this->debugLogger->info('process: ' . '[name]=' . $this->ipAddress . '; [phoneInfo]= OK');
@@ -430,6 +493,4 @@ class Phone extends Appliance
             return false;
         }
     }
-
-
 }
