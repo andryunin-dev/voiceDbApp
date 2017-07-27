@@ -21,11 +21,11 @@ class PhoneInfo extends Model
             'partition' => ['type' => 'string'],
             'timezone' => ['type' => 'string'], //
             'dhcpEnabled' => ['type' => 'boolean'],
-            'dncpServer' => ['type' => 'string'],
+            'dhcpServer' => ['type' => 'string'],
             'domainName' => ['type' => 'string'],
             'tftpServer1' => ['type' => 'string'],
             'tftpServer2' => ['type' => 'string'],
-            'defaultRouter1' => ['type' => 'string'],
+            'defaultRouter' => ['type' => 'string'],
             'dnsServer1' => ['type' => 'string'],
             'dnsServer2' => ['type' => 'string'],
             'callManager1' => ['type' => 'string'],
