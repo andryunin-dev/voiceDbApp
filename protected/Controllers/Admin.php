@@ -12,6 +12,7 @@ use App\Models\ApplianceType;
 use App\Models\City;
 use App\Models\DataPort;
 use App\Models\DPortType;
+use App\Models\LotusLocation;
 use App\Models\Module;
 use App\Models\ModuleItem;
 use App\Models\Network;
@@ -1031,8 +1032,14 @@ class Admin extends Controller
             ->where($where)
             ->params($params)
             ->order($order);
-//        var_dump($query);
         $this->data->geoDevs = GeoDevModulePort_View::findAllByQuery($query);
+        $peopleInOffices = [];
+        foreach ($this->data->geoDevs as $dev) {
+            if (! key_exists($dev->lotusId, $peopleInOffices)) {
+                $peopleInOffices[$dev->lotusId] = LotusLocation::employeesByLotusId($dev->lotusId);
+            }
+        }
+        $this->data->navbar->countPeople = array_sum($peopleInOffices);
         $this->data->navbar->count = $this->data->geoDevs->count();
         $this->data->exportUrl = '/export/hardInvExcel';
         $this->data->maxAge = $maxAge;
