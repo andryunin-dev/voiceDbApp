@@ -18,6 +18,8 @@ use T4\Orm\Model;
  * @property Address $address
  * @property OfficeStatus $status
  * @property Appliance $appliances
+ *
+ * @property int $people //кол-во сотрудников в офисе согласно Лотус базе
  */
 class Office extends Model
 {
@@ -88,5 +90,9 @@ class Office extends Model
         }
 
         return true;
+    }
+    protected function getPeople()
+    {
+        return LotusLocation::employeesByLotusId($this->lotusId);
     }
 }

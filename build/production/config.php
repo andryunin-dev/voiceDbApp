@@ -15,6 +15,14 @@ return [
             'user' => 'postgres',
             'password' => '{{db.password}}',
             'dbname' => '{{db.unitTestDb}}'
+        ],
+        'lotusData' => [
+            'driver' => 'pgsql',
+            'host' => 'netcmdb.rs.ru',
+            'user' => 'lotus',
+            'password' => '{{db.lotusDB.password}}',
+            'dbname' => '{{db.lotusDB.DbName}}'
         ]
+
     ]
 ];
