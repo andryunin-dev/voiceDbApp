@@ -48,6 +48,8 @@
                     <token key="db.password" value="${db.password}" />
                     <token key="db.productionDb" value="${db.productionDb}" />
                     <token key="db.unitTestDb" value="${db.unitTestDb}" />
+                    <token key="db.lotusDB.password" value="${db.lotusDB.password}" />
+                    <token key="db.lotusDB.DbName" value="${db.lotusDB.DbName}" />
                 </replacetokens>
             </filterchain>
         </copy>
