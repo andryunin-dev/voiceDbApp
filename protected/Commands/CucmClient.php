@@ -14,7 +14,7 @@ class CucmClient extends Command
 
     public function actionDefault()
     {
-        $logger = RLogger::getInstance('Cucm');
+        $logger = RLogger::getInstance('Cucm', realpath(ROOT_PATH . '/Logs/phones.log'));
 
         foreach (Appliance::findAllByType(self::PUBLISHER) as $publisher) {
             $logger->info('START:[cucm]=' . $publisher->managementIp);

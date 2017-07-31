@@ -30,7 +30,7 @@ class Phone extends Appliance
 
     public function __construct()
     {
-        $this->debugLogger = RLogger::getInstance('Phone', realpath(ROOT_PATH . '/Logs/debug.log'));
+        $this->debugLogger = RLogger::getInstance('Phone', realpath(ROOT_PATH . '/Logs/phones.log'));
     }
 
 
@@ -40,7 +40,7 @@ class Phone extends Appliance
      */
     public static function getAllFromCucm(string $cucmIp)
     {
-        $logger = RLogger::getInstance('Phone', realpath(ROOT_PATH . '/Logs/debug.log'));
+        $logger = RLogger::getInstance('Phone', realpath(ROOT_PATH . '/Logs/phones.log'));
 
         // Get list of all subscribers and publisher in the cluster
         $listAllProcessNodes = self::getListAllCucmNodes($cucmIp);
