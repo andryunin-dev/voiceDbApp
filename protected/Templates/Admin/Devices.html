@@ -1,6 +1,6 @@
 {% extends 'Index.html' %}
 {% block navBarInfo %}
-    <p class="navbar-text col-xs-4 text-center">Выбрано записей: {{ navbar.count }}</p>
+    <p class="navbar-text col-xs-4 text-center">Кол-во записей: {{ navbar.count }} / Кол-во сотрудников: {{ navbar.countPeople }}</p>
 {% endblock %}
 
 {% block main %}
@@ -48,7 +48,8 @@
                             {#Region#}
                             <td><a href="{{ url.cloneToShortUrl.replaceQuery({'reg': geoDev.region_id}) }}" >{{ geoDev.region }}</a></td>
 
-                            <td><a href="{{ url.cloneToShortUrl.replaceQuery({'loc': geoDev.office_id}) }}" >{{ geoDev.office }}</a> {% if not geoDev.officeComment is empty %}<span id="{{ geoDev.office_id }}_{{ geoDev.appliance_id }}" class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>{% endif %}</td>
+                            <td>
+                                <a href="{{ url.cloneToShortUrl.replaceQuery({'loc': geoDev.office_id}) }}" >{{ geoDev.office }}</a> {% if not geoDev.officeComment is empty %}<span id="{{ geoDev.office_id }}_{{ geoDev.appliance_id }}" class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>{% endif %}</td>
                             {#Hostname#}
                             <td>
                                 {% set mngmnt = geoDev.managementIp %}

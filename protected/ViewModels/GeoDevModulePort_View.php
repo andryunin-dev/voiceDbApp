@@ -3,6 +3,7 @@
 namespace App\ViewModels;
 
 use App\Components\IpTools;
+use App\Models\LotusLocation;
 use T4\Core\Collection;
 use T4\Core\Std;
 use T4\Orm\Model;
@@ -168,6 +169,11 @@ class GeoDevModulePort_View extends Model
         );
 
         return $res;
+    }
+
+    protected function getPeople()
+    {
+        return LotusLocation::employeesByLotusId($this->lotusId);
     }
 
     public function lastUpdateDate()

@@ -1,5 +1,7 @@
 {% extends 'Index.html' %}
-
+{% block navBarInfo %}
+    <p class="navbar-text col-xs-2 text-center">Количество офисов: {{ navbar.count }}</p>
+{% endblock %}
 {% block main %}
     <div class="row">
         <main class="offices">
@@ -35,7 +37,8 @@
                             <td>{{ office.address.address }}</td>
                             {#office#}
                             <td>
-                                <a href="/admin/devices?loc={{ office.getPK }}" >{{ office.title }}</a> {% if not office.comment is empty %}<span id="{{ office.getPk }}" class="glyphicon glyphicon-info-sign" aria-hidden="true" title="{{ office.comment }}"></span>{% endif %}
+                                {% set people = office.people %}
+                                <a href="/admin/devices?loc={{ office.getPK }}" >{{ office.title }}</a> {% if people != false %}<span class="pull-right">({{ people }} сотр.)</span>{% endif %} {% if not office.comment is empty %}<span id="{{ office.getPk }}" class="glyphicon glyphicon-info-sign" aria-hidden="true" title="{{ office.comment }}"></span>{% endif %}
                             </td>
                             {#Status#}
                             <td>{{ office.status.title }}</td>
