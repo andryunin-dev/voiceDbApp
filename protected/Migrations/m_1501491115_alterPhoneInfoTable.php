@@ -3,7 +3,7 @@ namespace App\Migrations;
 
 use T4\Orm\Migration;
 
-class m_1500986967_alterPhoneInfoTable
+class m_1501491115_alterPhoneInfoTable
     extends Migration
 {
 
@@ -82,5 +82,5 @@ class m_1500986967_alterPhoneInfoTable
             }
         }
     }
-    
+
 }
