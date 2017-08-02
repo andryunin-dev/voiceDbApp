@@ -20,7 +20,7 @@ class CucmClient extends Command
             $logger->info('START:[cucm]=' . $publisher->managementIp);
             try {
 
-                $phones = Phone::getAllFromCucm($publisher->managementIp);
+                $phones = Phone::findAllIntoCucm($publisher->managementIp);
                 foreach ($phones as $phone) {
                     $phone->save();
                 }

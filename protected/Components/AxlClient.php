@@ -1,20 +1,22 @@
 <?php
 namespace App\Components;
 
-use T4\Console\Application;
-use T4\Core\Std;
-
-class AxlClient extends Std
+class AxlClient
 {
-    protected $connection;
+    static $instance;
 
-    public function __construct(string $ip)
+    protected function __construct(string $cucmIp)
     {
-        $ip = (new IpTools($ip))->address;
+        $ip = (new IpTools($cucmIp))->address;
 
-        $axlConfig = (Application::instance())->config->axl;
-        $username = $axlConfig->username;
-        $password = $axlConfig->password;
+        if ('cli' == PHP_SAPI) {
+            $app = \T4\Console\Application::instance();
+        } else {
+            $app = \T4\Mvc\Application::instance();
+        }
+
+        $username = $app->config->axl->username;
+        $password = $app->config->axl->password;
         $context = stream_context_create([
             'ssl' => [
                 'verify_peer' => false,
@@ -25,7 +27,7 @@ class AxlClient extends Std
         // Todo - попробовать получить $schema из CUCM
         $schema = 'sch7_1';
 
-        $this->connection = new \SoapClient(realpath(ROOT_PATH . '/AXLscheme/' . $schema . '/AXLAPI.wsdl'), [
+        self::$instance->$cucmIp = new \SoapClient(realpath(ROOT_PATH . '/AXLscheme/' . $schema . '/AXLAPI.wsdl'), [
             'trace' => true,
             'exception' => true,
             'location' => 'https://' . $ip . ':8443/axl',
@@ -35,8 +37,11 @@ class AxlClient extends Std
         ]);
     }
 
-    protected function getConnection()
+    public static function instance(string $cucmIp)
     {
-        return $this->connection;
+        if (!isset(self::$instance->$cucmIp)) {
+            new self($cucmIp);
+        }
+        return self::$instance->$cucmIp;
     }
 }
