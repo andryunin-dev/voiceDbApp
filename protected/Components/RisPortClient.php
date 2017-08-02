@@ -1,20 +1,22 @@
 <?php
 namespace App\Components;
 
-use T4\Console\Application;
-use T4\Core\Std;
-
-class RisPortClient extends Std
+class RisPortClient
 {
-    protected $connection;
+    static $instance;
 
-    public function __construct(string $ip)
+    protected function __construct(string $cucmIp)
     {
-        $ip = (new IpTools($ip))->address;
+        $ip = (new IpTools($cucmIp))->address;
 
-        $axlConfig = (Application::instance())->config->axl;
-        $username = $axlConfig->username;
-        $password = $axlConfig->password;
+        if ('cli' == PHP_SAPI) {
+            $app = \T4\Console\Application::instance();
+        } else {
+            $app = \T4\Mvc\Application::instance();
+        }
+
+        $username = $app->config->axl->username;
+        $password = $app->config->axl->password;
         $context = stream_context_create([
             'ssl' => [
                 'verify_peer' => false,
@@ -23,7 +25,7 @@ class RisPortClient extends Std
             ]
         ]);
 
-        $this->connection = new \SoapClient('https://' . $ip . ':8443/realtimeservice/services/RisPort?wsdl', [
+        self::$instance->$cucmIp = new \SoapClient('https://' . $ip . ':8443/realtimeservice/services/RisPort?wsdl', [
             'trace' => true,
             'exception' => true,
             'location' => 'https://' . $ip . ':8443/realtimeservice/services/RisPort',
@@ -33,8 +35,11 @@ class RisPortClient extends Std
         ]);
     }
 
-    protected function getConnection()
+    public static function instance(string $cucmIp)
     {
-        return $this->connection;
+        if (!isset(self::$instance->$cucmIp)) {
+            new self($cucmIp);
+        }
+        return self::$instance->$cucmIp;
     }
 }
