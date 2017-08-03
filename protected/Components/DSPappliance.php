@@ -116,11 +116,6 @@ class DSPappliance extends Std
                 if (empty(trim($appliance->platform->serialNumber))) {
                     $this->appliance = $appliance;
                 }
-                if (!empty(trim($appliance->platform->serialNumber))) {
-                    $appliance->fill([
-                        'inUse' => false,
-                    ])->save();
-                }
             }
 
             // Case "Appliance is not found by platformSerial and management IP"
