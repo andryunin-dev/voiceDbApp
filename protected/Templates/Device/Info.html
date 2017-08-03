@@ -1,0 +1,170 @@
+{% extends 'IndexDev.html' %}
+
+{% block main %}
+    <div class="row">
+        <div class="col-xs-12">
+            <table id="dev_tab">
+                <thead>
+                <tr>
+                    <th></th>
+                </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+
+{% endblock %}
+
+
+
+{% block JS %}
+    <script id="dev_tab_tmpl" type="text/x-jsrender">
+    <table>
+        #{if header}#
+        <thead>
+            #{for header}#
+            <tr>
+                <th id=#{:region.id}# class="text-left">#{:region.name}#</th>
+                <th id=#{:office.id}#>#{:office.name}#</th>
+                <th id=#{:hostname.id}#>#{:hostname.name}#</th>
+                <th id=#{:appType.id}#>#{:appType.name}#</th>
+                <th id=#{:appliance.id}#>#{:appliance.name}#
+                {% if user.permissions.addEmptyAppliance %}
+                <a class="btn btn-success btn-xs btn-custom pull-right" href="/modal/addAppliance" role="button" data-action="get-popup" title="добавить устройство"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></a>
+                {% endif %}
+                </th>
+                <th id=#{:soft.id}#>#{:soft.name}#</th>
+                <th id=#{:module.id}#>#{:module.name}#</th>
+                <th id=#{:data_port.id}#>#{:data_port.name}#</th>
+                {% if not user.readOnly %}
+                <th id=#{:action.id}#>#{:action.name}#</th>
+                {% endif %}
+            </tr>
+            #{/for}#
+        </thead>
+        #{/if}#
+
+        #{if body}#
+        <tbody>
+            #{for body}#
+            <tr>
+                <td><a href="#">#{:region}#</a></td>
+                <td><a href="#">#{:office}#</a></td>
+                <td><a href="#">#{:office}#</a></td>
+                <td><a href="#">#{:appType}#</a></td>
+                <td><a href="#">#{:platformVendor}# #{:platformTitle}#</a></td>
+                <td>#{:softwareTitle}#</td>
+                <td>
+                #{if moduleInfo}#
+                    #{* data.moduleInfo = $.parseJSON(data.moduleInfo) }#
+                    #{for moduleInfo}#
+                    #{:description}#
+                    #{/for}#
+                #{/if}#
+                </td>
+                <td>интерфейсы</td>
+                {% if not user.permissions.readOnly %}
+                <td>
+                    <a class="btn btn-info btn-xs" href="/modal/infoAppliance?id=#{:appliance_id}#" role="button" data-action="get-popup"><span class="glyphicon glyphicon-info-sign" aria-hidden="true" title="подробная информация"></span></a>
+                #{if appliance_id}#
+                    <a class="btn btn-success btn-xs" href="/modal/editAppliance?id=#{:appliance_id}#" role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать устройство"></span></a>
+                {% if user.permissions.delAppliance %}
+                    <a class="btn btn-danger btn-xs" href="/admin/delAppliance?id=#{:appliance_id}#" role="button" data-action="delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" title="удалить устройство"></span></a>
+                {% endif %}
+                #{/if}#
+                </td>
+                {% endif %}
+            </tr>
+            #{/for}#
+        </tbody>
+        #{/if}#
+    </table>
+    </script>
+
+    <script>
+
+        tableSettings = {
+            dataUrl: "/ajax/devicesDataHtml",
+            pager: {
+                rowsOnPage: 53
+            },
+            width: '100',
+            templates: {
+                table: '#dev_tab_tmpl',
+                header: '#dev_tab_tmpl',
+                body: '#tmpl_body'
+            },
+            header: {
+                tableClasses: "bg-primary table-bordered",
+                columns: {
+                    region: {name: 'Регион', width: 10},
+                    office: {id: 'office', name: 'Офис', width: 15, class: "text-left"},
+                    hostname: {id: 'hostname', name: 'Hostname', width: 10},
+                    appType: {id: 'app-type', name: 'Тип', width: "40px"},
+                    appliance: {id: 'appliance', name: 'Оборудование', width: 20},
+                    soft: {id: 'soft', name: 'ПО', width: 15},
+                    module: {id: 'module', name: 'Модуль', width: 15},
+                    data_port: {id: 'dport', name: 'Интерфейсы', width: 15},
+                    {% if not user.readOnly %}
+                    action: {id: 'action', name: 'Действия', width: '105px'}
+                    {% endif %}
+                }
+            },
+            body: {
+                tableClasses: 'table cell-bordered cust-table-striped',
+                rowClasses: ''
+            }
+        };
+
+        jQuery(function ($) {
+            var params = {rowsOnPage: 5, page: 1, order: 'region', filters: {appTypes: 'cucms'}};
+//            $("#tab_1").jqTable(tableSettings).jqTable('getData', {}, params);
+            var devTable = $("#dev_tab");
+            devTable.jqTable(tableSettings);
+            var ajaxParams = {
+                filters: {
+                    appTypes: 'netDevices'
+                }
+            };
+            devTable.jqTable('updateBodyHTML', {}, ajaxParams);
+            window.parseGetUrl = function (url) {
+                var res = {
+                    protocol: '',
+                    host: '',
+                    path: '',
+                    get: {}
+                };
+                var protocolIdx = url.indexOf(':');
+                var getIdx = url.indexOf('?');
+                var getDelim = url.indexOf('&');
+                if (protocolIdx > 0) {
+                    res.protocol = url.slice(0, protocolIdx);
+                }
+                var getParams = {};
+
+                var tmp = url.slice(url.indexOf('?') + 1).split('&');
+                tmp.forEach(function (item, i, array) {
+                    var param = item.split('=');
+                    getParams[param[0]] = param[1];
+                });
+                console.log(getParams);
+            };
+
+            var onClickHandler = function () {
+                var href;
+                if (href = $(event.target).attr('href')) {
+                    event.preventDefault();
+                    console.log(href);
+                }
+            };
+            devTable.jqTable('regOnBodyEvent', 'click', onClickHandler, {param1: 'testParam'});
+
+
+        });
+    </script>
+    <script>
+        var APP = APP || {};
+
+
+    </script>
+{% endblock %}
