@@ -36,11 +36,11 @@
         </td>
         {#Type#}
         <td style="vertical-align:middle; text-align:center" title="{{ geoDev.appType }}">
+            <b>
             <a href="{{ url.cloneToShortUrl.replaceQuery({'type':  geoDev.appType_id}) }}">
-                <b>
-                    {{ applianceType }}
-                </b>
+                {{ applianceType }}
             </a>
+            </b>
         </td>
         {#Platform#}
         <td class="{{ applColorClass }}"><a href="{{ url.cloneToShortUrl.replaceQuery({'pl':  geoDev.platform_id}) }}">

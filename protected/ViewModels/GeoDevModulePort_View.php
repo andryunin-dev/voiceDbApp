@@ -202,7 +202,7 @@ class GeoDevModulePort_View extends Model
         $params->rowsOnPage = empty($params->rowsOnPage) ? -1 : $params->rowsOnPage;
         $params->order = empty($params->order) ? 'default' : $params->order;
         $params->filters->appTypes = empty($params->filters->appTypes) ? self::appTypeFilter() : self::appTypeFilter($params->filters->appTypes);
-        $params->search = empty($params->search) ? '' : '';
+        $params->search = empty($params->search) ? [] : $params->search;
         $params->columns = empty($params->columns) ?  self::findColumns() : self::findColumns($params->columnList);
         /**
          * @var Std $result
@@ -221,6 +221,12 @@ class GeoDevModulePort_View extends Model
 
         $params->order = self::sortOrder($params->order);
         $where[] = '"appType_id" IN (' . implode(',', $params->filters->appTypes) . ')';
+        // собираем search
+        if (! empty($params->search)) {
+            foreach ($params->search as $key => $val) {
+                $where[] = $key . '=' . $val;
+            }
+        }
         //получаем количество записей и кол-во страниц с учетом фильтров
         $queryRecordsCount = (new Query())
             ->select()

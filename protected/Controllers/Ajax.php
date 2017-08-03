@@ -87,6 +87,13 @@ class Ajax extends Controller
      */
     public function actionDevicesDataHtml()
     {
+        $columnMap = [
+            'reg' => 'region_id',
+            'loc' => 'location_id',
+            'pl' => 'platform_id',
+            'type' => '"appType_id"'
+        ];
+
         $http = new Request();
         $this->data->url = new UrlExt($http->url->toArrayRecursive());
         $params = new Std();
@@ -98,6 +105,18 @@ class Ajax extends Controller
         $params->rowsOnPage = $http->get->rowsOnPage ?? -1;
         $params->order = $http->get->order ?? 'default';
         $params->filters->appTypes = $http->get->filters->appTypes ?? '';
+        $params->search = $http->get->search ?? new Std();
+        $params->url = $http->get->url ?? '';
+        if (! empty($params->url)) {
+            $url = new UrlExt($params->url);
+            $params->currentPage = 1;
+            foreach ($url->query as $key => $val) {
+                if (array_key_exists($key, $columnMap)) {
+                    $params->search->{$columnMap[$key]} = $val;
+                }
+            }
+        }
+
         $params = GeoDevModulePort_View::findAllByParams($params);
 
         if (! empty($params->tableId)) {

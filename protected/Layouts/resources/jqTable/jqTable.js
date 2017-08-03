@@ -894,14 +894,9 @@ jqTable.workSetTmpl = {
                 });
 
             },
-            regOnBodyEvent: function (event, handlerName, data) {
-                workSet = inner.getWorkSet(this);
-                data = data || {};
-                $(workSet.model.bodySelectors.table).on(
-                    event,
-                    data,
-                    handlerName
-                )
+            getWorkSet: function () {
+                var workSet = inner.getWorkSet(this);
+                return workSet;
             }
         };
         if ( methods[method] ) {
