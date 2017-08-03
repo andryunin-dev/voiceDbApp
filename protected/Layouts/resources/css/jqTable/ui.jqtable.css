@@ -1,0 +1,63 @@
+/*Grid*/
+.ui-jqtable {
+    /*position: relative;*/
+    -moz-box-sizing: border-box !important;
+    -webkit-box-sizing: border-box !important;
+    box-sizing: border-box !important;
+}
+.jqtable .jqt-common-table {
+    table-layout:fixed !important;
+    border-collapse: collapse !important;
+    padding: 0;
+}
+/* caption*/
+
+/* header */
+.jqtable .jqt-hd-table {
+    margin:0;
+}
+.jqtable .jqt-hd-table th {
+    height: 27px;
+    padding-left: 5px;
+    padding-right: 5px;
+    overflow: hidden !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+
+}
+/* body */
+.jqtable .jqt-bd-table {
+    margin:0;
+}
+.jqtable .jqt-bd-table td {
+    padding: 2px 5px;
+}
+/* footer */
+.jqtable .ui-separator {
+    height: 18px;
+    border-left: 2px solid #ccc ;
+}
+.jqtable .ui-pg-input {
+    width: 20px;
+}
+/*pager*/
+
+.jqtable .jqt-pager span {
+    margin-left: 5px;
+
+}
+.jqtable .jqt-pager span:last-of-type {
+    margin-right: 5px;
+}
+.jqtable .jqt-pager input {
+    margin-left: 5px;
+    height: 1em;
+    border: none;
+}
+.jqtable .jqt-pager .ui-icon {
+    cursor: pointer;
+}
+
+
+/**/
+

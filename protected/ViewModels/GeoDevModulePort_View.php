@@ -2,10 +2,10 @@
 
 namespace App\ViewModels;
 
-use App\Components\IpTools;
 use App\Models\LotusLocation;
 use T4\Core\Collection;
 use T4\Core\Std;
+use T4\Dbal\Query;
 use T4\Orm\Model;
 
 /**
@@ -51,6 +51,9 @@ use T4\Orm\Model;
  */
 class GeoDevModulePort_View extends Model
 {
+    use DevTypesTrait;
+    use ViewHelperTrait;
+
     protected static $schema = [
         'table' => 'view.geo_dev_module_port',
         'columns' => [
@@ -106,6 +109,7 @@ class GeoDevModulePort_View extends Model
     {
         return (array_key_exists($orderName, self::$sortOrders)) ? self::$sortOrders[$orderName] : self::$sortOrders['default'];
     }
+
 
     protected function beforeSave()
     {
@@ -182,5 +186,69 @@ class GeoDevModulePort_View extends Model
     public function lastUpdateDateTime()
     {
         return $this->appLastUpdate ? ('last update: ' . ((new \DateTime($this->appLastUpdate))->setTimezone(new \DateTimeZone('Europe/Moscow')))->format('d.m.Y H:i \M\S\K(P)')) : null;
+    }
+
+    /**
+     * @param Std $params
+     *
+     * @return Std $result результаты поиска вместе с параметрами поиска и страниц
+     */
+    public static function findAllByParams(Std $params)
+    {
+        //Todo - реализовать поиск по параметрам $search
+
+        $params->resultAsArray = is_bool($params->resultAsArray) ? $params->resultAsArray : false;
+        $params->currentPage = empty($params->currentPage) ? 1 : $params->currentPage;
+        $params->rowsOnPage = empty($params->rowsOnPage) ? -1 : $params->rowsOnPage;
+        $params->order = empty($params->order) ? 'default' : $params->order;
+        $params->filters->appTypes = empty($params->filters->appTypes) ? self::appTypeFilter() : self::appTypeFilter($params->filters->appTypes);
+        $params->search = empty($params->search) ? '' : '';
+        $params->columns = empty($params->columns) ?  self::findColumns() : self::findColumns($params->columnList);
+        /**
+         * @var Std $result
+         * properties:
+         * int currentPage
+         * string $order
+         * array $filters
+         * int $recordsCount
+         * int $rowsOnPage
+         * int $pagesCount
+         * int $currentPage
+         * int $offset
+         * array $columns
+         *
+         */
+
+        $params->order = self::sortOrder($params->order);
+        $where[] = '"appType_id" IN (' . implode(',', $params->filters->appTypes) . ')';
+        //получаем количество записей и кол-во страниц с учетом фильтров
+        $queryRecordsCount = (new Query())
+            ->select()
+            ->from(self::getTableName())
+            ->where(implode(' AND ', $where));
+        $params->recordsCount = self::countAllByQuery($queryRecordsCount);
+
+        //если rowsOnPage не задан или rowsOnPage = -1 (выводим все на одной странице)
+        $params->rowsOnPage = ($params->rowsOnPage < 0) ? $params->recordsCount : $params->rowsOnPage;
+        $params->pagesCount = ceil($params->recordsCount / $params->rowsOnPage);
+
+        //если в параметрах запроса номер страницы больше максимального, то устанавливаем его в макс.
+        $params->currentPage = ($params->currentPage <= $params->pagesCount) ? $params->currentPage : $params->pagesCount;
+        $params->offset = ($params->currentPage - 1) * $params->rowsOnPage;
+
+        //создаем запрос данных
+        $queryData = (new Query())
+            ->select($params->columns)
+            ->from(self::getTableName())
+            ->where(implode(' AND ', $where))
+            ->order($params->order)
+            ->limit($params->rowsOnPage)
+            ->offset($params->offset);
+
+        $params->data = self::findAllByQuery($queryData);
+        if (true === $params->resultAsArray) {
+            $params->data = $params->data->toArrayRecursive();
+        }
+        return $params;
     }
 }
