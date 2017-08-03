@@ -134,7 +134,7 @@ class Phone extends Appliance
      */
     public function getDataFromWebNetConf()
     {
-        if (!isset($this->ipAddress) && isset($this->model)) {
+        if (!isset($this->ipAddress) && !isset($this->model)) {
             throw new Exception('PHONE: No field ipAddress or no field model');
         }
 
@@ -160,7 +160,7 @@ class Phone extends Appliance
             ]);
         } else {
             // Чтение HTML
-            $dom = HtmlDomParser::file_get_html('http://' . $this->ipAddress . '/NetworkConfiguration');
+            $dom = HtmlDomParser::str_get_html(file_get_contents('http://' . $this->ipAddress . '/NetworkConfiguration'));
             if (false !== $dom) {
                 // Define the phone's environment
                 preg_match('~\d+~', $this->model, $matches);
@@ -205,9 +205,12 @@ class Phone extends Appliance
                 ];
 
                 foreach ($rows as $row) {
-                    $field = $phoneFields[mb_ereg_replace(' ', '', mb_strtolower($row->find('td', 0)->text()))];
+                    $field = $phoneFields[mb_ereg_replace(' ', '', mb_strtolower((is_null($row->find('td', 0))) ? '' : $row->find('td', 0)->text()))];
                     if (!is_null($field)) {
-                        $this->fill([$field => trim($row->find('td', $item)->text())]);
+                        $var = trim((is_null($row->find('td', $item))) ? '' : $row->find('td', $item)->text());
+                        $this->fill([
+                            $field => $var,
+                        ]);
                     }
                 }
 
@@ -242,6 +245,13 @@ class Phone extends Appliance
                         'cdpNeighborPort' => trim($phoneData->port->__toString()),
                     ]);
                     break;
+                case '7911':
+                    $this->fill([
+                        'cdpNeighborDeviceId' => trim($phoneData->NeighborDeviceId->__toString()),
+                        'cdpNeighborIP' => trim($phoneData->NeighborIP->__toString()),
+                        'cdpNeighborPort' => trim($phoneData->NeighborPort->__toString()),
+                    ]);
+                    break;
                 default:
                     $this->fill([
                         'cdpNeighborDeviceId' => trim($phoneData->CDPNeighborDeviceId->__toString()),
@@ -253,12 +263,17 @@ class Phone extends Appliance
 
         } else {
             // Чтение HTML
-            $dom = HtmlDomParser::file_get_html('http://' . $this->ipAddress . '/PortInformation?1');
+            $dom = HtmlDomParser::str_get_html(file_get_contents('http://' . $this->ipAddress . '/PortInformation?1'));
+
             if (false !== $dom) {
                 // Define the phone's environment
                 preg_match('~\d+~', $this->model, $matches);
                 switch ($matches[0]) {
                     case '6921':
+                        $rows = $dom->find('table tr');
+                        $item = 2;
+                        break;
+                    case '7911':
                         $rows = $dom->find('table tr');
                         $item = 2;
                         break;
@@ -268,14 +283,20 @@ class Phone extends Appliance
 
                 $phoneFields = [
                     'идентустройствасоседа' => 'cdpNeighborDeviceId',
+                    'neighbordeviceid' => 'cdpNeighborDeviceId',
                     'ipадрессоседа' => 'cdpNeighborIP',
+                    'neighboripaddress' => 'cdpNeighborIP',
                     'портсоседа' => 'cdpNeighborPort',
+                    'neighborport' => 'cdpNeighborPort',
                 ];
 
                 foreach ($rows as $row) {
-                    $field = $phoneFields[mb_ereg_replace('[ -]', '', mb_strtolower($row->find('td', 0)->text()))];
+                    $field = $phoneFields[mb_ereg_replace('[ -]', '', mb_strtolower((is_null($row->find('td', 0))) ? '' : $row->find('td', 0)->text()))];
                     if (!is_null($field)) {
-                        $this->fill([$field => trim($row->find('td', $item)->text())]);
+                        $var = trim((is_null($row->find('td', $item))) ? '' : $row->find('td', $item)->text());
+                        $this->fill([
+                            $field => $var,
+                        ]);
                     }
                 }
 
