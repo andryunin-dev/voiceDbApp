@@ -871,9 +871,9 @@ jqTable.workSetTmpl = {
                     body.html(workSet.bodyFirstRowObj);
                     body.append(bodyData);
                     //из Cookies читаем currentPage, pagesCount, recordsCount и пишем в workSet
-                    workSet.pager.page = Cookies(workSet.mainSelector.slice(1) + '_currentPage');
-                    workSet.pager.pages = + Cookies(workSet.mainSelector.slice(1) + '_pagesCount');
-                    workSet.pager.records = + Cookies(workSet.mainSelector.slice(1) + '_recordsCount');
+                    workSet.pager.page = +Cookies(workSet.mainSelector.slice(1) + '_currentPage');
+                    workSet.pager.pages = +Cookies(workSet.mainSelector.slice(1) + '_pagesCount');
+                    workSet.pager.records = +Cookies(workSet.mainSelector.slice(1) + '_recordsCount');
                     inner.updatePager(workSet);
                     inner.applyBodyStyles(workSet);
                     $(".toggler").on(
