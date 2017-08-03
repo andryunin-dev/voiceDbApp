@@ -8,7 +8,7 @@ class Device extends Controller
 {
     use DebugTrait;
 
-    public function actionDefault()
+    public function actionInfo()
     {
 
     }
