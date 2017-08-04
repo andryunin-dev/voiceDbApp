@@ -882,7 +882,7 @@ jqTable.workSetTmpl = {
                     rowsOnPage: workSet.pager.rowsOnPage, //если -1 то все строки
                     page: workSet.pager.page,
                     order: 'default',
-                    filters: {},
+                    filters: workSet.params.filters,
                     search: {}
                 };
                 requestParams = $.extend(true, requestParams, params);
