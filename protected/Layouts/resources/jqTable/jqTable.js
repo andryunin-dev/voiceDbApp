@@ -839,7 +839,7 @@ jqTable.workSetTmpl = {
                     workSet.tableData.body = bodyData.data;
                     var template = $.templates(workSet.model.templates.table);
                     var html = $(template.render(workSet.tableData));
-                    workSet.bodyObj.find('tbody').append(html.find('tbody').html());
+                    workSet.bodyObj.children('tbody').first().append(html.find('tbody').html());
                     inner.applyBodyStyles(workSet);
                 }
                 $.ajax({
@@ -867,7 +867,7 @@ jqTable.workSetTmpl = {
                 };
                 requestParams = $.extend(true, requestParams, params);
                 function renderBody(bodyData) {
-                    var body = workSet.bodyObj.find('tbody');
+                    var body = workSet.bodyObj.children('tbody').first();
                     body.html(workSet.bodyFirstRowObj);
                     body.append(bodyData);
                     //из Cookies читаем currentPage, pagesCount, recordsCount и пишем в workSet
