@@ -84,8 +84,7 @@
     <script>
 
         tableSettings = {
-//            dataUrl: "/ajax/devicesDataHtml",
-            dataUrl: "/ajax/devicesDataHtml.json",
+            dataUrl: "/ajax/devicesData.json",
             pager: {
                 rowsOnPage: 53
             },
@@ -126,9 +125,8 @@
             var devTable = $("#dev_tab");
             devTable.jqTable(tableSettings);
             var workSet = devTable.jqTable('getWorkSet');
-            workSet.params.filters =  APP.devTableFilter;
             //устанавливаем начальный фильтр по девайсам
-//            params.filters = workSet.params.filters;
+            workSet.params.filters =  APP.devTableFilter;
             devTable.jqTable('updateBodyJSON', workSet, params);
 
             //обработчик клика по ссылкам
