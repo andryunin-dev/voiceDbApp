@@ -10,5 +10,6 @@ class Device extends Controller
 
     public function actionInfo()
     {
+        $this->data->exportUrl = '/export/hardInvExcel';
     }
 }

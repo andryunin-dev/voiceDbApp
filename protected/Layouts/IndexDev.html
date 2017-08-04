@@ -1,3 +1,6 @@
+{% if timer is defined and user.debugMode == true %}
+    {{ timer.fix('Twig render start') }}
+{% endif %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -33,7 +36,7 @@
     {#<script src="{{ asset('/Layouts/resources/JQGrid/js/i18n/grid.locale-en.js') }}"></script>#}
     {#<script src="{{ asset('/Layouts/resources/JQGrid/js/jquery.jqGrid.min.js') }}"></script>#}
     <script src="{{ asset('/Layouts/resources/js/js.cookie.js') }}"></script>
-
+    <script src="{{ asset('/Layouts/resources/bootstrap/js/dropdown.js') }}"></script>
     {#<script src="{{ asset('/Layouts/resources/ajaxTable/main.js') }}"></script>#}
     <script src="{{ asset('/Layouts/resources/jqTable/jqTable.js') }}"></script>
     <script src="{{ asset('/Layouts/resources/jsRender/jsrender.js') }}"></script>
@@ -121,10 +124,34 @@
 {% endblock %}
 </div>
 <script>
+    var APP = APP || {};
+    if ("{{exportUrl}}") {
+        $("#excelExport").removeClass("hidden");
+        APP.setLink("#excelExport", "{{ exportUrl }}");
+    }
+    if ("{{eraseLogUrl}}") {
+        $("#eraseLog").removeClass("hidden");
+        APP.setLink("#eraseLog", "{{ eraseLogUrl }}");
+    }
+</script>
+<script>
     $.views.settings.delimiters("#{", "}#");
     $.views.settings.allowCode(true);
 </script>
 {% block JS %}
 {% endblock %}
+{% if timer is defined and user.debugMode == true %}
+    {{ timer.fix('Twig render finish') }}
+    <div id="dialog-timer" title="Runtime Info">
+        {% for prop, value in timer %}
+            <p>{{ prop }} - {{ timer[prop] }}</p>
+        {% endfor %}
+    </div>
+    <script>
+        $( function() {
+            $( "#dialog-timer" ).dialog();
+        } );
+    </script>
+{% endif %}
 </body>
 </html>
