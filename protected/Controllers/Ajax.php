@@ -81,6 +81,7 @@ class Ajax extends Controller
         $columnMap = [
             'reg' => 'region_id',
             'loc' => 'location_id',
+            'city' => 'city_id',
             'pl' => 'platform_id',
             'type' => '"appType_id"'
         ];
