@@ -83,7 +83,8 @@ class Ajax extends Controller
             'loc' => 'location_id',
             'city' => 'city_id',
             'pl' => 'platform_id',
-            'type' => '"appType_id"'
+            'type' => '"appType_id"',
+            'cl' => 'cluster_id'
         ];
 
         $http = new Request();
