@@ -36,7 +36,7 @@ class Ajax extends Controller
      * order - порядок сортировки (см. protected static $sortOrders в GeoDevModulePort_View)
      * filters->appTypes = типы девайсов которые попадут в выборку (берем из devTypesTrait)
      */
-    public function actionDevicesData()
+    public function actionDevicesData_old()
     {
         $http = new Request();
         $info = new Std();
@@ -76,19 +76,19 @@ class Ajax extends Controller
         $this->data->data = GeoDevModulePort_View::findAllByQuery($queryData)->toArrayRecursive();
         $this->data->info = $info;
     }
-
-    /**
-     * GET параметры передаваемые с запросом:
-     * http->get->tableId
-     * http->get->page
-     * http->get->rowsOnPage
-     * http->get->order
-     * http->get->filters->appTypes
-     */
-    public function actionDevicesDataHtml()
+    public function actionDevicesData()
     {
+        $columnMap = [
+            'reg' => 'region_id',
+            'loc' => 'location_id',
+            'city' => 'city_id',
+            'pl' => 'platform_id',
+            'type' => '"appType_id"'
+        ];
+
         $http = new Request();
-        $this->data->url = new UrlExt($http->url->toArrayRecursive());
+//        $this->data->url = new UrlExt($http->url->toArrayRecursive());
+        $this->data->url = new UrlExt('/device/info');
         $params = new Std();
         $maxAge = 73;
 
@@ -97,7 +97,19 @@ class Ajax extends Controller
         $params->currentPage = $http->get->page ?? 1;
         $params->rowsOnPage = $http->get->rowsOnPage ?? -1;
         $params->order = $http->get->order ?? 'default';
-        $params->filters->appTypes = $http->get->filters->appTypes ?? '';
+        $params->filters = $http->get->filters ?? new Std();
+        $params->search = $http->get->search ?? new Std();
+        $params->url = $http->get->url ?? '';
+        if (! empty($params->url)) {
+            $url = new UrlExt($params->url);
+            $params->currentPage = 1;
+            foreach ($url->query as $key => $val) {
+                if (array_key_exists($key, $columnMap)) {
+                    $params->search->{$columnMap[$key]} = $val;
+                }
+            }
+        }
+
         $params = GeoDevModulePort_View::findAllByParams($params);
 
         if (! empty($params->tableId)) {
@@ -109,8 +121,11 @@ class Ajax extends Controller
         }
         $this->data->geoDevs = $params->data;
         $this->data->maxAge = $maxAge;
-
+        $this->data->renderResult = $this->view->render('DevicesDataHtml.html', $this->data);
+        $this->data->geoDevs = '';
+        $this->data->params = $params;
     }
+
 
     public function actionOffices()
     {

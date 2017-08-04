@@ -84,7 +84,7 @@
     <script>
 
         tableSettings = {
-            dataUrl: "/ajax/devicesDataHtml",
+            dataUrl: "/ajax/devicesData.json",
             pager: {
                 rowsOnPage: 53,
                 rowList: [10,20,50,100,200,"все"]
@@ -118,49 +118,37 @@
         };
 
         jQuery(function ($) {
-            var params = {rowsOnPage: 5, page: 1, order: 'region', filters: {appTypes: 'cucms'}};
-//            $("#tab_1").jqTable(tableSettings).jqTable('getData', {}, params);
+            APP = APP || {};
+            APP.devTableFilter = {appTypes: 'netDevices'};
+
+            var params = {};
+
             var devTable = $("#dev_tab");
             devTable.jqTable(tableSettings);
-            var ajaxParams = {
-                filters: {
-                    appTypes: 'netDevices'
-                }
-            };
-            devTable.jqTable('updateBodyHTML', {}, ajaxParams);
-            window.parseGetUrl = function (url) {
-                var res = {
-                    protocol: '',
-                    host: '',
-                    path: '',
-                    get: {}
-                };
-                var protocolIdx = url.indexOf(':');
-                var getIdx = url.indexOf('?');
-                var getDelim = url.indexOf('&');
-                if (protocolIdx > 0) {
-                    res.protocol = url.slice(0, protocolIdx);
-                }
-                var getParams = {};
+            var workSet = devTable.jqTable('getWorkSet');
+            //устанавливаем начальный фильтр по девайсам
+            workSet.params.filters =  APP.devTableFilter;
+            devTable.jqTable('updateBodyJSON', workSet, params);
 
-                var tmp = url.slice(url.indexOf('?') + 1).split('&');
-                tmp.forEach(function (item, i, array) {
-                    var param = item.split('=');
-                    getParams[param[0]] = param[1];
-                });
-                console.log(getParams);
-            };
-
-            var onClickHandler = function () {
+            //обработчик клика по ссылкам
+            var onLinkClickHandler = function () {
                 var href;
                 if (href = $(event.target).attr('href')) {
+                    if (href.indexOf(':') > 0) {
+                        //если нашли двоеточие - значит полный url - надо переходит по нему
+                        return;
+                    }
                     event.preventDefault();
-                    console.log(href);
+                    params = workSet.params;
+                    params.url = href;
+                    devTable.jqTable('updateBodyJSON', workSet, params);
                 }
             };
-            devTable.jqTable('regOnBodyEvent', 'click', onClickHandler, {param1: 'testParam'});
-
-
+            workSet.bodyObj.on(
+                'click',
+                workSet,
+                onLinkClickHandler
+            );
         });
     </script>
     <script>

@@ -26,6 +26,7 @@ var jqTable = {};
 jqTable.defaults = {
     width: "auto", //относительно контейнера таблицы
     height: 100, //От верха заголовка, включая заголовок и футер(если он есть).
+    marginBottom: '10px',
     dataUrl: "", //URL для запроса данных
     header: {
         tableClasses: "",
@@ -90,7 +91,7 @@ jqTable.defaults = {
         pageCountSelector: "-pg-page-count", //селектор input поля пейджинатора
         rowsOnPage: 50, //значение строк на страницу
         rowsOnPageSelector: "-pg-select", //значение строк на страницу
-        rowList: [10, 20, 30, 50, 'все'], //дефолтные значения списка для установки rows
+        rowList: [10, 20, 30, 50, 100, 200], //дефолтные значения списка для установки rows
         startPage: 1 //стартовый номер страницы
     }
 };
@@ -115,6 +116,7 @@ jqTable.workSetTmpl = {
     fixWidth: '', //true/false
     height: '', //height in px
     fixHeight: '', //true/false
+    marginBottom: '',
 
     headerObj: $($.parseHTML('<table><thead></thead></table>')), //jQuery object of header ($(#main_selector-hd))
     bodyObj: $($.parseHTML('<table><tbody></tbody></table>')), //jQuery object of body ($(#main_selector-bd))
@@ -146,6 +148,9 @@ jqTable.workSetTmpl = {
     window: {
         width: 0,
         height: 0
+    },
+    params: {
+        filters: '' //текущий фильтр контента
     }
 };
 
@@ -304,13 +309,26 @@ jqTable.workSetTmpl = {
             tableHeightToPx: function (workSet) {
                 workSet = inner.getWorkSet(this, workSet);
                 var model = workSet.model;
+                //margin-bottom
+                if (String(model.marginBottom).indexOf("px") >= 0) {
+                    //отступ таблицы задана в px
+                    workSet.marginBottom = parseInt(model.marginBottom);
+                    workSet.fixMarginBottom = true;
+                } else if (parseInt(model.marginBottom) > 0) {
+                    //отступ таблицы задан в процентах. За 100% принимаем высоту от верха контейнера таблицы до низа окна
+                    workSet.marginBottom = parseInt(parseInt(model.height) / 100);
+                    workSet.fixMarginBottom = false;
+                } else {
+                    workSet.marginBottom = 0;
+                    workSet.fixMarginBottom = true;
+                }
                 if (String(model.height).indexOf("px") >= 0) {
                     //высота таблицы задана в px
-                    workSet.height = parseInt(model.height);
+                    workSet.height = parseInt(model.height) - workSet.marginBottom;
                     workSet.fixHeight = true;
                 } else if (parseInt(model.height) > 0) {
                     //высота таблицы задана в процентах. За 100% принимаем высоту от верха контейнера таблицы до низа окна
-                    workSet.height = parseInt((workSet.window.height - workSet.containerObj.offset().top) * parseInt(model.height) / 100);
+                    workSet.height = parseInt((workSet.window.height - workSet.containerObj.offset().top) * parseInt(model.height) / 100)  - workSet.marginBottom;
                     workSet.fixHeight = false;
                 } else {
                     console.log('Не задана высота таблицы ' + workSet.mainSelector)
@@ -403,7 +421,7 @@ jqTable.workSetTmpl = {
                 workSet = inner.getWorkSet(this, workSet);
                 //если в куке хранится текущая страница - берем ее в качестве текущей
                 workSet.pager.page = + Cookies(workSet.mainSelector.slice(1) + '_currentPage') || workSet.model.pager.startPage;
-                workSet.pager.rowsOnPage = workSet.model.pager.rowsOnPage;
+                workSet.pager.rowsOnPage = + Cookies(workSet.mainSelector.slice(1) + '_rows') || workSet.model.pager.rowsOnPage;
             },
             scrollSize: function (workSet) {
                 workSet = inner.getWorkSet(this, workSet);
@@ -624,7 +642,7 @@ jqTable.workSetTmpl = {
                                     appTypes: 'netDevices'
                                 }
                             };
-                            methods.updateBodyHTML(event.data, params)
+                            methods.updateBodyJSON(event.data, params)
                         } else if ($(event.target).hasClass('ui-icon-seek-end')) {
                             event.data.pager.page = event.data.pager.pages;
                             params = {
@@ -632,7 +650,7 @@ jqTable.workSetTmpl = {
                                     appTypes: 'netDevices'
                                 }
                             };
-                            methods.updateBodyHTML(event.data, params)
+                            methods.updateBodyJSON(event.data, params)
                         } else if ($(event.target).hasClass('ui-icon-seek-prev')) {
                             event.data.pager.page -= 1;
                             params = {
@@ -640,7 +658,7 @@ jqTable.workSetTmpl = {
                                     appTypes: 'netDevices'
                                 }
                             };
-                            methods.updateBodyHTML(event.data, params)
+                            methods.updateBodyJSON(event.data, params)
                         } else if ($(event.target).hasClass('ui-icon-seek-first')) {
                             event.data.pager.page = 1;
                             params = {
@@ -648,7 +666,7 @@ jqTable.workSetTmpl = {
                                     appTypes: 'netDevices'
                                 }
                             };
-                            methods.updateBodyHTML(event.data, params)
+                            methods.updateBodyJSON(event.data, params)
                         }
                     }
                 );
@@ -666,7 +684,7 @@ jqTable.workSetTmpl = {
                                 appTypes: 'netDevices'
                             }
                         };
-                        methods.updateBodyHTML(event.data, params);
+                        methods.updateBodyJSON(event.data, params);
                     }
                 });
             },
@@ -700,6 +718,8 @@ jqTable.workSetTmpl = {
                 workSet.headerObj.find('th').last().removeClass().addClass("ui-state-default");
 
                 /*=== Применение стилей к BODY ===*/
+                /*уровень контейнера tbody*/
+                workSet.bodyObj.parent().css({'background-color': "#dfdfdf"});
                 /* у первой строки делаем нулевые паддинги*/
                 workSet.bodyObj.find(workSet.model.bodySelectors.firstRow + ' td').css({'padding': 0, border: 'none'});
                 /* уровень tbody*/
@@ -783,7 +803,7 @@ jqTable.workSetTmpl = {
                 workSet.headerObj.find(workSet.model.headerSelectors.scrollCell).outerWidth(workSet.scrollWidth + workSet.scrollMargin);
                 /*=== Устанавливаем высоту для Body ===*/
                 inner.setBodyScroll(workSet);
-                inner.bodyMaxHeight(workSet);
+                inner.bodyHeight(workSet);
             }
         };
         var methods = {
@@ -823,7 +843,7 @@ jqTable.workSetTmpl = {
              * @param workSet
              * @param params
              */
-            updateBodyJSON: function (workSet, params) {
+            updateBodyJSON2: function (workSet, params) {
                 workSet = inner.getWorkSet(this, workSet);
 
                 var requestParams = {
@@ -850,6 +870,52 @@ jqTable.workSetTmpl = {
                         console.log('Error in Ajax');
                     }
                 });
+            },
+            updateBodyJSON: function (workSet, params) {
+
+                workSet = inner.getWorkSet(this, workSet);
+                //все данные для пейджинатора передаем через куки main_selector_pagesCount, _recordsCount, _rowsOnPage
+                //для этого передаем на сервер главный селектор
+                var requestParams = {
+                    columnList: '', //либо массив с именами полей для выгрузки, либо пусто (undefined)
+                    tableId: workSet.mainSelector.slice(1),
+                    rowsOnPage: workSet.pager.rowsOnPage, //если -1 то все строки
+                    page: workSet.pager.page,
+                    order: 'default',
+                    filters: {},
+                    search: {}
+                };
+                requestParams = $.extend(true, requestParams, params);
+                function renderBody(bodyData) {
+                    var body = workSet.bodyObj.children('tbody').first();
+                    body.html(workSet.bodyFirstRowObj);
+                    body.append(bodyData.renderResult);
+                    workSet.pager.page = parseInt(bodyData.params.currentPage);
+                    workSet.pager.pages = parseInt(bodyData.params.pagesCount);
+                    workSet.pager.records = parseInt(bodyData.params.recordsCount);
+                    // //из Cookies читаем currentPage, pagesCount, recordsCount и пишем в workSet
+                    // workSet.pager.page = +Cookies(workSet.mainSelector.slice(1) + '_currentPage');
+                    // workSet.pager.pages = +Cookies(workSet.mainSelector.slice(1) + '_pagesCount');
+                    // workSet.pager.records = +Cookies(workSet.mainSelector.slice(1) + '_recordsCount');
+                    inner.updatePager(workSet);
+                    inner.applyBodyStyles(workSet);
+                    $(".toggler").on(
+                        "click",
+                        function ($e) {
+                            $(this).closest("table").find("tbody tr td").slideToggle("fast");
+                            $(this).find(".js-caret").toggleClass("caret-down");
+                        }
+                    );
+                }
+                $.ajax({
+                    url: workSet.model.dataUrl,
+                    data: requestParams,
+                    success: renderBody,
+                    error: function () {
+                        console.log('Error in Ajax');
+                    }
+                });
+
             },
             updateBodyHTML: function (workSet, params) {
 
@@ -894,14 +960,9 @@ jqTable.workSetTmpl = {
                 });
 
             },
-            regOnBodyEvent: function (event, handlerName, data) {
-                workSet = inner.getWorkSet(this);
-                data = data || {};
-                $(workSet.model.bodySelectors.table).on(
-                    event,
-                    data,
-                    handlerName
-                )
+            getWorkSet: function () {
+                var workSet = inner.getWorkSet(this);
+                return workSet;
             }
         };
         if ( methods[method] ) {

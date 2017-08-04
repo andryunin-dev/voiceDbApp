@@ -1,0 +1,123 @@
+{#<table>#}
+    {#<tbody>#}
+    {% for geoDev in geoDevs %}
+        {% if not geoDev.appliance_id is empty and geoDev.appInUse is defined and false == geoDev.appInUse %}
+            {% set applColorClass = "item-not-use" %}
+        {% else %}
+            {% set applColorClass = "" %}
+        {% endif %}
+        {% if not geoDev.appType %}
+            {% set applianceType = "" %}
+        {% elseif geoDev.appType|lower == 'switch' %}
+            {% set applianceType = "SW" %}
+        {% elseif geoDev.appType|lower == 'router' %}
+            {% set applianceType = "R" %}
+        {% elseif geoDev.appType|lower == 'cucm' %}
+            {% set applianceType = "CM" %}
+        {% elseif geoDev.appType|lower == 'phone' %}
+            {% set applianceType = "TEL" %}
+        {% else %}
+            {% set applianceType = geoDev.appType| upper %}
+        {% endif %}
+        <tr>
+            {#Region#}
+            <td><a href="{{ url.cloneToShortUrl.replaceQuery({'reg': geoDev.region_id}) }}" >{{ geoDev.region }}</a></td>
+            <td><a href="{{ url.cloneToShortUrl.replaceQuery({'loc': geoDev.office_id}) }}" >{{ geoDev.office }}</a> {% if not geoDev.officeComment is empty %}<span id="{{ geoDev.office_id }}_{{ geoDev.appliance_id }}" class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>{% endif %}</td>
+            {#Hostname#}
+            <td>
+                {% set mngmnt = geoDev.managementIp %}
+                {% if false != mngmnt %}
+                    <a href="ssh://{{ mngmnt }}" >{{ geoDev.hostname }}</a>
+                {% else %}
+                    {{ geoDev.hostname }}
+                {% endif %}
+                {% if geoDev.cluster_id %}
+                    <br>
+                    <a href="{{ url.cloneToShortUrl.replaceQuery({'cl': geoDev.cluster_id}) }}">(кластер)</a>
+                {% endif %}
+            </td>
+            {#Type#}
+            <td style="vertical-align:middle; text-align:center" title="{{ geoDev.appType }}">
+                <b>
+                    <a href="{{ url.cloneToShortUrl.replaceQuery({'type':  geoDev.appType_id}) }}">
+                        {{ applianceType }}
+                    </a>
+                </b>
+            </td>
+            {#Platform#}
+            <td class="{{ applColorClass }}"><a href="{{ url.cloneToShortUrl.replaceQuery({'pl':  geoDev.platform_id}) }}">
+                    {{ geoDev.platformVendor }} {{ geoDev.platformTitle }}</a> {% if not geoDev.appComment is empty %}<span id="{{ geoDev.appliance_id }}" class="glyphicon glyphicon-info-sign" aria-hidden="true" title="{{ geoDev.appComment }}"></span>{% endif %}
+                <span class="lastUpdate {% if geoDev.appAge is null or geoDev.appAge >= maxAge %} stale {% endif %}" data-last-update="{{ geoDev.lastUpdateDateTime }}" title="{{ geoDev.lastUpdateDateTime }}">{{ geoDev.lastUpdateDate }}</span>
+            </td>
+            {#Software#}
+            <td>
+                {{ geoDev.softwareTitle }} {{ geoDev.softwareVersion }}
+            </td>
+            {#ModuleItems#}
+            <td class="cell-container">
+                <table class="inner table table-bordered">
+                    <tbody>
+                    {% for moduleItem in geoDev.modules %}
+                        <tr>
+                            {% if moduleItem.notFound %}
+                                {% set colorClass = "item-not-found" %}
+                            {% elseif moduleItem.inUse is defined and false == moduleItem.inUse %}
+                                {% set colorClass = "item-not-use" %}
+                            {% else %}
+                                {% set colorClass = "" %}
+                            {% endif %}
+                            <td class="{{ colorClass }}" {% if moduleItem.notFound %}title="{{ moduleItem.lastUpdateDateTime }}"{% endif %}>
+                                {{ moduleItem.title }}
+                                {% if not moduleItem.comment is empty %}
+                                    <span id="{{ moduleItem.moduleItem_id }}" class="glyphicon glyphicon-info-sign" aria-hidden="true" title="{{ moduleItem.comment }}"></span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </td>
+            {#Interfaces#}
+            <td class="cell-container">
+                <table class="inner table interfaces">
+                    <thead>
+                    {% set mngmnt = geoDev.managementIp %}
+                    {% if false != mngmnt %}
+                        <tr>
+                            <th>
+                                <a href="ssh://{{ mngmnt }}" >{{ mngmnt }}</a>
+                            </th>
+                        </tr>
+                    {% endif %}
+                    {% set noMngmnt = geoDev.noManagementPorts %}
+                    {% if noMngmnt.count > 0 %}
+                        <tr>
+                            <th class="toggler btn btn-xs btn-grey"><span class=" js-caret caret-right"></span> другие интерфейсы ({{ noMngmnt.count }})</th>
+                        </tr>
+                    {% endif %}
+                    </thead>
+                    <tbody>
+                    {% for port in noMngmnt %}
+                        <tr title="{{ port.details.description }}">
+                            <td>{{ port.cidrIpAddress }} {% if not port.details.portName is empty %}({{ port.details.portName }}){% endif %}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </td>
+            {#Action#}
+            <td class="text-center">
+                {% if not geoDev.appliance_id is empty %}
+                    <a class="btn btn-success btn-xs" href="/modal/editAppliance?id={{ geoDev.appliance_id }}" role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать устройство"></span></a>
+                    {% if user.level > 5 %}
+                        <a class="btn btn-danger btn-xs" href="/admin/delAppliance?id={{ geoDev.appliance_id }}" role="button"
+                           data-action="delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" title="удалить устройство"></span></a>
+                    {% endif %} {#user level#}
+                {% endif %} {#geoDev.appliance_id#}
+            </td>
+        </tr>
+    {% endfor %}    {#geoDevs#}
+
+    {#</tbody>#}
+{#</table>#}
+
