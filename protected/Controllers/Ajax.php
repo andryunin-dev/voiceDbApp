@@ -76,6 +76,54 @@ class Ajax extends Controller
         $this->data->data = GeoDevModulePort_View::findAllByQuery($queryData)->toArrayRecursive();
         $this->data->info = $info;
     }
+    public function actionDevicesDataHtml()
+    {
+        $columnMap = [
+            'reg' => 'region_id',
+            'loc' => 'location_id',
+            'pl' => 'platform_id',
+            'type' => '"appType_id"'
+        ];
+
+        $http = new Request();
+//        $this->data->url = new UrlExt($http->url->toArrayRecursive());
+        $this->data->url = new UrlExt('/device/info');
+        $params = new Std();
+        $maxAge = 73;
+
+        $params->tableId = $http->get->tableId;
+        $params->resultAsArray = false;
+        $params->currentPage = $http->get->page ?? 1;
+        $params->rowsOnPage = $http->get->rowsOnPage ?? -1;
+        $params->order = $http->get->order ?? 'default';
+        $params->filters = $http->get->filters ?? new Std();
+        $params->search = $http->get->search ?? new Std();
+        $params->url = $http->get->url ?? '';
+        if (! empty($params->url)) {
+            $url = new UrlExt($params->url);
+            $params->currentPage = 1;
+            foreach ($url->query as $key => $val) {
+                if (array_key_exists($key, $columnMap)) {
+                    $params->search->{$columnMap[$key]} = $val;
+                }
+            }
+        }
+
+        $params = GeoDevModulePort_View::findAllByParams($params);
+
+        if (! empty($params->tableId)) {
+            //пишем pagesCount, recordsCount, rowsOnPage,  в cookies
+            Cookies::setCookie($params->tableId . '_currentPage', $params->currentPage);
+            Cookies::setCookie($params->tableId . '_pagesCount', $params->pagesCount);
+            Cookies::setCookie($params->tableId . '_recordsCount', $params->recordsCount);
+            Cookies::setCookie($params->tableId . '_rows', $params->rowsOnPage, time() + 30 * 24 * 3600);
+        }
+        $this->data->geoDevs = $params->data;
+        $this->data->maxAge = $maxAge;
+        $this->data->renderResult = $this->view->render('DevicesDataHtml.html', $this->data);
+        $this->data->geoDevs = '';
+        $this->data->params = $params;
+    }
 
     /**
      * GET параметры передаваемые с запросом:
@@ -85,7 +133,7 @@ class Ajax extends Controller
      * http->get->order
      * http->get->filters->appTypes
      */
-    public function actionDevicesDataHtml()
+    public function actionDevicesDataHtml3()
     {
         $columnMap = [
             'reg' => 'region_id',

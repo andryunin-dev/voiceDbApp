@@ -10,6 +10,5 @@ class Device extends Controller
 
     public function actionInfo()
     {
-
     }
 }

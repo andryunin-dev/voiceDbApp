@@ -84,7 +84,8 @@
     <script>
 
         tableSettings = {
-            dataUrl: "/ajax/devicesDataHtml",
+//            dataUrl: "/ajax/devicesDataHtml",
+            dataUrl: "/ajax/devicesDataHtml.json",
             pager: {
                 rowsOnPage: 53
             },
@@ -118,19 +119,20 @@
 
         jQuery(function ($) {
             APP = APP || {};
-            var params = {rowsOnPage: 5, page: 1, order: 'region', filters: {appTypes: 'cucms'}};
-//            $("#tab_1").jqTable(tableSettings).jqTable('getData', {}, params);
+            APP.devTableFilter = {appTypes: 'netDevices'};
+
+            var params = {};
+
             var devTable = $("#dev_tab");
             devTable.jqTable(tableSettings);
-            var ajaxParams = {
-                filters: {
-                    appTypes: 'netDevices'
-                }
-            };
-            devTable.jqTable('updateBodyHTML', {}, ajaxParams);
             var workSet = devTable.jqTable('getWorkSet');
+            workSet.params.filters =  APP.devTableFilter;
+            //устанавливаем начальный фильтр по девайсам
+//            params.filters = workSet.params.filters;
+            devTable.jqTable('updateBodyJSON', workSet, params);
 
-            var onClickHandler = function () {
+            //обработчик клика по ссылкам
+            var onLinkClickHandler = function () {
                 var href;
                 if (href = $(event.target).attr('href')) {
                     if (href.indexOf(':') > 0) {
@@ -138,15 +140,15 @@
                         return;
                     }
                     event.preventDefault();
-                    params2 = {url: href};
-                    devTable.jqTable('updateBodyHTML', workSet, params2);
+                    params = workSet.params;
+                    params.url = href;
+                    devTable.jqTable('updateBodyJSON', workSet, params);
                 }
             };
-//            devTable.jqTable('regOnBodyEvent', 'click', onClickHandler);
             workSet.bodyObj.on(
                 'click',
                 workSet,
-                onClickHandler
+                onLinkClickHandler
             );
         });
     </script>
