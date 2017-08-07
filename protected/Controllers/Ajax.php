@@ -41,7 +41,9 @@ class Ajax extends Controller
             'pl' => 'platform_id',
             'type' => '"appType_id"',
             'cl' => 'cluster_id',
-            'ven' => '"platformVendor_id"'
+            'ven' => '"platformVendor_id"',
+            'soft' => 'software_id',
+            'softVer' => '"softwareVersion"'
         ];
 
         $http = new Request();
@@ -63,7 +65,11 @@ class Ajax extends Controller
             $params->currentPage = 1;
             foreach ($url->query as $key => $val) {
                 if (array_key_exists($key, $columnMap)) {
-                    $params->search->{$columnMap[$key]} = $val;
+                    if (is_numeric($val)) {
+                        $params->search->{$columnMap[$key]} = $val;
+                    } else {
+                        $params->search->{$columnMap[$key]} = '\'' . $val . '\'';
+                    }
                 } elseif ($key == 'noActiveAge' || $key == 'activeAge') {
                     $params->search->$key = $val;
                 }
@@ -73,7 +79,11 @@ class Ajax extends Controller
             $params->currentPage = 1;
             foreach ($url->query as $key => $val) {
                 if (array_key_exists($key, $columnMap)) {
-                    $params->search->{$columnMap[$key]} = $val;
+                    if (is_numeric($val)) {
+                        $params->search->{$columnMap[$key]} = $val;
+                    } else {
+                        $params->search->{$columnMap[$key]} = '\'' . $val . '\'';
+                    }
                 } elseif ($key == 'noActiveAge' || $key == 'activeAge') {
                     $params->search->$key = $val;
                 }
