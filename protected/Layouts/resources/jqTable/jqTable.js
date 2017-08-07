@@ -71,7 +71,7 @@ jqTable.defaults = {
         firstRow: '-bd-fr'
     },
     footerSelectors: {
-        footer: '-ft'
+        footer: '-ft',
     },
 
     /*
@@ -134,6 +134,9 @@ jqTable.workSetTmpl = {
     },
     body: {
         data: {} //данные для body которые получаем по AJAX
+    },
+    footer: {
+        infoCellObj: "" //ячейка в футере для вывода разной информации
     },
     pager: {
         rowsOnPage: "", //текущее значение rows для пагинатора
@@ -232,6 +235,7 @@ jqTable.workSetTmpl = {
                 workSet.model.bodySelectors.firstRow = workSet.mainSelector + workSet.model.bodySelectors.firstRow;
 
                 workSet.model.footerSelectors.footer = workSet.mainSelector + workSet.model.footerSelectors.footer;
+                workSet.model.footerSelectors.infoRow = workSet.mainSelector + workSet.model.footerSelectors.infoRow;
 
                 workSet.model.wrappers.table = workSet.mainSelector + workSet.model.wrappers.table;
                 workSet.model.wrappers.header = workSet.mainSelector + workSet.model.wrappers.header;
@@ -507,13 +511,11 @@ jqTable.workSetTmpl = {
                 workSet.footerObj.find('tbody').append(
                     $('<tr/>', {
                         id: workSet.model.footer.firstRow.slice(1)
-                    }).append(
-                        $('<td/>', {
-                            id: workSet.model.footer.infoCell.slice(1)
-                        })
-                    )
+                    })
                 );
                 //add to footerInfoObj info cell
+                inner.buildInfoCell(workSet);
+                //add pager
                 inner.buildPager(workSet);
                 return workSet;
             },
@@ -594,7 +596,8 @@ jqTable.workSetTmpl = {
                     }
                     rowListSelector.find('option[value=' + rowsOnPage + ']').attr('selected', 'selected');
                 } else {
-                    rowListSelector.find('option[value=' + workSet.model.pager.rowList[0] + ']').attr('selected', 'selected');
+                    rowListSelector.find('option[value=' + workSet.model.pager.rowList[workSet.model.pager.rowList.length - 1] + ']').attr('selected', 'selected');
+                    workSet.pager.rowsOnPage = -1;
                 }
                 rowListSelector.appendTo(pagerCell);
 
@@ -606,6 +609,26 @@ jqTable.workSetTmpl = {
                 inner.eventsPager(workSet);
                 //обновляем данные пейджинатора
                 inner.updatePager(workSet);
+            },
+            buildInfoCell: function (workSet) {
+                workSet = inner.getWorkSet(this, workSet);
+                var footerFirstRow = workSet.footerObj.find(workSet.model.footer.firstRow);
+
+                workSet.footer.infoCellObj = $('<td/>', {
+                    id: workSet.model.footer.infoCell.slice(1),
+                    class: "table-footer-info-cell"
+                });
+                footerFirstRow.append(workSet.footer.infoCellObj);
+            },
+            footerInfo: function (workSet, info) {
+                workSet = inner.getWorkSet(this, workSet);
+                workSet.footer.infoCellObj.empty();
+                $.each(info, function (index, value) {
+                    var info = $('<span/>').html(value);
+                    workSet.footer.infoCellObj.append(info);
+                    $('<span/>').html(' / ').appendTo(workSet.footer.infoCellObj);
+                });
+                workSet.footer.infoCellObj.find('span').last().remove();
             },
             updatePager: function (workSet) {
                 //вставить в пейджинатор номер текушей страницы, кол-во страниц
@@ -627,7 +650,6 @@ jqTable.workSetTmpl = {
                     workSet.pager.firstPageObj.addClass('ui-state-disabled');
                     workSet.pager.prevPageObj.addClass('ui-state-disabled');
                 }
-
             },
             eventsPager: function (workSet) {
                 workSet = inner.getWorkSet(this, workSet);
@@ -838,39 +860,6 @@ jqTable.workSetTmpl = {
                 inner.globalEvents(workSet);
                 return $(workSet);
             },
-            /**
-             *
-             * @param workSet
-             * @param params
-             */
-            updateBodyJSON2: function (workSet, params) {
-                workSet = inner.getWorkSet(this, workSet);
-
-                var requestParams = {
-                    columnList: '', //либо массив с именами полей для выгрузки, либо пусто (undefined)
-                    rowsOnPage: workSet.pager.rowsOnPage, //если -1 то все строки
-                    page: workSet.pager.page,
-                    order: 'default',
-                    filters: {},
-                    search: {}
-                };
-                requestParams = $.extend(true, requestParams, params);
-                function renderBody(bodyData) {
-                    workSet.tableData.body = bodyData.data;
-                    var template = $.templates(workSet.model.templates.table);
-                    var html = $(template.render(workSet.tableData));
-                    workSet.bodyObj.children('tbody').first().append(html.find('tbody').html());
-                    inner.applyBodyStyles(workSet);
-                }
-                $.ajax({
-                    url: workSet.model.dataUrl,
-                    data: requestParams,
-                    success: renderBody,
-                    error: function () {
-                        console.log('Error in Ajax');
-                    }
-                });
-            },
             updateBodyJSON: function (workSet, params) {
 
                 workSet = inner.getWorkSet(this, workSet);
@@ -897,6 +886,14 @@ jqTable.workSetTmpl = {
                     // workSet.pager.page = +Cookies(workSet.mainSelector.slice(1) + '_currentPage');
                     // workSet.pager.pages = +Cookies(workSet.mainSelector.slice(1) + '_pagesCount');
                     // workSet.pager.records = +Cookies(workSet.mainSelector.slice(1) + '_recordsCount');
+                    var info = {};
+                    if (bodyData.info.recordsCount) {
+                        info.recordsCount = 'Всего записей: ' + bodyData.info.recordsCount;
+                    }
+                    if (bodyData.info.peopleCount) {
+                        info.peopleCount = 'Сотрудников: ' + bodyData.info.peopleCount;
+                    }
+                    inner.footerInfo(workSet, info);
                     inner.updatePager(workSet);
                     inner.applyBodyStyles(workSet);
                     $(".toggler").on(

@@ -101,7 +101,7 @@
                     region: {name: 'Регион', width: 10},
                     office: {id: 'office', name: 'Офис', width: 15, class: "text-left"},
                     hostname: {id: 'hostname', name: 'Hostname', width: 10},
-                    appType: {id: 'app-type', name: 'Тип', width: "40px"},
+                    appType: {id: 'app-type', name: 'Тип', width: "45px"},
                     appliance: {id: 'appliance', name: 'Оборудование', width: 20},
                     soft: {id: 'soft', name: 'ПО', width: 15},
                     module: {id: 'module', name: 'Модуль', width: 15},
@@ -119,11 +119,15 @@
 
         jQuery(function ($) {
             APP = APP || {};
-            APP.devTableFilter = {appTypes: 'netDevices'};
+//            APP.devTableFilter = {appTypes: 'netDevices'};
+            APP.devTableFilter = {appTypes: 'all'};
 
             var params = {};
 //            params.url = '/device/info?ven=8&pl=56';
-
+//            params.url = '/admin/devices?ven=8&pl=66';
+            if (window.location.search.length > 1) {
+                params.extUrl = window.location.href;
+            }
             var devTable = $("#dev_tab");
             devTable.jqTable(tableSettings);
             var workSet = devTable.jqTable('getWorkSet');

@@ -31,6 +31,8 @@
 }
 .jqtable .jqt-bd-table td {
     padding: 2px 5px;
+    white-space: normal;
+    word-wrap: break-word;
 }
 /* footer */
 .jqtable .ui-separator {
@@ -57,7 +59,13 @@
 .jqtable .jqt-pager .ui-icon {
     cursor: pointer;
 }
-
+/*info cell*/
+.jqtable .table-footer-info-cell {
+    padding: 0 10px;
+    height: 2em;
+    text-align: left;
+    font-size: inherit;
+}
 
 /**/
 

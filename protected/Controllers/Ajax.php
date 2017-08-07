@@ -6,6 +6,7 @@ namespace App\Controllers;
 use App\Components\Cookies;
 use App\Components\Links;
 use App\Components\UrlExt;
+use App\Models\LotusLocation;
 use App\ViewModels\GeoDevModulePort_View;
 use T4\Core\Std;
 use T4\Dbal\Query;
@@ -31,51 +32,6 @@ class Ajax extends Controller
 
     }
 
-    /**
-     * get параметры передаваемые от клиента:
-     * order - порядок сортировки (см. protected static $sortOrders в GeoDevModulePort_View)
-     * filters->appTypes = типы девайсов которые попадут в выборку (берем из devTypesTrait)
-     */
-    public function actionDevicesData_old()
-    {
-        $http = new Request();
-        $info = new Std();
-
-        $info->currentPage = $http->get->page ?? 1;
-        $info->order = GeoDevModulePort_View::sortOrder($http->get->order);
-        //делаем фильтр по типам устройств (если задан параметр filters->appTypes)
-        $info->filters->appTypes = $http->get->filters->appTypes ?? 'all';
-        $info->filters->appTypes = GeoDevModulePort_View::appTypeFilter($http->get->filters->appTypes);
-        $where[] = '"appType_id" IN (' . implode(',', $info->filters->appTypes) . ')';
-        //получаем количество записей и кол-во страниц с учетом фильтров
-        $queryRecordsCount = (new Query())
-            ->select()
-            ->from(GeoDevModulePort_View::getTableName())
-            ->where(implode(' AND ', $where));
-        $info->recordsCount = GeoDevModulePort_View::countAllByQuery($queryRecordsCount);
-
-        //если rowsOnPage не задан или rowsOnPage = -1 (выводим все на одной странице)
-        $info->rowsOnPage = (empty($http->get->rowsOnPage) || $http->get->rowsOnPage < 0) ?
-            $info->recordsCount :
-            $http->get->rowsOnPage;
-        $info->pagesCount = ceil($info->recordsCount / $info->rowsOnPage);
-
-        //если в параметрах запроса номер страницы больше максимального, то устанавливаем его в макс.
-        $info->currentPage = $info->currentPage <= $info->pagesCount ? $info->currentPage : $info->pagesCount;
-        $info->offset = ($info->currentPage - 1) * $info->rowsOnPage;
-        $info->columns = empty($http->get->columnList) ? GeoDevModulePort_View::findColumns() : GeoDevModulePort_View::findColumns($http->get->columnList);
-
-        //создаем запрос данных
-        $queryData = (new Query())
-            ->select($info->columns)
-            ->from(GeoDevModulePort_View::getTableName())
-            ->where(implode(' AND ', $where))
-            ->order($info->order)
-            ->limit($info->rowsOnPage)
-            ->offset($info->offset);
-        $this->data->data = GeoDevModulePort_View::findAllByQuery($queryData)->toArrayRecursive();
-        $this->data->info = $info;
-    }
     public function actionDevicesData()
     {
         $columnMap = [
@@ -85,11 +41,10 @@ class Ajax extends Controller
             'pl' => 'platform_id',
             'type' => '"appType_id"',
             'cl' => 'cluster_id',
-            'ven' => 'platformVendor_id'
+            'ven' => '"platformVendor_id"'
         ];
 
         $http = new Request();
-//        $this->data->url = new UrlExt($http->url->toArrayRecursive());
         $this->data->url = new UrlExt('/device/info');
         $params = new Std();
         $maxAge = 73;
@@ -102,8 +57,17 @@ class Ajax extends Controller
         $params->filters = $http->get->filters ?? new Std();
         $params->search = $http->get->search ?? new Std();
         $params->url = $http->get->url ?? '';
+        $params->extUrl = $http->get->extUrl ?? '';
         if (! empty($params->url)) {
             $url = new UrlExt($params->url);
+            $params->currentPage = 1;
+            foreach ($url->query as $key => $val) {
+                if (array_key_exists($key, $columnMap)) {
+                    $params->search->{$columnMap[$key]} = $val;
+                }
+            }
+        } elseif (! empty($params->extUrl)) {
+            $url = new UrlExt($params->extUrl);
             $params->currentPage = 1;
             foreach ($url->query as $key => $val) {
                 if (array_key_exists($key, $columnMap)) {
@@ -113,6 +77,7 @@ class Ajax extends Controller
         }
 
         $params = GeoDevModulePort_View::findAllByParams($params);
+        $params = GeoDevModulePort_View::findAllLotusIdByParams($params);
 
         if (! empty($params->tableId)) {
             //пишем pagesCount, recordsCount, rowsOnPage,  в cookies
@@ -122,8 +87,16 @@ class Ajax extends Controller
             Cookies::setCookie($params->tableId . '_rows', $params->rowsOnPage, time() + 30 * 24 * 3600);
         }
         $this->data->geoDevs = $params->data;
+        $peopleInOffices = [];
+        foreach ($params->locations as $location) {
+            if (! key_exists($location->lotusId, $peopleInOffices)) {
+                $peopleInOffices[$location->lotusId] = LotusLocation::employeesByLotusId($location->lotusId);
+            }
+        }
+        $this->data->info->peopleCount = array_sum($peopleInOffices);
+        $this->data->info->recordsCount = $params->recordsCount;
         $this->data->maxAge = $maxAge;
-        $this->data->renderResult = $this->view->render('DevicesDataHtml.html', $this->data);
+        $this->data->renderResult = $this->view->render('DevicesDataBody.html', $this->data);
         $this->data->geoDevs = '';
         $this->data->params = $params;
     }

@@ -68,6 +68,9 @@
                     <li {% if activeLink.devices == true %}class="active" {% endif %}>
                         <a href="/admin/devices">Оборудование</a>
                     </li>
+                    <li {% if activeLink.devicesNew == true %}class="active" {% endif %}>
+                        <a href="/device/info">Оборудование(beta)</a>
+                    </li>
                     {#<li class="dropdown {% if activeLink.devices == true %} active {% endif %}">#}
                     {#<a href="#" class="dropdown-toggle active" data-toggle="dropdown">Оборудование <b class="caret"></b></a>#}
                     {#<ul class="dropdown-menu">#}
@@ -85,6 +88,9 @@
                     </li>
                     <li {% if activeLink.report == true %}class="active" {% endif %}>
                         <a href="/report">Reports</a>
+                    </li>
+                    <li {% if activeLink.reportNew == true %}class="active" {% endif %}>
+                        <a href="/report/new">Reports(beta)</a>
                     </li>
 
                 </ul>

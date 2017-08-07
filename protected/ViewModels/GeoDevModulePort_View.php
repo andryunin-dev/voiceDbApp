@@ -98,11 +98,11 @@ class GeoDevModulePort_View extends Model
     ];
 
     protected static $sortOrders = [
-        'default' => 'region, city, office, hostname, appliance_id',
-        'region' => 'region, city, office, hostname, appliance_id',
-        'city' => 'city, office, hostname, appliance_id',
-        'office' => 'office, hostname, appliance_id, city',
-        'hostname' => 'hostname, appliance_id',
+        'default' => 'region, city, office, "appType", hostname, appliance_id',
+        'region' => 'region, city, office, appType, hostname, appliance_id',
+        'city' => 'city, office appType, hostname, appliance_id',
+        'office' => 'office, appType, hostname, appliance_id, city',
+        'hostname' => ' hostname, appType, appliance_id',
     ];
 
     public static function sortOrder($orderName = 'default')
@@ -256,6 +256,48 @@ class GeoDevModulePort_View extends Model
         if (true === $params->resultAsArray) {
             $params->data = $params->data->toArrayRecursive();
         }
+        return $params;
+    }
+    public static function findAllLotusIdByParams(Std $params)
+    {
+        //Todo - реализовать поиск по параметрам $search
+        $params->filters = ($params->filters instanceof Std) ? $params->filters : new Std();
+        if (is_string($params->filters->appTypes)) {
+            $params->filters->appTypes = empty($params->filters->appTypes) ? self::appTypeFilter() : self::appTypeFilter($params->filters->appTypes);
+        }
+        $params->search = ($params->search instanceof Std) ? $params->search->toArray() : $params->search;
+        $params->columns = 'lotusId';
+        /**
+         * @var Std $result
+         * properties:
+         * int currentPage
+         * string $order
+         * array $filters
+         * int $recordsCount
+         * int $rowsOnPage
+         * int $pagesCount
+         * int $currentPage
+         * int $offset
+         * array $columns
+         *
+         */
+
+        $where[] = '"appType_id" IN (' . implode(',', $params->filters->appTypes) . ')';
+        // собираем search
+        if (! empty($params->search)) {
+            foreach ($params->search as $key => $val) {
+                $where[] = $key . '=' . $val;
+            }
+        }
+
+        //создаем запрос данных
+        $queryData = (new Query())
+            ->select($params->columns)
+            ->from(self::getTableName())
+            ->group('"' . $params->columns . '"')
+            ->where(implode(' AND ', $where));
+
+        $params->locations = self::findAllByQuery($queryData);
         return $params;
     }
 }

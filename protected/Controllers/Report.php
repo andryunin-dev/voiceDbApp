@@ -35,4 +35,20 @@ class Report extends Controller
         $this->data->settings->activeTab = (Helpers::issetCookie('netcmdb_report_tab')) ? Helpers::getCookie('netcmdb_report_tab') : 'platforms';
         $this->data->activeLink->report = true;
     }
+    public function actionNew()
+    {
+        $this->data->vendors = Vendor::findAll(['order' => 'title']);
+        $this->data->software = Software::findAll(['order' => 'title']);
+        $this->data->modules = Module::findAll(['order' => 'title']);
+        $this->data->applianceTypes = ApplianceType::findAll(['order' => 'type']);
+        $this->data->devsUrl = new UrlExt('/device/info');
+
+        $this->data->platforms = PlatformReport::findAll();
+        $this->data->types = ApplianceTypeReport::findAll();
+        $this->data->softs = SoftReport::findAll();
+        $this->data->vendors = VendorReport::findAll();
+
+        $this->data->settings->activeTab = (Helpers::issetCookie('netcmdb_report_tab')) ? Helpers::getCookie('netcmdb_report_tab') : 'platforms';
+        $this->data->activeLink->reportNew = true;
+    }
 }
