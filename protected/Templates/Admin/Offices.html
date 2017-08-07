@@ -1,6 +1,6 @@
 {% extends 'Index.html' %}
 {% block navBarInfo %}
-    <p class="navbar-text col-xs-2 text-center">Количество офисов: {{ navbar.count }}</p>
+    <p class="navbar-text col-xs-3 text-center">Количество офисов: {{ navbar.count }} / Открытых: {{ navbar.openedCount }}</p>
 {% endblock %}
 {% block main %}
     <div class="row">
