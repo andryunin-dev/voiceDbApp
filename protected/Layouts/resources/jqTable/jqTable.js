@@ -657,6 +657,11 @@ jqTable.workSetTmpl = {
                     'click',
                     workSet,
                     function (event) {
+                        var currentTime = $.now();
+                        if ((currentTime - APP.lastClick) < 300) {
+                            return;
+                        }
+                        APP.lastClick = currentTime;
                         if ($(event.target).hasClass('ui-icon-seek-next')) {
                             event.data.pager.page += 1;
                             params = {
