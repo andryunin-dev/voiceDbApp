@@ -158,6 +158,9 @@ class Phone extends Appliance
                 'vlanId' => trim($phoneData->VLANId->__toString()),
                 'userLocale' => trim($phoneData->UserLocale->__toString()),
             ]);
+
+            $this->debugLogger->info('PHONE: ' . '[model]=' . $this->model . '[name]=' . $this->name . ' [ip]=' . $this->ipAddress . ' [message]=Web NetConf - XML     OK');
+
         } else {
             // Чтение HTML
             $dom = HtmlDomParser::str_get_html(file_get_contents('http://' . $this->ipAddress . '/NetworkConfiguration'));
@@ -214,6 +217,8 @@ class Phone extends Appliance
                     }
                 }
 
+                $this->debugLogger->info('PHONE: ' . '[model]=' . $this->model . '[name]=' . $this->name . ' [ip]=' . $this->ipAddress . ' [message]=Web NetConf - HTML     OK');
+
             } else {
                 return null;
             }
@@ -260,6 +265,7 @@ class Phone extends Appliance
                     ]);
             }
 
+            $this->debugLogger->info('PHONE: ' . '[model]=' . $this->model . '[name]=' . $this->name . ' [ip]=' . $this->ipAddress . ' [message]=Web PortInfo - XML     OK');
 
         } else {
             // Чтение HTML
@@ -299,6 +305,8 @@ class Phone extends Appliance
                         ]);
                     }
                 }
+
+                $this->debugLogger->info('PHONE: ' . '[model]=' . $this->model . '[name]=' . $this->name . ' [ip]=' . $this->ipAddress . ' [message]=Web PortInfo - HTML     OK');
 
             } else {
                 return null;
@@ -636,12 +644,13 @@ class Phone extends Appliance
             'callManager2' => preg_replace('~[ ]+~', ' ', $this->callManager2),
             'callManager3' => preg_replace('~[ ]+~', ' ', $this->callManager3),
             'callManager4' => preg_replace('~[ ]+~', ' ', $this->callManager4),
-            'vlanId' => $this->vlanId,
+            'vlanId' => (int)$this->vlanId,
             'userLocale' => $this->userLocale,
             'cdpNeighborDeviceId' => $this->cdpNeighborDeviceId,
             'cdpNeighborIP' => (false === ($neighborIp = (new IpTools(($this->cdpNeighborIP) ?? ''))->address)) ? null : $neighborIp,
             'cdpNeighborPort' => $this->cdpNeighborPort,
-        ])->save();
+        ]);
+        $this->phoneInfo->save();
 
         $this->debugLogger->info('process: ' . '[name]=' . $this->ipAddress . '; [phoneInfo]= OK');
         $this->debugLogger->info('END: ' . '[name]=' . $this->ipAddress);
@@ -684,7 +693,7 @@ class Phone extends Appliance
                     'MaxReturnedDevices' => self::MAXRETURNEDDEVICES,
                     'Class' => self::RISPHONETYPE,
                     'Model' => self::ALLMODELS,
-                    'Status' => self::PHONESTATUS_ANY,
+                    'Status' => self::PHONESTATUS_REGISTERED,
                     'SelectBy' => 'Name',
                     'SelectItems' => $items,
                 ]);
@@ -757,18 +766,24 @@ class Phone extends Appliance
         }
 
         // Get phone's data
-        $result = $axl->ExecuteSQLQuery(['sql' => 'SELECT d."name" AS Device, d."description", css."name" AS css, css2."name" AS name_off_clause, dp."name" AS dPool, n2."dnorpattern" AS prefix, n."dnorpattern", n."alertingname" AS FIO, partition."name" AS pt, tm."name" AS type FROM device AS d INNER JOIN callingsearchspace AS css ON css."pkid" = d."fkcallingsearchspace" AND d."name" = "'. $this->name . '" INNER JOIN devicenumplanmap AS dmap ON dmap."fkdevice" = d."pkid" AND d."tkclass" = 1 INNER JOIN typemodel AS tm ON d."tkmodel" = tm."enum" INNER JOIN numplan AS n ON dmap."fknumplan" = n."pkid" INNER JOIN routepartition AS partition ON partition."pkid" = n."fkroutepartition" INNER JOIN DevicePool AS dp ON dp."pkid" = d.fkDevicePool INNER JOIN callingsearchspace AS css2 ON css2."clause" LIKE "%" || partition."name" || "%" INNER JOIN numplan AS n2 ON n2."fkcallingsearchspace_translation" = css2."pkid" WHERE n2."tkpatternusage" = 3 AND n2."dnorpattern" LIKE "5%"'])->return->row;
+        $request = 'SELECT d."name" AS Device, d."description", css."name" AS css, css2."name" AS name_off_clause, dp."name" AS dPool, n2."dnorpattern" AS prefix, n."dnorpattern", n."alertingname" AS FIO, partition."name" AS pt, tm."name" AS type FROM device AS d INNER JOIN callingsearchspace AS css ON css."pkid" = d."fkcallingsearchspace" INNER JOIN devicenumplanmap AS dmap ON dmap."fkdevice" = d."pkid" AND d."tkclass" = 1 INNER JOIN typemodel AS tm ON d."tkmodel" = tm."enum" INNER JOIN numplan AS n ON dmap."fknumplan" = n."pkid" INNER JOIN routepartition AS partition ON partition."pkid" = n."fkroutepartition" INNER JOIN DevicePool AS dp ON dp."pkid" = d.fkDevicePool INNER JOIN callingsearchspace AS css2 ON css2."clause" LIKE "%" || partition."name" || "%" INNER JOIN numplan AS n2 ON n2."fkcallingsearchspace_translation" = css2."pkid" WHERE n2."tkpatternusage" = 3 AND n2."dnorpattern" LIKE "5%"';
 
-        $this->fill([
-            'css' => trim($result->css),
-            'devicePool' => trim($result->dpool),
-            'model' => trim($result->type),
-            'prefix' => trim($result->prefix),
-            'phoneDN' => trim($result->dnorpattern),
-            'alertingName' => trim($result->fio),
-            'partition' => trim($result->pt),
-            'description' => trim($result->description),
-        ]);
+        $items = $axl->ExecuteSQLQuery(['sql' => $request])->return->row;
+
+        foreach ($items as $item) {
+            if ($item->device == $this->name) {
+                $this->fill([
+                    'css' => trim($item->css),
+                    'devicePool' => trim($item->dpool),
+                    'model' => trim($item->type),
+                    'prefix' => trim($item->prefix),
+                    'phoneDN' => trim($item->dnorpattern),
+                    'alertingName' => trim($item->fio),
+                    'partition' => trim($item->pt),
+                    'description' => trim($item->description),
+                ]);
+            }
+        }
 
         return $this;
     }
@@ -794,6 +809,7 @@ class Phone extends Appliance
         // ------------------- RisPort Service -------------------------------------
         if (is_null($phone->getDataFromCucmRis($cucmIp))) {
             $phone->debugLogger->info('PHONE: ' . '[name]=' . $phone->name . ' [publisher]=' . $cucmIp . ' [message]=It is not found in RisPort on the CUCM');
+            return null;
         }
         // ------------------- DeviceInformation -------------------------------------
         if (is_null($phone->getDataFromWebDevInfo())) {
