@@ -32,7 +32,7 @@ class PhoneInfo extends Model
             'callManager2' => ['type' => 'string'],
             'callManager3' => ['type' => 'string'],
             'callManager4' => ['type' => 'string'],
-            'vlanId' => ['type' => 'string'],
+            'vlanId' => ['type' => 'int'],
             'userLocale' => ['type' => 'string'],
             'cdpNeighborDeviceId' => ['type' => 'string'],
             'cdpNeighborIP' => ['type' => 'string'],
