@@ -225,7 +225,13 @@ class GeoDevModulePort_View extends Model
         // собираем search
         if (! empty($params->search)) {
             foreach ($params->search as $key => $val) {
-                $where[] = $key . '=' . $val;
+                if ($key == 'noActiveAge') {
+                    $where[] =  '("appAge"' . '>=' . $val . ' OR "appAge" ISNULL)';
+                } elseif ($key == 'activeAge') {
+                    $where[] = '"appAge" ' . '< ' . $val;
+                } else {
+                    $where[] = $key . '=' . $val;
+                }
             }
         }
         //получаем количество записей и кол-во страниц с учетом фильтров
@@ -286,7 +292,13 @@ class GeoDevModulePort_View extends Model
         // собираем search
         if (! empty($params->search)) {
             foreach ($params->search as $key => $val) {
-                $where[] = $key . '=' . $val;
+                if ($key == 'noActiveAge') {
+                    $where[] = '("appAge"' . '>=' . $val . ' OR "appAge" ISNULL)';
+                } elseif ($key == 'activeAge') {
+                    $where[] = '"appAge"' . '<' . $val;
+                } else {
+                    $where[] = $key . '=' . $val;
+                }
             }
         }
 

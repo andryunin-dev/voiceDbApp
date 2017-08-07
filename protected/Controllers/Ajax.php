@@ -64,6 +64,8 @@ class Ajax extends Controller
             foreach ($url->query as $key => $val) {
                 if (array_key_exists($key, $columnMap)) {
                     $params->search->{$columnMap[$key]} = $val;
+                } elseif ($key == 'noActiveAge' || $key == 'activeAge') {
+                    $params->search->$key = $val;
                 }
             }
         } elseif (! empty($params->extUrl)) {
@@ -72,6 +74,8 @@ class Ajax extends Controller
             foreach ($url->query as $key => $val) {
                 if (array_key_exists($key, $columnMap)) {
                     $params->search->{$columnMap[$key]} = $val;
+                } elseif ($key == 'noActiveAge' || $key == 'activeAge') {
+                    $params->search->$key = $val;
                 }
             }
         }
