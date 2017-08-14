@@ -191,10 +191,11 @@ class Export extends Controller
     {
         $switch = 'switch';
         $router = 'router';
+        $vg = 'vg';
 
         $dataports = (DataPort::findAllByColumn('isManagement', true))->filter(
-            function ($dataport) use ($router, $switch) {
-                return $router == $dataport->appliance->type->type || $switch == $dataport->appliance->type->type;
+            function ($dataport) use ($router, $switch, $vg) {
+                return $router == $dataport->appliance->type->type || $switch == $dataport->appliance->type->type || $vg == $dataport->appliance->type->type;
             }
         );
 
