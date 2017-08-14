@@ -1,11 +1,15 @@
 <?php
 namespace App\Components;
 
+use T4\Core\Exception;
+
 class AxlClient
 {
+    const DEFAULTSCHEMA = '7.1';
     static $instance;
+    static $schema;
 
-    protected function __construct(string $cucmIp)
+    protected function __construct(string $cucmIp, string $axlSchema = null)
     {
         $ip = (new IpTools($cucmIp))->address;
 
@@ -24,24 +28,53 @@ class AxlClient
                 'ciphers' => 'HIGH',
             ]
         ]);
-        // Todo - попробовать получить $schema из CUCM
-        $schema = 'sch7_1';
 
-        self::$instance->$cucmIp = new \SoapClient(realpath(ROOT_PATH . '/AXLscheme/' . $schema . '/AXLAPI.wsdl'), [
-            'trace' => true,
-            'exception' => true,
-            'location' => 'https://' . $ip . ':8443/axl',
-            'login' => $username,
-            'password' => $password,
-            'stream_context' => $context,
-        ]);
+
+        if (is_null($axlSchema)) {
+            $axlSchema = self::DEFAULTSCHEMA;
+
+            if (false === realpath(ROOT_PATH . '/AXLscheme/' . $axlSchema . '/AXLAPI.wsdl')) {
+                throw new Exception('AxlClient: Default AXL scheme is not found');
+            }
+
+            self::$instance->default = new \SoapClient(realpath(ROOT_PATH . '/AXLscheme/' . $axlSchema . '/AXLAPI.wsdl'), [
+                'trace' => true,
+                'exception' => true,
+                'location' => 'https://' . $ip . ':8443/axl',
+                'login' => $username,
+                'password' => $password,
+                'stream_context' => $context,
+            ]);
+
+        } else {
+            if (false === realpath(ROOT_PATH . '/AXLscheme/' . $axlSchema . '/AXLAPI.wsdl')) {
+                throw new Exception('AxlClient: AXL scheme ' . $axlSchema . ' is not found');
+            }
+
+            self::$instance->$cucmIp = new \SoapClient(realpath(ROOT_PATH . '/AXLscheme/' . $axlSchema . '/AXLAPI.wsdl'), [
+                'trace' => true,
+                'exception' => true,
+                'location' => 'https://' . $ip . ':8443/axl',
+                'login' => $username,
+                'password' => $password,
+                'stream_context' => $context,
+            ]);
+
+            self::$schema->$cucmIp = $axlSchema;
+        }
     }
 
     public static function instance(string $cucmIp)
     {
         if (!isset(self::$instance->$cucmIp)) {
-            new self($cucmIp);
+            if (!isset(self::$instance->default)) {
+                new self($cucmIp);
+            }
+
+            preg_match('~^\d+\.\d+~', (self::$instance->default)->GetCCMVersion($cucmIp)->return->componentVersion->version, $axlSchema);
+            new self($cucmIp, $axlSchema[0]);
         }
+
         return self::$instance->$cucmIp;
     }
 }

@@ -16,7 +16,9 @@ class Phone extends Appliance
 {
     const PHONE = 'phone';
     const RISPHONETYPE = 'Phone';
-    const MAXRETURNEDDEVICES = 1000; // max 1000 (ограничение RisPort Service)
+    const RISPANYTYPE = 'Any';
+    const MAXRETURNEDDEVICES_SCH_7_1 = 200; // ограничение RisPort Service for cucm 7.1
+    const MAXRETURNEDDEVICES_SCH_9_1 = 1000; // ограничение RisPort Service for cucm 9.1
     const MAXREQUESTSCOUNT = 15; // ограничение RisPort Service
     const TIMEINTERVAL = 60; // секунды
     const ALLMODELS = 255; // All phone's models
@@ -42,35 +44,37 @@ class Phone extends Appliance
      * @param string $cucmIp
      * @return Collection
      */
-    public static function findAllIntoCucm(string $cucmIp)
+    public static function findAllRegisteredIntoCucm(string $cucmIp)
     {
         $logger = RLogger::getInstance('Phone', realpath(ROOT_PATH . '/Logs/phones.log'));
 
         // Get list of all subscribers and publisher in the cluster
         $listAllProcessNodes = self::findAllCucmNodes($cucmIp);
 
-        // Получить данные по телефонам из cucm используя AXL
+        // Получить все телефоны из AXL
         $axlPhones = self::findAllIntoCucmAxl($cucmIp);
 
-        // Получить данные по зарегистрированным телефонам из cucm используя RisPort
-        $registeredPhones = self::findRegisteredIntoCucmRis($cucmIp, $axlPhones, $listAllProcessNodes);
+        // Получить все устройства из AXL
+        $axlDevices = self::findAllDevicesIntoCucmAxl($cucmIp);
 
-        // Добавить недостающие поля из AxlPhones в зарегистрированные телефоны из RisPhones
-        foreach ($registeredPhones as $phone) {
-            $axlPhone = $axlPhones->findByAttributes(['device' => $phone->name]);
+        // Получить зарегистрированные устройства из RisPort
+        $registeredDevices = self::findAllRegisteredDevicesIntoCucmRis($cucmIp, $axlDevices, $listAllProcessNodes);
 
-            if (!is_null($axlPhone)) {
+        // Найти зарегистрированные телефоны
+        $registeredPhones = new Collection();
+        foreach ($registeredDevices as $device) {
+            $phone = $axlPhones->findByAttributes(['name' => $device->name]);
+
+            if (!is_null($phone)) {
                 $phone->fill([
-                    'css' => trim($axlPhone->css),
-                    'devicePool' => trim($axlPhone->dpool),
-                    'prefix' => trim($axlPhone->prefix),
-                    'phoneDN' => trim($axlPhone->dnorpattern),
-                    'alertingName' => trim($axlPhone->fio),
-                    'partition' => trim($axlPhone->pt),
-                    'model' => trim($axlPhone->type),
+                    'cucmName' => $device->cucmName,
+                    'cucmIpAddress' => $device->cucmIpAddress,
+                    'ipAddress' => $device->ipAddress,
+                    'status' => $device->status,
                 ]);
-            } else {
-                $logger->info('PHONE: ' . '[name]=' . $phone->name . ' [ip]=' . $phone->ipAddress . ' [publisher]=' . $cucmIp . ' [message]=It is not found in AXL on the publisher');
+                $registeredPhones->add($phone);
+            }else {
+                $logger->info('REGISTERED DEVICE: [message]=It is not found in AXL; [class]=' . $device->class . '; [name]=' . $device->name . ';  [description]=' . $device->description . ';  [dirNumber]=' . ((empty($device->dirNumber)) ? '""' : $device->dirNumber) . '; [cucm]=' . $cucmIp );
             }
         }
 
@@ -91,12 +95,7 @@ class Phone extends Appliance
             }
         }
 
-        // Возвращать только те телефоны по которым были ответы от AXL, RIS, DeviceInformationX
-        return $registeredPhones->filter(
-            function ($phone) {
-                return isset($phone->versionID) && isset($phone->model) && isset($phone->ipAddress);
-            }
-        );
+        return $registeredPhones;
     }
 
     /**
@@ -319,29 +318,41 @@ class Phone extends Appliance
 
 
     /**
-     * Получить данные по зарегистрированным телефонам из cucm используя RisPort
+     * Получить данные по зарегистрированным устройствам из cucm используя RisPort
      *
-     * @param string $ip
+     * @param string $cucmIp
      * @param Collection $phones
      * @param Collection $nodes
      * @return Collection
      */
-    protected static function findRegisteredIntoCucmRis(string $ip, Collection $phones, Collection $nodes)
+    protected static function findAllRegisteredDevicesIntoCucmRis(string $cucmIp, Collection $phones, Collection $nodes)
     {
-        $ris = RisPortClient::instance($ip);
+        // Определить MAX RETURNED DEVICES
+        switch (AxlClient::$schema->$cucmIp) {
+            case '7.1':
+                $maxReturnedDevices = self::MAXRETURNEDDEVICES_SCH_7_1;
+                break;
+            case '9.1':
+                $maxReturnedDevices = self::MAXRETURNEDDEVICES_SCH_9_1;
+                break;
+            default:
+                $maxReturnedDevices = self::MAXRETURNEDDEVICES_SCH_7_1;
+        }
 
-        // ЕСЛИ кол-во опрашиваемых ($phones) телефонов БОЛЬШЕ, чем кол-во (MAXRETURNEDDEVICES) отдаваемых callmanager за один запрос,
+        $ris = RisPortClient::instance($cucmIp);
+
+        // ЕСЛИ кол-во опрашиваемых ($phones) телефонов БОЛЬШЕ, чем кол-во $maxReturnedDevices отдаваемых callmanager за один запрос,
         // ТО опрашивать callmanager будем по телефонам из коллекции $phones в несколько запросов (не более 15 запросов в минуту)
-        // 1 запрос - кол-во телефонов = MAXRETURNEDDEVICES
-        $registeredPhones = new Collection();
-        if (self::MAXRETURNEDDEVICES < $phones->count()) {
+        // 1 запрос - кол-во телефонов = $maxReturnedDevices
+        $registeredDevices = new Collection();
+        if ($maxReturnedDevices < $phones->count()) {
             $phonesCount = 0; // кол-во телефонов в запросе
             $requestsCount = 0; // кол-во запросов
             foreach ($phones as $phone) {
-                $items[] = ['Item' => $phone->device];
+                $items[] = ['Item' => $phone->name];
                 $phonesCount++;
 
-                if (self::MAXRETURNEDDEVICES == $phonesCount) {
+                if ($maxReturnedDevices == $phonesCount) {
                     // На старте включаем секундомер
                     if (0 === $requestsCount) {
                         $startTime = (int)microtime(true);
@@ -368,8 +379,8 @@ class Phone extends Appliance
                     }
 
                     $risPhones = $ris->SelectCmDevice('',[
-                        'MaxReturnedDevices' => self::MAXRETURNEDDEVICES,
-                        'Class' => self::RISPHONETYPE,
+                        'MaxReturnedDevices' => $maxReturnedDevices,
+                        'Class' => self::RISPANYTYPE,
                         'Model' => self::ALLMODELS,
                         'Status' => self::PHONESTATUS_REGISTERED,
                         'SelectBy' => 'Name',
@@ -380,14 +391,16 @@ class Phone extends Appliance
                             $node = $nodes->findByAttributes(['cmNodeIpAddress' => $cmNode->Name]);
 
                             foreach ($cmNode->CmDevices as $cmDevice) {
-                                $registeredPhones->add(
-                                    (new self())->fill([
+                                $registeredDevices->add(
+                                    (new Std())->fill([
                                         'cucmName' => trim($node->cmNodeName),
                                         'cucmIpAddress' => trim($node->cmNodeIpAddress),
-                                        'name' => trim($cmDevice->Name),
+                                        'name' => mb_strtoupper(trim($cmDevice->Name)),
                                         'ipAddress' => trim($cmDevice->IpAddress),
                                         'description' => trim($cmDevice->Description),
                                         'status' => trim($cmDevice->Status),
+                                        'dirNumber' => trim($cmDevice->DirNumber), // для вывода по devices
+                                        'class' => trim($cmDevice->Class), // для вывода по devices
                                     ])
                                 );
                             }
@@ -402,10 +415,10 @@ class Phone extends Appliance
                 }
             }
         } else {
-            // ЕСЛИ кол-во опрашиваемых телефонов МЕНЬШЕ, чем кол-во (MAXRETURNEDDEVICES) отдаваемых callmanager за один запрос,
+            // ЕСЛИ кол-во опрашиваемых телефонов МЕНЬШЕ, чем кол-во $maxReturnedDevices отдаваемых callmanager за один запрос,
             // ТО делаем выборку всех зарегистрированных на callmanager телефонов одним запросом
             $risPhones = $ris->SelectCmDevice('',[
-                'Class' => self::RISPHONETYPE,
+                'Class' => self::RISPANYTYPE,
                 'Model' => self::ALLMODELS,
                 'Status' => self::PHONESTATUS_REGISTERED,
                 'SelectBy' => 'Name',
@@ -416,14 +429,16 @@ class Phone extends Appliance
                     $node = $nodes->findByAttributes(['cmNodeIpAddress' => $cmNode->Name]);
 
                     foreach ($cmNode->CmDevices as $cmDevice) {
-                        $registeredPhones->add(
-                            (new self())->fill([
+                        $registeredDevices->add(
+                            (new Std())->fill([
                                 'cucmName' => trim($node->cmNodeName),
                                 'cucmIpAddress' => trim($node->cmNodeIpAddress),
-                                'name' => trim($cmDevice->Name),
+                                'name' => mb_strtoupper(trim($cmDevice->Name)),
                                 'ipAddress' => trim($cmDevice->IpAddress),
                                 'description' => trim($cmDevice->Description),
                                 'status' => trim($cmDevice->Status),
+                                'dirNumber' => trim($cmDevice->DirNumber), // для вывода по devices
+                                'class' => trim($cmDevice->Class), // для вывода по devices
                             ])
                         );
                     }
@@ -431,7 +446,7 @@ class Phone extends Appliance
             }
         }
 
-        return $registeredPhones;
+        return $registeredDevices;
     }
 
 
@@ -446,14 +461,51 @@ class Phone extends Appliance
         $axl = AxlClient::instance($cucmIp);
 
         // Получить данные по телефонам из cucm
-        $phones = $axl->ExecuteSQLQuery(['sql' => 'SELECT d."name" AS Device, d."description", css."name" AS css, css2."name" AS name_off_clause, dp."name" AS dPool, n2."dnorpattern" AS prefix, n."dnorpattern", n."alertingname" AS FIO, partition."name" AS pt, tm."name" AS type FROM device AS d INNER JOIN callingsearchspace AS css ON css."pkid" = d."fkcallingsearchspace" INNER JOIN devicenumplanmap AS dmap ON dmap."fkdevice" = d."pkid" AND d."tkclass" = 1 INNER JOIN typemodel AS tm ON d."tkmodel" = tm."enum" INNER JOIN numplan AS n ON dmap."fknumplan" = n."pkid" INNER JOIN routepartition AS partition ON partition."pkid" = n."fkroutepartition" INNER JOIN DevicePool AS dp ON dp."pkid" = d.fkDevicePool INNER JOIN callingsearchspace AS css2 ON css2."clause" LIKE "%" || partition."name" || "%" INNER JOIN numplan AS n2 ON n2."fkcallingsearchspace_translation" = css2."pkid" WHERE n2."tkpatternusage" = 3 AND n2."dnorpattern" LIKE "5%"'])->return->row;
+        $request = 'SELECT d.name AS Device, d.description,css.name AS css, css2.name AS name_off_clause, dp.name as dPool, TRIM (TRAILING "." FROM (TRIM (TRAILING "X" FROM n2.dnorpattern))) as prefix, n.dnorpattern, n.alertingname as FIO, partition.name AS pt, tm.name AS type FROM device AS d INNER JOIN callingsearchspace AS css ON css.pkid = d.fkcallingsearchspace AND d.tkclass = 1 AND  d.tkmodel != 72 INNER JOIN devicenumplanmap AS dmap ON dmap.fkdevice = d.pkid INNER JOIN numplan AS n ON dmap.fknumplan = n.pkid INNER JOIN routepartition AS partition ON partition.pkid = n.fkroutepartition INNER JOIN typemodel AS tm ON d.tkmodel = tm.enum INNER JOIN DevicePool AS dp ON dp.pkid = d.fkDevicePool INNER JOIN callingsearchspace AS css2 ON css2.clause LIKE "%" || partition.name || "%" INNER JOIN numplan AS n2 ON n2.fkcallingsearchspace_translation = css2.pkid WHERE n2.tkpatternusage = 3 AND n2.dnorpattern LIKE "5%" AND substr(n2.dnorpattern, LENGTH(TRIM (TRAILING "X" FROM n2.dnorpattern))+1, LENGTH(n2.dnorpattern)-LENGTH(TRIM (TRAILING "X" FROM n2.dnorpattern))) NOT LIKE "XXXXXX"';
+
+
+        $phones = $axl->ExecuteSQLQuery(['sql' => $request])->return->row;
 
         $axlPhones = new Collection();
         foreach ($phones as $phone) {
-            $axlPhones->add($phone);
+            $axlPhones->add(
+                (new self())->fill([
+                    'name' => mb_strtoupper(trim($phone->name)),
+                    'description' => trim($phone->description),
+                    'css' => trim($phone->css),
+                    'devicePool' => trim($phone->dpool),
+                    'prefix' => trim($phone->prefix),
+                    'phoneDN' => trim($phone->dnorpattern),
+                    'alertingName' => trim($phone->fio),
+                    'partition' => trim($phone->pt),
+                    'model' => trim($phone->type),
+                ])
+            );
         }
 
         return $axlPhones;
+    }
+
+
+    /**
+     * Получить имена всех устройств из cucm используя AXL
+     *
+     * @param string $cucmIp
+     * @return Collection
+     */
+    protected static function findAllDevicesIntoCucmAxl(string $cucmIp)
+    {
+        $axl = AxlClient::instance($cucmIp);
+
+        // Получить имена всех устройств из cucm
+        $devices = ($axl->ExecuteSQLQuery(['sql' => 'SELECT d.name FROM device AS d']))->return->row;
+
+        $axlDevices = new Collection();
+        foreach ($devices as $device) {
+            $axlDevices->add($device);
+        }
+
+        return $axlDevices;
     }
 
 
@@ -582,7 +634,7 @@ class Phone extends Appliance
         $this->debugLogger->info('process: ' . '[name]=' . $this->ipAddress . '; [office]=' . $cucmLocation->title);
 
         // Create a DataSet for a phone(appliance)
-        $softwareVersion = (1 == preg_match('~6921~', $this->model)) ? $this->appLoadID : $this->versionID;
+        $softwareVersion = (1 == preg_match('~6921~', $this->model)) ? (($this->appLoadID) ?? '') : (($this->versionID) ?? '');
         $macAddress = ($this->macAddress) ?? substr($this->name,-12);
         $macAddress = implode('.', [
             substr($macAddress,0,4),
@@ -690,7 +742,6 @@ class Phone extends Appliance
                 $ris = RisPortClient::instance($cucmIp);
                 $items[] = ['Item' => $this->name];
                 $result = $ris->SelectCmDevice('',[
-                    'MaxReturnedDevices' => self::MAXRETURNEDDEVICES,
                     'Class' => self::RISPHONETYPE,
                     'Model' => self::ALLMODELS,
                     'Status' => self::PHONESTATUS_REGISTERED,
@@ -766,12 +817,12 @@ class Phone extends Appliance
         }
 
         // Get phone's data
-        $request = 'SELECT d."name" AS Device, d."description", css."name" AS css, css2."name" AS name_off_clause, dp."name" AS dPool, n2."dnorpattern" AS prefix, n."dnorpattern", n."alertingname" AS FIO, partition."name" AS pt, tm."name" AS type FROM device AS d INNER JOIN callingsearchspace AS css ON css."pkid" = d."fkcallingsearchspace" INNER JOIN devicenumplanmap AS dmap ON dmap."fkdevice" = d."pkid" AND d."tkclass" = 1 INNER JOIN typemodel AS tm ON d."tkmodel" = tm."enum" INNER JOIN numplan AS n ON dmap."fknumplan" = n."pkid" INNER JOIN routepartition AS partition ON partition."pkid" = n."fkroutepartition" INNER JOIN DevicePool AS dp ON dp."pkid" = d.fkDevicePool INNER JOIN callingsearchspace AS css2 ON css2."clause" LIKE "%" || partition."name" || "%" INNER JOIN numplan AS n2 ON n2."fkcallingsearchspace_translation" = css2."pkid" WHERE n2."tkpatternusage" = 3 AND n2."dnorpattern" LIKE "5%"';
+        $request = 'SELECT d.name AS Device, d.description,css.name AS css, css2.name AS name_off_clause, dp.name as dPool, TRIM (TRAILING "." FROM (TRIM (TRAILING "X" FROM n2.dnorpattern))) as prefix, n.dnorpattern, n.alertingname as FIO, partition.name AS pt, tm.name AS type FROM device AS d INNER JOIN callingsearchspace AS css ON css.pkid = d.fkcallingsearchspace AND d.tkclass = 1 AND  d.tkmodel != 72 INNER JOIN devicenumplanmap AS dmap ON dmap.fkdevice = d.pkid INNER JOIN numplan AS n ON dmap.fknumplan = n.pkid INNER JOIN routepartition AS partition ON partition.pkid = n.fkroutepartition INNER JOIN typemodel AS tm ON d.tkmodel = tm.enum INNER JOIN DevicePool AS dp ON dp.pkid = d.fkDevicePool INNER JOIN callingsearchspace AS css2 ON css2.clause LIKE "%" || partition.name || "%" INNER JOIN numplan AS n2 ON n2.fkcallingsearchspace_translation = css2.pkid WHERE n2.tkpatternusage = 3 AND n2.dnorpattern LIKE "5%" AND substr(n2.dnorpattern, LENGTH(TRIM (TRAILING "X" FROM n2.dnorpattern))+1, LENGTH(n2.dnorpattern)-LENGTH(TRIM (TRAILING "X" FROM n2.dnorpattern))) NOT LIKE "XXXXXX"';
 
         $items = $axl->ExecuteSQLQuery(['sql' => $request])->return->row;
 
         foreach ($items as $item) {
-            if ($item->device == $this->name) {
+            if ($item->name == $this->name) {
                 $this->fill([
                     'css' => trim($item->css),
                     'devicePool' => trim($item->dpool),
@@ -798,7 +849,7 @@ class Phone extends Appliance
     {
         $phone = new self();
         $phone->fill([
-            'name' => $name,
+            'name' => mb_strtoupper($name),
         ]);
 
         // ------------------- AXL -------------------------------------
