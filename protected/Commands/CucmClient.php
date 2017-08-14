@@ -27,6 +27,14 @@ class CucmClient extends Command
                 $registeredPhones = Phone::findAllRegisteredIntoCucm($publisher->managementIp);
                 $phones->merge($registeredPhones);
 
+                // Backup registered phones
+                $backup = realpath(ROOT_PATH . '/Logs/backup_phones.txt');
+                $fd = fopen($backup, 'a');
+                foreach ($phones as $phone) {
+                    fwrite($fd, json_encode($phone->getData()) . PHP_EOL);
+                }
+                fclose($fd);
+
             } catch (MultiException $errs) {
                 foreach ($errs as $e) {
                     $logger->error('[cucm]=' . $publisher->managementIp . '; [message]=' . ($e->getMessage() ?? '""'));
