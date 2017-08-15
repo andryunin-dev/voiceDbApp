@@ -16,6 +16,8 @@ class CucmClient extends Command
     public function actionDefault()
     {
         $logger = RLogger::getInstance('Cucm', realpath(ROOT_PATH . '/Logs/phones.log'));
+        $backupFile = realpath(ROOT_PATH . '/Backups/backup_phones.txt');
+        file_put_contents($backupFile,'');
 
         // Получить все зарегистрированные телефоны из всех cucms
         $phones = new Collection();
@@ -28,8 +30,7 @@ class CucmClient extends Command
                 $phones->merge($registeredPhones);
 
                 // Backup registered phones
-                $backup = realpath(ROOT_PATH . '/Logs/backup_phones.txt');
-                $fd = fopen($backup, 'a');
+                $fd = fopen($backupFile, 'a');
                 foreach ($phones as $phone) {
                     fwrite($fd, json_encode($phone->getData()) . PHP_EOL);
                 }
@@ -52,17 +53,18 @@ class CucmClient extends Command
 
 
         // Save registered phones
-        if (0 < $phones->count()) {
-            foreach ($phones as $phone) {
-                try {
-                    $phone->save();
-                } catch (Exception $e) {
-                    $logger->error('UPDATE PHONE: [name]=' . $phone->name . '; [ip]=' . $phone->ipAddress . '; [cucm]=' . $phone->cucmIpAddress . '; [message]=' . ($e->getMessage() ?? '""') . '; [data]=' . json_encode($phone->getData()));
-                    echo 'UPDATE PHONE: [name]=' . $phone->name . '; [ip]=' . $phone->ipAddress . '; [cucm]=' . $phone->cucmIpAddress . '; [message]=' . ($e->getMessage() ?? '""') . '; [data]=' . json_encode($phone->getData()) . PHP_EOL;
-                }
+        $phonesData = explode(PHP_EOL, file_get_contents($backupFile));
+
+        foreach ($phonesData as $phoneData) {
+            try {
+                $phone = (new Phone())
+                    ->fill(json_decode($phoneData))
+                    ->save();
+            } catch (Exception $e) {
+                $logger->error('UPDATE PHONE: [name]=' . $phone->name . '; [ip]=' . $phone->ipAddress . '; [cucm]=' . $phone->cucmIpAddress . '; [message]=' . ($e->getMessage() ?? '""') . '; [data]=' . json_encode($phone->getData()));
+                echo 'UPDATE PHONE: [name]=' . $phone->name . '; [ip]=' . $phone->ipAddress . '; [cucm]=' . $phone->cucmIpAddress . '; [message]=' . ($e->getMessage() ?? '""') . '; [data]=' . json_encode($phone->getData()) . PHP_EOL;
             }
         }
-
 
         echo 'OK' . PHP_EOL;
     }
