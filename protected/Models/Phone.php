@@ -19,7 +19,7 @@ class Phone extends Appliance
     const RISPANYTYPE = 'Any';
     const MAXRETURNEDDEVICES_SCH_7_1 = 200; // ограничение RisPort Service for cucm 7.1
     const MAXRETURNEDDEVICES_SCH_9_1 = 1000; // ограничение RisPort Service for cucm 9.1
-    const MAXREQUESTSCOUNT = 15; // ограничение RisPort Service
+    const MAXREQUESTSCOUNT = 15; // per minute - ограничение RisPort Service for cucm 7.1, 9.1
     const TIMEINTERVAL = 60; // секунды
     const ALLMODELS = 255; // All phone's models
     const PHONESTATUS_REGISTERED = 'Registered';
@@ -321,128 +321,99 @@ class Phone extends Appliance
      * Получить данные по зарегистрированным устройствам из cucm используя RisPort
      *
      * @param string $cucmIp
-     * @param Collection $phones
+     * @param Collection $devices
      * @param Collection $nodes
      * @return Collection
      */
-    protected static function findAllRegisteredDevicesIntoCucmRis(string $cucmIp, Collection $phones, Collection $nodes)
+    protected static function findAllRegisteredDevicesIntoCucmRis(string $cucmIp, Collection $devices, Collection $nodes)
     {
-        // Определить MAX RETURNED DEVICES
-        switch (AxlClient::$schema->$cucmIp) {
-            case '7.1':
-                $maxReturnedDevices = self::MAXRETURNEDDEVICES_SCH_7_1;
-                break;
-            case '9.1':
-                $maxReturnedDevices = self::MAXRETURNEDDEVICES_SCH_9_1;
-                break;
-            default:
-                $maxReturnedDevices = self::MAXRETURNEDDEVICES_SCH_7_1;
-        }
-
+        $registeredDevices = new Collection();
         $ris = RisPortClient::instance($cucmIp);
 
-        // ЕСЛИ кол-во опрашиваемых ($phones) телефонов БОЛЬШЕ, чем кол-во $maxReturnedDevices отдаваемых callmanager за один запрос,
-        // ТО опрашивать callmanager будем по телефонам из коллекции $phones в несколько запросов (не более 15 запросов в минуту)
-        // 1 запрос - кол-во телефонов = $maxReturnedDevices
-        $registeredDevices = new Collection();
-        if ($maxReturnedDevices < $phones->count()) {
-            $phonesCount = 0; // кол-во телефонов в запросе
-            $requestsCount = 0; // кол-во запросов
-            foreach ($phones as $phone) {
-                $items[] = ['Item' => $phone->name];
-                $phonesCount++;
+        // Определить max Number Of Devices Returned In the Query
+        switch (AxlClient::$schema->$cucmIp) {
+            case '7.1':
+                $maxNumberOfDevicesReturnedInQuery = self::MAXRETURNEDDEVICES_SCH_7_1;
+                break;
+            case '9.1':
+                $maxNumberOfDevicesReturnedInQuery = self::MAXRETURNEDDEVICES_SCH_9_1;
+                break;
+            default:
+                $maxNumberOfDevicesReturnedInQuery = self::MAXRETURNEDDEVICES_SCH_7_1;
+        }
 
-                if ($maxReturnedDevices == $phonesCount) {
-                    // На старте включаем секундомер
-                    if (0 === $requestsCount) {
-                        $startTime = (int)microtime(true);
-                        $currentCountOfTime = (int)microtime(true) - $startTime;
-                    }
+        $numberRequestedDevices = $devices->count();
+        $currentNumberOfDevicesInQueries = 0;
+        $currentNumberOfDevicesInRequest = 0;
+        $requestsCount = 0; // кол-во запросов
 
-                    // Считаем кол-во запросов
-                    $requestsCount++;
+        foreach ($devices as $device) {
+            $items[] = ['Item' => $device->name];
+            $currentNumberOfDevicesInQueries++;
+            $currentNumberOfDevicesInRequest++;
 
-                    // ЕСЛИ  кол-во времени прошедшее с момента первого запроса превысило self::TIMEINTERVAL
-                    // ТО начинаем считать запросы заново
-                    if ($currentCountOfTime >= self::TIMEINTERVAL) {
+            if ($maxNumberOfDevicesReturnedInQuery == $currentNumberOfDevicesInRequest || $currentNumberOfDevicesInQueries == $numberRequestedDevices) {
+                // На старте включаем секундомер
+                if (0 === $requestsCount) {
+                    $startTime = (int)microtime(true);
+                    $currentCountOfTime = (int)microtime(true) - $startTime;
+                }
+
+                // Считаем кол-во запросов
+                $requestsCount++;
+
+                // ЕСЛИ  кол-во времени прошедшее с момента первого запроса превысило self::TIMEINTERVAL
+                // ТО начинаем считать запросы заново
+                if ($currentCountOfTime >= self::TIMEINTERVAL) {
+                    $requestsCount = 1;
+                    $startTime = (int)microtime(true);
+                } else {
+
+                    // ЕСЛИ кол-во запросов превысило self::MAXREQUESTSCOUNT за время меньшее. чем self::TIMEINTERVAL
+                    // ТО ждем до self::MAXREQUESTSCOUNT и начинаем считать запросы заново
+                    if ($requestsCount > self::MAXREQUESTSCOUNT) {
+                        sleep(self::TIMEINTERVAL - $currentCountOfTime);
                         $requestsCount = 1;
                         $startTime = (int)microtime(true);
-                    } else {
-
-                        // ЕСЛИ кол-во запросов превысило self::MAXREQUESTSCOUNT за время меньшее. чем self::TIMEINTERVAL
-                        // ТО ждем до self::MAXREQUESTSCOUNT и начинаем считать запросы заново
-                        if ($requestsCount > self::MAXREQUESTSCOUNT) {
-                            sleep(self::TIMEINTERVAL - $currentCountOfTime);
-                            $requestsCount = 1;
-                            $startTime = (int)microtime(true);
-                        }
-                    }
-
-                    $risPhones = $ris->SelectCmDevice('',[
-                        'MaxReturnedDevices' => $maxReturnedDevices,
-                        'Class' => self::RISPANYTYPE,
-                        'Model' => self::ALLMODELS,
-                        'Status' => self::PHONESTATUS_REGISTERED,
-                        'SelectBy' => 'Name',
-                        'SelectItems' => $items,
-                    ]);
-                    foreach (($risPhones['SelectCmDeviceResult'])->CmNodes as $cmNode) {
-                        if ('ok' == strtolower($cmNode->ReturnCode)) {
-                            $node = $nodes->findByAttributes(['cmNodeIpAddress' => $cmNode->Name]);
-
-                            foreach ($cmNode->CmDevices as $cmDevice) {
-                                $registeredDevices->add(
-                                    (new Std())->fill([
-                                        'cucmName' => trim($node->cmNodeName),
-                                        'cucmIpAddress' => trim($node->cmNodeIpAddress),
-                                        'name' => mb_strtoupper(trim($cmDevice->Name)),
-                                        'ipAddress' => trim($cmDevice->IpAddress),
-                                        'description' => trim($cmDevice->Description),
-                                        'status' => trim($cmDevice->Status),
-                                        'dirNumber' => trim($cmDevice->DirNumber), // для вывода по devices
-                                        'class' => trim($cmDevice->Class), // для вывода по devices
-                                    ])
-                                );
-                            }
-                        }
-                    }
-
-                    // Фиксируем кол-во времени прошедшее с момента первого запроса
-                    $currentCountOfTime = (int)microtime(true) - $startTime;
-
-                    $phonesCount = 0;
-                    $items = [];
-                }
-            }
-        } else {
-            // ЕСЛИ кол-во опрашиваемых телефонов МЕНЬШЕ, чем кол-во $maxReturnedDevices отдаваемых callmanager за один запрос,
-            // ТО делаем выборку всех зарегистрированных на callmanager телефонов одним запросом
-            $risPhones = $ris->SelectCmDevice('',[
-                'Class' => self::RISPANYTYPE,
-                'Model' => self::ALLMODELS,
-                'Status' => self::PHONESTATUS_REGISTERED,
-                'SelectBy' => 'Name',
-                'SelectItems' => [['Item' => '*']],
-            ]);
-            foreach (($risPhones['SelectCmDeviceResult'])->CmNodes as $cmNode) {
-                if ('ok' == strtolower($cmNode->ReturnCode)) {
-                    $node = $nodes->findByAttributes(['cmNodeIpAddress' => $cmNode->Name]);
-
-                    foreach ($cmNode->CmDevices as $cmDevice) {
-                        $registeredDevices->add(
-                            (new Std())->fill([
-                                'cucmName' => trim($node->cmNodeName),
-                                'cucmIpAddress' => trim($node->cmNodeIpAddress),
-                                'name' => mb_strtoupper(trim($cmDevice->Name)),
-                                'ipAddress' => trim($cmDevice->IpAddress),
-                                'description' => trim($cmDevice->Description),
-                                'status' => trim($cmDevice->Status),
-                                'dirNumber' => trim($cmDevice->DirNumber), // для вывода по devices
-                                'class' => trim($cmDevice->Class), // для вывода по devices
-                            ])
-                        );
                     }
                 }
+
+                $risPhones = $ris->SelectCmDevice('',[
+                    'MaxReturnedDevices' => $maxNumberOfDevicesReturnedInQuery,
+                    'Class' => self::RISPANYTYPE,
+                    'Model' => self::ALLMODELS,
+                    'Status' => self::PHONESTATUS_REGISTERED,
+                    'SelectBy' => 'Name',
+                    'SelectItems' => $items,
+                ]);
+
+
+                foreach (($risPhones['SelectCmDeviceResult'])->CmNodes as $cmNode) {
+                    if ('ok' == strtolower($cmNode->ReturnCode)) {
+                        $node = $nodes->findByAttributes(['cmNodeIpAddress' => $cmNode->Name]);
+
+                        foreach ($cmNode->CmDevices as $cmDevice) {
+                            $registeredDevices->add(
+                                (new Std())->fill([
+                                    'cucmName' => trim($node->cmNodeName),
+                                    'cucmIpAddress' => trim($node->cmNodeIpAddress),
+                                    'name' => mb_strtoupper(trim($cmDevice->Name)),
+                                    'ipAddress' => trim($cmDevice->IpAddress),
+                                    'description' => trim($cmDevice->Description),
+                                    'status' => trim($cmDevice->Status),
+                                    'dirNumber' => trim($cmDevice->DirNumber), // для вывода по devices
+                                    'class' => trim($cmDevice->Class), // для вывода по devices
+                                ])
+                            );
+                        }
+                    }
+                }
+
+                // Фиксируем кол-во времени прошедшее с момента первого запроса
+                $currentCountOfTime = (int)microtime(true) - $startTime;
+
+                $currentNumberOfDevicesInRequest = 0;
+                $items = [];
             }
         }
 
@@ -517,8 +488,24 @@ class Phone extends Appliance
         $axl = AxlClient::instance($cucmIp);
 
         // Get all CmNodes from the publisher
+        switch (AxlClient::$schema->$cucmIp) {
+            case '7.1':
+                $cmServers = ($axl->ListAllProcessNodes())->return->processNode;
+                break;
+            case '9.1':
+                $cmServers = ($axl->ListProcessNode([
+                    'searchCriteria' => [
+                        'name' => '%',
+                    ],
+                    'returnedTags' => [
+                        'name' => '',
+                        'description' => '',
+                    ]
+                ]))->return->processNode;
+                break;
+        }
+
         $listCmNodes = new Collection();
-        $cmServers = ($axl->ListAllProcessNodes())->return->processNode;
         foreach ($cmServers as $server) {
             $listCmNodes->add((new Std())
                 ->fill([
