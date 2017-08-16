@@ -20,18 +20,16 @@ class CucmClient extends Command
         file_put_contents($backupFile,'');
 
         // Получить все зарегистрированные телефоны из всех cucms
-        $phones = new Collection();
         foreach (Appliance::findAllByType(self::PUBLISHER) as $publisher) {
             $logger->info('START:[cucm]=' . $publisher->managementIp);
 
             try {
 
                 $registeredPhones = Phone::findAllRegisteredIntoCucm($publisher->managementIp);
-                $phones->merge($registeredPhones);
 
                 // Backup registered phones
                 $fd = fopen($backupFile, 'a');
-                foreach ($phones as $phone) {
+                foreach ($registeredPhones as $phone) {
                     fwrite($fd, json_encode($phone->getData()) . PHP_EOL);
                 }
                 fclose($fd);
@@ -46,10 +44,9 @@ class CucmClient extends Command
                 $logger->error('[cucm]=' . $publisher->managementIp . '; [message]=' . ($e->getMessage() ?? '""'));
             }
 
+            $logger->info('----- Found registered phones: ' . $registeredPhones->count());
             $logger->info('END:[cucm]=' . $publisher->managementIp);
         }
-        $logger->info('----- Found registered phones: ' . $phones->count());
-        echo 'Found registered phones: ' . $phones->count() . PHP_EOL;
 
 
         // Save registered phones
@@ -57,12 +54,35 @@ class CucmClient extends Command
 
         foreach ($phonesData as $phoneData) {
             try {
-                $phone = (new Phone())
+                (new Phone())
                     ->fill(json_decode($phoneData))
                     ->save();
             } catch (Exception $e) {
-                $logger->error('UPDATE PHONE: [name]=' . $phone->name . '; [ip]=' . $phone->ipAddress . '; [cucm]=' . $phone->cucmIpAddress . '; [message]=' . ($e->getMessage() ?? '""') . '; [data]=' . json_encode($phone->getData()));
-                echo 'UPDATE PHONE: [name]=' . $phone->name . '; [ip]=' . $phone->ipAddress . '; [cucm]=' . $phone->cucmIpAddress . '; [message]=' . ($e->getMessage() ?? '""') . '; [data]=' . json_encode($phone->getData()) . PHP_EOL;
+                $logger->error('UPDATE PHONE: [name]=' . $phoneData->name . '; [ip]=' . $phoneData->ipAddress . '; [cucm]=' . $phoneData->cucmIpAddress . '; [message]=' . ($e->getMessage() ?? '""') . '; [data]=' . json_encode($phoneData));
+                echo 'UPDATE PHONE: [name]=' . $phoneData->name . '; [ip]=' . $phoneData->ipAddress . '; [cucm]=' . $phoneData->cucmIpAddress . '; [message]=' . ($e->getMessage() ?? '""') . '; [data]=' . json_encode($phoneData) . PHP_EOL;
+            }
+        }
+
+        echo 'OK' . PHP_EOL;
+    }
+
+
+    public function actionSave()
+    {
+        $logger = RLogger::getInstance('Cucm', realpath(ROOT_PATH . '/Logs/phones.log'));
+
+        // Save registered phones
+        $backupFile = realpath(ROOT_PATH . '/Backups/backup_phones.txt');
+        $phonesData = explode(PHP_EOL, file_get_contents($backupFile));
+
+        foreach ($phonesData as $phoneData) {
+            try {
+                (new Phone())
+                    ->fill(json_decode($phoneData))
+                    ->save();
+            } catch (Exception $e) {
+                $logger->error('UPDATE PHONE: [name]=' . $phoneData->name . '; [ip]=' . $phoneData->ipAddress . '; [cucm]=' . $phoneData->cucmIpAddress . '; [message]=' . ($e->getMessage() ?? '""') . '; [data]=' . json_encode($phoneData));
+                echo 'UPDATE PHONE: [name]=' . $phoneData->name . '; [ip]=' . $phoneData->ipAddress . '; [cucm]=' . $phoneData->cucmIpAddress . '; [message]=' . ($e->getMessage() ?? '""') . '; [data]=' . json_encode($phoneData) . PHP_EOL;
             }
         }
 
