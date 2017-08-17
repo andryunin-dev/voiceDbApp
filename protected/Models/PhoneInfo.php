@@ -37,6 +37,7 @@ class PhoneInfo extends Model
             'cdpNeighborDeviceId' => ['type' => 'string'],
             'cdpNeighborIP' => ['type' => 'string'],
             'cdpNeighborPort' => ['type' => 'string'],
+            'publisherIp' => ['type' => 'string'],
         ],
         'relations' => [
             'phone' => ['type' => self::BELONGS_TO, 'model' => Appliance::class],
