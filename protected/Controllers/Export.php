@@ -197,7 +197,7 @@ class Export extends Controller
                 ->setCellValue('A' . $n, $n-1) // '№п/п'
                 ->setCellValue('B' . $n, $appliance->location->address->city->region->title) // Регион
                 ->setCellValue('C' . $n, $appliance->location->title) // Офис
-                ->setCellValue('D' . $n, '') // Publisher
+                ->setCellValue('D' . $n, $appliance->phoneInfo->publisherIp) // Publisher
                 ->setCellValue('E' . $n, $appliance->phoneInfo->model) // Device
                 ->setCellValue('F' . $n, $appliance->phoneInfo->name) // Name
                 ->setCellValue('G' . $n, (false !== $appliance->managementIp) ? $appliance->managementIp : '') // IP
