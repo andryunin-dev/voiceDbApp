@@ -67,6 +67,7 @@ class Phone extends Appliance
 
             if (!is_null($phone)) {
                 $phone->fill([
+                    'publisherIp' => $cucmIp,
                     'cucmName' => $device->cucmName,
                     'cucmIpAddress' => $device->cucmIpAddress,
                     'ipAddress' => $device->ipAddress,
@@ -688,6 +689,7 @@ class Phone extends Appliance
             'cdpNeighborDeviceId' => $this->cdpNeighborDeviceId,
             'cdpNeighborIP' => (false === ($neighborIp = (new IpTools(($this->cdpNeighborIP) ?? ''))->address)) ? null : $neighborIp,
             'cdpNeighborPort' => $this->cdpNeighborPort,
+            'publisherIp' => $this->publisherIp,
         ]);
         $this->phoneInfo->save();
 
