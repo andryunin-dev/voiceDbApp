@@ -15,87 +15,112 @@ use T4\Mvc\Controller;
 class Export extends Controller
 {
     const PHONE = 'phone';
+    const ROUTER = 'router';
+    const SWITCH = 'switch';
+    const CMP = 'cmp';
+    const CMS = 'cms';
+    const UPS = 'ups';
+    const VG = 'vg';
 
     public function actionHardInvExcel()
     {
-        echo 'start';
-        $appliances = Appliance::findAllByColumn('__type_id', ApplianceType::findByColumn('type', self::PHONE)->getPk());
+
         $spreadsheet = new Spreadsheet();
 
 // ------ Worksheet - 'Appliances' ----------------------
-        $spreadsheet->getActiveSheet()->setTitle('Phone');
+        $spreadsheet->getActiveSheet()->setTitle('Appliances');
 
         // HEADER
-        $sells = ['A1','B1','C1','D1','E1','F1','G1','H1','I1','J1','K1','L1','M1','N1','O1','P1','Q1','R1','S1','T1','U1','V1','W1','X1','Y1','Z1','AA1','AB1','AC1','AD1','AE1','AF1','AG1','AH1','AI1','AJ1','AK1','AL1'];
+        $sells = ['A1','B1','C1','D1','E1','F1','G1','H1','I1','J1','K1','L1','M1','N1'];
 
-        $vals = ['№п/п', 'Регион', 'Офис', 'Publisher', 'Device', 'Name', 'IP', 'Partion', 'CSS', 'Prefix', 'DN', 'Status', 'Device ser', 'Software', 'Software ver.', 'Last update', 'Comment', 'Description', 'Device Pool', 'Alerting Name', 'Timezone', 'DHCP enable', 'DHCP server', 'Domain name', 'TFTP server 1', 'TFTP server 2', 'Default Router', 'DNS server 1', 'DNS server 2', 'Call manager 1', 'Call manager 2', 'Call manager 3', 'Call manager 4', 'VLAN ID', 'User locale', 'CDP neighbor device ID', 'CDP neighbor IP', 'CDP neighbor Port'];
+        $vals = ['№п/п', 'Регион', 'Офис', 'Hostname', 'Type', 'Device', 'Device ser', 'Software', 'Software ver.', 'Appl. last update', 'Module', 'Module ser', 'Module last update', 'Comment'];
 
         for ($i = 0; $i < count($sells); $i++) {
             $spreadsheet->getActiveSheet()->setCellValue($sells[$i], $vals[$i]);
         }
 
         // Format
-        $columns = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','AA','AB','AC','AD','AE','AF','AG','AH','AI','AJ','AK','AL'];
+        $columns = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N'];
         foreach ($columns as $column) {
             $spreadsheet->getActiveSheet()->getColumnDimension($column)->setAutoSize(true);
         }
-        $spreadsheet->getActiveSheet()->getStyle('A:AL')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
-        $spreadsheet->getActiveSheet()->getStyle('A1:AL1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $spreadsheet->getActiveSheet()->getStyle('A:N')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+        $spreadsheet->getActiveSheet()->getStyle('A1:N1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
         // Body
+
+        $query = 'SELECT
+  region.title AS region,
+  location.title AS office,
+  appliance.details,
+  applianceType.type,
+  vendor.title AS vendor,
+  platform.title AS platform,
+  platformItem."serialNumber" AS platform_serialnumber,
+  software.title AS soft_title,
+  softwareItem.version AS soft_version,
+  appliance."lastUpdate" AS appliance_lastupdate,
+  appliance.comment AS appliance_comment,
+  module.title AS module,
+  moduleItem."serialNumber" AS module_serialnumber,
+  moduleItem."lastUpdate" AS module_lastupdate,
+  moduleItem.comment AS module_comment,
+  moduleItem."inUse" AS module_inuse
+FROM equipment.appliances AS appliance
+  INNER JOIN company.offices AS location ON location.__id = appliance.__location_id
+  INNER JOIN geolocation.addresses AS address ON address.__id = location.__address_id
+  INNER JOIN geolocation.cities AS city ON city.__id = address.__city_id
+  INNER JOIN geolocation.regions AS region ON region.__id = city.__region_id
+  INNER JOIN equipment."platformItems" AS platformItem ON platformItem.__id = appliance.__platform_item_id
+  INNER JOIN equipment.platforms AS platform ON platform.__id = platformItem.__platform_id
+  INNER JOIN equipment.vendors AS vendor ON vendor.__id = platform.__vendor_id
+  INNER JOIN equipment."softwareItems" AS softwareItem ON softwareItem.__id = appliance.__software_item_id
+  INNER JOIN equipment.software AS software ON software.__id = softwareItem.__software_id
+  LEFT JOIN equipment."moduleItems" AS moduleItem ON moduleItem.__appliance_id = appliance.__id
+  LEFT JOIN equipment.modules AS module ON module.__id = moduleItem.__module_id
+  INNER JOIN equipment."applianceTypes" AS applianceType ON applianceType.__id = appliance.__type_id WHERE applianceType.type IN (:appType1, :appType2, :appType3, :appType4, :appType5, :appType6)';
+
+        $params = [
+            ':appType1' => self::SWITCH,
+            ':appType2' => self::CMP,
+            ':appType3' => self::CMS,
+            ':appType4' => self::UPS,
+            ':appType5' => self::VG,
+            ':appType6' => self::ROUTER,
+        ];
+
+        $appliances = Appliance::findAllByQuery($query,$params);
+
+        $data = [];
         $n = 2;
         foreach ($appliances as $appliance) {
-            $spreadsheet->getActiveSheet()
-                ->setCellValue('A' . $n, $n-1) // '№п/п'
-                ->setCellValue('B' . $n, $appliance->location->address->city->region->title) // Регион +
-                ->setCellValue('C' . $n, $appliance->location->title) // Офис +
-                ->setCellValue('D' . $n, $appliance->phoneInfo->publisherIp) // Publisher
-                ->setCellValue('E' . $n, $appliance->phoneInfo->model) // Device
-                ->setCellValue('F' . $n, $appliance->phoneInfo->name) // Name
-                ->setCellValue('G' . $n, (false !== $appliance->managementIp) ? $appliance->managementIp : '') // IP
-                ->setCellValue('H' . $n, $appliance->phoneInfo->partition) // Partion
-                ->setCellValue('I' . $n, $appliance->phoneInfo->css) // CSS
-                ->setCellValue('J' . $n, $appliance->phoneInfo->prefix) // Prefix
-                ->setCellValue('K' . $n, $appliance->phoneInfo->phoneDN) // DN
-                ->setCellValue('L' . $n, $appliance->phoneInfo->status) // Status
-                ->setCellValue('M' . $n, $appliance->platform->serialNumber) // Device ser
-                ->setCellValue('N' . $n, $appliance->software->software->title) // Software
-                ->setCellValue('O' . $n, $appliance->software->version) // Software ver.
-                ->setCellValue('P' . $n, (new \DateTime($appliance->lastUpdate))->format('d-m-Y')) // Last update
-                ->setCellValue('Q' . $n, $appliance->comment) // Comment
-                ->setCellValue('R' . $n, $appliance->phoneInfo->description) // Description
-                ->setCellValue('S' . $n, $appliance->phoneInfo->devicePool) // Device Pool
-                ->setCellValue('T' . $n, $appliance->phoneInfo->alertingName) // Alerting Name
-                ->setCellValue('U' . $n, $appliance->phoneInfo->timezone) // Timezone
-                ->setCellValue('V' . $n, $appliance->phoneInfo->dhcpEnabled) // DHCP enable
-                ->setCellValue('W' . $n, $appliance->phoneInfo->dhcpServer) // DHCP server
-                ->setCellValue('X' . $n, $appliance->phoneInfo->domainName) // Domain name
-                ->setCellValue('Y' . $n, $appliance->phoneInfo->tftpServer1) // TFTP server 1
-                ->setCellValue('Z' . $n, $appliance->phoneInfo->tftpServer2) // TFTP server 2
-                ->setCellValue('AA' . $n, $appliance->phoneInfo->defaultRouter) // Default Router
-                ->setCellValue('AB' . $n, $appliance->phoneInfo->dnsServer1) // DNS server 1
-                ->setCellValue('AC' . $n, $appliance->phoneInfo->dnsServer2) // DNS server 2
-                ->setCellValue('AD' . $n, $appliance->phoneInfo->callManager1) // 'Call manager 1
-                ->setCellValue('AE' . $n, $appliance->phoneInfo->callManager2) // 'Call manager 2
-                ->setCellValue('AF' . $n, $appliance->phoneInfo->callManager3) // 'Call manager 3
-                ->setCellValue('AG' . $n, $appliance->phoneInfo->callManager4) // 'Call manager 4
-                ->setCellValue('AH' . $n, $appliance->phoneInfo->vlanId) // VLAN ID
-                ->setCellValue('AI' . $n, $appliance->phoneInfo->userLocale) // User locale
-                ->setCellValue('AJ' . $n, $appliance->phoneInfo->cdpNeighborDeviceId) // CDP neighbor device ID
-                ->setCellValue('AK' . $n, $appliance->phoneInfo->cdpNeighborIP) // CDP neighbor IP
-                ->setCellValue('AL' . $n, $appliance->phoneInfo->cdpNeighborPort) // CDP neighbor Port
-                ->getStyle('A' . $n . ':AL' . $n)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
-
-            if (false === $appliance->inUse) {
-                $spreadsheet->getActiveSheet()->getStyle('A' . $n . ':AL' . $n)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB(Color::COLOR_YELLOW);
+            $data[] = [
+                $n-1,
+                $appliance->region,
+                $appliance->office,
+                $appliance->details->hostname,
+                $appliance->type,
+                $appliance->vendor . ' ' . $appliance->platform,
+                $appliance->platform_serialnumber,
+                $appliance->soft_title,
+                $appliance->soft_version,
+                $appliance->module,
+                $appliance->module_serialnumber,
+                $appliance->module_lastupdate,
+                $appliance->module_comment
+            ];
+            if (false === $appliance->module_inuse) {
+                $spreadsheet->getActiveSheet()->getStyle('K' . $n . ':N' . $n)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB(Color::COLOR_YELLOW);
             }
-
             $n++;
         }
-        unset($appliances);
+
+        $spreadsheet->getActiveSheet()->fromArray($data, NULL, 'A2');
+        $spreadsheet->getActiveSheet()->getStyle('A2:N' . $n)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+
 
         // Autofilter
-        $spreadsheet->getActiveSheet()->setAutoFilter('B1:AL' . ($n-1));
+        $spreadsheet->getActiveSheet()->setAutoFilter('B1:N' . ($n-1));
         $spreadsheet->getActiveSheet()->freezePane('A2');
 
 
