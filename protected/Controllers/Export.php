@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\Appliance;
+use App\Models\ApplianceType;
 use App\Models\DataPort;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -13,165 +14,16 @@ use T4\Mvc\Controller;
 
 class Export extends Controller
 {
+    const PHONE = 'phone';
+
     public function actionHardInvExcel()
     {
-        $types = ['router','switch','cmp','cms','ups','vg'];
-        $appliances = (Appliance::findAll())->filter(
-            function ($appliance) use ($types) {
-                return in_array($appliance->type->type, $types);
-            }
-        );
+        echo 'start';
+        $appliances = Appliance::findAllByColumn('__type_id', ApplianceType::findByColumn('type', self::PHONE)->getPk());
         $spreadsheet = new Spreadsheet();
 
 // ------ Worksheet - 'Appliances' ----------------------
-        $spreadsheet->getActiveSheet()->setTitle('Appliances');
-
-        // HEADER
-        $spreadsheet->getActiveSheet()
-            ->setCellValue('A1', '№п/п')
-            ->setCellValue('B1', 'Регион')
-            ->setCellValue('C1', 'Офис')
-            ->setCellValue('D1', 'Hostname')
-            ->setCellValue('E1', 'Type')
-            ->setCellValue('F1', 'Device')
-            ->setCellValue('G1', 'Device ser')
-            ->setCellValue('H1', 'Software')
-            ->setCellValue('I1', 'Software ver.')
-            ->setCellValue('J1', 'Appl. last update')
-            ->setCellValue('K1', 'Comment');
-
-        // Format
-        $columns = ['A','B','C','D','E','F','G','H','I','J','K'];
-        foreach ($columns as $column) {
-            $spreadsheet->getActiveSheet()->getColumnDimension($column)->setAutoSize(true);
-        }
-        $spreadsheet->getActiveSheet()->getStyle('A:K')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
-        $spreadsheet->getActiveSheet()->getStyle('A1:K1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-
-        // Body
-        $n = 2;
-        foreach ($appliances as $appliance) {
-            $spreadsheet->getActiveSheet()
-                ->setCellValue('A' . $n, $n-1)
-                ->setCellValue('B' . $n, $appliance->location->address->city->region->title)
-                ->setCellValue('C' . $n, $appliance->location->title)
-                ->setCellValue('D' . $n, $appliance->details->hostname)
-                ->setCellValue('E' . $n, $appliance->type)
-                ->setCellValue('F' . $n, $appliance->platform->platform->vendor->title . ' ' .$appliance->platform->platform->title)
-                ->setCellValue('G' . $n, $appliance->platform->serialNumber)
-                ->setCellValue('H' . $n, $appliance->software->software->title)
-                ->setCellValue('I' . $n, $appliance->software->version)
-                ->setCellValue('J' . $n, (new \DateTime($appliance->lastUpdate))->format('d-m-Y'))
-                ->setCellValue('K' . $n, $appliance->comment)
-                ->getStyle('A' . $n . ':K' . $n)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
-
-            if (false === $appliance->inUse) {
-                $spreadsheet->getActiveSheet()->getStyle('A' . $n . ':K' . $n)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB(Color::COLOR_YELLOW);
-            }
-
-            $n++;
-        }
-
-        // Autofilter
-        $spreadsheet->getActiveSheet()->setAutoFilter('B1:K' . ($n-1));
-        $spreadsheet->getActiveSheet()->freezePane('A2');
-
-
-// ------ Worksheet - 'Appliances with modules' ----------------------
-        $objWorkSheet1 = $spreadsheet->createSheet(1);
-        $objWorkSheet1->setTitle('Appliances with modules');
-
-        // HEADER
-        $objWorkSheet1
-            ->setCellValue('A1', '№п/п')
-            ->setCellValue('B1', 'Регион')
-            ->setCellValue('C1', 'Офис')
-            ->setCellValue('D1', 'Hostname')
-            ->setCellValue('E1', 'Type')
-            ->setCellValue('F1', 'Device')
-            ->setCellValue('G1', 'Device ser')
-            ->setCellValue('H1', 'Software')
-            ->setCellValue('I1', 'Software ver.')
-            ->setCellValue('J1', 'Appl. last update')
-            ->setCellValue('K1', 'Module')
-            ->setCellValue('L1', 'Module ser.')
-            ->setCellValue('M1', 'Module last update')
-            ->setCellValue('N1', 'Comment');
-
-        // Format
-        $columns = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N'];
-        foreach ($columns as $column) {
-            $objWorkSheet1->getColumnDimension($column)->setAutoSize(true);
-        }
-        $objWorkSheet1->getStyle('A:N')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
-        $objWorkSheet1->getStyle('A1:N1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-
-        // Body
-        $n = 2;
-        foreach ($appliances as $appliance) {
-            if (0 < $appliance->modules->count()) {
-                foreach ($appliance->modules as $module) {
-                    $objWorkSheet1
-                        ->setCellValue('A' . $n, $n-1)
-                        ->setCellValue('B' . $n, $appliance->location->address->city->region->title)
-                        ->setCellValue('C' . $n, $appliance->location->title)
-                        ->setCellValue('D' . $n, $appliance->details->hostname)
-                        ->setCellValue('E' . $n, $appliance->type)
-                        ->setCellValue('F' . $n, $appliance->platform->platform->vendor->title . ' ' .$appliance->platform->platform->title)
-                        ->setCellValue('G' . $n, $appliance->platform->serialNumber)
-                        ->setCellValue('H' . $n, $appliance->software->software->title)
-                        ->setCellValue('I' . $n, $appliance->software->version)
-                        ->setCellValue('J' . $n, (new \DateTime($appliance->lastUpdate))->format('d-m-Y'))
-                        ->setCellValue('K' . $n, $module->module->title)
-                        ->setCellValue('L' . $n, $module->serialNumber)
-                        ->setCellValue('M' . $n, (new \DateTime($module->lastUpdate))->format('d-m-Y'))
-                        ->setCellValue('N' . $n, $module->comment)
-                        ->getStyle('A' . $n . ':N' . $n)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
-
-                    if (false === $appliance->inUse) {
-                        $objWorkSheet1->getStyle('A' . $n . ':N' . $n)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB(Color::COLOR_YELLOW);
-                    }
-                    if (false === $module->inUse && false === $module->notFound) {
-                        $objWorkSheet1->getStyle('K' . $n . ':N' . $n)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB(Color::COLOR_YELLOW);
-                    }
-                    if (false === $module->inUse && true === $module->notFound) {
-                        $objWorkSheet1->getStyle('K' . $n . ':N' . $n)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB(Color::COLOR_RED);
-                    }
-
-                    $n++;
-                }
-            } else {
-                $objWorkSheet1
-                    ->setCellValue('A' . $n, $n-1)
-                    ->setCellValue('B' . $n, $appliance->location->address->city->region->title)
-                    ->setCellValue('C' . $n, $appliance->location->title)
-                    ->setCellValue('D' . $n, $appliance->details->hostname)
-                    ->setCellValue('E' . $n, $appliance->type)
-                    ->setCellValue('F' . $n, $appliance->platform->platform->vendor->title . ' ' .$appliance->platform->platform->title)
-                    ->setCellValue('G' . $n, $appliance->platform->serialNumber)
-                    ->setCellValue('H' . $n, $appliance->software->software->title)
-                    ->setCellValue('I' . $n, $appliance->software->version)
-                    ->setCellValue('J' . $n, (new \DateTime($appliance->lastUpdate))->format('d-m-Y'))
-                    ->getStyle('A' . $n . ':N' . $n)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
-
-                if (false === $appliance->inUse) {
-                    $objWorkSheet1->getStyle('A' . $n . ':N' . $n)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB(Color::COLOR_YELLOW);
-                }
-
-                $n++;
-            }
-        }
-
-        // Autofilter
-        $objWorkSheet1->setAutoFilter('B1:N' . ($n-1));
-        $objWorkSheet1->freezePane('A2');
-
-
-// ------ Worksheet - 'Phones' ----------------------
-        $appliances = Appliance::findAllByType('phone');
-
-        $objWorkSheet2 = $spreadsheet->createSheet(2);
-        $objWorkSheet2->setTitle('Phones');
+        $spreadsheet->getActiveSheet()->setTitle('Phone');
 
         // HEADER
         $sells = ['A1','B1','C1','D1','E1','F1','G1','H1','I1','J1','K1','L1','M1','N1','O1','P1','Q1','R1','S1','T1','U1','V1','W1','X1','Y1','Z1','AA1','AB1','AC1','AD1','AE1','AF1','AG1','AH1','AI1','AJ1','AK1','AL1'];
@@ -179,24 +31,24 @@ class Export extends Controller
         $vals = ['№п/п', 'Регион', 'Офис', 'Publisher', 'Device', 'Name', 'IP', 'Partion', 'CSS', 'Prefix', 'DN', 'Status', 'Device ser', 'Software', 'Software ver.', 'Last update', 'Comment', 'Description', 'Device Pool', 'Alerting Name', 'Timezone', 'DHCP enable', 'DHCP server', 'Domain name', 'TFTP server 1', 'TFTP server 2', 'Default Router', 'DNS server 1', 'DNS server 2', 'Call manager 1', 'Call manager 2', 'Call manager 3', 'Call manager 4', 'VLAN ID', 'User locale', 'CDP neighbor device ID', 'CDP neighbor IP', 'CDP neighbor Port'];
 
         for ($i = 0; $i < count($sells); $i++) {
-            $objWorkSheet2->setCellValue($sells[$i], $vals[$i]);
+            $spreadsheet->getActiveSheet()->setCellValue($sells[$i], $vals[$i]);
         }
 
         // Format
         $columns = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','AA','AB','AC','AD','AE','AF','AG','AH','AI','AJ','AK','AL'];
         foreach ($columns as $column) {
-            $objWorkSheet2->getColumnDimension($column)->setAutoSize(true);
+            $spreadsheet->getActiveSheet()->getColumnDimension($column)->setAutoSize(true);
         }
-        $objWorkSheet2->getStyle('A:AL')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
-        $objWorkSheet2->getStyle('A1:AL1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $spreadsheet->getActiveSheet()->getStyle('A:AL')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+        $spreadsheet->getActiveSheet()->getStyle('A1:AL1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
         // Body
         $n = 2;
         foreach ($appliances as $appliance) {
-            $objWorkSheet2
+            $spreadsheet->getActiveSheet()
                 ->setCellValue('A' . $n, $n-1) // '№п/п'
-                ->setCellValue('B' . $n, $appliance->location->address->city->region->title) // Регион
-                ->setCellValue('C' . $n, $appliance->location->title) // Офис
+                ->setCellValue('B' . $n, $appliance->location->address->city->region->title) // Регион +
+                ->setCellValue('C' . $n, $appliance->location->title) // Офис +
                 ->setCellValue('D' . $n, $appliance->phoneInfo->publisherIp) // Publisher
                 ->setCellValue('E' . $n, $appliance->phoneInfo->model) // Device
                 ->setCellValue('F' . $n, $appliance->phoneInfo->name) // Name
@@ -235,15 +87,16 @@ class Export extends Controller
                 ->getStyle('A' . $n . ':AL' . $n)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
 
             if (false === $appliance->inUse) {
-                $objWorkSheet2->getStyle('A' . $n . ':AL' . $n)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB(Color::COLOR_YELLOW);
+                $spreadsheet->getActiveSheet()->getStyle('A' . $n . ':AL' . $n)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB(Color::COLOR_YELLOW);
             }
 
             $n++;
         }
+        unset($appliances);
 
         // Autofilter
-        $objWorkSheet2->setAutoFilter('B1:AL' . ($n-1));
-        $objWorkSheet2->freezePane('A2');
+        $spreadsheet->getActiveSheet()->setAutoFilter('B1:AL' . ($n-1));
+        $spreadsheet->getActiveSheet()->freezePane('A2');
 
 
 // ------ Export ----------------------
