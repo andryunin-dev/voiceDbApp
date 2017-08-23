@@ -8,7 +8,7 @@ use T4\Orm\Model;
 trait ViewHelperTrait
 {
     /**
-     * принимаем имя класса и список свойств для отображения
+     * принимаем список свойств для отображения
      * возвращаем массив c названием полей в таблице модели
      * те поля, которых нет в таблице игнорируются
      *
@@ -28,16 +28,6 @@ trait ViewHelperTrait
         }
         $list = is_array($list) ? $list : preg_split("~[\s,]~", $list, -1, PREG_SPLIT_NO_EMPTY);
         return array_intersect($classColumns, $list);
-    }
-
-    protected function getFilter()
-    {
-        return isset($this->selectFilter) ? $this->selectFilter : $this->selectFilter = (new SqlFilter());
-    }
-
-    public static function findAllByConditions(array $conditions = [])
-    {
-
     }
 
 }

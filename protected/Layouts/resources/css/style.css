@@ -488,6 +488,33 @@ ul.scrollable-menu {
     border-width: .5em .25em 0 .25em;
 }
 
+/* =============вложенные в ячейки таблицы ======================*/
+/*убираем паддинги у контейнера*/
+td.cell-container {
+    vertical-align: top;
+    padding: 0 !important;
+}
+/*стили для вложенной таблицы*/
+table.inner {
+    margin: 0 !important;
+    border: none !important;
+    height: 100% !important;
+}
+/*отключить все бордеры*/
+table.inner tr td,
+
+table.inner tr th {
+    border: none !important;
+}
+table.inner tr {
+    border-right: none;
+    border-left: none;
+}
+table.inner tr:last-of-type,
+table.inner tr:first-of-type {
+    border: none;
+}
+/*========================*/
 /*Временные стили*/
 /*вложенная таблица интерфейсов*/
 table.inner.interfaces tbody td {
@@ -532,4 +559,6 @@ table.inner.interfaces tbody td {
     border-color: #797979;
 
 }
-
+.cell-bordered td {
+    border: 1px solid #ddd;
+}

@@ -27,33 +27,8 @@ class Test extends Controller
 
     public function actionDefault()
     {
-        $res = SoftReport::findAll();
-        var_dump($res);
-        die;
-
-
-        $sql = '
-SELECT devs."platformTitle" AS platformTitle, devs."platformVendor" AS "platformVendor",
-    count(devs.appliance_id) AS total,
-    sum(CASE WHEN devs."appAge" < :max_age THEN 1 ELSE 0 END ) AS active,
-    sum(CASE WHEN devs."appAge" < :max_age AND devs."appInUse" THEN 1 ELSE 0 END ) AS "active_inUse",
-    sum(CASE WHEN devs."appAge" < :max_age AND NOT devs."appInUse" THEN 1 ELSE 0 END ) AS "active_notInUse",
-    sum(CASE WHEN devs."appInUse" THEN 1 ELSE 0 END ) AS "inUse",
-    sum(CASE WHEN NOT devs."appInUse" THEN 1 ELSE 0 END ) AS "notInUse"
-FROM view.geo_dev AS devs
-GROUP BY devs.platform_id ,devs."platformTitle", devs."platformVendor"
-ORDER BY "platformTitle", "platformVendor"';
-
-        /**
-         * @var Connection $con
-         */
-        $con = $this->app->db->default;
-        $query = new Query($sql);
-        var_dump($query);
-
-        $res = $con->query($query, [':max_age' => 25])->fetchAllObjects(Std::class);
-        var_dump($res);
-        die;
+        $this->data->value = 'Hello';
+        $this->data->res = $this->view->render('default2.html', $this->data);
     }
 
     public function actionCookies()
