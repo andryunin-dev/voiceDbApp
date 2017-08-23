@@ -322,12 +322,11 @@ class Admin extends Controller
         $this->data->offices = Office::findAll()->uasort($asc);
         $this->data->navbar->openedCount = 0;
         foreach ($this->data->offices as $office) {
-            if (strtolower($office->status->title) == 'открыт') {
+            if (mb_strtolower($office->status->title) == 'открыт') {
                 $this->data->navbar->openedCount += 1;
             }
         }
         $this->data->navbar->count = $this->data->offices->count();
-        $this->data->navbar->openedCount = $this->data->offices->count();
         $this->data->activeLink->offices = true;
     }
 
