@@ -11,7 +11,7 @@ namespace App\Controllers;
 
 use App\Components\Timer;
 use App\Components\UrlExt;
-use App\ViewModels\GeoDevModulePort_View;
+use App\ViewModels\DevModulePortGeo;
 use T4\Core\Std;
 use T4\Dbal\QueryBuilder;
 use T4\Http\Request;
@@ -43,13 +43,13 @@ class Voice extends Controller
         $this->data->url = new UrlExt($http->url->toArrayRecursive());
         $where = [];
         $params = [];
-        $order = GeoDevModulePort_View::sortOrder();
+        $order = DevModulePortGeo::sortOrder();
         $maxAge = 73;
-        $networkDevFilter = implode(',', GeoDevModulePort_View::cucmDevTypes_id());
+        $networkDevFilter = implode(',', DevModulePortGeo::cucmDevTypes_id());
         $where[] = '"appType_id" IN (' . $networkDevFilter . ')';
 
         if (0 == $http->get->count()) {
-            $order = GeoDevModulePort_View::sortOrder();
+            $order = DevModulePortGeo::sortOrder();
         } else {
             $getParams = new Std($getParams);
             if (isset($http->get->maxAge)) {
@@ -61,7 +61,7 @@ class Voice extends Controller
                     continue;
                 }
                 if ('order' == $key) {
-                    $order = GeoDevModulePort_View::sortOrder($val);
+                    $order = DevModulePortGeo::sortOrder($val);
                     continue;
                 }
                 $where[] = $getParams->$key->clause;
@@ -71,12 +71,12 @@ class Voice extends Controller
         $where = implode(' AND ', $where);
         $query = (new QueryBuilder())
             ->select()
-            ->from(GeoDevModulePort_View::getTableName())
+            ->from(DevModulePortGeo::getTableName())
             ->where($where)
             ->params($params)
             ->order($order);
 //        var_dump($query);
-        $this->data->geoDevs = GeoDevModulePort_View::findAllByQuery($query);
+        $this->data->geoDevs = DevModulePortGeo::findAllByQuery($query);
         $this->data->navbar->count = $this->data->geoDevs->count();
         $this->data->exportUrl = '/export/hardInvExcel';
         $this->data->maxAge = $maxAge;

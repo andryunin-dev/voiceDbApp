@@ -26,7 +26,7 @@ use App\Models\SoftwareItem;
 use App\Models\Vendor;
 use App\Models\VPortType;
 use App\Models\Vrf;
-use App\ViewModels\GeoDevModulePort_View;
+use App\ViewModels\DevModulePortGeo;
 use T4\Core\Collection;
 use T4\Core\Exception;
 use T4\Core\MultiException;
@@ -1006,13 +1006,13 @@ class Admin extends Controller
         $this->data->url = new UrlExt($http->url->toArrayRecursive());
         $where = [];
         $params = [];
-        $order = GeoDevModulePort_View::sortOrder();
+        $order = DevModulePortGeo::sortOrder();
         $maxAge = 73;
-        $networkDevFilter = implode(',', GeoDevModulePort_View::allDevTypes_id());
+        $networkDevFilter = implode(',', DevModulePortGeo::allDevTypes_id());
         $where[] = '"appType_id" IN (' . $networkDevFilter . ')';
 
         if (0 == $http->get->count()) {
-            $order = GeoDevModulePort_View::sortOrder();
+            $order = DevModulePortGeo::sortOrder();
         } else {
             $getParams = new Std($getParams);
             if (isset($http->get->maxAge)) {
@@ -1024,7 +1024,7 @@ class Admin extends Controller
                     continue;
                 }
                 if ('order' == $key) {
-                    $order = GeoDevModulePort_View::sortOrder($val);
+                    $order = DevModulePortGeo::sortOrder($val);
                     continue;
                 }
                 $where[] = $getParams->$key->clause;
@@ -1034,11 +1034,11 @@ class Admin extends Controller
         $where = implode(' AND ', $where);
         $query = (new QueryBuilder())
             ->select()
-            ->from(GeoDevModulePort_View::getTableName())
+            ->from(DevModulePortGeo::getTableName())
             ->where($where)
             ->params($params)
             ->order($order);
-        $this->data->geoDevs = GeoDevModulePort_View::findAllByQuery($query);
+        $this->data->geoDevs = DevModulePortGeo::findAllByQuery($query);
         $peopleInOffices = [];
         foreach ($this->data->geoDevs as $dev) {
             if (! key_exists($dev->lotusId, $peopleInOffices)) {

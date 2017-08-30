@@ -80,7 +80,7 @@
             <table class="inner table interfaces">
                 <thead>
                     {% set mngmnt = geoDev.managementIp %}
-                    {% if false != mngmnt %}
+                    {% if mngmnt is not empty %}
                         <tr>
                             <th>
                                 <a href="ssh://{{ mngmnt }}" >{{ mngmnt }}</a>
