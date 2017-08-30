@@ -35,19 +35,19 @@ trait DevTypesTrait
     {
         switch ($filter) {
             case 'all':
-                $devFilter = GeoDevModulePort_View::allDevTypes_id();
+                $devFilter = DevModulePortGeo::allDevTypes_id();
                 break;
             case 'netDevices':
-                $devFilter = GeoDevModulePort_View::networkDevTypes_id();
+                $devFilter = DevModulePortGeo::networkDevTypes_id();
                 break;
             case 'cucms':
-                $devFilter = GeoDevModulePort_View::cucmDevTypes_id();
+                $devFilter = DevModulePortGeo::cucmDevTypes_id();
                 break;
             case 'phones':
-                $devFilter = GeoDevModulePort_View::phoneDevTypes_id();
+                $devFilter = DevModulePortGeo::phoneDevTypes_id();
                 break;
             default:
-                $devFilter = GeoDevModulePort_View::allDevTypes_id();
+                $devFilter = DevModulePortGeo::allDevTypes_id();
                 break;
         }
         return $devFilter;

@@ -7,7 +7,7 @@ use App\Components\Cookies;
 use App\Components\Links;
 use App\Components\UrlExt;
 use App\Models\LotusLocation;
-use App\ViewModels\GeoDevModulePort_View;
+use App\ViewModels\DevModulePortGeo;
 use T4\Core\Std;
 use T4\Dbal\Query;
 use T4\Http\Request;
@@ -36,7 +36,7 @@ class Ajax extends Controller
     {
         $columnMap = [
             'reg' => 'region_id',
-            'loc' => 'location_id',
+            'loc' => 'office_id',
             'city' => 'city_id',
             'pl' => 'platform_id',
             'type' => '"appType_id"',
@@ -90,8 +90,10 @@ class Ajax extends Controller
             }
         }
 
-        $params = GeoDevModulePort_View::findAllByParams($params);
-        $params = GeoDevModulePort_View::findAllLotusIdByParams($params);
+//        $params = GeoDevModulePort_View::findAllByParams($params);
+//        $params = GeoDevModulePort_View::findAllLotusIdByParams($params);
+        $params = DevModulePortGeo::findAllByParams($params);
+        $params = DevModulePortGeo::findAllLotusIdByParams($params);
 
         if (! empty($params->tableId)) {
             //пишем pagesCount, recordsCount, rowsOnPage,  в cookies
