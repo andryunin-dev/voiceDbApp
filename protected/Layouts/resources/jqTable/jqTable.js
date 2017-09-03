@@ -347,7 +347,7 @@ jqTable.workSetTmpl = {
                 }
                 workSet.bodyObj.parent().css('max-height', maxHeight);
             },
-            bodyHeight: function (workSet) {
+            setBodyHeight: function (workSet) {
                 workSet = inner.getWorkSet(this, workSet);
                 var maxHeight = workSet.height - (workSet.headerObj.parent().height() + workSet.footerObj.parent().height());
                 workSet.bodyObj.parent().css('height', maxHeight);
@@ -830,7 +830,7 @@ jqTable.workSetTmpl = {
                 workSet.headerObj.find(workSet.model.headerSelectors.scrollCell).outerWidth(workSet.scrollWidth + workSet.scrollMargin);
                 /*=== Устанавливаем высоту для Body ===*/
                 inner.setBodyScroll(workSet);
-                inner.bodyHeight(workSet);
+                inner.setBodyHeight(workSet);
             }
         };
         var methods = {
