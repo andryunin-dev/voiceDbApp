@@ -37,7 +37,7 @@ var jqTable = {};
 jqTable.defaultModel = {
     width: 100, //относительно контейнера таблицы
     height: 100, //От верха заголовка, включая заголовок и футер(если он есть).
-    marginBottom: 0,
+    marginBottom: '10px',
     dataUrl: "", //URL для запроса данных
     header: {
         fixed: true, //фиксировать или нет заголовок таблицы
@@ -230,11 +230,13 @@ jqTable.workSetTmpl = {
         X_Scroll_enable: false,
         Y_Scroll_enable: true,
 
+        isBuilt: false
     },
 
     header: {
         columns: {}, //сюда копируется header.columns из  model.header.columns с пересчетом всех размеров в px
-        fixedColWidth: 0 //суммарная ширина колонок которые заданы в px. Заполняется в ходе расчетов
+        fixedColWidth: 0, //суммарная ширина колонок которые заданы в px. Заполняется в ходе расчетов
+        isBuilt: false
     },
     body: {
         data: {} //данные для body которые получаем по AJAX (rendered body template )
@@ -352,10 +354,9 @@ jqTable.workSetTmpl = {
                 }
                 workSet.bodyObj.parent().css('max-height', maxHeight);
             },
-            setBodyHeight: function (workSet) {
-                workSet = inner.getWorkSet(this, workSet);
-                var maxHeight = workSet.height - (workSet.headerObj.parent().height() + workSet.footerObj.parent().height());
-                workSet.bodyObj.parent().css('height', maxHeight);
+            setBodyHeight: function (ws) {
+                var height = ws.table.height - (ws.obj.$headerBox.height() + ws.obj.$footerBox.height() + ws.table.marginBottom);
+                ws.obj.$bodyBox.css('height', height);
             },
 
             footerInfo: function (workSet, info) {
@@ -485,67 +486,13 @@ jqTable.workSetTmpl = {
                     //inner.setFirstRowBodyWidth(workSet);
                 });
             },
-            //управление размерами
-            setColumnWidth: function (ws) {
-                $.each(ws.header.columns, function (key,value) {
-                    ws.obj.$header.find('#' + value.th_id).outerWidth(value.width);
-                    ws.obj.$bodyFirstRow.find('#' + value.td_id).outerWidth(value.width);
-                });
-                //установка ширины ячейки компенсации скрола
-                ws.obj.$headerScrollCell.outerWidth(ws.scrolls.Y_scrollWidth + ws.scrolls.scrollMargin);
-            },
-            setTableSizes: function (ws) {
-                //данный метод лучше применять только при первом построении таблицы, т.к.
-                //размеры колонок здесь не устанавливаются(устанавливаются при построении заголовка)
-                //после изменения размеров окна пользоваться методом resize
-                //ширина общего контейнера
-                /**
-                 * если ширина таблицы посчитана и она больше ширины родительского элемента главного контейнера
-                 * то ширину containerObj ограничиваем шириной его родителя (позже включим у containerObj скрол по горизонтале)
-                 */
-                ws.obj.$tableBox.width(ws.table.tableBoxParentWidth);
-                ws.table.X_Scroll_enable = ws.table.width > 0 && ws.table.width > ws.table.tableBoxParentWidth;
-                //ширина заголовка
-                ws.obj.$header.outerWidth(ws.table.width);
-                //ширину контейнера body
-                ws.obj.$bodyBox.width(ws.table.width);
-                //ширина таблицы body
-                var bodyWidth = ws.table.width;
-                if (ws.table.Y_Scroll_enable) {
-                    bodyWidth = bodyWidth - ws.scrolls.Y_scrollWidth - ws.scrolls.scrollMargin
-                }
-                ws.obj.$body.width(bodyWidth);
-                /*=== Устанавливаем высоту для Body ===*/
-                inner.setBodyHeight(ws);
-            },
-            updateSizes: function (ws) {
-                inner.setTableSizes(ws);
-                inner.setColumnWidth(ws);
-            },
-            scrollSize: function (ws) {
-                var styles = {
-                    width: "50px",
-                    height: "50px",
-                    "overflow-y": "scroll",
-                    "overflow-x": "scroll"
-                };
-                var element = $("<div></div>").attr("id", ws.mainSelector.slice(1) + '-scrl-outer').css(styles).append($("<div></div>").attr("id", ws.mainSelector.slice(1) + '-scrl-inner').css({height: "100%"}));
-                $('body').append(element);
-                ws.scrolls.Y_scrollWidth = $(ws.mainSelector + '-scrl-outer').width() - $(ws.mainSelector + '-scrl-inner').width();
-                ws.scrolls.X_scrollWidth = $(ws.mainSelector + '-scrl-outer').height() - $(ws.mainSelector + '-scrl-inner').height();
-                $(ws.mainSelector + '-scrl-outer').remove();
-                console.log("scroll width: " + ws.scrolls.Y_scrollWidth + '/' + ws.scrolls.X_scrollWidth);
-            },
-            windowSize: function (ws) {
-                ws.window.width = $(window).width();
-                ws.window.height = $(window).height();
-            },
             //пересчет размеров в px
             sizeToPx: function (ws) {
                 ws.table.tableBoxParentWidth = ws.obj.$tableBoxParent.width();
                 inner.tableWidthToPx(ws);
                 inner.tableHeightToPx(ws);
                 inner.colSizesToPx(ws);
+                inner.pagerWidthToPx(ws);
             },
             tableWidthToPx: function (ws) {
                 var md = ws.model;
@@ -645,6 +592,9 @@ jqTable.workSetTmpl = {
                 headerPx.columns[maxWidth.key].width -= acc - tableWidth;
                 // workSet.header = headerPx; //запоминаем получившийся массив колонок в workSet.header.columns
                 ws.header = $.extend(true, ws.header, headerPx); //запоминаем получившийся массив колонок в workSet.header.columns
+            },
+            pagerWidthToPx: function (ws) {
+                ws.pager.width = parseInt(ws.model.pager.width)
             },
             //управление стилями
             setStylesOld: function (ws) {
@@ -897,6 +847,11 @@ jqTable.workSetTmpl = {
                             inner.setScrollCellStyle(ws);
                             //устанавливаем ширину колонок заголовка
                             inner.setColumnWidth(ws);
+                            //если таблица построена - устанвливаем ее высоту, иначе делаем это в setTableSizes
+                            if (ws.table.isBuilt) {
+                                inner.setBodyHeight(ws);
+                            }
+                            ws.header.isBuilt = true;
                         })
                         .fail(function (jqXHR, textStatus, errorThrown) {
                             inner.debug(ws, 'buildHeader: ' + jqXHR.responseText);
@@ -924,6 +879,67 @@ jqTable.workSetTmpl = {
                 $.each(ws.model.header.columns, function (key,value) {
                     $('<th></th>').attr({"id": value.td_id}).appendTo(ws.obj.$bodyFirstRow);
                 });
+            },
+            //управление размерами
+            setColumnWidth: function (ws) {
+                $.each(ws.header.columns, function (key,value) {
+                    ws.obj.$header.find('#' + value.th_id).outerWidth(value.width);
+                    ws.obj.$bodyFirstRow.find('#' + value.td_id).outerWidth(value.width);
+                });
+                //установка ширины ячейки компенсации скрола
+                ws.obj.$headerScrollCell.outerWidth(ws.scrolls.Y_scrollWidth + ws.scrolls.scrollMargin);
+            },
+            setTableSizes: function (ws) {
+                //данный метод лучше применять только при первом построении таблицы, т.к.
+                //размеры колонок здесь не устанавливаются(устанавливаются при построении заголовка)
+                //после изменения размеров окна пользоваться методом resize
+                //ширина общего контейнера
+                /**
+                 * если ширина таблицы посчитана и она больше ширины родительского элемента главного контейнера
+                 * то ширину containerObj ограничиваем шириной его родителя (позже включим у containerObj скрол по горизонтале)
+                 */
+                ws.obj.$tableBox.width(ws.table.tableBoxParentWidth);
+                ws.table.X_Scroll_enable = ws.table.width > 0 && ws.table.width > ws.table.tableBoxParentWidth;
+                //ширина заголовка
+                ws.obj.$header.outerWidth(ws.table.width);
+                //ширину контейнера body
+                ws.obj.$bodyBox.width(ws.table.width);
+                //ширина таблицы body
+                var bodyWidth = ws.table.width;
+                if (ws.table.Y_Scroll_enable) {
+                    bodyWidth = bodyWidth - ws.scrolls.Y_scrollWidth - ws.scrolls.scrollMargin
+                }
+                ws.obj.$body.width(bodyWidth);
+                //ширина ячейки пейджинатора
+                ws.obj.$pager.outerWidth(ws.pager.width);
+                /*=== Устанавливаем высоту для Body ===*/
+                //только если построен заголовок таблицы
+                if (ws.header.isBuilt) {
+                    inner.setBodyHeight(ws);
+                }
+                ws.table.isBuilt = true;
+            },
+            updateSizes: function (ws) {
+                inner.setTableSizes(ws);
+                inner.setColumnWidth(ws);
+            },
+            scrollSize: function (ws) {
+                var styles = {
+                    width: "50px",
+                    height: "50px",
+                    "overflow-y": "scroll",
+                    "overflow-x": "scroll"
+                };
+                var element = $("<div></div>").attr("id", ws.mainSelector.slice(1) + '-scrl-outer').css(styles).append($("<div></div>").attr("id", ws.mainSelector.slice(1) + '-scrl-inner').css({height: "100%"}));
+                $('body').append(element);
+                ws.scrolls.Y_scrollWidth = $(ws.mainSelector + '-scrl-outer').width() - $(ws.mainSelector + '-scrl-inner').width();
+                ws.scrolls.X_scrollWidth = $(ws.mainSelector + '-scrl-outer').height() - $(ws.mainSelector + '-scrl-inner').height();
+                $(ws.mainSelector + '-scrl-outer').remove();
+                console.log("scroll width: " + ws.scrolls.Y_scrollWidth + '/' + ws.scrolls.X_scrollWidth);
+            },
+            windowSize: function (ws) {
+                ws.window.width = $(window).width();
+                ws.window.height = $(window).height();
             },
 
             //методы пейджинатора
