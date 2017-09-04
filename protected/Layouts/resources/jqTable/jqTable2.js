@@ -113,28 +113,36 @@ jqTable.defaultModel = {
     styles: {
         header: {
             table: {
-                classes: [],
+                classes: ["jqt-common-table", "jqt-hd-table", "bg-primary", "table-bordered"],
                 css: {}
             },
             tr: {
                 classes: [],
                 css: {}
             },
-            cell: {
+            th: {
+                classes: [],
+                css: {}
+            },
+            td: {
                 classes: [],
                 css: {}
             }
         },
         body: {
             table: {
-                classes: [],
+                classes: ["jqt-common-table", "jqt-bd-table"],
                 css: {}
             },
             tr: {
                 classes: [],
                 css: {}
             },
-            cell: {
+            th: {
+                classes: [],
+                css: {height: 0, padding: 0, border: "none"}
+            },
+            td: {
                 classes: [],
                 css: {}
             }
@@ -148,14 +156,22 @@ jqTable.defaultModel = {
                 classes: [],
                 css: ''
             },
-            cell: {
+            th: {
+                classes: [],
+                css: {}
+            },
+            td: {
                 classes: [],
                 css: {}
             }
         },
+        tableBox: {
+            classes: ["jqtable"],
+            css: {"background-color": "#dfdfdf"}
+        },
         headerBox: {
-            classes: [],
-            css: {}
+            classes: ['test1', 'test2'],
+            css: {width: '100%'}
         },
         bodyBox: {
             classes: [],
@@ -185,7 +201,7 @@ jqTable.workSetTmpl = {
         $header: $($.parseHTML('<table><thead></thead></table>')), //header ($(#main_selector-hd))
         $headerBox: undefined,
         $headerBodyBox: undefined, //контейнер в котором контейнеры хедера и боди
-        $body: $($.parseHTML('<table><tbody></tbody></table>')), //body ($(#main_selector-bd))
+        $body: $($.parseHTML('<table><thead></thead><tbody></tbody></table>')), //body ($(#main_selector-bd))
         $bodyFirstRow: $($.parseHTML('<tr></tr>')), //первая строка body (у нее выставляем ширину колонок)
         $bodyBox: undefined,
         $footer: $($.parseHTML('<table><tbody></tbody></table>')), //footer ($(#main_selector-ft))
@@ -315,6 +331,8 @@ jqTable.workSetTmpl = {
                 //добавляем объекты body и footer в таблицу
                 ws.obj.$body.appendTo(ws.obj.$headerBodyBox);
                 ws.obj.$body.wrap($("<div></div>").attr("id", ws.model.wrappers.selectors.body.slice(1)));
+                //добавляем firstRow in $body
+                ws.obj.$body.find('thead').html(ws.obj.$bodyFirstRow);
                 ws.obj.$bodyBox = $(ws.model.wrappers.selectors.body);
                 ws.obj.$footer.appendTo(ws.obj.$tableBox);
                 ws.obj.$footer.wrap($("<div></div>").attr("id",ws.model.wrappers.selectors.footer.slice(1)));
@@ -466,35 +484,31 @@ jqTable.workSetTmpl = {
                     // inner.setFirstRowBodyWidth(workSet);
                 });
             },
-            setFirstRowBodyWidth: function (workSet) {
-                workSet = inner.getWorkSet(this, workSet);
-                $.each(workSet.header.columns, function (key,value) {
-                    workSet.bodyFirstRowObj.find('#' + value.td_id).width(value.width);
+            setBodyWidth: function (ws) {
+                $.each(ws.header.columns, function (key,value) {
+                    ws.obj.$bodyFirstRow.find('#' + value.td_id).width(value.width);
                 });
             },
-            resize: function (workSet) {
-                workSet = inner.getWorkSet(this, workSet);
+            resize: function (ws) {
                 //ширина общего контейнера
                 /**
                  * если ширина таблицы посчитана и она больше ширины родительского элемента главного контейнера
                  * то ширину containerObj ограничиваем шириной его родителя (позже включим у containerObj скрол по горизонтале)
                  */
-
-                if (workSet.width > 0 && workSet.width + workSet.scrollWidth + workSet.scrollMargin > workSet.containerObjParentWidth) {
-                    workSet.containerObj.width(workSet.containerObjParentWidth);
-                    workSet.tableScroll_X = true;
-                } else {
-                    workSet.containerObj.width(workSet.width + workSet.scrollWidth + workSet.scrollMargin);
-                    workSet.tableScroll_X = false;
-                }
+                ws.obj.$tableBox.width(ws.table.tableBoxParentWidth);
+                ws.table.X_Scroll_enable = ws.table.width > 0 && ws.table.width > ws.table.tableBoxParentWidth;
                 //ширина заголовка
-                workSet.headerObj.outerWidth(workSet.width + workSet.scrollWidth + workSet.scrollMargin);
+                ws.obj.$header.outerWidth(ws.table.width);
                 //ширину контейнера body
-                workSet.bodyObj.parent().width(workSet.width + workSet.scrollWidth + workSet.scrollMargin);
+                ws.obj.$bodyBox.width(ws.table.width);
                 //ширина таблицы body
-                workSet.bodyObj.width(workSet.width);
+                var bodyWidth = ws.table.width;
+                if (ws.table.Y_Scroll_enable) {
+                    bodyWidth = bodyWidth - ws.scrolls.Y_scrollWidth - ws.scrolls.scrollMargin
+                }
+                ws.obj.$body.width(bodyWidth);
                 //ширина колонок перввой строки body
-                inner.setFirstRowBodyWidth(workSet);
+                inner.setBodyWidth(ws);
                 //устанавливаем размеры ячеек заголовка
                 $.each(workSet.header.columns, function (key,value) {
                     workSet.headerObj.find('#' + value.id).outerWidth(this.width);
@@ -760,11 +774,15 @@ jqTable.workSetTmpl = {
                     $.ajax({
                         url: ws.model.dataUrl,
                         data: dataRequest,
-                        async: false
                     })
                         .done(function (data, textStatus, jqXHR) {
                             inner.debug(ws, 'buildHeader: ' + textStatus);
                             ws.obj.$header.html(data.header.html);
+                            inner.setStyles(ws, 'header');
+                            //справа добавляем ячейку для компенсации скрола
+                            ws.obj.$header.find('tr').append($('<th></th>').attr('id', ws.model.header.selectors.scrollCell.slice(1)));
+                            //устанавливаем ее стиль
+                            inner.setScrollCellStyle(ws);
                         })
                         .fail(function (jqXHR, textStatus, errorThrown) {
                             inner.debug(ws, 'buildHeader: ' + jqXHR.responseText);
@@ -790,18 +808,16 @@ jqTable.workSetTmpl = {
                 //добавляем id к 1-й строке, наполняем ячейками с нужными id
                 ws.obj.$bodyFirstRow.attr("id", ws.model.body.selectors.firstRow.slice(1));
                 $.each(ws.model.header.columns, function (key,value) {
-                    $('<td></td>').attr({"id": value.td_id}).appendTo(ws.obj.$bodyFirstRow);
+                    $('<th></th>').attr({"id": value.td_id}).appendTo(ws.obj.$bodyFirstRow);
                 });
-            },
-            buildTable: function (ws) {
-
             },
             initPagerSettings: function (ws) {
                 //если в куке хранится текущая страница - берем ее в качестве текущей
                 ws.pager.page = + Cookies(ws.mainSelector.slice(1) + '_page') || ws.model.pager.startPage;
                 ws.pager.rowsOnPage = + Cookies(ws.mainSelector.slice(1) + '_rowsOnPage') || ws.model.pager.rowsOnPage;
             },
-            setStyles: function (ws) {
+            setStylesOld: function (ws) {
+                //depricated !!! use setStyles
                 ws.obj.$bodyFirstRow.find('td').height(0);
                 //добавляем к общему контейнеру класс для привязки стилей
                 ws.obj.$tableBox.addClass("jqtable");
@@ -832,21 +848,81 @@ jqTable.workSetTmpl = {
                 /* уровень table */
                 ws.obj.$footer.addClass(ws.model.footer.tableClasses);
             },
-            setStylesNew: function (ws, subjectName) {
-                if(ws.model.styles.hasOwnProperty(subjectName)) {
-                    var subjectStyles = ws.model.styles[subjectName];
+            setStyles: function (ws, subjectName) {
+                if (subjectName === undefined) {
+                    $.each(ws.model.styles, function (key, value) {
+                        inner.setStyles(ws, key);
+                    })
+                }else if(ws.model.styles.hasOwnProperty(subjectName)) {
+                   var subjectStyles = ws.model.styles[subjectName];
                     // если это стили для box
-                    if (subjectStyles.hasOwnProperty('classes') && subjectStyles.hasOwnProperty('css')) {
-                        $.each(subjectStyles.classes, function (key, value) {
-                            ws.obj['$' + subjectName].addClass(value);
-                        });
-                        $.each(subjectStyles.css, function (key, value) {
-                            ws.obj['$' + subjectName].css(key, value);
-                        });
+                    if ($.isPlainObject(subjectStyles) && subjectStyles.hasOwnProperty('classes') && subjectStyles.hasOwnProperty('css')) {
+                        if (! $.isEmptyObject(subjectStyles.classes)) {
+                            ws.obj['$' + subjectName].addClass(subjectStyles.classes.join(' '));
+                        }
+                        if (! $.isEmptyObject(subjectStyles.css)) {
+                            $.each(subjectStyles.css, function (key, value) {
+                                ws.obj['$' + subjectName].css(key, value);
+                            });
+                        }
+
+                    } else if ($.isPlainObject(subjectStyles) && subjectStyles.hasOwnProperty('table') && subjectStyles.hasOwnProperty('tr') && subjectStyles.hasOwnProperty('th') && subjectStyles.hasOwnProperty('td')) {
+                        //если это стили для таблицы - применям последовательно для table, tr, th, td
+                        //уровень таблицы
+                        var subject = ws.obj['$' + subjectName];
+                        if (! $.isEmptyObject(subjectStyles.table.classes)) {
+                            subject.addClass(subjectStyles.table.classes.join(' '));
+                        }
+                        if (! $.isEmptyObject(subjectStyles.table.css)) {
+                            $.each(subjectStyles.table.css, function (key, value) {
+                                subject.css(key, value);
+                            });
+                        }
+                        //уровень 'tr'
+                        subject = ws.obj['$' + subjectName].find('tr');
+                        if (! $.isEmptyObject(subjectStyles.tr.classes)) {
+                            subject.addClass(subjectStyles.tr.classes.join(' '));
+                        }
+                        if (! $.isEmptyObject(subjectStyles.tr.css)) {
+                            $.each(subjectStyles.tr.css, function (key, value) {
+                                subject.css(key, value);
+                            });
+                        }
+                        //уровень 'th'
+                        subject = ws.obj['$' + subjectName].find('th');
+                        if (! $.isEmptyObject(subjectStyles.th.classes)) {
+                            subject.addClass(subjectStyles.th.classes.join(' '));
+                        }
+                        if (! $.isEmptyObject(subjectStyles.th.css)) {
+                            $.each(subjectStyles.th.css, function (key, value) {
+                                subject.css(key, value);
+                            });
+                        }
+                        //уровень 'td'
+                        if (! $.isEmptyObject(subjectStyles.td.classes)) {
+                            subject.addClass(subjectStyles.td.classes.join(' '));
+                        }
+                        if (! $.isEmptyObject(subjectStyles.td.css)) {
+                            $.each(subjectStyles.td.css, function (key, value) {
+                                subject.css(key, value);
+                            });
+                        }
                     }
                 } else {
                     inner.debug(ws, 'Property ' + subjectName + " isn't found in 'styles' object");
                 }
+            },
+            setScrollCellStyle: function (ws) {
+                $(ws.model.header.selectors.scrollCell).removeClass().addClass("ui-state-default");
+            },
+            setInitialStyles: function (ws) {
+                inner.setStyles(ws, 'body');
+                inner.setStyles(ws, 'footer');
+                inner.setStyles(ws, 'tableBox');
+                inner.setStyles(ws, 'headerBox');
+                inner.setStyles(ws, 'bodyBox');
+                inner.setStyles(ws, 'headerBodyBox');
+                inner.setStyles(ws, 'footerBox');
             }
 
         };
@@ -879,9 +955,9 @@ jqTable.workSetTmpl = {
                 //заполняем в ws начальные данные для пагинатора из Cooks
                 inner.initPagerSettings(ws);
 
-                inner.setStylesNew(ws,'headerBox');
-                inner.setStyles(ws);
-                // inner.resize(workSet);
+                inner.setInitialStyles(ws);
+                // inner.setStyles(ws);
+                inner.resize(workSet);
                 // inner.globalEvents(workSet);
                 return $(ws);
             },
