@@ -199,6 +199,7 @@ jqTable.workSetTmpl = {
     mainSelector: '', //#selector
     obj: {
         $header: $($.parseHTML('<table><thead></thead></table>')), //header ($(#main_selector-hd))
+        $headerScrollCell: undefined, //ячейка для компенсации скролла
         $headerBox: undefined,
         $headerBodyBox: undefined, //контейнер в котором контейнеры хедера и боди
         $body: $($.parseHTML('<table><thead></thead><tbody></tbody></table>')), //body ($(#main_selector-bd))
@@ -313,6 +314,8 @@ jqTable.workSetTmpl = {
                 // меняем содержимое на workSet.headerObj и id и сохраняем в workSet.headerObj
                 ws.obj.$header = srcTable.empty().html(ws.obj.$header.html()); // header
                 ws.obj.$header.attr("id", ws.model.header.selectors.table.slice(1));
+                //формируем объект ячейки для компенсации скролла
+                ws.obj.$headerScrollCell = $('<th></th>').attr('id', ws.model.header.selectors.scrollCell.slice(1));
                 //дописываем id к объектам  bodyObj, footerObj
                 ws.obj.$body.attr("id", ws.model.body.selectors.table.slice(1)); //body
                 ws.obj.$footer.attr("id", ws.model.footer.selectors.table.slice(1)); //footer
@@ -451,18 +454,17 @@ jqTable.workSetTmpl = {
                 });
             },
 
-            setBodyScroll: function (workSet) {
-                workSet = inner.getWorkSet(this, workSet);
+            setBodyScroll: function (ws) {
                 /*=== уровень контейнеров ===*/
-                if (workSet.tableScroll_Y) {
-                    $(workSet.model.wrappers.body).css({"overflow-y": "scroll"});
+                if (ws.table.Y_Scroll_enable) {
+                    ws.obj.$bodyBox.css({"overflow-y": "scroll"});
                 } else {
-                    $(workSet.model.wrappers.body).css({"overflow-y": "hidden"});
+                    ws.obj.$bodyBox.css({"overflow-y": "hidden"});
                 }
-                if (workSet.tableScroll_X) {
-                    workSet.headerBodyObj.css({"overflow-x": "scroll"});
+                if (ws.table.X_Scroll_enable) {
+                    ws.obj.$headerBodyBox.css({"overflow-x": "scroll"});
                 } else {
-                    workSet.headerBodyObj.css({"overflow-x": "hidden"});
+                    ws.obj.$headerBodyBox.css({"overflow-x": "hidden"});
                 }
 
 
@@ -473,23 +475,29 @@ jqTable.workSetTmpl = {
                 /* уровень tr */
                 workSet.bodyObj.find('tr').addClass(workSet.model.body.rowClasses);
             },
-            globalEvents: function (workSet) {
-                workSet = inner.getWorkSet(this, workSet);
+            globalEvents: function (ws) {
                 $(window).resize(function (event) {
-                    workSet.window.width = $(window).width();
-                    workSet.window.height = $(window).height();
-                    inner.sizeToPx(workSet);
-                    inner.columnsIdUpdate(workSet);
-                    inner.resize(workSet);
-                    // inner.setFirstRowBodyWidth(workSet);
+                    ws.window.width = $(window).width();
+                    ws.window.height = $(window).height();
+                    inner.sizeToPx(ws);
+                    inner.columnsIdUpdate(ws);
+                    inner.updateSizes(ws);
+                    //inner.setFirstRowBodyWidth(workSet);
                 });
             },
-            setBodyWidth: function (ws) {
+            //управление размерами
+            setColumnWidth: function (ws) {
                 $.each(ws.header.columns, function (key,value) {
-                    ws.obj.$bodyFirstRow.find('#' + value.td_id).width(value.width);
+                    ws.obj.$header.find('#' + value.th_id).outerWidth(value.width);
+                    ws.obj.$bodyFirstRow.find('#' + value.td_id).outerWidth(value.width);
                 });
+                //установка ширины ячейки компенсации скрола
+                ws.obj.$headerScrollCell.outerWidth(ws.scrolls.Y_scrollWidth + ws.scrolls.scrollMargin);
             },
-            resize: function (ws) {
+            setTableSizes: function (ws) {
+                //данный метод лучше применять только при первом построении таблицы, т.к.
+                //размеры колонок здесь не устанавливаются(устанавливаются при построении заголовка)
+                //после изменения размеров окна пользоваться методом resize
                 //ширина общего контейнера
                 /**
                  * если ширина таблицы посчитана и она больше ширины родительского элемента главного контейнера
@@ -507,20 +515,13 @@ jqTable.workSetTmpl = {
                     bodyWidth = bodyWidth - ws.scrolls.Y_scrollWidth - ws.scrolls.scrollMargin
                 }
                 ws.obj.$body.width(bodyWidth);
-                //ширина колонок перввой строки body
-                inner.setBodyWidth(ws);
-                //устанавливаем размеры ячеек заголовка
-                $.each(workSet.header.columns, function (key,value) {
-                    workSet.headerObj.find('#' + value.id).outerWidth(this.width);
-                });
-                //размер для scrollCell
-                workSet.headerObj.find(workSet.model.headerSelectors.scrollCell).outerWidth(workSet.scrollWidth + workSet.scrollMargin);
                 /*=== Устанавливаем высоту для Body ===*/
-                inner.setBodyScroll(workSet);
-                inner.setBodyHeight(workSet);
+                inner.setBodyHeight(ws);
             },
-
-
+            updateSizes: function (ws) {
+                inner.setTableSizes(ws);
+                inner.setColumnWidth(ws);
+            },
             scrollSize: function (ws) {
                 var styles = {
                     width: "50px",
@@ -539,110 +540,7 @@ jqTable.workSetTmpl = {
                 ws.window.width = $(window).width();
                 ws.window.height = $(window).height();
             },
-            fillSelectors: function (ws) {
-                var md = ws.model;
-                md.header.selectors.table = ws.mainSelector + md.header.selectors.table;
-                md.header.selectors.scrollCell = ws.mainSelector + md.header.selectors.scrollCell;
-
-                md.body.selectors.table = ws.mainSelector + md.body.selectors.table;
-                md.body.selectors.firstRow = ws.mainSelector + md.body.selectors.firstRow;
-
-                md.footer.selectors.table = ws.mainSelector + md.footer.selectors.table;
-                md.footer.selectors.infoCell = ws.mainSelector + md.footer.selectors.infoCell;
-                md.footer.selectors.firstRow = ws.mainSelector + md.footer.selectors.firstRow;
-
-                md.wrappers.selectors.table = ws.mainSelector + md.wrappers.selectors.table;
-                md.wrappers.selectors.header= ws.mainSelector + md.wrappers.selectors.header;
-                md.wrappers.selectors.body = ws.mainSelector + md.wrappers.selectors.body;
-                md.wrappers.selectors.footer = ws.mainSelector + md.wrappers.selectors.footer;
-                md.wrappers.selectors.headerBody = ws.mainSelector + md.wrappers.selectors.headerBody;
-
-                md.pager.selectors.pager = ws.mainSelector + md.pager.selectors.pager;
-                md.pager.selectors.input = ws.mainSelector + md.pager.selectors.input;
-                md.pager.selectors.rowsOnPageList = ws.mainSelector + md.pager.selectors.rowsOnPageList;
-                md.pager.selectors.pagesCount = ws.mainSelector + md.pager.selectors.pagesCount;
-            },
-            buildFooter: function (ws) {
-                inner.buildPager(ws);
-                inner.buildInfoCell(ws);
-                //append first row to footer and info cell and pager
-                ws.obj.$footer.find('tbody').append(
-                    $('<tr/>', {
-                        id: ws.model.footer.selectors.firstRow.slice(1)
-                    })
-                );
-                //add to $footer $footerInfo and $pager
-                var $firstRw = ws.obj.$footer.find(ws.model.footer.selectors.firstRow);
-                $firstRw.append(ws.obj.$footerInfo).append(ws.obj.$pager);
-            },
-            buildInfoCell: function (ws) {
-                ws.obj.$footerInfo = $('<td/>', {
-                    id: ws.model.footer.selectors.infoCell.slice(1),
-                    class: "table-footer-info-cell"
-                });
-            },
-            buildPager: function (ws) {
-                //собираем пейджинатор
-                ws.obj.$pgFirstPage = $('<span/>', {
-                    class: 'ui-icon ui-icon-seek-first'
-                });
-                ws.obj.$pgPrewPage = $('<span/>', {
-                    class: 'ui-icon ui-icon-seek-prev'
-                });
-                ws.obj.$pgNextPage = $('<span/>', {
-                    class: 'ui-icon ui-icon-seek-next'
-                });
-                ws.obj.$pgLastPage = $('<span/>', {
-                    class: 'ui-icon ui-icon-seek-end'
-                });
-
-                ws.obj.$pager = $('<td/>', {
-                    id: ws.model.pager.selectors.pager.slice(1),
-                    class: 'jqt-pager',
-                    align: 'center'
-                }).append(
-                    ws.obj.$pgFirstPage
-                ).append(
-                    ws.obj.$pgPrewPage
-                ).append(
-                    $('<span/>', {
-                        class: 'ui-separator'
-                    })
-                ).append(
-                    $('<span/>', {
-                    }).text('Page')
-                ).append(
-                    $('<input/>', {
-                        id: ws.model.pager.selectors.input.slice(1),
-                        class: 'ui-pg-input',
-                        type: 'text',
-                        size: 3,
-                        maxlength: 7
-                    }).width(20)
-                ).append(
-                    $('<span/>', {
-                    }).text('of')
-                ).append(
-                    $('<span/>', {
-                        id: ws.model.pager.selectors.pagesCount.slice(1)
-                    }).text('')
-                ).append(
-                    $('<span/>', {
-                        class: 'ui-separator'
-                    })
-                ).append(
-                    ws.obj.$pgNextPage
-                ).append(
-                    ws.obj.$pgLastPage
-                );
-                ws.obj.$rowsOnPageList = $('<select/>', { id: ws.model.pager.selectors.rowsOnPageList});
-                $.each(ws.model.pager.rowList, function () {
-                    $('<option/>', {
-                        value: this,
-                        text: this
-                    }).appendTo(ws.obj.$rowsOnPageList);
-                });
-            },
+            //пересчет размеров в px
             sizeToPx: function (ws) {
                 ws.table.tableBoxParentWidth = ws.obj.$tableBoxParent.width();
                 inner.tableWidthToPx(ws);
@@ -748,74 +646,7 @@ jqTable.workSetTmpl = {
                 // workSet.header = headerPx; //запоминаем получившийся массив колонок в workSet.header.columns
                 ws.header = $.extend(true, ws.header, headerPx); //запоминаем получившийся массив колонок в workSet.header.columns
             },
-            columnsIdUpdate: function (ws) {
-                $.each(ws.header.columns, function (key,value) {
-                    if (typeof value.id === 'undefined') {
-                        value.id = key;
-                    }
-                    value.th_id = ws.mainSelector.slice(1) + '_th_' + value.id;
-                    value.td_id = ws.mainSelector.slice(1) + '_td_' + value.id;
-                });
-                $.each(ws.model.header.columns, function (key,value) {
-                    if (typeof value.id === 'undefined') {
-                        value.id = key;
-                    }
-                    value.th_id = ws.mainSelector.slice(1) + '_th_' + value.id;
-                    value.td_id = ws.mainSelector.slice(1) + '_td_' + value.id;
-                });
-            },
-            buildHeader: function (ws) {
-                if (ws.model.header.buildOnServer) {
-                    var dataRequest = {
-                        header: {
-                            columns: ws.model.header.columns
-                        }
-                    };
-                    $.ajax({
-                        url: ws.model.dataUrl,
-                        data: dataRequest,
-                    })
-                        .done(function (data, textStatus, jqXHR) {
-                            inner.debug(ws, 'buildHeader: ' + textStatus);
-                            ws.obj.$header.html(data.header.html);
-                            inner.setStyles(ws, 'header');
-                            //справа добавляем ячейку для компенсации скрола
-                            ws.obj.$header.find('tr').append($('<th></th>').attr('id', ws.model.header.selectors.scrollCell.slice(1)));
-                            //устанавливаем ее стиль
-                            inner.setScrollCellStyle(ws);
-                        })
-                        .fail(function (jqXHR, textStatus, errorThrown) {
-                            inner.debug(ws, 'buildHeader: ' + jqXHR.responseText);
-                        });
-                } else {
-                    var header = $('<thead></thead>').addClass(ws.model.header.class);
-                    var tr = $('<tr></tr>').appendTo(header);
-                    var lastKey = '';
-                    $.each(ws.header.columns, function (key,value) {
-                        lastKey = key;
-                        var tag = $('<th></th>');
-                        tag.width(this.width);
-                        tag.attr({"id": value.th_id, title: value.name})
-                            .html(value.name)
-                            .appendTo(tr);
-                    });
-                    //справа добавляем ячейку для компенсации скрола
-                    $('<th></th>').attr('id', ws.model.header.selectors.scrollCell.slice(1)).appendTo(tr);
-                    ws.obj.header.html(header);
-                }
-            },
-            buildFirstRowBody: function (ws) {
-                //добавляем id к 1-й строке, наполняем ячейками с нужными id
-                ws.obj.$bodyFirstRow.attr("id", ws.model.body.selectors.firstRow.slice(1));
-                $.each(ws.model.header.columns, function (key,value) {
-                    $('<th></th>').attr({"id": value.td_id}).appendTo(ws.obj.$bodyFirstRow);
-                });
-            },
-            initPagerSettings: function (ws) {
-                //если в куке хранится текущая страница - берем ее в качестве текущей
-                ws.pager.page = + Cookies(ws.mainSelector.slice(1) + '_page') || ws.model.pager.startPage;
-                ws.pager.rowsOnPage = + Cookies(ws.mainSelector.slice(1) + '_rowsOnPage') || ws.model.pager.rowsOnPage;
-            },
+            //управление стилями
             setStylesOld: function (ws) {
                 //depricated !!! use setStyles
                 ws.obj.$bodyFirstRow.find('td').height(0);
@@ -854,7 +685,7 @@ jqTable.workSetTmpl = {
                         inner.setStyles(ws, key);
                     })
                 }else if(ws.model.styles.hasOwnProperty(subjectName)) {
-                   var subjectStyles = ws.model.styles[subjectName];
+                    var subjectStyles = ws.model.styles[subjectName];
                     // если это стили для box
                     if ($.isPlainObject(subjectStyles) && subjectStyles.hasOwnProperty('classes') && subjectStyles.hasOwnProperty('css')) {
                         if (! $.isEmptyObject(subjectStyles.classes)) {
@@ -913,7 +744,7 @@ jqTable.workSetTmpl = {
                 }
             },
             setScrollCellStyle: function (ws) {
-                $(ws.model.header.selectors.scrollCell).removeClass().addClass("ui-state-default");
+                ws.obj.$headerScrollCell.removeClass().addClass("ui-state-default");
             },
             setInitialStyles: function (ws) {
                 inner.setStyles(ws, 'body');
@@ -923,7 +754,185 @@ jqTable.workSetTmpl = {
                 inner.setStyles(ws, 'bodyBox');
                 inner.setStyles(ws, 'headerBodyBox');
                 inner.setStyles(ws, 'footerBox');
+            },
+            //создание элементов
+            fillSelectors: function (ws) {
+                var md = ws.model;
+                md.header.selectors.table = ws.mainSelector + md.header.selectors.table;
+                md.header.selectors.scrollCell = ws.mainSelector + md.header.selectors.scrollCell;
+
+                md.body.selectors.table = ws.mainSelector + md.body.selectors.table;
+                md.body.selectors.firstRow = ws.mainSelector + md.body.selectors.firstRow;
+
+                md.footer.selectors.table = ws.mainSelector + md.footer.selectors.table;
+                md.footer.selectors.infoCell = ws.mainSelector + md.footer.selectors.infoCell;
+                md.footer.selectors.firstRow = ws.mainSelector + md.footer.selectors.firstRow;
+
+                md.wrappers.selectors.table = ws.mainSelector + md.wrappers.selectors.table;
+                md.wrappers.selectors.header= ws.mainSelector + md.wrappers.selectors.header;
+                md.wrappers.selectors.body = ws.mainSelector + md.wrappers.selectors.body;
+                md.wrappers.selectors.footer = ws.mainSelector + md.wrappers.selectors.footer;
+                md.wrappers.selectors.headerBody = ws.mainSelector + md.wrappers.selectors.headerBody;
+
+                md.pager.selectors.pager = ws.mainSelector + md.pager.selectors.pager;
+                md.pager.selectors.input = ws.mainSelector + md.pager.selectors.input;
+                md.pager.selectors.rowsOnPageList = ws.mainSelector + md.pager.selectors.rowsOnPageList;
+                md.pager.selectors.pagesCount = ws.mainSelector + md.pager.selectors.pagesCount;
+            },
+            buildFooter: function (ws) {
+                inner.buildPager(ws);
+                inner.buildInfoCell(ws);
+                //append first row to footer and info cell and pager
+                ws.obj.$footer.find('tbody').append(
+                    $('<tr/>', {
+                        id: ws.model.footer.selectors.firstRow.slice(1)
+                    })
+                );
+                //add to $footer $footerInfo and $pager
+                var $firstRw = ws.obj.$footer.find(ws.model.footer.selectors.firstRow);
+                $firstRw.append(ws.obj.$footerInfo).append(ws.obj.$pager);
+            },
+            buildInfoCell: function (ws) {
+                ws.obj.$footerInfo = $('<td/>', {
+                    id: ws.model.footer.selectors.infoCell.slice(1),
+                    class: "table-footer-info-cell"
+                });
+            },
+            buildPager: function (ws) {
+                //собираем пейджинатор
+                ws.obj.$pgFirstPage = $('<span/>', {
+                    class: 'ui-icon ui-icon-seek-first'
+                });
+                ws.obj.$pgPrewPage = $('<span/>', {
+                    class: 'ui-icon ui-icon-seek-prev'
+                });
+                ws.obj.$pgNextPage = $('<span/>', {
+                    class: 'ui-icon ui-icon-seek-next'
+                });
+                ws.obj.$pgLastPage = $('<span/>', {
+                    class: 'ui-icon ui-icon-seek-end'
+                });
+
+                ws.obj.$pager = $('<td/>', {
+                    id: ws.model.pager.selectors.pager.slice(1),
+                    class: 'jqt-pager',
+                    align: 'center'
+                }).append(
+                    ws.obj.$pgFirstPage
+                ).append(
+                    ws.obj.$pgPrewPage
+                ).append(
+                    $('<span/>', {
+                        class: 'ui-separator'
+                    })
+                ).append(
+                    $('<span/>', {
+                    }).text('Page')
+                ).append(
+                    $('<input/>', {
+                        id: ws.model.pager.selectors.input.slice(1),
+                        class: 'ui-pg-input',
+                        type: 'text',
+                        size: 3,
+                        maxlength: 7
+                    }).width(20)
+                ).append(
+                    $('<span/>', {
+                    }).text('of')
+                ).append(
+                    $('<span/>', {
+                        id: ws.model.pager.selectors.pagesCount.slice(1)
+                    }).text('')
+                ).append(
+                    $('<span/>', {
+                        class: 'ui-separator'
+                    })
+                ).append(
+                    ws.obj.$pgNextPage
+                ).append(
+                    ws.obj.$pgLastPage
+                );
+                ws.obj.$rowsOnPageList = $('<select/>', { id: ws.model.pager.selectors.rowsOnPageList});
+                $.each(ws.model.pager.rowList, function () {
+                    $('<option/>', {
+                        value: this,
+                        text: this
+                    }).appendTo(ws.obj.$rowsOnPageList);
+                });
+            },
+            columnsIdUpdate: function (ws) {
+                $.each(ws.header.columns, function (key,value) {
+                    if (typeof value.id === 'undefined') {
+                        value.id = key;
+                    }
+                    value.th_id = ws.mainSelector.slice(1) + '_th_' + value.id;
+                    value.td_id = ws.mainSelector.slice(1) + '_td_' + value.id;
+                });
+                $.each(ws.model.header.columns, function (key,value) {
+                    if (typeof value.id === 'undefined') {
+                        value.id = key;
+                    }
+                    value.th_id = ws.mainSelector.slice(1) + '_th_' + value.id;
+                    value.td_id = ws.mainSelector.slice(1) + '_td_' + value.id;
+                });
+            },
+            buildHeader: function (ws) {
+                if (ws.model.header.buildOnServer) {
+                    var dataRequest = {
+                        header: {
+                            columns: ws.model.header.columns
+                        }
+                    };
+                    $.ajax({
+                        url: ws.model.dataUrl,
+                        data: dataRequest,
+                    })
+                        .done(function (data, textStatus, jqXHR) {
+                            inner.debug(ws, 'buildHeader: ' + textStatus);
+                            ws.obj.$header.html(data.header.html);
+                            inner.setStyles(ws, 'header');
+                            //справа добавляем ячейку для компенсации скрола
+                            ws.obj.$header.find('tr').append(ws.obj.$headerScrollCell);
+                            //устанавливаем ее стиль
+                            inner.setScrollCellStyle(ws);
+                            //устанавливаем ширину колонок заголовка
+                            inner.setColumnWidth(ws);
+                        })
+                        .fail(function (jqXHR, textStatus, errorThrown) {
+                            inner.debug(ws, 'buildHeader: ' + jqXHR.responseText);
+                        });
+                } else {
+                    var header = $('<thead></thead>').addClass(ws.model.header.class);
+                    var tr = $('<tr></tr>').appendTo(header);
+                    var lastKey = '';
+                    $.each(ws.header.columns, function (key,value) {
+                        lastKey = key;
+                        var tag = $('<th></th>');
+                        tag.width(this.width);
+                        tag.attr({"id": value.th_id, title: value.name})
+                            .html(value.name)
+                            .appendTo(tr);
+                    });
+                    //справа добавляем ячейку для компенсации скрола
+                    $('<th></th>').attr('id', ws.model.header.selectors.scrollCell.slice(1)).appendTo(tr);
+                    ws.obj.header.html(header);
+                }
+            },
+            buildFirstRowBody: function (ws) {
+                //добавляем id к 1-й строке, наполняем ячейками с нужными id
+                ws.obj.$bodyFirstRow.attr("id", ws.model.body.selectors.firstRow.slice(1));
+                $.each(ws.model.header.columns, function (key,value) {
+                    $('<th></th>').attr({"id": value.td_id}).appendTo(ws.obj.$bodyFirstRow);
+                });
+            },
+
+            //методы пейджинатора
+            initPagerSettings: function (ws) {
+                //если в куке хранится текущая страница - берем ее в качестве текущей
+                ws.pager.page = + Cookies(ws.mainSelector.slice(1) + '_page') || ws.model.pager.startPage;
+                ws.pager.rowsOnPage = + Cookies(ws.mainSelector.slice(1) + '_rowsOnPage') || ws.model.pager.rowsOnPage;
             }
+
 
         };
         var methods = {
@@ -954,11 +963,11 @@ jqTable.workSetTmpl = {
                 inner.buildFooter(ws);
                 //заполняем в ws начальные данные для пагинатора из Cooks
                 inner.initPagerSettings(ws);
-
+                //применяем стили, размеры,
                 inner.setInitialStyles(ws);
-                // inner.setStyles(ws);
-                inner.resize(workSet);
-                // inner.globalEvents(workSet);
+                inner.setTableSizes(ws);
+                inner.setBodyScroll(ws);
+                inner.globalEvents(ws);
                 return $(ws);
             },
             updateBodyJSON: function (workSet, params) {
