@@ -100,7 +100,12 @@ jqTable.defaultModel = {
     *   }
     */
     filter: {
-
+        "region": {
+            eq: "регион 1, рег 2"
+        },
+        "__city": {
+            eq: "city 1, city2 2"
+        }
     },
     sorting: {
         fieldName: undefined, //field name for sort
@@ -149,7 +154,7 @@ jqTable.defaultModel = {
         },
         footer: {
             table: {
-                classes: [],
+                classes: ["ui-state-default"],
                 css: {}
             },
             tr: {
@@ -215,7 +220,9 @@ jqTable.workSetTmpl = {
         $pgPrewPage: undefined,
         $pgNextPage: undefined,
         $pgLastPage: undefined,
-        $pgRowsOnPageList: undefined
+        $pgRowsOnPageList: undefined,
+        $pgInput: undefined,
+        $pgPagesCount: undefined
     },
 
     table: {
@@ -265,8 +272,11 @@ jqTable.workSetTmpl = {
     params: {
         filters: {} //текущий фильтр контента
     },
-    filters: {}, //текущие параметры фильтра
+    filter: {}, //текущие параметры фильтра
     sorting: {}, //текущие параметры сортировки
+    auxiliary: {
+        lastClickTime: 0
+    }
 };
 
 (function ($) {
@@ -369,27 +379,6 @@ jqTable.workSetTmpl = {
                 });
                 workSet.footer.infoCellObj.find('span').last().remove();
             },
-            updatePager: function (workSet) {
-                //вставить в пейджинатор номер текушей страницы, кол-во страниц
-                workSet.footerPagerObj.find(workSet.model.pager.inputSelector).val(workSet.pager.page);
-                workSet.footerPagerObj.find(workSet.model.pager.pageCountSelector).text(workSet.pager.pages);
-                //если последняя страница - выключаем пейджинацию вправо
-                if ( parseInt(workSet.pager.page) < workSet.pager.pages ) {
-                    workSet.pager.lastPageObj.removeClass('ui-state-disabled');
-                    workSet.pager.nextPageObj.removeClass('ui-state-disabled');
-                } else {
-                    workSet.pager.lastPageObj.addClass('ui-state-disabled');
-                    workSet.pager.nextPageObj.addClass('ui-state-disabled');
-                }
-                //если первая страница - выключаем пейджинацию влево
-                if ( parseInt(workSet.pager.page) > 1 ) {
-                    workSet.pager.firstPageObj.removeClass('ui-state-disabled');
-                    workSet.pager.prevPageObj.removeClass('ui-state-disabled');
-                } else {
-                    workSet.pager.firstPageObj.addClass('ui-state-disabled');
-                    workSet.pager.prevPageObj.addClass('ui-state-disabled');
-                }
-            },
             eventsPager: function (workSet) {
                 workSet = inner.getWorkSet(this, workSet);
                 $(workSet.model.pager.selector).on(
@@ -478,8 +467,10 @@ jqTable.workSetTmpl = {
             },
             globalEvents: function (ws) {
                 $(window).resize(function (event) {
-                    ws.window.width = $(window).width();
-                    ws.window.height = $(window).height();
+                    //Обновляем внешние размеры
+                    inner.windowSize(ws);
+                    inner.tableBoxParentWidth(ws);
+
                     inner.sizeToPx(ws);
                     inner.columnsIdUpdate(ws);
                     inner.updateSizes(ws);
@@ -488,7 +479,10 @@ jqTable.workSetTmpl = {
             },
             //пересчет размеров в px
             sizeToPx: function (ws) {
-                ws.table.tableBoxParentWidth = ws.obj.$tableBoxParent.width();
+                //Обновляем внешние размеры
+                inner.windowSize(ws);
+                inner.tableBoxParentWidth(ws);
+
                 inner.tableWidthToPx(ws);
                 inner.tableHeightToPx(ws);
                 inner.colSizesToPx(ws);
@@ -529,7 +523,7 @@ jqTable.workSetTmpl = {
                 //height
                 if (String(md.height).indexOf("px") >= 0) {
                     //высота таблицы задана в px
-                    ws.table.height = parseInt(md.height) - ws.table.marginBottom;
+                    ws.table.height = parseInt(md.height);
                     ws.table.fixHeight = true;
                 } else if (parseInt(md.height) > 0) {
                     //высота таблицы задана в процентах. За 100% принимаем высоту от верха контейнера таблицы до низа окна
@@ -592,6 +586,35 @@ jqTable.workSetTmpl = {
                 headerPx.columns[maxWidth.key].width -= acc - tableWidth;
                 // workSet.header = headerPx; //запоминаем получившийся массив колонок в workSet.header.columns
                 ws.header = $.extend(true, ws.header, headerPx); //запоминаем получившийся массив колонок в workSet.header.columns
+            },
+            updateColSizesInPx: function (ws) {
+                var md = ws.model;
+                var tableWidth = ws.table.width - ws.scrolls.Y_scrollWidth - ws.scrolls.scrollMargin;
+                var freeWidth = tableWidth - ws.header.fixedColWidth;
+
+                var acc = 0;
+                var maxWidth = {val: 0, key: ''}; //воременный объект для хранения самой широкой колонки
+                $.each(ws.header.columns, function (name, column) {
+                    if (column.fixed === false) {
+                        column.width = Math.round(freeWidth *  md.header.columns[name].width / 100);
+                        acc += column.width;
+
+                        if (maxWidth.val < column.width) {
+                            maxWidth.val = column.width;
+                            maxWidth.key = name;
+                        }
+                    } else {
+                        if (maxWidth.val < column.width) {
+                            maxWidth.val = column.width;
+                            maxWidth.key = name;
+                        }
+                    }
+                });
+                /**
+                 * корректируем расхождение суммарной ширины ячеек и ширины контейнера
+                 * путем вычитания разности из ширины самой широкой ячейки
+                 */
+                ws.header.columns[maxWidth.key].width -= (acc + ws.header.fixedColWidth) - tableWidth;
             },
             pagerWidthToPx: function (ws) {
                 ws.pager.width = parseInt(ws.model.pager.width)
@@ -762,6 +785,16 @@ jqTable.workSetTmpl = {
                 ws.obj.$pgLastPage = $('<span/>', {
                     class: 'ui-icon ui-icon-seek-end'
                 });
+                ws.obj.$pgInput = $('<input/>', {
+                    id: ws.model.pager.selectors.input.slice(1),
+                    class: 'ui-pg-input',
+                    type: 'text',
+                    size: 3,
+                    maxlength: 7
+                }).width(20);
+                ws.obj.$pgPagesCount = $('<span/>', {
+                    id: ws.model.pager.selectors.pagesCount.slice(1)
+                }).text('');
 
                 ws.obj.$pager = $('<td/>', {
                     id: ws.model.pager.selectors.pager.slice(1),
@@ -779,20 +812,12 @@ jqTable.workSetTmpl = {
                     $('<span/>', {
                     }).text('Page')
                 ).append(
-                    $('<input/>', {
-                        id: ws.model.pager.selectors.input.slice(1),
-                        class: 'ui-pg-input',
-                        type: 'text',
-                        size: 3,
-                        maxlength: 7
-                    }).width(20)
+                    ws.obj.$pgInput
                 ).append(
                     $('<span/>', {
                     }).text('of')
                 ).append(
-                    $('<span/>', {
-                        id: ws.model.pager.selectors.pagesCount.slice(1)
-                    }).text('')
+                    ws.obj.$pgPagesCount
                 ).append(
                     $('<span/>', {
                         class: 'ui-separator'
@@ -835,7 +860,7 @@ jqTable.workSetTmpl = {
                     };
                     $.ajax({
                         url: ws.model.dataUrl,
-                        data: dataRequest,
+                        data: dataRequest
                     })
                         .done(function (data, textStatus, jqXHR) {
                             inner.debug(ws, 'buildHeader: ' + textStatus);
@@ -890,8 +915,8 @@ jqTable.workSetTmpl = {
                 ws.obj.$headerScrollCell.outerWidth(ws.scrolls.Y_scrollWidth + ws.scrolls.scrollMargin);
             },
             setTableSizes: function (ws) {
-                //данный метод лучше применять только при первом построении таблицы, т.к.
-                //размеры колонок здесь не устанавливаются(устанавливаются при построении заголовка)
+                //РАЗМЕРЫ КОЛОНОК ЗДЕСЬ НЕ УСТАНАВЛИВАЮТСЯ!!!
+                // (устанавливаются при построении заголовка или вызовом метода inner.setColumnWidth(ws))
                 //после изменения размеров окна пользоваться методом resize
                 //ширина общего контейнера
                 /**
@@ -920,6 +945,10 @@ jqTable.workSetTmpl = {
                 ws.table.isBuilt = true;
             },
             updateSizes: function (ws) {
+                inner.tableWidthToPx(ws);
+                inner.tableHeightToPx(ws);
+                inner.updateColSizesInPx(ws);
+
                 inner.setTableSizes(ws);
                 inner.setColumnWidth(ws);
             },
@@ -941,15 +970,120 @@ jqTable.workSetTmpl = {
                 ws.window.width = $(window).width();
                 ws.window.height = $(window).height();
             },
+            tableBoxParentWidth: function (ws) {
+                ws.table.tableBoxParentWidth = ws.obj.$tableBoxParent.width();
+            },
+
+            //задание обработчиков событий
+            windowResizeEvent: function (ws) {
+                $(window).resize(function (event) {
+                    //пересчитываем ширину, высоту таблицы, обновляем размеры колонок, применяем обновленный данные
+                    inner.windowSize(ws);
+                    inner.tableBoxParentWidth(ws);
+
+                    inner.updateSizes(ws);
+                });
+            },
+            pagerEvents: function (ws) {
+                ws.obj.$pager.on(
+                    'click',
+                    ws,
+                    function (event) {
+                        ws = event.data;
+                        if (inner.doubleClick(ws, 300)) { return; }
+                        if ($(event.target).hasClass('ui-icon-seek-next')) {
+                            ws.pager.page += 1;
+                            params = inner.paramsForAjaxRequest(ws);
+                            methods.updateBodyContent(ws, params)
+                        } else if ($(event.target).hasClass('ui-icon-seek-end')) {
+                            event.data.pager.page = event.data.pager.pages;
+                            params = inner.paramsForAjaxRequest(ws);
+                            methods.updateBodyContent(ws, params);
+                        } else if ($(event.target).hasClass('ui-icon-seek-prev')) {
+                            event.data.pager.page -= 1;
+                            params = inner.paramsForAjaxRequest(ws);
+                            methods.updateBodyContent(ws, params);
+                        } else if ($(event.target).hasClass('ui-icon-seek-first')) {
+                            event.data.pager.page = 1;
+                            params = inner.paramsForAjaxRequest(ws);
+                            methods.updateBodyContent(ws, params);
+                        }
+                    }
+                );
+                ws.obj.$pager.change(ws, function (event) {
+                    if ($(event.target).attr('id') == event.data.model.pager.rowsOnPageSelector) {
+                        ws = event.data;
+                        var rowsOnPage = $(event.target).find("option:selected").text();
+                        if ($.isNumeric(rowsOnPage)) {
+                            ws.pager.rowsOnPage = parseInt(rowsOnPage);
+                        } else {
+                            ws.pager.rowsOnPage = -1;
+                        }
+                        Cookies.set(ws.mainSelector.slice(1) + '_rowsOnPage', rowsOnPage);
+                        params = inner.paramsForAjaxRequest(ws);
+                        methods.updateBodyContent(ws, params);
+                    }
+                });
+            },
+            eventHandlersSet: function (ws) {
+                inner.windowResizeEvent(ws);
+                inner.pagerEvents(ws)
+            },
+            //методы фильтра и сортировки
+            filterInit: function (ws) {
+                ws.filter = $.extend(true, {}, ws.model.filter);
+            },
+            sortingInit: function (ws) {
+                ws.sorting = $.extend(true, {}, ws.model.sorting);
+            },
 
             //методы пейджинатора
             initPagerSettings: function (ws) {
                 //если в куке хранится текущая страница - берем ее в качестве текущей
                 ws.pager.page = + Cookies(ws.mainSelector.slice(1) + '_page') || ws.model.pager.startPage;
                 ws.pager.rowsOnPage = + Cookies(ws.mainSelector.slice(1) + '_rowsOnPage') || ws.model.pager.rowsOnPage;
+            },
+            updatePager: function (ws) {
+                //вставить в пейджинатор номер текушей страницы, кол-во страниц
+                ws.obj.$pgInput.val(ws.pager.page);
+                ws.obj.$pgPagesCount.text(ws.pager.pages);
+                //если последняя страница - выключаем пейджинацию вправо
+                if ( parseInt(ws.pager.page) < ws.pager.pages ) {
+                    ws.obj.$pgLastPage.removeClass('ui-state-disabled');
+                    ws.obj.$pgNextPage.removeClass('ui-state-disabled');
+                } else {
+                    ws.obj.$pgLastPage.addClass('ui-state-disabled');
+                    ws.obj.$pgNextPage.addClass('ui-state-disabled');
+                }
+                //если первая страница - выключаем пейджинацию влево
+                if ( parseInt(ws.pager.page) > 1 ) {
+                    ws.obj.$pgFirstPage.removeClass('ui-state-disabled');
+                    ws.obj.$pgPrewPage.removeClass('ui-state-disabled');
+                } else {
+                    ws.obj.$pgFirstPage.addClass('ui-state-disabled');
+                    ws.obj.$pgPrewPage.addClass('ui-state-disabled');
+                }
+            },
+            //вспомогательные методы
+            doubleClick: function (ws, guardTime) {
+                //guardTime - защитный интервал в мс
+                var currentTime = $.now();
+                if ((currentTime - ws.auxiliary.lastClickTime) < guardTime) {
+                    return true; //это двойной клик
+                }
+                ws.auxiliary.lastClickTime = currentTime;
+                return false;
+            },
+            paramsForAjaxRequest: function (ws) {
+                return {
+                    body: {
+                        filter: ws.filter,
+                        sorting: ws.sorting,
+                        columns: ws.header.columns,
+                        pager: ws.pager
+                    }
+                };
             }
-
-
         };
         var methods = {
             /**
@@ -979,109 +1113,128 @@ jqTable.workSetTmpl = {
                 inner.buildFooter(ws);
                 //заполняем в ws начальные данные для пагинатора из Cooks
                 inner.initPagerSettings(ws);
+                //инициализируем фильтры
+                inner.filterInit(ws);
+                inner.sortingInit(ws);
                 //применяем стили, размеры,
                 inner.setInitialStyles(ws);
                 inner.setTableSizes(ws);
                 inner.setBodyScroll(ws);
-                inner.globalEvents(ws);
+                inner.eventHandlersSet(ws);
                 return $(ws);
             },
             updateBodyJSON: function (workSet, params) {
 
-                workSet = inner.getWorkSet(this, workSet);
-                //все данные для пейджинатора передаем через куки main_selector_pagesCount, _recordsCount, _rowsOnPage
-                //для этого передаем на сервер главный селектор
-                var requestParams = {
-                    columnList: '', //либо массив с именами полей для выгрузки, либо пусто (undefined)
-                    tableId: workSet.mainSelector.slice(1),
-                    rowsOnPage: workSet.pager.rowsOnPage, //если -1 то все строки
-                    page: workSet.pager.page,
-                    order: 'default',
-                    filters: workSet.params.filters,
-                    search: {}
-                };
-                requestParams = $.extend(true, requestParams, params);
-                function renderBody(bodyData) {
-                    var body = workSet.bodyObj.children('tbody').first();
-                    body.html(workSet.bodyFirstRowObj);
-                    body.append(bodyData.renderResult);
-                    workSet.pager.page = parseInt(bodyData.params.currentPage);
-                    workSet.pager.pages = parseInt(bodyData.params.pagesCount);
-                    workSet.pager.records = parseInt(bodyData.params.recordsCount);
-                    // //из Cookies читаем currentPage, pagesCount, recordsCount и пишем в workSet
-                    // workSet.pager.page = +Cookies(workSet.mainSelector.slice(1) + '_currentPage');
-                    // workSet.pager.pages = +Cookies(workSet.mainSelector.slice(1) + '_pagesCount');
-                    // workSet.pager.records = +Cookies(workSet.mainSelector.slice(1) + '_recordsCount');
-                    var info = {};
-                    if (bodyData.info.recordsCount) {
-                        info.recordsCount = 'Всего записей: ' + bodyData.info.recordsCount;
-                    }
-                    if (bodyData.info.peopleCount) {
-                        info.peopleCount = 'Сотрудников: ' + bodyData.info.peopleCount;
-                    }
-                    inner.footerInfo(workSet, info);
-                    inner.updatePager(workSet);
-                    inner.applyBodyStyles(workSet);
-                    $(".toggler").on(
-                        "click",
-                        function ($e) {
-                            $(this).closest("table").find("tbody tr td").slideToggle("fast");
-                            $(this).find(".js-caret").toggleClass("caret-down");
-                        }
-                    );
-                }
+                // workSet = inner.getWorkSet(this, workSet);
+                // //все данные для пейджинатора передаем через куки main_selector_pagesCount, _recordsCount, _rowsOnPage
+                // //для этого передаем на сервер главный селектор
+                // var requestParams = {
+                //     columnList: '', //либо массив с именами полей для выгрузки, либо пусто (undefined)
+                //     tableId: workSet.mainSelector.slice(1),
+                //     rowsOnPage: workSet.pager.rowsOnPage, //если -1 то все строки
+                //     page: workSet.pager.page,
+                //     order: 'default',
+                //     filters: workSet.params.filters,
+                //     search: {}
+                // };
+                // requestParams = $.extend(true, requestParams, params);
+                // function renderBody(bodyData) {
+                //     var body = workSet.bodyObj.children('tbody').first();
+                //     body.html(workSet.bodyFirstRowObj);
+                //     body.append(bodyData.renderResult);
+                //     workSet.pager.page = parseInt(bodyData.params.currentPage);
+                //     workSet.pager.pages = parseInt(bodyData.params.pagesCount);
+                //     workSet.pager.records = parseInt(bodyData.params.recordsCount);
+                //     // //из Cookies читаем currentPage, pagesCount, recordsCount и пишем в workSet
+                //     // workSet.pager.page = +Cookies(workSet.mainSelector.slice(1) + '_currentPage');
+                //     // workSet.pager.pages = +Cookies(workSet.mainSelector.slice(1) + '_pagesCount');
+                //     // workSet.pager.records = +Cookies(workSet.mainSelector.slice(1) + '_recordsCount');
+                //     var info = {};
+                //     if (bodyData.info.recordsCount) {
+                //         info.recordsCount = 'Всего записей: ' + bodyData.info.recordsCount;
+                //     }
+                //     if (bodyData.info.peopleCount) {
+                //         info.peopleCount = 'Сотрудников: ' + bodyData.info.peopleCount;
+                //     }
+                //     inner.footerInfo(workSet, info);
+                //     inner.updatePager(workSet);
+                //     inner.applyBodyStyles(workSet);
+                //     $(".toggler").on(
+                //         "click",
+                //         function ($e) {
+                //             $(this).closest("table").find("tbody tr td").slideToggle("fast");
+                //             $(this).find(".js-caret").toggleClass("caret-down");
+                //         }
+                //     );
+                // }
+                // $.ajax({
+                //     url: workSet.model.dataUrl,
+                //     data: requestParams,
+                //     success: renderBody,
+                //     error: function () {
+                //         console.log('Error in Ajax');
+                //     }
+                // });
+
+            },
+            updateBodyContent: function (ws, requestParams) {
+                requestParams.tableId = ws.mainSelector.slice(1);
                 $.ajax({
-                    url: workSet.model.dataUrl,
-                    data: requestParams,
-                    success: renderBody,
-                    error: function () {
-                        console.log('Error in Ajax');
-                    }
-                });
+                    url: ws.model.dataUrl,
+                    data: requestParams
+                    })
+                    .done(function (data, textStatus, jqXHR) {
+                        ws.obj.$body.find('tbody').html(data.body.html);
+                        //todo Добавить сюда запись значений пейджинатора
+                        inner.updatePager(ws);
+                    })
+                    .fail(function (jqXHR, textStatus, errorThrown) {
+                        inner.debug(ws, 'update body content: ' + jqXHR.responseText);
+                    });
 
             },
             updateBodyHTML: function (workSet, params) {
-
-                workSet = inner.getWorkSet(this, workSet);
-                //все данные для пейджинатора передаем через куки main_selector_pagesCount, _recordsCount, _rowsOnPage
-                //для этого передаем на сервер главный селектор
-                var requestParams = {
-                    columnList: '', //либо массив с именами полей для выгрузки, либо пусто (undefined)
-                    tableId: workSet.mainSelector.slice(1), //все данные передаем через куки main_selector_pagesCount ...
-                    rowsOnPage: workSet.pager.rowsOnPage, //если -1 то все строки
-                    page: workSet.pager.page,
-                    order: 'default',
-                    filters: {},
-                    search: {}
-                };
-                requestParams = $.extend(true, requestParams, params);
-                function renderBody(bodyData) {
-                    var body = workSet.bodyObj.children('tbody').first();
-                    body.html(workSet.bodyFirstRowObj);
-                    body.append(bodyData);
-                    //из Cookies читаем currentPage, pagesCount, recordsCount и пишем в workSet
-                    workSet.pager.page = +Cookies(workSet.mainSelector.slice(1) + '_currentPage');
-                    workSet.pager.pages = +Cookies(workSet.mainSelector.slice(1) + '_pagesCount');
-                    workSet.pager.records = +Cookies(workSet.mainSelector.slice(1) + '_recordsCount');
-                    inner.updatePager(workSet);
-                    inner.applyBodyStyles(workSet);
-                    $(".toggler").on(
-                        "click",
-                        function ($e) {
-                            $(this).closest("table").find("tbody tr td").slideToggle("fast");
-                            $(this).find(".js-caret").toggleClass("caret-down");
-                        }
-                    );
-                }
-                $.ajax({
-                    url: workSet.model.dataUrl,
-                    data: requestParams,
-                    success: renderBody,
-                    error: function () {
-                        console.log('Error in Ajax');
-                    }
-                });
-
+            //
+            //     workSet = inner.getWorkSet(this, workSet);
+            //     //все данные для пейджинатора передаем через куки main_selector_pagesCount, _recordsCount, _rowsOnPage
+            //     //для этого передаем на сервер главный селектор
+            //     var requestParams = {
+            //         columnList: '', //либо массив с именами полей для выгрузки, либо пусто (undefined)
+            //         tableId: workSet.mainSelector.slice(1), //все данные передаем через куки main_selector_pagesCount ...
+            //         rowsOnPage: workSet.pager.rowsOnPage, //если -1 то все строки
+            //         page: workSet.pager.page,
+            //         order: 'default',
+            //         filters: {},
+            //         search: {}
+            //     };
+            //     requestParams = $.extend(true, requestParams, params);
+            //     function renderBody(bodyData) {
+            //         var body = workSet.bodyObj.children('tbody').first();
+            //         body.html(workSet.bodyFirstRowObj);
+            //         body.append(bodyData);
+            //         //из Cookies читаем currentPage, pagesCount, recordsCount и пишем в workSet
+            //         workSet.pager.page = +Cookies(workSet.mainSelector.slice(1) + '_currentPage');
+            //         workSet.pager.pages = +Cookies(workSet.mainSelector.slice(1) + '_pagesCount');
+            //         workSet.pager.records = +Cookies(workSet.mainSelector.slice(1) + '_recordsCount');
+            //         inner.updatePager(workSet);
+            //         inner.applyBodyStyles(workSet);
+            //         $(".toggler").on(
+            //             "click",
+            //             function ($e) {
+            //                 $(this).closest("table").find("tbody tr td").slideToggle("fast");
+            //                 $(this).find(".js-caret").toggleClass("caret-down");
+            //             }
+            //         );
+            //     }
+            //     $.ajax({
+            //         url: workSet.model.dataUrl,
+            //         data: requestParams,
+            //         success: renderBody,
+            //         error: function () {
+            //             console.log('Error in Ajax');
+            //         }
+            //     });
+            //
             },
             getWorkSet: function () {
                 var workSet = inner.getWorkSet(this);
