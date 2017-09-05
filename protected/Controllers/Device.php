@@ -14,13 +14,14 @@ class Device extends Controller
 
     public function actionInfo()
     {
-        $time = time();
         $this->data->exportUrl = '/export/hardInvExcel';
         $this->data->activeLink->devicesNew = true;
     }
     public function actionInfo2()
     {
-
+        $this->data->exportUrl = '/export/hardInvExcel';
+        $this->data->activeLink->devicesNew = true;
+        $this->data->getParams = $_GET;
     }
     protected function filterFromGet($name, $value)
     {
@@ -59,11 +60,7 @@ class Device extends Controller
     }
     public function actionDevicesTable()
     {
-        $request = new Request();
-        $request = $request->get ?: false ;
-        if ( false === $request ) {
-            return;
-        }
+        $request = (new Request())->get;
         foreach ($request as $key => $value ) {
             switch ($key) {
                 case 'header':

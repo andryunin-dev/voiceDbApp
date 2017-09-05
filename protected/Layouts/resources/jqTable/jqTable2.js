@@ -465,18 +465,18 @@ jqTable.workSetTmpl = {
                 /* уровень tr */
                 workSet.bodyObj.find('tr').addClass(workSet.model.body.rowClasses);
             },
-            globalEvents: function (ws) {
-                $(window).resize(function (event) {
-                    //Обновляем внешние размеры
-                    inner.windowSize(ws);
-                    inner.tableBoxParentWidth(ws);
-
-                    inner.sizeToPx(ws);
-                    inner.columnsIdUpdate(ws);
-                    inner.updateSizes(ws);
-                    //inner.setFirstRowBodyWidth(workSet);
-                });
-            },
+            // globalEvents: function (ws) {
+            //     $(window).resize(function (event) {
+            //         //Обновляем внешние размеры
+            //         inner.windowSize(ws);
+            //         inner.tableBoxParentWidth(ws);
+            //
+            //         inner.sizeToPx(ws);
+            //         inner.columnsIdUpdate(ws);
+            //         inner.updateSizes(ws);
+            //         //inner.setFirstRowBodyWidth(workSet);
+            //     });
+            // },
             //пересчет размеров в px
             sizeToPx: function (ws) {
                 //Обновляем внешние размеры
@@ -501,7 +501,7 @@ jqTable.workSetTmpl = {
                     ws.table.X_Scroll_enable = ws.table.width > ws.table.tableBoxParentWidth;
                     ws.table.fixWidth = false;
                 } else {
-                    console.log('Не задана ширина таблицы ' + ws.mainSelector);
+                    inner.debug(ws, 'Не задана ширина таблицы ' + ws.mainSelector);
                     throw 'The width of table ' + ws.mainSelector + ' is not set';
                 }
             },
@@ -530,7 +530,7 @@ jqTable.workSetTmpl = {
                     ws.table.height = parseInt((ws.window.height - ws.obj.$tableBox.offset().top) * parseInt(md.height) / 100)  - ws.table.marginBottom;
                     ws.table.fixHeight = false;
                 } else {
-                    console.log('Не задана высота таблицы ' + ws.mainSelector);
+                    inner.debug(ws, 'Не задана высота таблицы ' + ws.mainSelector);
                     throw 'The height of table ' + ws.mainSelector + ' is not set';
                 }
             },
@@ -620,38 +620,6 @@ jqTable.workSetTmpl = {
                 ws.pager.width = parseInt(ws.model.pager.width)
             },
             //управление стилями
-            setStylesOld: function (ws) {
-                //depricated !!! use setStyles
-                ws.obj.$bodyFirstRow.find('td').height(0);
-                //добавляем к общему контейнеру класс для привязки стилей
-                ws.obj.$tableBox.addClass("jqtable");
-
-                /*=== Применение стилей к HEADER ===*/
-                /* уровень table */
-                ws.obj.$header.addClass("jqt-common-table jqt-hd-table");
-                /* уровень th */
-                $.each(ws.header.columns, function (key,value) {
-                    if (value.class) {
-                        ws.obj.$header.find('#' + value.id).addClass(value.class);
-                    }
-                });
-                //для ячейки компенсирующей скролл удаляем все классы и добавляем "ui-state-default"
-                ws.obj.$header.find('th').last().removeClass().addClass("ui-state-default");
-
-                /*=== Применение стилей к BODY ===*/
-                /*уровень контейнера tbody*/
-                //todo обязательно вынести в модель таблицы
-                ws.bodyObj.parent().css({'background-color': "#dfdfdf"});
-                /* у первой строки делаем нулевые паддинги*/
-                ws.obj.$bodyFirstRow.find('td').css({'padding': 0, border: 'none'});
-                /* уровень tbody - общие классы*/
-                ws.obj.$body.addClass("jqt-common-table jqt-bd-table");
-                /* уровень tr (через метод applyBodyStyles, т.к он вызывается при каждом апдейте содержимого таблицы)*/
-                inner.applyBodyStyles(ws);
-                /*=== Применение стилей к FOOTER ===*/
-                /* уровень table */
-                ws.obj.$footer.addClass(ws.model.footer.tableClasses);
-            },
             setStyles: function (ws, subjectName) {
                 if (subjectName === undefined) {
                     $.each(ws.model.styles, function (key, value) {

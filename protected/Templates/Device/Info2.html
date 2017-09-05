@@ -56,7 +56,8 @@
                 params.extUrl = window.location.href;
             }
             var devTable = $("#dev_tab");
-            devTable.jqTable(tableSettings);
+            params = window.location.search;
+            devTable.jqTable(tableSettings).jqTable('updateBodyContent', params);
 
 
 
