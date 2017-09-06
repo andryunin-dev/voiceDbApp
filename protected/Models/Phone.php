@@ -15,6 +15,7 @@ use T4\Core\Std;
 class Phone extends Appliance
 {
     const PHONE = 'phone';
+    const VGC = 'vg';
     const RISPHONETYPE = 'Phone';
     const RISPANYTYPE = 'Any';
     const MAXRETURNEDDEVICES_SCH_7_1 = 200; // ограничение RisPort Service for cucm 7.1
@@ -691,41 +692,41 @@ class Phone extends Appliance
      */
     protected function validate()
     {
-        if (!isset($this->cucmName)) {
-            throw new Exception('PHONE: No field cucmName');
-        }
-        if (!isset($this->cucmIpAddress)) {
-            throw new Exception('PHONE: No field cucmIpAddress');
-        }
         if (empty($this->name)) {
             throw new Exception('PHONE: Empty or No field name');
         }
         if (!isset($this->ipAddress)) {
-            throw new Exception('PHONE: No field ipAddress');
+            throw new Exception('PHONE ' . $this->name . ': No field ipAddress');
+        }
+        if (!isset($this->cucmName)) {
+            throw new Exception('PHONE ' . $this->name . ': No field cucmName');
+        }
+        if (!isset($this->cucmIpAddress)) {
+            throw new Exception('PHONE ' . $this->name . ': No field cucmIpAddress');
         }
         if (!isset($this->description)) {
-            throw new Exception('PHONE: No field description');
+            throw new Exception('PHONE ' . $this->name . ': No field description');
         }
         if (!isset($this->css)) {
-            throw new Exception('PHONE: No field css');
+            throw new Exception('PHONE ' . $this->name . ': No field css');
         }
         if (!isset($this->devicePool)) {
-            throw new Exception('PHONE: No field devicePool');
+            throw new Exception('PHONE ' . $this->name . ': No field devicePool');
         }
         if (!isset($this->prefix)) {
-            throw new Exception('PHONE: No field prefix');
+            throw new Exception('PHONE ' . $this->name . ': No field prefix');
         }
         if (!isset($this->phoneDN)) {
-            throw new Exception('PHONE: No field phoneDN');
+            throw new Exception('PHONE ' . $this->name . ': No field phoneDN');
         }
         if (!isset($this->alertingName)) {
-            throw new Exception('PHONE: No field alertingName');
+            throw new Exception('PHONE ' . $this->name . ': No field alertingName');
         }
         if (!isset($this->partition)) {
-            throw new Exception('PHONE: No field partition');
+            throw new Exception('PHONE ' . $this->name . ': No field partition');
         }
         if (!isset($this->model)) {
-            throw new Exception('PHONE: No field model');
+            throw new Exception('PHONE ' . $this->name . ': No field model');
         }
 
         return true;
@@ -757,16 +758,74 @@ class Phone extends Appliance
                 Phone::getDbConnection()->beginTransaction();
 
 
-                // Update location - location определяем по location cucm на котором данный телефон зарегистрирован
-                $curentLocation = (parent::findByManagementIP($this->cucmIpAddress))->location;
-                if (false === $curentLocation) {
-                    throw new Exception('Phone ' . $appliance->platform->serialNumber . ': current location does not fount');
+                // Update location
+                if (1 == preg_match('~^vgc|an~', mb_strtolower($this->name))) {
+                    // Для VGC портов - location определяем по location устройства VGS
+
+                    $vgsDataPort = DataPort::findByColumn('ipAddress', $this->ipAddress);
+                    if (false !== $vgsDataPort && self::VGC == $vgsDataPort->appliance->type->type) {
+                        $vgc = $vgsDataPort->appliance;
+
+                        if (false === $vgc->location) {
+                            throw new Exception('Phone ' . $appliance->platform->serialNumber . ': VGS (' . $this->ipAddress . ') location does not found');
+                        }
+                        if ($vgc->location->lotusId != $appliance->location->lotusId) {
+                            $appliance->fill([
+                                'location' => $vgc->location,
+                            ]);
+                        }
+
+                    } else {
+                        throw new Exception('Phone (vgc) ' . $this->name . ' ' . $this->ipAddress . ': Does not found the appliance VGC for the cluster');
+                    }
+
+                } else {
+                    // Для не VGC портов - location определяем по location cucm на котором данный телефон зарегистрирован
+
+                    $cucmLocation = (DataPort::findByColumn('ipAddress', $this->cucmIpAddress))->appliance->location;
+                    if (false === $cucmLocation) {
+                        throw new Exception('Phone ' . $appliance->platform->serialNumber . ': cucms (' . $this->cucmIpAddress . ') location does not found');
+                    }
+                    if ($cucmLocation->lotusId != $appliance->location->lotusId) {
+                        $appliance->fill([
+                            'location' => $cucmLocation,
+                        ]);
+                    }
                 }
-                if ($curentLocation->lotusId != $appliance->location->lotusId) {
+
+
+                // Update cluster for VGC
+                if (1 == preg_match('~^vgc|an~', mb_strtolower($this->name)) && is_null($appliance->cluster)) {
+                    $cluster = $vgc->cluster;
+                    $hostname = $vgc->details->hostname;
+
+                    if (is_null($cluster)) {
+
+                        if (is_null($hostname)) {
+                            throw new Exception('Phone (vgc) ' . $this->name . ' ' . $this->ipAddress . ': VGC (' . $vgc->platform->serialNumber . ') does not have field HOSTNAME. Can not find the cluster');
+                        }
+
+                        $cluster = Cluster::findByColumn('title', $hostname);
+
+                        if (false === $cluster) {
+                            $cluster = (new Cluster())->fill([
+                                'title' => $hostname,
+                            ]);
+                            $cluster->save();
+                        }
+
+                        $vgc->fill([
+                            'cluster' => $cluster,
+                        ]);
+                        $vgc->save();
+                    }
+
                     $appliance->fill([
-                        'location' => $curentLocation,
+                        'cluster' => $cluster,
+                        'details' => [
+                            'hostname' => $hostname,
+                        ]
                     ]);
-                    $appliance->save();
                 }
 
 
@@ -776,51 +835,99 @@ class Phone extends Appliance
                     $appliance->fill([
                         'version' => $softwareVersion,
                     ]);
-                    $appliance->save();
                 }
 
 
-                // Update IP address and masklen
-                $dataport = $appliance->dataPorts->first();
-                if (is_null($dataport)) {
+                // Update IP address
+                if (1 != preg_match('~^vgc|an~', mb_strtolower($this->name))) {
 
-                    $portType = DPortType::findByColumn('type', self::DATAPORTTYPE);
-                    if (false === $portType) {
-                        $portType = (new DPortType())->fill([
-                            'type' => self::DATAPORTTYPE,
-                        ]);
-                        $portType->save();
-                    }
-                    $result = (new IpTools($this->ipAddress, $this->subNetMask))->masklen;
-                    $masklen = (false !== $result) ? $result : null;
-                    $macAddress = ($this->macAddress) ?? substr($this->name,-12);
+                    $macAddress = ($this->macAddress) ?? substr($this->name, -12);
                     $macAddress = implode('.', [
-                        substr($macAddress,0,4),
-                        substr($macAddress,4,4),
-                        substr($macAddress,8,4),
+                        substr($macAddress, 0, 4),
+                        substr($macAddress, 4, 4),
+                        substr($macAddress, 8, 4),
                     ]);
-                    $dataport = (new DataPort())->fill([
-                        'ipAddress' => $this->ipAddress,
-                        'macAddress' => $macAddress,
-                        'portType' => $portType,
-                        'vrf' => Vrf::instanceGlobalVrf(),
-                        'masklen' => $masklen,
-                        'appliance' => $appliance,
-                        'isManagement' => true,
-                    ]);
-                    $dataport->save();
+
+                    $dataPort = DataPort::findByColumn('macAddress', $macAddress);
+
+                    if (false !== $dataPort) {
+                        //update dataport
+
+                        if ($this->ipAddress != $dataPort->ipAddress) {
+                            $vrf = Vrf::instanceGlobalVrf();
+
+                            $existDataPort = DataPort::findByIpVrf($this->ipAddress, $vrf);
+                            if (false !== $existDataPort) {
+                                $existDataPort->delete();
+                            }
+
+                            $dataPort->fill([
+                                'ipAddress' => $this->ipAddress,
+                                'vrf' => $vrf,
+                                'masklen' => (new IpTools($this->ipAddress, $this->subNetMask))->masklen,
+                            ]);
+                            $dataPort->save();
+                        }
+
+                        if ($appliance->getPk() != $dataPort->appliance->getPk()) {
+                            $dataPort->fill([
+                                'appliance' => $appliance,
+                            ]);
+                            $dataPort->save();
+                        }
+
+                    } else {
+                        //create dataport
+
+                        $portType = DPortType::findByColumn('type', self::DATAPORTTYPE);
+                        if (false === $portType) {
+                            $portType = (new DPortType())->fill([
+                                'type' => self::DATAPORTTYPE,
+                            ]);
+                            $portType->save();
+                        }
+                        $result = (new IpTools($this->ipAddress, $this->subNetMask))->masklen;
+                        $masklen = (false !== $result) ? $result : null;
+                        $macAddress = ($this->macAddress) ?? substr($this->name, -12);
+                        $macAddress = implode('.', [
+                            substr($macAddress, 0, 4),
+                            substr($macAddress, 4, 4),
+                            substr($macAddress, 8, 4),
+                        ]);
+                        $vrf = Vrf::instanceGlobalVrf();
+
+                        $existDataPort = DataPort::findByIpVrf($this->ipAddress, $vrf);
+                        if (false !== $existDataPort) {
+                            $existDataPort->delete();
+                        }
+
+                        $dataPort = (new DataPort())->fill([
+                            'appliance' => $appliance,
+                            'portType' => $portType,
+                            'macAddress' => $macAddress,
+                            'ipAddress' => $this->ipAddress,
+                            'vrf' => $vrf,
+                            'masklen' => $masklen,
+                            'isManagement' => true,
+                        ]);
+                        $dataPort->save();
+                    }
 
                 } else {
-                    $masklen = (new IpTools($this->ipAddress, $this->subNetMask))->masklen;
-                    if ($this->ipAddress != $dataport->ipAddress || $masklen != $dataport->masklen) {
-                        $dataport->fill([
-                            'ipAddress' => $this->ipAddress,
-                            'masklen' => $masklen,
-                            'vrf' => Vrf::instanceGlobalVrf(),
-                        ]);
-                        $dataport->save();
+                    // У VGC портов недолжно быть data port, так как они должны быть в кластере
+                    if (0 < count($appliance->dataPorts->count())) {
+                        foreach ($appliance->dataPorts as $dataPort) {
+                            $dataPort->delete();
+                        }
                     }
                 }
+
+
+                // Update Appliance
+                $appliance->fill([
+                    'lastUpdate'=> (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P'),
+                ]);
+                $appliance->save();
 
 
                 // Update phoneInfo
@@ -868,6 +975,7 @@ class Phone extends Appliance
                 throw new Exception($e->getMessage());
             }
 
+            echo 'update ' . $this->name;
             return true;
 
         } else {
@@ -882,10 +990,31 @@ class Phone extends Appliance
                 Phone::getDbConnection()->beginTransaction();
 
 
-                // Location - определяем по location cucm на котором данный телефон зарегистрирован
-                $location = (parent::findByManagementIP($this->cucmIpAddress))->location;
-                if (false === $location) {
-                    throw new Exception('Phone (update): Location does not fount');
+                // Location
+                if (1 == preg_match('~^vgc|an~', mb_strtolower($this->name))) {
+                    // Для VGC портов - location определяем по location устройства VGS
+
+                    $vgsDataPort = DataPort::findByColumn('ipAddress', $this->ipAddress);
+                    if (false !== $vgsDataPort && self::VGC == $vgsDataPort->appliance->type->type) {
+                        $vgc = $vgsDataPort->appliance;
+
+                        if (false === $vgc->location) {
+                            throw new Exception('Phone (create): VGS (' . $this->ipAddress . ') location does not found');
+                        }
+
+                        $location = $vgc->location;
+
+                    } else {
+                        throw new Exception('Phone (vgc) ' . $this->name . ' ' . $this->ipAddress . ': Does not found the appliance VGC for the cluster');
+                    }
+
+                } else {
+                    // Для не VGC портов - location определяем по location cucm на котором данный телефон зарегистрирован
+
+                    $location = (DataPort::findByColumn('ipAddress', $this->cucmIpAddress))->appliance->location;
+                    if (false === $location) {
+                        throw new Exception('Phone (create): cucms (' . $this->cucmIpAddress . ') location does not found');
+                    }
                 }
 
 
@@ -948,44 +1077,78 @@ class Phone extends Appliance
                 }
 
 
+                // Cluster for VGC
+                if (1 == preg_match('~^vgc|an~', mb_strtolower($this->name))) {
+                    $cluster = $vgc->cluster;
+
+                    if (is_null($cluster)) {
+                        $cluster = Cluster::findByColumn('title', $vgc->details->hostname);
+
+                        if (false === $cluster) {
+                            $cluster = (new Cluster())->fill([
+                                'title' => $vgc->details->hostname,
+                            ]);
+                            $cluster->save();
+                        }
+
+                        $vgc->fill([
+                            'cluster' => $cluster,
+                        ]);
+                        $vgc->save();
+                    }
+                }
+
+
                 // Appliance
                 $appliance = (new Appliance())->fill([
                     'type' => $applianceType,
                     'platform' => $platformItem,
                     'software' => $softwareItem,
                     'vendor' => $vendor,
+                    'cluster' => ($cluster) ?? null,
                     'location' => $location,
                     'lastUpdate'=> (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P'),
+                    'inUse' => true,
                 ]);
                 $appliance->save();
 
 
                 // Data Port
-                $portType = DPortType::findByColumn('type', self::DATAPORTTYPE);
-                if (false === $portType) {
-                    $portType = (new DPortType())->fill([
-                        'type' => self::DATAPORTTYPE,
+                if (1 != preg_match('~^vgc|an~', mb_strtolower($this->name))) {
+
+                    $portType = DPortType::findByColumn('type', self::DATAPORTTYPE);
+                    if (false === $portType) {
+                        $portType = (new DPortType())->fill([
+                            'type' => self::DATAPORTTYPE,
+                        ]);
+                        $portType->save();
+                    }
+                    $result = (new IpTools($this->ipAddress, $this->subNetMask))->masklen;
+                    $masklen = (false !== $result) ? $result : null;
+                    $macAddress = ($this->macAddress) ?? substr($this->name, -12);
+                    $macAddress = implode('.', [
+                        substr($macAddress, 0, 4),
+                        substr($macAddress, 4, 4),
+                        substr($macAddress, 8, 4),
                     ]);
-                    $portType->save();
+                    $vrf = Vrf::instanceGlobalVrf();
+
+                    $existDataPort = DataPort::findByIpVrf($this->ipAddress, $vrf);
+                    if (false !== $existDataPort) {
+                        $existDataPort->delete();
+                    }
+
+                    $dataPort = (new DataPort())->fill([
+                        'appliance' => $appliance,
+                        'portType' => $portType,
+                        'macAddress' => $macAddress,
+                        'ipAddress' => $this->ipAddress,
+                        'vrf' => $vrf,
+                        'masklen' => $masklen,
+                        'isManagement' => true,
+                    ]);
+                    $dataPort->save();
                 }
-                $result = (new IpTools($this->ipAddress, $this->subNetMask))->masklen;
-                $masklen = (false !== $result) ? $result : null;
-                $macAddress = ($this->macAddress) ?? substr($this->name,-12);
-                $macAddress = implode('.', [
-                    substr($macAddress,0,4),
-                    substr($macAddress,4,4),
-                    substr($macAddress,8,4),
-                ]);
-                $dataport = (new DataPort())->fill([
-                    'ipAddress' => $this->ipAddress,
-                    'macAddress' => $macAddress,
-                    'portType' => $portType,
-                    'vrf' => Vrf::instanceGlobalVrf(),
-                    'masklen' => $masklen,
-                    'appliance' => $appliance,
-                    'isManagement' => true,
-                ]);
-                $dataport->save();
 
 
                 // PhoneInfo
@@ -1035,6 +1198,7 @@ class Phone extends Appliance
                 throw new Exception($e->getMessage());
             }
 
+            echo 'new ' . $this->name;
             return true;
         }
     }

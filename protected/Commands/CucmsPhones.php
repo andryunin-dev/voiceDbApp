@@ -63,22 +63,28 @@ class CucmsPhones extends Command
     public function actionSave()
     {
         $logger = RLogger::getInstance('Cucm', realpath(ROOT_PATH . '/Logs/phones.log'));
-        if (is_readable($backupFile = $this->getBackupFileName())) {
 
-            foreach (file($backupFile) as $phoneData) {
+        $backupFile = $this->getBackupFileName();
+        if (is_readable($backupFile)) {
+            $phonesData = file($backupFile);
+            foreach ($phonesData as $phoneData) {
                 try {
 
+                    $start = microtime(true);
                     $phone = (new Phone())->fill(json_decode($phoneData));
                     $phone->save();
+                    $end = microtime(true) - $start;
+                    $this->writeLn(' fill and save ' . $end . ' sek');
 
                 } catch (Exception $e) {
                     $logger->error('UPDATE PHONE: [message]=' . ($e->getMessage() ?? '""') . '; [data]=' . json_encode($phoneData));
+                    echo 'UPDATE PHONE: [message]=' . ($e->getMessage() ?? '""') . '; [data]=' . json_encode($phoneData) . PHP_EOL;
                 }
             }
 
             $this->writeLn('Save phones - OK');
         } else {
-            $this->writeLn('Save phones - ERROR');
+            $this->writeLn('Save phones from - ERROR');
         }
     }
 
@@ -94,7 +100,7 @@ class CucmsPhones extends Command
         file_put_contents($this->getBackupFileName($cucmIp),'');
 
 
-        if (self::PUBLISHER != Appliance::findByManagementIP($cucmIp)->type->type) {
+        if (self::PUBLISHER == Appliance::findByManagementIP($cucmIp)->type->type) {
             $logger->info('START:[cucm]=' . $cucmIp);
 
             try {
@@ -133,17 +139,19 @@ class CucmsPhones extends Command
 
         $backupFile = $this->getBackupFileName($cucmIp);
         if (is_readable($backupFile)) {
-
-            $phonesData = explode(PHP_EOL, file_get_contents($backupFile));
+            $phonesData = file($backupFile);
             foreach ($phonesData as $phoneData) {
                 try {
 
+                    $start = microtime(true);
                     $phone = (new Phone())->fill(json_decode($phoneData));
                     $phone->save();
+                    $end = microtime(true) - $start;
+                    $this->writeLn(' fill and save ' . $end . ' sek');
 
                 } catch (Exception $e) {
-                    $logger->error('UPDATE PHONE: [name]=' . $phoneData->name . '; [ip]=' . $phoneData->ipAddress . '; [cucm]=' . $phoneData->cucmIpAddress . '; [message]=' . ($e->getMessage() ?? '""') . '; [data]=' . json_encode($phoneData));
-                    echo 'UPDATE PHONE: [name]=' . $phoneData->name . '; [ip]=' . $phoneData->ipAddress . '; [cucm]=' . $phoneData->cucmIpAddress . '; [message]=' . ($e->getMessage() ?? '""') . '; [data]=' . json_encode($phoneData) . PHP_EOL;
+                    $logger->error('UPDATE PHONE: [message]=' . ($e->getMessage() ?? '""') . '; [data]=' . json_encode($phoneData));
+                    echo 'UPDATE PHONE: [message]=' . ($e->getMessage() ?? '""') . '; [data]=' . json_encode($phoneData) . PHP_EOL;
                 }
             }
 
