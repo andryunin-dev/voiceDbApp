@@ -98,18 +98,34 @@ jqTable.defaultModel = {
     *           eq: ['москва', 'саратов']
     *       }
     *   }
-    */
+    * пример:
+     *   filter: {
+     *       "region": {
+     *           like: '',
+     *           eq: 'Иркутск'
+     *       },
+     *       city: {
+     *           like: '',
+     *           eq: ['москва', 'саратов']
+     *       }
+     *   }
+    *
+
+     */
+    // filter: {
+    //     "region": {
+    //         eq: "Иркутск"
+    //     },
+    //     "__city": {
+    //         eq: "city 1, city2 2"
+    //     }
+    // },
     filter: {
-        "region": {
-            eq: "регион 1, рег 2"
-        },
-        "__city": {
-            eq: "city 1, city2 2"
-        }
+
     },
     sorting: {
-        fieldName: undefined, //field name for sort
-        direct: undefined //ASC or DESC
+        column: undefined, //field name for sort
+        direction: undefined //ASC or DESC
     },
     debug: {
         console: true,
@@ -465,19 +481,6 @@ jqTable.workSetTmpl = {
                 /* уровень tr */
                 workSet.bodyObj.find('tr').addClass(workSet.model.body.rowClasses);
             },
-            // globalEvents: function (ws) {
-            //     $(window).resize(function (event) {
-            //         //Обновляем внешние размеры
-            //         inner.windowSize(ws);
-            //         inner.tableBoxParentWidth(ws);
-            //
-            //         inner.sizeToPx(ws);
-            //         inner.columnsIdUpdate(ws);
-            //         inner.updateSizes(ws);
-            //         //inner.setFirstRowBodyWidth(workSet);
-            //     });
-            // },
-            //пересчет размеров в px
             sizeToPx: function (ws) {
                 //Обновляем внешние размеры
                 inner.windowSize(ws);
@@ -961,19 +964,19 @@ jqTable.workSetTmpl = {
                         if (inner.doubleClick(ws, 300)) { return; }
                         if ($(event.target).hasClass('ui-icon-seek-next')) {
                             ws.pager.page += 1;
-                            params = inner.paramsForAjaxRequest(ws);
+                            params = inner.updateBodyParams(ws);
                             methods.updateBodyContent(ws, params)
                         } else if ($(event.target).hasClass('ui-icon-seek-end')) {
                             event.data.pager.page = event.data.pager.pages;
-                            params = inner.paramsForAjaxRequest(ws);
+                            params = inner.updateBodyParams(ws);
                             methods.updateBodyContent(ws, params);
                         } else if ($(event.target).hasClass('ui-icon-seek-prev')) {
                             event.data.pager.page -= 1;
-                            params = inner.paramsForAjaxRequest(ws);
+                            params = inner.updateBodyParams(ws);
                             methods.updateBodyContent(ws, params);
                         } else if ($(event.target).hasClass('ui-icon-seek-first')) {
                             event.data.pager.page = 1;
-                            params = inner.paramsForAjaxRequest(ws);
+                            params = inner.updateBodyParams(ws);
                             methods.updateBodyContent(ws, params);
                         }
                     }
@@ -988,7 +991,7 @@ jqTable.workSetTmpl = {
                             ws.pager.rowsOnPage = -1;
                         }
                         Cookies.set(ws.mainSelector.slice(1) + '_rowsOnPage', rowsOnPage);
-                        params = inner.paramsForAjaxRequest(ws);
+                        params = inner.updateBodyParams(ws);
                         methods.updateBodyContent(ws, params);
                     }
                 });
@@ -1008,7 +1011,8 @@ jqTable.workSetTmpl = {
             //методы пейджинатора
             initPagerSettings: function (ws) {
                 //если в куке хранится текущая страница - берем ее в качестве текущей
-                ws.pager.page = + Cookies(ws.mainSelector.slice(1) + '_page') || ws.model.pager.startPage;
+                // ws.pager.page = + Cookies(ws.mainSelector.slice(1) + '_page') || ws.model.pager.startPage;
+                ws.pager.page = + ws.model.pager.startPage;
                 ws.pager.rowsOnPage = + Cookies(ws.mainSelector.slice(1) + '_rowsOnPage') || ws.model.pager.rowsOnPage;
             },
             updatePager: function (ws) {
@@ -1042,13 +1046,15 @@ jqTable.workSetTmpl = {
                 ws.auxiliary.lastClickTime = currentTime;
                 return false;
             },
-            paramsForAjaxRequest: function (ws) {
+            updateBodyParams: function (ws) {
                 return {
                     body: {
                         filter: ws.filter,
                         sorting: ws.sorting,
                         columns: ws.header.columns,
-                        pager: ws.pager
+                        pager: ws.pager,
+                        tableId: ws.mainSelector.slice(1),
+                        href: location.href
                     }
                 };
             }
@@ -1089,64 +1095,12 @@ jqTable.workSetTmpl = {
                 inner.setTableSizes(ws);
                 inner.setBodyScroll(ws);
                 inner.eventHandlersSet(ws);
+                //загружаем контент
+                params = inner.updateBodyParams(ws);
+                methods.updateBodyContent(ws, params);
                 return $(ws);
             },
-            updateBodyJSON: function (workSet, params) {
-
-                // workSet = inner.getWorkSet(this, workSet);
-                // //все данные для пейджинатора передаем через куки main_selector_pagesCount, _recordsCount, _rowsOnPage
-                // //для этого передаем на сервер главный селектор
-                // var requestParams = {
-                //     columnList: '', //либо массив с именами полей для выгрузки, либо пусто (undefined)
-                //     tableId: workSet.mainSelector.slice(1),
-                //     rowsOnPage: workSet.pager.rowsOnPage, //если -1 то все строки
-                //     page: workSet.pager.page,
-                //     order: 'default',
-                //     filters: workSet.params.filters,
-                //     search: {}
-                // };
-                // requestParams = $.extend(true, requestParams, params);
-                // function renderBody(bodyData) {
-                //     var body = workSet.bodyObj.children('tbody').first();
-                //     body.html(workSet.bodyFirstRowObj);
-                //     body.append(bodyData.renderResult);
-                //     workSet.pager.page = parseInt(bodyData.params.currentPage);
-                //     workSet.pager.pages = parseInt(bodyData.params.pagesCount);
-                //     workSet.pager.records = parseInt(bodyData.params.recordsCount);
-                //     // //из Cookies читаем currentPage, pagesCount, recordsCount и пишем в workSet
-                //     // workSet.pager.page = +Cookies(workSet.mainSelector.slice(1) + '_currentPage');
-                //     // workSet.pager.pages = +Cookies(workSet.mainSelector.slice(1) + '_pagesCount');
-                //     // workSet.pager.records = +Cookies(workSet.mainSelector.slice(1) + '_recordsCount');
-                //     var info = {};
-                //     if (bodyData.info.recordsCount) {
-                //         info.recordsCount = 'Всего записей: ' + bodyData.info.recordsCount;
-                //     }
-                //     if (bodyData.info.peopleCount) {
-                //         info.peopleCount = 'Сотрудников: ' + bodyData.info.peopleCount;
-                //     }
-                //     inner.footerInfo(workSet, info);
-                //     inner.updatePager(workSet);
-                //     inner.applyBodyStyles(workSet);
-                //     $(".toggler").on(
-                //         "click",
-                //         function ($e) {
-                //             $(this).closest("table").find("tbody tr td").slideToggle("fast");
-                //             $(this).find(".js-caret").toggleClass("caret-down");
-                //         }
-                //     );
-                // }
-                // $.ajax({
-                //     url: workSet.model.dataUrl,
-                //     data: requestParams,
-                //     success: renderBody,
-                //     error: function () {
-                //         console.log('Error in Ajax');
-                //     }
-                // });
-
-            },
             updateBodyContent: function (ws, requestParams) {
-                requestParams.tableId = ws.mainSelector.slice(1);
                 $.ajax({
                     url: ws.model.dataUrl,
                     data: requestParams
@@ -1160,49 +1114,6 @@ jqTable.workSetTmpl = {
                         inner.debug(ws, 'update body content: ' + jqXHR.responseText);
                     });
 
-            },
-            updateBodyHTML: function (workSet, params) {
-            //
-            //     workSet = inner.getWorkSet(this, workSet);
-            //     //все данные для пейджинатора передаем через куки main_selector_pagesCount, _recordsCount, _rowsOnPage
-            //     //для этого передаем на сервер главный селектор
-            //     var requestParams = {
-            //         columnList: '', //либо массив с именами полей для выгрузки, либо пусто (undefined)
-            //         tableId: workSet.mainSelector.slice(1), //все данные передаем через куки main_selector_pagesCount ...
-            //         rowsOnPage: workSet.pager.rowsOnPage, //если -1 то все строки
-            //         page: workSet.pager.page,
-            //         order: 'default',
-            //         filters: {},
-            //         search: {}
-            //     };
-            //     requestParams = $.extend(true, requestParams, params);
-            //     function renderBody(bodyData) {
-            //         var body = workSet.bodyObj.children('tbody').first();
-            //         body.html(workSet.bodyFirstRowObj);
-            //         body.append(bodyData);
-            //         //из Cookies читаем currentPage, pagesCount, recordsCount и пишем в workSet
-            //         workSet.pager.page = +Cookies(workSet.mainSelector.slice(1) + '_currentPage');
-            //         workSet.pager.pages = +Cookies(workSet.mainSelector.slice(1) + '_pagesCount');
-            //         workSet.pager.records = +Cookies(workSet.mainSelector.slice(1) + '_recordsCount');
-            //         inner.updatePager(workSet);
-            //         inner.applyBodyStyles(workSet);
-            //         $(".toggler").on(
-            //             "click",
-            //             function ($e) {
-            //                 $(this).closest("table").find("tbody tr td").slideToggle("fast");
-            //                 $(this).find(".js-caret").toggleClass("caret-down");
-            //             }
-            //         );
-            //     }
-            //     $.ajax({
-            //         url: workSet.model.dataUrl,
-            //         data: requestParams,
-            //         success: renderBody,
-            //         error: function () {
-            //             console.log('Error in Ajax');
-            //         }
-            //     });
-            //
             },
             getWorkSet: function () {
                 var workSet = inner.getWorkSet(this);

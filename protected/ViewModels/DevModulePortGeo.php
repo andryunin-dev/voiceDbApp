@@ -96,6 +96,12 @@ class DevModulePortGeo extends Model
             'managementIp' => ['type' => 'string']
         ]
     ];
+    protected static $columnMap = [
+        'ven' => 'vendor',
+        'pl' => 'platform',
+        'reg' => 'region',
+        'soft' => 'software'
+    ];
 
     protected static $sortOrders = [
         'default' => 'region, city, office, "appType", hostname, appliance_id',
@@ -105,10 +111,6 @@ class DevModulePortGeo extends Model
         'hostname' => ' hostname, appType, appliance_id',
     ];
 
-    public static function sortOrder($orderName = 'default')
-    {
-        return (array_key_exists($orderName, self::$sortOrders)) ? self::$sortOrders[$orderName] : self::$sortOrders['default'];
-    }
 
     protected function beforeSave()
     {
