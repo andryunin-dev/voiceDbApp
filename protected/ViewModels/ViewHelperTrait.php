@@ -42,7 +42,7 @@ trait ViewHelperTrait
 
 
     /**
-     * делает маппинг полей существующего фильтра через матрицу матрицу $columnMap
+     * делает маппинг полей существующего фильтра через матрицу $columnMap
      * из переданного URL делаеот фильтр при наличии GET параметров
      * в фильтр добавляет св-ва whereClause и queryParams
      * возвращает отредактированный фильтр
@@ -58,7 +58,7 @@ trait ViewHelperTrait
         foreach ($filter as $key => $value) {
             if (key_exists($key, self::$columnMap)) {
                 $resFilter->{self::$columnMap[$key]} = $value;
-            } elseif (false !== array_search($key, self::$columnMap)) {
+            } elseif (false !== key_exists($key, (self::class)::getColumns())) {
                 $resFilter->$key = $value;
             }
         }
@@ -129,7 +129,7 @@ trait ViewHelperTrait
         } else {
             $sorting->direction = strtoupper($sorting->direction);
         }
-        $sorting->column = self::sortOrder($sorting->column);
+        $sorting->sortBy = self::sortOrder($sorting->sortBy);
         return $sorting;
     }
     public static function sortOrder($orderName = 'default')

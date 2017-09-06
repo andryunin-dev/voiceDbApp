@@ -124,7 +124,7 @@ jqTable.defaultModel = {
 
     },
     sorting: {
-        column: undefined, //field name for sort
+        sortBy: 'default', //field name for sort
         direction: undefined //ASC or DESC
     },
     debug: {
@@ -305,6 +305,14 @@ jqTable.workSetTmpl = {
             },
             getWorkSet: function () {
                 var res;
+                // если передан jquery объект ищем в jqtable  по селектору
+                $.each(arguments, function (key, arg) {
+                    if (arg.jquery && this.selector.slice(1) in jqTable.tables) {
+                        res = jqTable.tables[this.selector.slice(1)];
+                    }
+                });
+                if (res) { return res; }
+
                 //если передан сам workSet - возвращаем его
                 $.each(arguments, function (key, arg) {
                         if ($.isPlainObject(arg) && arg.hasOwnProperty("mainSelector")) {
@@ -314,7 +322,7 @@ jqTable.workSetTmpl = {
                 });
                 if (res) { return res; }
 
-                    //пытаемся найти по селектору(предварительно отрезав #)
+                //если передан main селектор пытаемся найти по селектору(предварительно отрезав #)
                 $.each(arguments, function (key, arg) {
                     if ($.type(arg) === "string") {
                         var tmp = jqTable.tables[arg.slice(1)];
@@ -324,6 +332,7 @@ jqTable.workSetTmpl = {
                         }
                     }
                 });
+
                 if (res) {
                     return res;
                 } else {
@@ -1095,12 +1104,17 @@ jqTable.workSetTmpl = {
                 inner.setTableSizes(ws);
                 inner.setBodyScroll(ws);
                 inner.eventHandlersSet(ws);
-                //загружаем контент
-                params = inner.updateBodyParams(ws);
-                methods.updateBodyContent(ws, params);
-                return $(ws);
+                return this;
             },
-            updateBodyContent: function (ws, requestParams) {
+            updateBodyContent: function (ws) {
+                if (! ($.isPlainObject(ws) && ws.hasOwnProperty('mainSelector'))) {
+                    ws = inner.getWorkSet(this);
+                }
+                if (typeof ws === 'undefined') {
+                    alert('Update Table Content: Fatal Error!');
+                    throw 'updateBodyContent: не найден workSet';
+                }
+                var requestParams = inner.updateBodyParams(ws);
                 $.ajax({
                     url: ws.model.dataUrl,
                     data: requestParams
@@ -1113,11 +1127,11 @@ jqTable.workSetTmpl = {
                     .fail(function (jqXHR, textStatus, errorThrown) {
                         inner.debug(ws, 'update body content: ' + jqXHR.responseText);
                     });
-
+                return this;
             },
             getWorkSet: function () {
-                var workSet = inner.getWorkSet(this);
-                return workSet;
+                var ws = inner.getWorkSet(this);
+                return ws;
             }
         };
         if ( methods[method] ) {
