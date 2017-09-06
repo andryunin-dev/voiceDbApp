@@ -174,7 +174,7 @@ class Appliance extends Model
      */
     public static function findAllByType(string $type)
     {
-        return Appliance::findAllByColumn('__type_id', ApplianceType::findByColumn('type', $type)->getPk());
+        return ApplianceType::findByColumn('type', $type)->appliances;
     }
 
     /**
