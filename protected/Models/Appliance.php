@@ -174,11 +174,7 @@ class Appliance extends Model
      */
     public static function findAllByType(string $type)
     {
-        return (self::findAll())->filter(
-            function($appliance) use ($type) {
-                return $type == $appliance->type->type;
-            }
-        );
+        return ApplianceType::findByColumn('type', $type)->appliances;
     }
 
     /**
@@ -187,11 +183,8 @@ class Appliance extends Model
      */
     public static function findByManagementIP(string $ip)
     {
-        return (Appliance::findAll())->filter(
-            function($appliance) use($ip) {
-                return $ip == $appliance->getManagementIp();
-            }
-        )->first();
+        $dataPort = DataPort::findByColumn('ipAddress', $ip);
+        return (false !== $dataPort && true === $dataPort->isManagement) ? $dataPort->appliance : false;
     }
 
     public function delete()
