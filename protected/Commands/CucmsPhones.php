@@ -3,10 +3,9 @@ namespace App\Commands;
 
 use App\Components\RLogger;
 use App\Models\Appliance;
-use App\Models\DataPort;
+use App\Models\ApplianceType;
 use App\Models\Phone;
 use T4\Console\Command;
-use T4\Core\Collection;
 use T4\Core\Exception;
 use T4\Core\MultiException;
 
@@ -168,6 +167,46 @@ class CucmsPhones extends Command
             return ROOT_PATH . DS . 'Backups' . DS . 'backup_phones.txt';
         } else {
             return ROOT_PATH . DS . 'Backups' . DS . 'backup_phones_' . preg_replace('~\.~', '_', $cucmIP) . '.txt';
+        }
+    }
+
+
+    public function actionDelete()
+    {
+        $appliances = ApplianceType::findByColumn('type', 'phone')->appliances;
+
+        foreach ($appliances as $appliance) {
+
+            $dataPorts = $appliance->dataPorts;
+            foreach ($dataPorts as $dataPort) {
+                $dataPort->delete();
+            }
+
+            $modules = $appliance->modules;
+            foreach ($modules as $module) {
+                $module->delete();
+            }
+
+            if (!is_null($appliance->phoneInfo)) {
+                $appliance->phoneInfo->delete();
+            }
+
+            $software = $appliance->software;
+            $platform = $appliance->platform;
+
+            $serial = $platform->serialNumber;
+
+            $appliance->delete();
+
+            if (!is_null($platform)) {
+                $platform->delete();
+            }
+
+            if (!is_null($software)) {
+                $software->delete();
+            }
+
+            $this->writeLn('Phone ' . $serial . ' deleted');
         }
     }
 }

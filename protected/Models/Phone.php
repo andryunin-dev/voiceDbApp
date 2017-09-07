@@ -16,6 +16,7 @@ class Phone extends Appliance
 {
     const PHONE = 'phone';
     const VGC = 'vg';
+    const VGCSOFTWARE = '';
     const RISPHONETYPE = 'Phone';
     const RISPANYTYPE = 'Any';
     const MAXRETURNEDDEVICES_SCH_7_1 = 200; // ограничение RisPort Service for cucm 7.1
@@ -758,9 +759,11 @@ class Phone extends Appliance
                 Phone::getDbConnection()->beginTransaction();
 
 
-                // Update location
+                // -- Update VGC port --
+
                 if (1 == preg_match('~^vgc|an~', mb_strtolower($this->name))) {
-                    // Для VGC портов - location определяем по location устройства VGS
+
+                    // Update location for VGC port - location определяем по location устройства VGS
 
                     $vgsDataPort = DataPort::findByColumn('ipAddress', $this->ipAddress);
                     if (false !== $vgsDataPort && self::VGC == $vgsDataPort->appliance->type->type) {
@@ -779,37 +782,23 @@ class Phone extends Appliance
                         throw new Exception('Phone (vgc) ' . $this->name . ' ' . $this->ipAddress . ': Does not found the appliance VGC for the cluster');
                     }
 
-                } else {
-                    // Для не VGC портов - location определяем по location cucm на котором данный телефон зарегистрирован
 
-                    $cucmLocation = (DataPort::findByColumn('ipAddress', $this->cucmIpAddress))->appliance->location;
-                    if (false === $cucmLocation) {
-                        throw new Exception('Phone ' . $appliance->platform->serialNumber . ': cucms (' . $this->cucmIpAddress . ') location does not found');
-                    }
-                    if ($cucmLocation->lotusId != $appliance->location->lotusId) {
-                        $appliance->fill([
-                            'location' => $cucmLocation,
-                        ]);
-                    }
-                }
+                    // Update cluster for VGC port
 
-
-                // Update cluster for VGC
-                if (1 == preg_match('~^vgc|an~', mb_strtolower($this->name)) && is_null($appliance->cluster)) {
                     $cluster = $vgc->cluster;
-                    $hostname = $vgc->details->hostname;
+                    $hostnameVgc = $vgc->details->hostname;
+
+                    if (is_null($hostnameVgc)) {
+                        throw new Exception('Phone (vgc) ' . $this->name . ' ' . $this->ipAddress . ': VGC (' . $vgc->platform->serialNumber . ') does not have field HOSTNAME. Can not find the cluster');
+                    }
 
                     if (is_null($cluster)) {
 
-                        if (is_null($hostname)) {
-                            throw new Exception('Phone (vgc) ' . $this->name . ' ' . $this->ipAddress . ': VGC (' . $vgc->platform->serialNumber . ') does not have field HOSTNAME. Can not find the cluster');
-                        }
-
-                        $cluster = Cluster::findByColumn('title', $hostname);
+                        $cluster = Cluster::findByColumn('title', $hostnameVgc);
 
                         if (false === $cluster) {
                             $cluster = (new Cluster())->fill([
-                                'title' => $hostname,
+                                'title' => $hostnameVgc,
                             ]);
                             $cluster->save();
                         }
@@ -822,24 +811,79 @@ class Phone extends Appliance
 
                     $appliance->fill([
                         'cluster' => $cluster,
+                    ]);
+
+
+                    // Update IP address - У VGC port недолжно быть data port, так как они должны быть в кластере
+
+                    if (0 < $appliance->dataPorts->count()) {
+                        foreach ($appliance->dataPorts as $dataPort) {
+                            $dataPort->delete();
+                        }
+                    }
+
+
+                    // Update software for VGC port
+
+                    $softwareItem = $appliance->software;
+                    $software = $softwareItem->software;
+                    if (self::VGCSOFTWARE != $softwareItem->version || self::VGCSOFTWARE != $software->title) {
+
+                        $software = Software::findByColumn('title', self::VGCSOFTWARE);
+                        if (false === $software) {
+                            $software = (new Software())->fill([
+                                'vendor' => $appliance->vendor,
+                                'title' => self::VGCSOFTWARE,
+                            ]);
+                            $software->save();
+                        }
+
+                        $softwareItem->fill([
+                            'version' => self::VGCSOFTWARE,
+                            'software' => $software,
+                        ]);
+                        $softwareItem->save();
+                    }
+
+
+                    // Update hostname for VGC port
+
+                    $appliance->fill([
                         'details' => [
-                            'hostname' => $hostname,
+                            'hostname' => $vgc->details->hostname,
                         ]
                     ]);
-                }
+
+                } else {
+
+                    // -- Update Ip Phones --
+
+                    // Update location for Ip Phones - location определяем по location cucm на котором данный телефон зарегистрирован
+
+                    $cucmLocation = (DataPort::findByColumn('ipAddress', $this->cucmIpAddress))->appliance->location;
+                    if (false === $cucmLocation) {
+                        throw new Exception('Phone ' . $appliance->platform->serialNumber . ': cucms (' . $this->cucmIpAddress . ') location does not found');
+                    }
+                    if ($cucmLocation->lotusId != $appliance->location->lotusId) {
+                        $appliance->fill([
+                            'location' => $cucmLocation,
+                        ]);
+                    }
 
 
-                // Update software version
-                $softwareVersion = (1 == preg_match('~6921~', $this->model)) ? (($this->appLoadID) ?? '') : (($this->versionID) ?? '');
-                if ($softwareVersion != $appliance->software->version) {
-                    $appliance->fill([
-                        'version' => $softwareVersion,
-                    ]);
-                }
+                    // Update software version for Ip Phones
+
+                    $softwareVersion = (1 == preg_match('~6921~', $this->model)) ? (($this->appLoadID) ?? '') : (($this->versionID) ?? '');
+                    $softwareItem = $appliance->software;
+                    if ($softwareVersion != $softwareItem->version) {
+                        $softwareItem->fill([
+                            'version' => $softwareVersion,
+                        ]);
+                        $softwareItem->save();
+                    }
 
 
-                // Update IP address
-                if (1 != preg_match('~^vgc|an~', mb_strtolower($this->name))) {
+                    // Update IP address for Ip Phones
 
                     $macAddress = ($this->macAddress) ?? substr($this->name, -12);
                     $macAddress = implode('.', [
@@ -913,17 +957,19 @@ class Phone extends Appliance
                         $dataPort->save();
                     }
 
-                } else {
-                    // У VGC портов недолжно быть data port, так как они должны быть в кластере
-                    if (0 < count($appliance->dataPorts->count())) {
-                        foreach ($appliance->dataPorts as $dataPort) {
-                            $dataPort->delete();
-                        }
-                    }
+
+                    // Update hostname for Ip Phones
+
+                    $appliance->fill([
+                        'details' => [
+                            'hostname' => $this->name,
+                        ]
+                    ]);
                 }
 
 
                 // Update Appliance
+
                 $appliance->fill([
                     'lastUpdate'=> (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P'),
                 ]);
@@ -931,6 +977,7 @@ class Phone extends Appliance
 
 
                 // Update phoneInfo
+
                 $dhcpenable = mb_strtolower($this->dhcpEnabled);
                 $phoneInfo->fill([
                     'prefix' => preg_replace('~\..+~','',$this->prefix),
@@ -990,12 +1037,28 @@ class Phone extends Appliance
                 Phone::getDbConnection()->beginTransaction();
 
 
-                // Location
+                // Vendor
+
+                $vendor = Vendor::findByColumn('title', self::VENDOR);
+                if (false === $vendor) {
+                    $vendor = (new Vendor())->fill([
+                        'title' => self::VENDOR,
+                    ]);
+                    $vendor->save();
+                }
+
+
+                // Any fiels for VGS port or Ip phone
+
                 if (1 == preg_match('~^vgc|an~', mb_strtolower($this->name))) {
-                    // Для VGC портов - location определяем по location устройства VGS
+
+                    // -- VGS port --
+
+                    // Location for VGC port - location определяем по location устройства VGS
 
                     $vgsDataPort = DataPort::findByColumn('ipAddress', $this->ipAddress);
                     if (false !== $vgsDataPort && self::VGC == $vgsDataPort->appliance->type->type) {
+
                         $vgc = $vgsDataPort->appliance;
 
                         if (false === $vgc->location) {
@@ -1008,27 +1071,90 @@ class Phone extends Appliance
                         throw new Exception('Phone (vgc) ' . $this->name . ' ' . $this->ipAddress . ': Does not found the appliance VGC for the cluster');
                     }
 
+
+                    // Cluster for VGC port
+
+                    $cluster = $vgc->cluster;
+                    $hostnameVgc = $vgc->details->hostname;
+
+                    if (is_null($hostnameVgc)) {
+                        throw new Exception('Phone (vgc) ' . $this->name . ' ' . $this->ipAddress . ': VGC (' . $vgc->platform->serialNumber . ') does not have field HOSTNAME. Can not find the cluster');
+                    }
+
+                    if (is_null($cluster)) {
+                        $cluster = Cluster::findByColumn('title', $hostnameVgc);
+
+                        if (false === $cluster) {
+                            $cluster = (new Cluster())->fill([
+                                'title' => $hostnameVgc,
+                            ]);
+                            $cluster->save();
+                        }
+
+                        $vgc->fill([
+                            'cluster' => $cluster,
+                        ]);
+                        $vgc->save();
+                    }
+
+
+                    // Software for VGC port
+
+                    $software = Software::findByColumn('title', self::VGCSOFTWARE);
+                    if (false === $software) {
+                        $software = (new Software())->fill([
+                            'vendor' => $vendor,
+                            'title' => self::VGCSOFTWARE,
+                        ]);
+                        $software->save();
+                    }
+
+
+                    // Software Item for VGC port
+
+                    $softwareItem = (new SoftwareItem())->fill([
+                        'software' => $software,
+                        'version' => self::VGCSOFTWARE,
+                    ]);
+                    $softwareItem->save();
+
                 } else {
-                    // Для не VGC портов - location определяем по location cucm на котором данный телефон зарегистрирован
+
+                    // -- Ip Phone --
+
+                    // Location for Ip Phone - location определяем по location cucm на котором данный телефон зарегистрирован
 
                     $location = (DataPort::findByColumn('ipAddress', $this->cucmIpAddress))->appliance->location;
                     if (false === $location) {
                         throw new Exception('Phone (create): cucms (' . $this->cucmIpAddress . ') location does not found');
                     }
-                }
 
 
-                // Vendor
-                $vendor = Vendor::findByColumn('title', self::VENDOR);
-                if (false === $vendor) {
-                    $vendor = (new Vendor())->fill([
-                        'title' => self::VENDOR,
+                    // Software for Ip Phone
+
+                    $software = Software::findByColumn('title', self::PHONESOFT);
+                    if (false === $software) {
+                        $software = (new Software())->fill([
+                            'vendor' => $vendor,
+                            'title' => self::PHONESOFT,
+                        ]);
+                        $software->save();
+                    }
+
+
+                    // Software Item for Ip Phone
+
+                    $softwareItem = (new SoftwareItem())->fill([
+                        'software' => $software,
+                        'version' => (1 == preg_match('~6921~', $this->model)) ? (($this->appLoadID) ?? '') : (($this->versionID) ?? ''),
                     ]);
-                    $vendor->save();
+                    $softwareItem->save();
+
                 }
 
 
                 // Platform
+
                 $platformTitle = ($this->modelNumber) ?? $this->model;
                 $platform = Platform::findByColumn('title', $platformTitle);
                 if (false === $platform) {
@@ -1041,6 +1167,7 @@ class Phone extends Appliance
 
 
                 // Platform Item
+
                 $platformItem = (new PlatformItem())->fill([
                     'platform' => $platform,
                     'serialNumber' => ($this->serialNumber) ?? $this->name,
@@ -1048,26 +1175,8 @@ class Phone extends Appliance
                 $platformItem->save();
 
 
-                // Software
-                $software = Software::findByColumn('title', self::PHONESOFT);
-                if (false === $software) {
-                    $software = (new Software())->fill([
-                        'vendor' => $vendor,
-                        'title' => self::PHONESOFT,
-                    ]);
-                    $software->save();
-                }
-
-
-                // Software Item
-                $softwareItem = (new SoftwareItem())->fill([
-                    'software' => $software,
-                    'version' => (1 == preg_match('~6921~', $this->model)) ? (($this->appLoadID) ?? '') : (($this->versionID) ?? ''),
-                ]);
-                $softwareItem->save();
-
-
                 // Appliance Type
+
                 $applianceType = ApplianceType::findByColumn('type', self::PHONE);
                 if (false === $applianceType) {
                     $applianceType = (new ApplianceType())->fill([
@@ -1077,29 +1186,8 @@ class Phone extends Appliance
                 }
 
 
-                // Cluster for VGC
-                if (1 == preg_match('~^vgc|an~', mb_strtolower($this->name))) {
-                    $cluster = $vgc->cluster;
-
-                    if (is_null($cluster)) {
-                        $cluster = Cluster::findByColumn('title', $vgc->details->hostname);
-
-                        if (false === $cluster) {
-                            $cluster = (new Cluster())->fill([
-                                'title' => $vgc->details->hostname,
-                            ]);
-                            $cluster->save();
-                        }
-
-                        $vgc->fill([
-                            'cluster' => $cluster,
-                        ]);
-                        $vgc->save();
-                    }
-                }
-
-
                 // Appliance
+
                 $appliance = (new Appliance())->fill([
                     'type' => $applianceType,
                     'platform' => $platformItem,
@@ -1107,13 +1195,17 @@ class Phone extends Appliance
                     'vendor' => $vendor,
                     'cluster' => ($cluster) ?? null,
                     'location' => $location,
-                    'lastUpdate'=> (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P'),
                     'inUse' => true,
+                    'lastUpdate'=> (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P'),
+                    'details' => [
+                        'hostname' => ($hostnameVgc) ?? $this->name,
+                    ],
                 ]);
                 $appliance->save();
 
 
                 // Data Port
+
                 if (1 != preg_match('~^vgc|an~', mb_strtolower($this->name))) {
 
                     $portType = DPortType::findByColumn('type', self::DATAPORTTYPE);
@@ -1152,6 +1244,7 @@ class Phone extends Appliance
 
 
                 // PhoneInfo
+
                 $dhcpenable = mb_strtolower($this->dhcpEnabled);
                 $phoneInfo = (new PhoneInfo())->fill([
                     'phone' => $appliance,
