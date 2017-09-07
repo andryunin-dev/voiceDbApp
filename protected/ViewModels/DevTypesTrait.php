@@ -31,10 +31,31 @@ trait DevTypesTrait
         'cmp',
         'cms'
     ];
+    public static function appTypeFilter(string $filter = '') :array
+    {
+        switch ($filter) {
+            case 'all':
+                $devFilter = DevModulePortGeo::allDevTypes_id();
+                break;
+            case 'netDevices':
+                $devFilter = DevModulePortGeo::networkDevTypes_id();
+                break;
+            case 'cucms':
+                $devFilter = DevModulePortGeo::cucmDevTypes_id();
+                break;
+            case 'phones':
+                $devFilter = DevModulePortGeo::phoneDevTypes_id();
+                break;
+            default:
+                $devFilter = DevModulePortGeo::allDevTypes_id();
+                break;
+        }
+        return $devFilter;
+    }
 
-    public static function applianceType_id($carry, $applianceTypeItem){
-        $carry[] = $applianceTypeItem->getPk();
-        return $carry;
+    public static function applianceType_id($acc, $applianceTypeItem){
+        $acc[] = $applianceTypeItem->getPk();
+        return $acc;
     }
 
     public static function allDevTypes() :Collection
@@ -65,13 +86,13 @@ trait DevTypesTrait
     {
         return self::cucmDevTypes()->reduce($carry = [], [static::class, 'applianceType_id']);
     }
-    public function phoneDevTypes() :Collection
+    public static function phoneDevTypes() :Collection
     {
         return ApplianceType::findAll()->filter(function ($applianceType) {
             return in_array($applianceType->type, self::$phoneDevs);
         });
     }
-    public function phoneDevTypes_id() :array
+    public static function phoneDevTypes_id() :array
     {
         return self::phoneDevTypes()->reduce($carry = [], [static::class, 'applianceType_id']);
     }

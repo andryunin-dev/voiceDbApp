@@ -9,7 +9,7 @@ use T4\Dbal\Query;
 use T4\Orm\Model;
 
 /**
- * Class GeoDevModulePort_View
+ * Class DevModulePortGeo
  * @package App\ViewModels
  *
  * @property string $region
@@ -49,13 +49,13 @@ use T4\Orm\Model;
  * @property Collection|DataPort_View[] $dataPorts
  * @property Collection|DataPort_View[] $noManagementPorts
  */
-class GeoDevModulePort_View extends Model
+class DevModulePortGeo extends Model
 {
     use DevTypesTrait;
     use ViewHelperTrait;
 
     protected static $schema = [
-        'table' => 'view.geo_dev_module_port',
+        'table' => 'view.dev_module_port_geo',
         'columns' => [
             'region' => ['type' => 'string'],
             'region_id' => ['type' => 'int', 'length' => 'big'],
@@ -64,11 +64,10 @@ class GeoDevModulePort_View extends Model
             'office' => ['type' => 'string'],
             'office_id' => ['type' => 'int', 'length' => 'big'],
             'lotusId' => ['type' => 'int'],
+            'officeAddress' => ['type' => 'string'],
             'officeComment' => ['type' => 'string'],
             'officeDetails' => ['type' => 'jsonb'],
-            'officeAddress' => ['type' => 'string'],
             'appliance_id' => ['type' => 'int', 'length' => 'big'],
-            'location_id' => ['type' => 'int', 'length' => 'big'],
             'appLastUpdate' => ['type' => 'datetime'],
             'appAge' => ['type' => 'int'],
             'appInUse' => ['type' => 'boolean'],
@@ -93,7 +92,8 @@ class GeoDevModulePort_View extends Model
             'softwareTitle' => ['type' => 'string'],
             'softwareVersion' => ['type' => 'string'],
             'moduleInfo' => ['type' => 'jsonb'],
-            'portInfo' => ['type' => 'jsonb']
+            'portInfo' => ['type' => 'jsonb'],
+            'managementIp' => ['type' => 'string']
         ]
     ];
 
@@ -112,20 +112,6 @@ class GeoDevModulePort_View extends Model
 
     protected function beforeSave()
     {
-        return false;
-    }
-
-    protected function getManagementIp()
-    {
-        $res = $this->dataPorts->filter(
-            function ($port) {
-                return true === $port->isManagement;
-            }
-        )->first();
-
-        if (! empty($res)) {
-            return $res->ipAddress;
-        }
         return false;
     }
 
