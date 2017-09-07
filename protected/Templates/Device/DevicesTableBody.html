@@ -6,8 +6,8 @@
             {% endif %}
             <tr>
                 {#Region#}
-                <td><a href="{{ url.path }}?reg={{ dev.region_id }}" >{{ dev.region }}</a></td>
-                <td><a href="{{ url.path }}?loc={{ dev.office_id }}" >{{ dev.office }}</a> {% if not dev.officeComment is empty %}<span id="{{ dev.office_id }}_{{ dev.appliance_id }}" class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>{% endif %}</td>
+                <td><a href="{{ url.path }}?reg_id={{ dev.region_id }}" >{{ dev.region }}</a></td>
+                <td><a href="{{ url.path }}?loc_id={{ dev.office_id }}" >{{ dev.office }}</a> {% if not dev.officeComment is empty %}<span id="{{ dev.office_id }}_{{ dev.appliance_id }}" class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>{% endif %}</td>
                 {#Hostname#}
                 <td title="{{ dev.hostname }}">
                     {% if not dev.managementIp is empty %}
@@ -17,19 +17,19 @@
                     {% endif %}
                     {% if dev.cluster_id %}
                         <br>
-                        <a href="{{ url.path }}?cl={{ dev.cluster_id }}">(кластер)</a>
+                        <a href="{{ url.path }}?cl_id={{ dev.cluster_id }}">(кластер)</a>
                     {% endif %}
                 </td>
                 {#Type#}
                 <td style="text-align:center" title="{{ dev.appType }}">
                     <b>
-                        <a href="{{ url.path }}?type={{ dev.appType_id }}">
+                        <a href="{{ url.path }}?appType_id={{ dev.appType_id }}">
                             {{ attribute(appTypeMap, dev.appType) }}
                         </a>
                     </b>
                 </td>
                 {#Platform#}
-                <td {% if false == dev.appInUse %}class="item-not-use" {% endif %}><a href="{{ url.path }}?pl={{ dev.platform_id }}">
+                <td {% if false == dev.appInUse %}class="item-not-use" {% endif %}><a href="{{ url.path }}?pl_id={{ dev.platform_id }}">
                         {{ dev.platformVendor }} {{ dev.platformTitle }}</a> {% if not dev.appComment is empty %}<span id="{{ dev.appliance_id }}" class="glyphicon glyphicon-info-sign" aria-hidden="true" title="{{ dev.appComment }}"></span>{% endif %}
                     <span class="lastUpdate {% if dev.appAge is null or dev.appAge >= maxAge %} stale {% endif %}" data-last-update="{{ dev.lastUpdateDateTime }}" title="{{ dev.lastUpdateDateTime }}">{{ dev.lastUpdateDate }}</span>
                 </td>

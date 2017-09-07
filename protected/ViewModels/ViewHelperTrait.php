@@ -34,10 +34,16 @@ trait ViewHelperTrait
         $list = is_array($list) ? $list : preg_split("~[\s,]~", $list, -1, PREG_SPLIT_NO_EMPTY);
         return array_intersect($classColumns, $list);
     }
-    public static function findColumn($columnName)
+    public static function findColumn($name)
     {
         $classColumns = array_keys((self::class)::getColumns());
-        return array_search($columnName, $classColumns);
+        if (in_array($name, $classColumns)) {
+            return $name;
+        } elseif (key_exists($name, self::$columnMap)) {
+            return self::$columnMap[$name];
+        } else {
+            return false;
+        }
     }
 
 
@@ -71,8 +77,6 @@ trait ViewHelperTrait
             $column = self::findColumn($key);
             if ($column !== false) {
                 $resFilter->$column = (new Std(['eq' => $value]));
-            } elseif (key_exists($key, self::$columnMap)) {
-                $resFilter->{self::$columnMap[$key]} = (new Std(['eq' => $value]));
             }
         }
         self::joinFilter($resFilter);
