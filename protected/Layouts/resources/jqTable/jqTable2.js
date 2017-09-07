@@ -44,33 +44,33 @@ jqTable.defaultModel = {
         buildOnServer: true, //если true - заголовок собирается на стороне сервера, false - локально
         columns: {}, // модель хедера (см. описание структуры)
         selectors: {
-            table: '-hd',
-            scrollCell: '-scrollCell' //ячейка для компенсации скрола
+            table: '_hd',
+            scrollCell: '_scrollCell' //ячейка для компенсации скрола
         }
     },
     body: {
         selectors: {
-            table: '-bd',
-            firstRow: '-bd-fr'
+            table: '_bd',
+            firstRow: '_bd_fr'
         }
     },
     footer: {
         classes: {
-            table: "ui-state-default"
+            table: "ui_state_default"
         },
         selectors: {
-            table: '-ft',
-            infoCell: '-ft-info-cell',
-            firstRow: '-ft-1st-row'
+            table: '_ft',
+            infoCell: '_ft_info_cell',
+            firstRow: '_ft_1st_row'
         }
     },
     wrappers: {
         selectors: {
-            table: '-tb-wrap', //селектор обертки всей таблицы
-            header: '-hd-wrap',
-            body: '-bd-wrap',
-            footer: '-ft-wrap',
-            headerBody: '-bd-hd-wrap' //селектор обертки хедера и боди
+            table: '_tb_wrap', //селектор обертки всей таблицы
+            header: '_hd_wrap',
+            body: '_bd_wrap',
+            footer: '_ft_wrap',
+            headerBody: '_bd_hd_wrap' //селектор обертки хедера и боди
         }
     },
 
@@ -80,10 +80,10 @@ jqTable.defaultModel = {
         rowList: [10, 20, 30, 50, 100, 200], //дефолтные значения списка для установки rows
         startPage: 1, //стартовый номер страницы
         selectors: {
-            pager: '-pg',//весь пагинатор
-            input: '-pg-input',//input поле пейджинатора
-            rowsOnPageList: '-pg-row-list',//список значение строк на страницу
-            pagesCount: '-pg-pages-count' //общее кол-во страниц
+            pager: '_pg',//весь пагинатор
+            input: '_pg_input',//input поле пейджинатора
+            rowsOnPageList: '_pg_row_list',//список значение строк на страницу
+            pagesCount: '_pg_pages_count' //общее кол-во страниц
         }
     },
     /*
@@ -849,7 +849,7 @@ jqTable.workSetTmpl = {
                 ).append(
                     ws.obj.$pgLastPage
                 );
-                ws.obj.$rowsOnPageList = $('<select/>', { id: ws.model.pager.selectors.rowsOnPageList});
+                ws.obj.$rowsOnPageList = $('<select/>', { id: ws.model.pager.selectors.rowsOnPageList.slice(1)});
                 $.each(ws.model.pager.rowList, function () {
                     $('<option/>', {
                         value: $.isNumeric(this) ? this : -1,
@@ -982,11 +982,11 @@ jqTable.workSetTmpl = {
                     "overflow-y": "scroll",
                     "overflow-x": "scroll"
                 };
-                var element = $("<div></div>").attr("id", ws.mainSelector.slice(1) + '-scrl-outer').css(styles).append($("<div></div>").attr("id", ws.mainSelector.slice(1) + '-scrl-inner').css({height: "100%"}));
+                var element = $("<div></div>").attr("id", ws.mainSelector.slice(1) + '_scrl_outer').css(styles).append($("<div></div>").attr("id", ws.mainSelector.slice(1) + '_scrl_inner').css({height: "100%"}));
                 $('body').append(element);
-                ws.scrolls.Y_scrollWidth = $(ws.mainSelector + '-scrl-outer').width() - $(ws.mainSelector + '-scrl-inner').width();
-                ws.scrolls.X_scrollWidth = $(ws.mainSelector + '-scrl-outer').height() - $(ws.mainSelector + '-scrl-inner').height();
-                $(ws.mainSelector + '-scrl-outer').remove();
+                ws.scrolls.Y_scrollWidth = $(ws.mainSelector + '_scrl_outer').width() - $(ws.mainSelector + '_scrl_inner').width();
+                ws.scrolls.X_scrollWidth = $(ws.mainSelector + '_scrl_outer').height() - $(ws.mainSelector + '_scrl_inner').height();
+                $(ws.mainSelector + '_scrl_outer').remove();
                 console.log("scroll width: " + ws.scrolls.Y_scrollWidth + '/' + ws.scrolls.X_scrollWidth);
             },
             windowSize: function (ws) {
@@ -1017,7 +1017,7 @@ jqTable.workSetTmpl = {
                         if ($(event.target).hasClass('ui-icon-seek-next')) {
                             ws.pager.page += 1;
                             params = inner.updateBodyParams(ws);
-                            methods.updateBodyContent(ws, params)
+                            methods.updateBodyContent(ws, params);
                         } else if ($(event.target).hasClass('ui-icon-seek-end')) {
                             event.data.pager.page = event.data.pager.pages;
                             params = inner.updateBodyParams(ws);
@@ -1034,13 +1034,12 @@ jqTable.workSetTmpl = {
                     }
                 );
                 ws.obj.$pager.change(ws, function (event) {
-                    if ($(event.target).attr('id') == event.data.model.pager.selectors.rowsOnPageList) {
+                    if ($(event.target).attr('id') == event.data.model.pager.selectors.rowsOnPageList.slice(1)) {
                         ws = event.data;
                         var rowsOnPage = $(event.target).find("option:selected").val();
                         ws.pager.rowsOnPage = parseInt(rowsOnPage);
                         Cookies.set(ws.mainSelector.slice(1) + '_rowsOnPage', rowsOnPage);
-                        params = inner.updateBodyParams(ws);
-                        methods.updateBodyContent(ws, params);
+                        methods.updateBodyContent(ws);
                     }
                 });
             },
@@ -1062,11 +1061,18 @@ jqTable.workSetTmpl = {
                 // ws.pager.page = + Cookies(ws.mainSelector.slice(1) + '_page') || ws.model.pager.startPage;
                 ws.pager.page = + ws.model.pager.startPage;
                 ws.pager.rowsOnPage = + Cookies(ws.mainSelector.slice(1) + '_rowsOnPage') || ws.model.pager.rowsOnPage;
+                inner.updatePager(ws);
             },
             updatePager: function (ws) {
                 //вставить в пейджинатор номер текушей страницы, кол-во страниц
                 ws.obj.$pgInput.val(ws.pager.page);
                 ws.obj.$pgPagesCount.text(ws.pager.pages);
+                ws.obj.$rowsOnPageList.children('option').removeProp('selected').each(function () {
+                    if (parseInt($(this).val()) == parseInt(ws.pager.rowsOnPage)) {
+                        $(this).prop('selected',true);
+                        return false;
+                    }
+                });
                 //если последняя страница - выключаем пейджинацию вправо
                 if ( parseInt(ws.pager.page) < ws.pager.pages ) {
                     ws.obj.$pgLastPage.removeClass('ui-state-disabled');
