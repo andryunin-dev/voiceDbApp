@@ -97,10 +97,27 @@ class DevModulePortGeo extends Model
         ]
     ];
     protected static $columnMap = [
-        'ven' => 'vendor',
-        'pl' => 'platform',
+        'ven' => 'platformVendor',
+        'pl' => 'platformTitle',
         'reg' => 'region',
-        'soft' => 'software'
+        'soft' => 'softwareTitle'
+    ];
+//{% if not dev.appType %}
+//    {% set applianceType = "" %}
+//    {% elseif dev.appType|lower == 'switch' %}
+//    {% set applianceType = "SW" %}
+//    {% elseif dev.appType|lower == 'router' %}
+//    {% set applianceType = "R" %}
+//    {% elseif dev.appType|lower == 'cucm' %}
+//    {% set applianceType = "CM" %}
+//    {% elseif dev.appType|lower == 'phone' %}
+//    {% set applianceType = "TEL" %}
+    public static $applianceTypeMap = [
+        'switch' => 'SW',
+        'router' => 'R',
+        'cmp' => 'CMP',
+        'cms' => 'CMS',
+        'phone' => 'TEL'
     ];
 
     protected static $sortOrders = [

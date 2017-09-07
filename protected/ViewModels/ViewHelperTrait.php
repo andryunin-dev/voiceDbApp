@@ -63,7 +63,8 @@ trait ViewHelperTrait
             }
         }
         //делаем фильтр из GET параметров
-        $search = (new Url($href))->query;
+        $query = (new Url($href))->query;
+        $search = empty($query) ? [] : $query;
         foreach ($search as $key => $value) {
             $value = is_numeric($value) ? intval($value) : $value;
             //todo вставить поиск по массиву свойств модели!!!
@@ -72,8 +73,6 @@ trait ViewHelperTrait
                 $resFilter->$column = (new Std(['eq' => $value]));
             } elseif (key_exists($key, self::$columnMap)) {
                 $resFilter->{self::$columnMap[$key]} = (new Std(['eq' => $value]));
-            } elseif (false !== array_search($key, self::$columnMap)) {
-                $resFilter->$key = (new Std(['eq' => $value]));
             }
         }
         self::joinFilter($resFilter);
@@ -137,6 +136,12 @@ trait ViewHelperTrait
         return (array_key_exists($orderName, self::$sortOrders)) ? self::$sortOrders[$orderName] : self::$sortOrders['default'];
     }
 
+    /**
+     * @param $filter
+     * @param $sorting
+     * @param $pager
+     * @return Query $$query
+     */
     public static function buildQuery($filter, $sorting, $pager)
     {
         $query = (new Query())
@@ -145,6 +150,14 @@ trait ViewHelperTrait
         if (! empty($filter->whereClause)) {
             $query->where($filter->whereClause);
         }
+
         return $query;
+    }
+    public static function updatePager(Std $pager)
+    {
+        $pager->rowsOnPage = (int)$pager->rowsOnPage;
+        $pager->pages = ((int)$pager->rowsOnPage < 0) ? 1 : ceil($pager->records / (int)$pager->rowsOnPage);
+        $pager->page = (int)$pager->page > $pager->pages ? 1 : (int)$pager->page;
+        return $pager;
     }
 }

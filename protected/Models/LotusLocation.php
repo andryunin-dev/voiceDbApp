@@ -50,7 +50,17 @@ class LotusLocation extends Model
     private static $allLocations = [];
     private static $lotusIdToEmployees = [];
 
-
+    public static function peopleCountByLotusId($lotusId, $refresh = false)
+    {
+        if (empty(self::$lotusIdToEmployees) || $refresh) {
+            self::setConnection(self::CONNECTION_NAME);
+            self::$allLocations = self::findAll();
+            foreach (self::$allLocations as $office) {
+                self::$lotusIdToEmployees[$office->lotus_id] = $office->employees;
+            }
+        }
+        return (key_exists((int)$lotusId, self::$lotusIdToEmployees)) ? self::$lotusIdToEmployees[(int)$lotusId] : false;
+    }
     public static function employeesByLotusId($lotusId, $refresh = false)
     {
         if (empty(self::$allLocations) || $refresh) {

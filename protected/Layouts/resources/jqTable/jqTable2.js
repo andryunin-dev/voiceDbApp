@@ -134,77 +134,110 @@ jqTable.defaultModel = {
     styles: {
         header: {
             table: {
-                classes: ["jqt-common-table", "jqt-hd-table", "bg-primary", "table-bordered"],
-                css: {}
+                classes: [],
+                defaultClasses: ["jqt-common-table", "jqt-hd-table"],
+                css: {},
+                defaultCss: {}
             },
             tr: {
                 classes: [],
-                css: {}
+                defaultClasses: [],
+                css: {},
+                defaultCss: {}
             },
             th: {
                 classes: [],
-                css: {}
+                defaultClasses: [],
+                css: {},
+                defaultCss: {}
             },
             td: {
                 classes: [],
-                css: {}
+                defaultClasses: [],
+                css: {},
+                defaultCss: {}
             }
         },
         body: {
             table: {
-                classes: ["jqt-common-table", "jqt-bd-table"],
-                css: {}
+                classes: [],
+                defaultClasses: ["jqt-common-table", "jqt-bd-table"],
+                css: {},
+                defaultCss: {}
             },
             tr: {
                 classes: [],
-                css: {}
+                defaultClasses: [],
+                css: {},
+                defaultCss: {}
             },
             th: {
                 classes: [],
+                defaultClasses: [],
                 css: {height: 0, padding: 0, border: "none"}
             },
             td: {
                 classes: [],
-                css: {}
+                defaultClasses: [],
+                css: {},
+                defaultCss: {}
             }
         },
         footer: {
             table: {
-                classes: ["ui-state-default"],
-                css: {}
+                classes: [],
+                defaultClasses: ["ui-state-default"],
+                css: {},
+                defaultCss: {}
             },
             tr: {
                 classes: [],
-                css: ''
+                defaultClasses: [],
+                css: {},
+                defaultCss: {}
             },
             th: {
                 classes: [],
-                css: {}
+                defaultClasses: [],
+                css: {},
+                defaultCss: {}
             },
             td: {
                 classes: [],
-                css: {}
+                defaultClasses: [],
+                css: {},
+                defaultCss: {}
             }
         },
         tableBox: {
-            classes: ["jqtable"],
-            css: {"background-color": "#dfdfdf"}
+            classes: [],
+            defaultClasses: ["jqtable"],
+            css: {},
+            defaultCss: {"background-color": "#dfdfdf"}
         },
         headerBox: {
-            classes: ['test1', 'test2'],
-            css: {width: '100%'}
+            classes: [],
+            defaultClasses: ['test1', 'test2'],
+            css: {},
+            defaultCss: {width: '100%'}
         },
         bodyBox: {
             classes: [],
-            css: {}
+            defaultClasses: [],
+            css: {},
+            defaultCss: {}
         },
         headerBodyBox: {
             classes: [],
-            css: {}
+            defaultClasses: [],
+            css: {},
+            defaultCss: {}
         },
         footerBox: {
             classes: [],
-            css: {}
+            defaultClasses: [],
+            css: {},
+            defaultCss: {}
         }
     }
 };
@@ -404,71 +437,6 @@ jqTable.workSetTmpl = {
                 });
                 workSet.footer.infoCellObj.find('span').last().remove();
             },
-            eventsPager: function (workSet) {
-                workSet = inner.getWorkSet(this, workSet);
-                $(workSet.model.pager.selector).on(
-                    'click',
-                    workSet,
-                    function (event) {
-                        var currentTime = $.now();
-                        if ((currentTime - APP.lastClick) < 300) {
-                            return;
-                        }
-                        APP.lastClick = currentTime;
-                        if ($(event.target).hasClass('ui-icon-seek-next')) {
-                            event.data.pager.page += 1;
-                            params = {
-                                filters: {
-                                    appTypes: 'netDevices'
-                                }
-                            };
-                            methods.updateBodyJSON(event.data, params)
-                        } else if ($(event.target).hasClass('ui-icon-seek-end')) {
-                            event.data.pager.page = event.data.pager.pages;
-                            params = {
-                                filters: {
-                                    appTypes: 'netDevices'
-                                }
-                            };
-                            methods.updateBodyJSON(event.data, params)
-                        } else if ($(event.target).hasClass('ui-icon-seek-prev')) {
-                            event.data.pager.page -= 1;
-                            params = {
-                                filters: {
-                                    appTypes: 'netDevices'
-                                }
-                            };
-                            methods.updateBodyJSON(event.data, params)
-                        } else if ($(event.target).hasClass('ui-icon-seek-first')) {
-                            event.data.pager.page = 1;
-                            params = {
-                                filters: {
-                                    appTypes: 'netDevices'
-                                }
-                            };
-                            methods.updateBodyJSON(event.data, params)
-                        }
-                    }
-                );
-                $(workSet.model.pager.selector).change(workSet, function (event) {
-                    if ($(event.target).attr('id') == event.data.model.pager.rowsOnPageSelector) {
-                        var rowsOnPage = $(event.target).find("option:selected").text();
-                        if ($.isNumeric(rowsOnPage)) {
-                            event.data.pager.rowsOnPage = parseInt(rowsOnPage);
-                        } else {
-                            event.data.pager.rowsOnPage = -1;
-                        }
-                        Cookies.set(workSet.mainSelector.slice(1) + '_rowsOnPage', rowsOnPage);
-                        params = {
-                            filters: {
-                                appTypes: 'netDevices'
-                            }
-                        };
-                        methods.updateBodyJSON(event.data, params);
-                    }
-                });
-            },
-
             setBodyScroll: function (ws) {
                 /*=== уровень контейнеров ===*/
                 if (ws.table.Y_Scroll_enable) {
@@ -696,10 +664,84 @@ jqTable.workSetTmpl = {
                     inner.debug(ws, 'Property ' + subjectName + " isn't found in 'styles' object");
                 }
             },
+            setDefaultStyles: function (ws, subjectName) {
+                if (subjectName === undefined) {
+                    $.each(ws.model.styles, function (key, value) {
+                        inner.setDefaultStyles(ws, key);
+                    })
+                }else if(ws.model.styles.hasOwnProperty(subjectName)) {
+                    var subjectStyles = ws.model.styles[subjectName];
+                    // если это стили для box
+                    if ($.isPlainObject(subjectStyles) && subjectStyles.hasOwnProperty('defaultClasses') && subjectStyles.hasOwnProperty('defaultCss')) {
+                        if (! $.isEmptyObject(subjectStyles.defaultClasses)) {
+                            ws.obj['$' + subjectName].addClass(subjectStyles.defaultClasses.join(' '));
+                        }
+                        if (! $.isEmptyObject(subjectStyles.defaultCss)) {
+                            $.each(subjectStyles.defaultCss, function (key, value) {
+                                ws.obj['$' + subjectName].css(key, value);
+                            });
+                        }
+
+                    } else if ($.isPlainObject(subjectStyles) && subjectStyles.hasOwnProperty('table') && subjectStyles.hasOwnProperty('tr') && subjectStyles.hasOwnProperty('th') && subjectStyles.hasOwnProperty('td')) {
+                        //если это стили для таблицы - применям последовательно для table, tr, th, td
+                        //уровень таблицы
+                        var subject = ws.obj['$' + subjectName];
+                        if (! $.isEmptyObject(subjectStyles.table.defaultClasses)) {
+                            subject.addClass(subjectStyles.table.defaultClasses.join(' '));
+                        }
+                        if (! $.isEmptyObject(subjectStyles.table.defaultCss)) {
+                            $.each(subjectStyles.table.defaultCss, function (key, value) {
+                                subject.css(key, value);
+                            });
+                        }
+                        //уровень 'tr'
+                        subject = ws.obj['$' + subjectName].find('tr');
+                        if (! $.isEmptyObject(subjectStyles.tr.defaultClasses)) {
+                            subject.addClass(subjectStyles.tr.defaultClasses.join(' '));
+                        }
+                        if (! $.isEmptyObject(subjectStyles.tr.defaultCss)) {
+                            $.each(subjectStyles.tr.defaultCss, function (key, value) {
+                                subject.css(key, value);
+                            });
+                        }
+                        //уровень 'th'
+                        subject = ws.obj['$' + subjectName].find('th');
+                        if (! $.isEmptyObject(subjectStyles.th.defaultClasses)) {
+                            subject.addClass(subjectStyles.th.defaultClasses.join(' '));
+                        }
+                        if (! $.isEmptyObject(subjectStyles.th.defaultCss)) {
+                            $.each(subjectStyles.th.defaultCss, function (key, value) {
+                                subject.css(key, value);
+                            });
+                        }
+                        //уровень 'td'
+                        if (! $.isEmptyObject(subjectStyles.td.defaultClasses)) {
+                            subject.addClass(subjectStyles.td.defaultClasses.join(' '));
+                        }
+                        if (! $.isEmptyObject(subjectStyles.td.defaultCss)) {
+                            $.each(subjectStyles.td.defaultCss, function (key, value) {
+                                subject.css(key, value);
+                            });
+                        }
+                    }
+                } else {
+                    inner.debug(ws, 'Property ' + subjectName + " isn't found in 'styles' object");
+                }
+            },
             setScrollCellStyle: function (ws) {
                 ws.obj.$headerScrollCell.removeClass().addClass("ui-state-default");
             },
             setInitialStyles: function (ws) {
+                inner.setDefaultStyles(ws, 'header');
+                inner.setDefaultStyles(ws, 'body');
+                inner.setDefaultStyles(ws, 'footer');
+                inner.setDefaultStyles(ws, 'tableBox');
+                inner.setDefaultStyles(ws, 'headerBox');
+                inner.setDefaultStyles(ws, 'bodyBox');
+                inner.setDefaultStyles(ws, 'headerBodyBox');
+                inner.setDefaultStyles(ws, 'footerBox');
+
+                inner.setStyles(ws, 'header');
                 inner.setStyles(ws, 'body');
                 inner.setStyles(ws, 'footer');
                 inner.setStyles(ws, 'tableBox');
@@ -810,10 +852,11 @@ jqTable.workSetTmpl = {
                 ws.obj.$rowsOnPageList = $('<select/>', { id: ws.model.pager.selectors.rowsOnPageList});
                 $.each(ws.model.pager.rowList, function () {
                     $('<option/>', {
-                        value: this,
+                        value: $.isNumeric(this) ? this : -1,
                         text: this
                     }).appendTo(ws.obj.$rowsOnPageList);
                 });
+                ws.obj.$pager.append(ws.obj.$rowsOnPageList);
             },
             columnsIdUpdate: function (ws) {
                 $.each(ws.header.columns, function (key,value) {
@@ -991,14 +1034,10 @@ jqTable.workSetTmpl = {
                     }
                 );
                 ws.obj.$pager.change(ws, function (event) {
-                    if ($(event.target).attr('id') == event.data.model.pager.rowsOnPageSelector) {
+                    if ($(event.target).attr('id') == event.data.model.pager.selectors.rowsOnPageList) {
                         ws = event.data;
-                        var rowsOnPage = $(event.target).find("option:selected").text();
-                        if ($.isNumeric(rowsOnPage)) {
-                            ws.pager.rowsOnPage = parseInt(rowsOnPage);
-                        } else {
-                            ws.pager.rowsOnPage = -1;
-                        }
+                        var rowsOnPage = $(event.target).find("option:selected").val();
+                        ws.pager.rowsOnPage = parseInt(rowsOnPage);
                         Cookies.set(ws.mainSelector.slice(1) + '_rowsOnPage', rowsOnPage);
                         params = inner.updateBodyParams(ws);
                         methods.updateBodyContent(ws, params);
@@ -1120,8 +1159,8 @@ jqTable.workSetTmpl = {
                     data: requestParams
                     })
                     .done(function (data, textStatus, jqXHR) {
-                        ws.obj.$body.find('tbody').html(data.body.html);
-                        //todo Добавить сюда запись значений пейджинатора
+                        ws.obj.$body.children('tbody').html(data.body.html);
+                        ws.pager = data.body.pager;
                         inner.updatePager(ws);
                     })
                     .fail(function (jqXHR, textStatus, errorThrown) {

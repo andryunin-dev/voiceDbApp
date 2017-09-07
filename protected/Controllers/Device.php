@@ -25,50 +25,7 @@ class Device extends Controller
         $this->data->activeLink->devicesNew = true;
         $this->data->getParams = $_GET;
     }
-//    protected function filterFromGet($name, $value)
-//    {
-//
-//    }
-//    protected function joinFilter(Std $filter)
-//    {
-//        $res = [];
-//        $params = [];
-//        foreach ($filter as $key => $filterItem) {
-//            switch (true) {
-//                case isset($filterItem->eq):
-//                    if (is_string($filterItem->eq)) {
-//                        $eqArray = preg_split("/\s*,\s*/", $filterItem->eq, -1, PREG_SPLIT_NO_EMPTY);
-//                        $filterItem->eq = $eqArray;
-//                    } elseif (is_int($filterItem->eq)) {
-//                        $eqArray = [];
-//                        $eqArray[] = $filterItem->eq;
-//                        $filterItem->eq = $eqArray;
-//                    }
-//                    $subRes = [];
-//                    foreach ($filterItem->eq as $index => $value) {
-//                        $subRes[] = $this->quoteName($key) . ' = ' . ':' . $key . $index;
-//                        $params[':' . $key . $index] = $value;
-//                    }
-//                    if (count($subRes) == 1) {
-//                        $res[] = $subRes[0];
-//                    } elseif (count($subRes) > 1) {
-//                        $res[] = '(' . implode(' OR ', $subRes) . ')';
-//                    }
-//                    break;
-//                case isset($key->like):
-//                    $res[] = $this->quoteName($key) . ' LIKE ' . ':' . $key;
-//                    $params[':' . $key] = $filterItem->like;
-//                    break;
-//            }
-//        }
-//        $filter->whereClause = implode(' AND ', $res);
-//        $filter->queryParams = $params;
-//        return $filter;
-//    }
-//    protected function quoteName($data)
-//    {
-//        return '"' . $data . '"';
-//    }
+
     public function actionDevicesTable()
     {
         $request = (new Request())->get;
@@ -85,11 +42,18 @@ class Device extends Controller
                     $data['sorting'] = isset($value->sorting) ? $value->sorting : new Std();
                     $data['pager'] = isset($value->pager) ? $value->pager : new Std();
                     $data['user'] = $this->data->user;
-
+                    $data['url'] = new Url($value->href);
                     $data['filter'] = DevModulePortGeo::buildFilter($data['filter'], new Url($value->href));
                     $data['sorting'] = DevModulePortGeo::buildSorting($data['sorting']);
-                    $query = DevModulePortGeo::buildQuery($data['filter'], $data['sorting'], $data['pager']);
-                    $res = DevModulePortGeo::findAllByQuery($query,$data['filter']->queryParams);
+                    $data['filter']->query = DevModulePortGeo::buildQuery($data['filter'], $data['sorting'], $data['pager']);
+
+                    $data['pager']->records = DevModulePortGeo::countAllByQuery(($data['filter'])->query,$data['filter']->queryParams);
+                    $data['pager'] = DevModulePortGeo::updatePager($data['pager']);
+                    $data['filter']->query
+                        ->offset(($data['pager'])->rowsOnPage * (($data['pager'])->page - 1))
+                        ->limit(($data['pager'])->rowsOnPage);
+                    $data['devices'] = DevModulePortGeo::findAllByQuery($data['filter']->query,$data['filter']->queryParams);
+                    $data['appTypeMap'] = DevModulePortGeo::$applianceTypeMap;
                     $this->data->body->html = $this->view->render('DevicesTableBody.html', $data);
                     $this->data->body->pager = $data['pager'];
                     break;
