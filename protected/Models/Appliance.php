@@ -199,10 +199,12 @@ class Appliance extends Model
         foreach ($this->dataPorts as $dataPort) {
             $dataPort->delete();
         }
+        if (! empty($phoneInfo = $this->phoneInfo)) {
+            $phoneInfo->delete();
+        }
         $result = parent::delete();
         $this->software->delete();
         $this->platform->delete();
-
         return $result;
     }
 }
