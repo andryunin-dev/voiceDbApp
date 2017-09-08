@@ -13,6 +13,7 @@ use App\Models\Network;
 use App\Models\Office;
 use App\Models\Region;
 use App\Models\Vrf;
+use App\ViewModels\DevModulePortGeo;
 use T4\Core\Exception;
 use T4\Core\MultiException;
 use T4\Core\Std;
@@ -27,8 +28,14 @@ class Test extends Controller
 
     public function actionDefault()
     {
-        $this->data->value = 'Hello';
-        $this->data->res = $this->view->render('default2.html', $this->data);
+        $query = (new Query())
+            ->select()
+            ->from(DevModulePortGeo::getTableName())
+            ->where('"platformSerial" = :ser')
+            ->limit(1)
+            ->params([':ser' => 'FCZ111622EF']);
+        var_dump(DevModulePortGeo::findAllByQuery($query));
+        die;
     }
 
     public function actionCookies()

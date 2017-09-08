@@ -47,10 +47,11 @@ class User
      */
     protected function createUser()
     {
-        $defaultLvl = 20;
+        $defaultLvl = 10;
         $http = new Request();
         $lvl = (int)$http->get->userLvl ?? $defaultLvl;
         $lvl = ($lvl > 0 && $lvl < 50) ? $lvl : $defaultLvl;
+        $this->level = $lvl;
 
         $this->permissions = new Permissions();
         $this->permissions->readOnly = (0 == $lvl) ? true : false;
@@ -61,9 +62,9 @@ class User
         $this->permissions->changeManagementIP = (5 <= $lvl) ? true : false;
         $this->permissions->addAppliance = (6 <= $lvl) ? true : false;
         $this->permissions->changeModuleAndPorts = (7 <= $lvl) ? true : false;
-        $this->permissions->delAppliance = (20 <= $lvl) ? true : false;
+        $this->permissions->delAppliance = (15 <= $lvl) ? true : false;
     }
 
-    public $level = 3;
+    public $level;
     public $debugMode = false;
 }
