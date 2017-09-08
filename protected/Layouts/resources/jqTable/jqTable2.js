@@ -79,11 +79,16 @@ jqTable.defaultModel = {
         rowsOnPage: 50, //значение строк на страницу
         rowList: [10, 20, 30, 50, 100, 200], //дефолтные значения списка для установки rows
         startPage: 1, //стартовый номер страницы
+        preloader: {
+            width: '20px',
+            height: ''
+        },
         selectors: {
             pager: '_pg',//весь пагинатор
             input: '_pg_input',//input поле пейджинатора
             rowsOnPageList: '_pg_row_list',//список значение строк на страницу
-            pagesCount: '_pg_pages_count' //общее кол-во страниц
+            pagesCount: '_pg_pages_count', //общее кол-во страниц
+            preloader: '_pg_preload' //общее кол-во страниц
         }
     },
     /*
@@ -271,7 +276,8 @@ jqTable.workSetTmpl = {
         $pgLastPage: undefined,
         $pgRowsOnPageList: undefined,
         $pgInput: undefined,
-        $pgPagesCount: undefined
+        $pgPagesCount: undefined,
+        $pgPreloader: undefined
     },
 
     table: {
@@ -753,26 +759,41 @@ jqTable.workSetTmpl = {
             //создание элементов
             fillSelectors: function (ws) {
                 var md = ws.model;
-                md.header.selectors.table = ws.mainSelector + md.header.selectors.table;
-                md.header.selectors.scrollCell = ws.mainSelector + md.header.selectors.scrollCell;
+                $.each(md.header.selectors, function (index, value) {
+                    md.header.selectors[index] = ws.mainSelector + md.header.selectors[index];
+                });
+                 $.each(md.body.selectors, function (index, value) {
+                    md.body.selectors[index] = ws.mainSelector + md.body.selectors[index];
+                });
+                 $.each(md.footer.selectors, function (index, value) {
+                    md.footer.selectors[index] = ws.mainSelector + md.footer.selectors[index];
+                });
+                 $.each(md.wrappers.selectors, function (index, value) {
+                    md.wrappers.selectors[index] = ws.mainSelector + md.wrappers.selectors[index];
+                });
+                 $.each(md.pager.selectors, function (index, value) {
+                    md.pager.selectors[index] = ws.mainSelector + md.pager.selectors[index];
+                });
+                // md.header.selectors.table = ws.mainSelector + md.header.selectors.table;
+                // md.header.selectors.scrollCell = ws.mainSelector + md.header.selectors.scrollCell;
 
-                md.body.selectors.table = ws.mainSelector + md.body.selectors.table;
-                md.body.selectors.firstRow = ws.mainSelector + md.body.selectors.firstRow;
+                // md.body.selectors.table = ws.mainSelector + md.body.selectors.table;
+                // md.body.selectors.firstRow = ws.mainSelector + md.body.selectors.firstRow;
 
-                md.footer.selectors.table = ws.mainSelector + md.footer.selectors.table;
-                md.footer.selectors.infoCell = ws.mainSelector + md.footer.selectors.infoCell;
-                md.footer.selectors.firstRow = ws.mainSelector + md.footer.selectors.firstRow;
+                // md.footer.selectors.table = ws.mainSelector + md.footer.selectors.table;
+                // md.footer.selectors.infoCell = ws.mainSelector + md.footer.selectors.infoCell;
+                // md.footer.selectors.firstRow = ws.mainSelector + md.footer.selectors.firstRow;
 
-                md.wrappers.selectors.table = ws.mainSelector + md.wrappers.selectors.table;
-                md.wrappers.selectors.header= ws.mainSelector + md.wrappers.selectors.header;
-                md.wrappers.selectors.body = ws.mainSelector + md.wrappers.selectors.body;
-                md.wrappers.selectors.footer = ws.mainSelector + md.wrappers.selectors.footer;
-                md.wrappers.selectors.headerBody = ws.mainSelector + md.wrappers.selectors.headerBody;
+                // md.wrappers.selectors.table = ws.mainSelector + md.wrappers.selectors.table;
+                // md.wrappers.selectors.header= ws.mainSelector + md.wrappers.selectors.header;
+                // md.wrappers.selectors.body = ws.mainSelector + md.wrappers.selectors.body;
+                // md.wrappers.selectors.footer = ws.mainSelector + md.wrappers.selectors.footer;
+                // md.wrappers.selectors.headerBody = ws.mainSelector + md.wrappers.selectors.headerBody;
 
-                md.pager.selectors.pager = ws.mainSelector + md.pager.selectors.pager;
-                md.pager.selectors.input = ws.mainSelector + md.pager.selectors.input;
-                md.pager.selectors.rowsOnPageList = ws.mainSelector + md.pager.selectors.rowsOnPageList;
-                md.pager.selectors.pagesCount = ws.mainSelector + md.pager.selectors.pagesCount;
+                // md.pager.selectors.pager = ws.mainSelector + md.pager.selectors.pager;
+                // md.pager.selectors.input = ws.mainSelector + md.pager.selectors.input;
+                // md.pager.selectors.rowsOnPageList = ws.mainSelector + md.pager.selectors.rowsOnPageList;
+                // md.pager.selectors.pagesCount = ws.mainSelector + md.pager.selectors.pagesCount;
             },
             buildFooter: function (ws) {
                 inner.buildPager(ws);
@@ -783,9 +804,12 @@ jqTable.workSetTmpl = {
                         id: ws.model.footer.selectors.firstRow.slice(1)
                     })
                 );
-                //add to $footer $footerInfo and $pager
+                var $pgPreloaderCell = $('<td/>');
+                ws.obj.$pgPreloader = inner.buildPreloader('0.2em');
+                $pgPreloaderCell.append(ws.obj.$pgPreloader);
+                //add to $footer $pgPreloaderCell $footerInfo and $pager
                 var $firstRw = ws.obj.$footer.find(ws.model.footer.selectors.firstRow);
-                $firstRw.append(ws.obj.$footerInfo).append(ws.obj.$pager);
+                $firstRw.append(ws.obj.$footerInfo).append($pgPreloaderCell).append(ws.obj.$pager);
             },
             buildInfoCell: function (ws) {
                 ws.obj.$footerInfo = $('<td/>', {
@@ -823,6 +847,8 @@ jqTable.workSetTmpl = {
                     class: 'jqt-pager',
                     align: 'center'
                 }).append(
+                    ws.obj.$pgPreloader
+                ).append(
                     ws.obj.$pgFirstPage
                 ).append(
                     ws.obj.$pgPrewPage
@@ -928,6 +954,10 @@ jqTable.workSetTmpl = {
                     $('<th></th>').attr({"id": value.td_id}).appendTo(ws.obj.$bodyFirstRow);
                 });
             },
+            buildPreloader: function (fontSize) {
+                fontSize = fontSize || '0.2em';
+                return $('<div><div></div></div>').css('font-size', fontSize).addClass('in_progress').hide();
+            },
             //управление размерами
             setColumnWidth: function (ws) {
                 $.each(ws.header.columns, function (key,value) {
@@ -958,6 +988,8 @@ jqTable.workSetTmpl = {
                     bodyWidth = bodyWidth - ws.scrolls.Y_scrollWidth - ws.scrolls.scrollMargin
                 }
                 ws.obj.$body.width(bodyWidth);
+                //ширина ячейки preloader
+                ws.obj.$pgPreloader.parent('td').css('width', ws.model.pager.preloader.width);
                 //ширина ячейки пейджинатора
                 ws.obj.$pager.outerWidth(ws.pager.width);
                 /*=== Устанавливаем высоту для Body ===*/
@@ -1160,6 +1192,7 @@ jqTable.workSetTmpl = {
                     throw 'updateBodyContent: не найден workSet';
                 }
                 var requestParams = inner.updateBodyParams(ws);
+                ws.obj.$pgPreloader.show();
                 $.ajax({
                     url: ws.model.dataUrl,
                     data: requestParams
@@ -1168,9 +1201,11 @@ jqTable.workSetTmpl = {
                         ws.obj.$body.children('tbody').html(data.body.html);
                         ws.pager = data.body.pager;
                         inner.updatePager(ws);
+                        ws.obj.$pgPreloader.hide();
                     })
                     .fail(function (jqXHR, textStatus, errorThrown) {
                         inner.debug(ws, 'update body content: ' + jqXHR.responseText);
+                        ws.obj.$pgPreloader.hide();
                     });
                 return this;
             },
