@@ -3,9 +3,9 @@ namespace App\Commands;
 
 use App\Components\RLogger;
 use App\Models\Appliance;
+use App\Models\ApplianceType;
 use App\Models\Phone;
 use T4\Console\Command;
-use T4\Core\Collection;
 use T4\Core\Exception;
 use T4\Core\MultiException;
 
@@ -59,38 +59,31 @@ class CucmsPhones extends Command
         $this->writeLn('Get phones from all cucms - OK');
     }
 
-
     public function actionSave()
     {
         $logger = RLogger::getInstance('Cucm', realpath(ROOT_PATH . '/Logs/phones.log'));
 
         $backupFile = $this->getBackupFileName();
         if (is_readable($backupFile)) {
-            $phonesData = explode(PHP_EOL, file_get_contents($this->getBackupFileName()));
+            $phonesData = file($backupFile);
             foreach ($phonesData as $phoneData) {
                 try {
-                    (new Phone())
-                        ->fill(json_decode($phoneData))
-                        ->save();
+
+                    $start = microtime(true);
+                    $phone = (new Phone())->fill(json_decode($phoneData));
+                    $phone->save();
+                    $end = microtime(true) - $start;
+                    $this->writeLn(' fill and save ' . $end . ' sek');
+
                 } catch (Exception $e) {
-                    $logger->error('UPDATE PHONE: [name]=' . $phoneData->name . '; [ip]=' . $phoneData->ipAddress . '; [cucm]=' . $phoneData->cucmIpAddress . '; [message]=' . ($e->getMessage() ?? '""') . '; [data]=' . json_encode($phoneData));
-                    echo 'UPDATE PHONE: [name]=' . $phoneData->name . '; [ip]=' . $phoneData->ipAddress . '; [cucm]=' . $phoneData->cucmIpAddress . '; [message]=' . ($e->getMessage() ?? '""') . '; [data]=' . json_encode($phoneData) . PHP_EOL;
+                    $logger->error('UPDATE PHONE: [message]=' . ($e->getMessage() ?? '""') . '; [data]=' . json_encode($phoneData));
+                    echo 'UPDATE PHONE: [message]=' . ($e->getMessage() ?? '""') . '; [data]=' . json_encode($phoneData) . PHP_EOL;
                 }
             }
 
             $this->writeLn('Save phones - OK');
         } else {
-            $this->writeLn('Save phones - ERROR');
-        }
-    }
-
-
-    protected function getBackupFileName(string $cucmIP = null)
-    {
-        if (null == $cucmIP) {
-            return ROOT_PATH . DS . 'Backups' . DS . 'backup_phones.txt';
-        } else {
-            return ROOT_PATH . DS . 'Backups' . DS . 'backup_phones_' . preg_replace('~\.~', '_', $cucmIP) . '.txt';
+            $this->writeLn('Save phones from - ERROR');
         }
     }
 
@@ -105,13 +98,8 @@ class CucmsPhones extends Command
         $logger = RLogger::getInstance('Cucm', realpath(ROOT_PATH . '/Logs/phones.log'));
         file_put_contents($this->getBackupFileName($cucmIp),'');
 
-        $publisher = (Appliance::findAllByType(self::PUBLISHER))->filter(
-            function ($publisher) use ($cucmIp) {
-                return $cucmIp == $publisher->getManagementIp();
-            }
-        )->first();
 
-        if (null != $publisher) {
+        if (self::PUBLISHER == Appliance::findByManagementIP($cucmIp)->type->type) {
             $logger->info('START:[cucm]=' . $cucmIp);
 
             try {
@@ -144,28 +132,81 @@ class CucmsPhones extends Command
         }
     }
 
-
     public function actionSaveFrom(string $cucmIp)
     {
         $logger = RLogger::getInstance('Cucm', realpath(ROOT_PATH . '/Logs/phones.log'));
 
         $backupFile = $this->getBackupFileName($cucmIp);
         if (is_readable($backupFile)) {
-            $phonesData = explode(PHP_EOL, file_get_contents($backupFile));
+            $phonesData = file($backupFile);
             foreach ($phonesData as $phoneData) {
                 try {
-                    (new Phone())
-                        ->fill(json_decode($phoneData))
-                        ->save();
+
+                    $start = microtime(true);
+                    $phone = (new Phone())->fill(json_decode($phoneData));
+                    $phone->save();
+                    $end = microtime(true) - $start;
+                    $this->writeLn(' fill and save ' . $end . ' sek');
+
                 } catch (Exception $e) {
-                    $logger->error('UPDATE PHONE: [name]=' . $phoneData->name . '; [ip]=' . $phoneData->ipAddress . '; [cucm]=' . $phoneData->cucmIpAddress . '; [message]=' . ($e->getMessage() ?? '""') . '; [data]=' . json_encode($phoneData));
-                    echo 'UPDATE PHONE: [name]=' . $phoneData->name . '; [ip]=' . $phoneData->ipAddress . '; [cucm]=' . $phoneData->cucmIpAddress . '; [message]=' . ($e->getMessage() ?? '""') . '; [data]=' . json_encode($phoneData) . PHP_EOL;
+                    $logger->error('UPDATE PHONE: [message]=' . ($e->getMessage() ?? '""') . '; [data]=' . json_encode($phoneData));
+                    echo 'UPDATE PHONE: [message]=' . ($e->getMessage() ?? '""') . '; [data]=' . json_encode($phoneData) . PHP_EOL;
                 }
             }
 
             $this->writeLn('Save phones from ' . $cucmIp . ' - OK');
         } else {
             $this->writeLn('Save phones from ' . $cucmIp . ' - ERROR');
+        }
+    }
+
+
+    protected function getBackupFileName(string $cucmIP = null)
+    {
+        if (null == $cucmIP) {
+            return ROOT_PATH . DS . 'Backups' . DS . 'backup_phones.txt';
+        } else {
+            return ROOT_PATH . DS . 'Backups' . DS . 'backup_phones_' . preg_replace('~\.~', '_', $cucmIP) . '.txt';
+        }
+    }
+
+
+    public function actionDelete()
+    {
+        $appliances = ApplianceType::findByColumn('type', 'phone')->appliances;
+
+        foreach ($appliances as $appliance) {
+
+            $dataPorts = $appliance->dataPorts;
+            foreach ($dataPorts as $dataPort) {
+                $dataPort->delete();
+            }
+
+            $modules = $appliance->modules;
+            foreach ($modules as $module) {
+                $module->delete();
+            }
+
+            if (!is_null($appliance->phoneInfo)) {
+                $appliance->phoneInfo->delete();
+            }
+
+            $software = $appliance->software;
+            $platform = $appliance->platform;
+
+            $serial = $platform->serialNumber;
+
+            $appliance->delete();
+
+            if (!is_null($platform)) {
+                $platform->delete();
+            }
+
+            if (!is_null($software)) {
+                $software->delete();
+            }
+
+            $this->writeLn('Phone ' . $serial . ' deleted');
         }
     }
 }

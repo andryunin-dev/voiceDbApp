@@ -3,6 +3,7 @@ DROP INDEX IF EXISTS geolocation.idx_reg_title;
 DROP INDEX IF EXISTS geolocation.idx_city_title;
 DROP INDEX IF EXISTS company.idx_office_title;
 DROP INDEX IF EXISTS equipment.idx_phone_name;
+DROP INDEX IF EXISTS equipment.idx_platform_item_serial;
 
 DROP INDEX IF EXISTS geolocation.idx_region_id;
 DROP INDEX IF EXISTS geolocation.idx_city_id;
@@ -34,6 +35,7 @@ CREATE INDEX IF NOT EXISTS idx_reg_title ON geolocation.regions(title);
 CREATE INDEX IF NOT EXISTS idx_city_title ON geolocation.cities(title);
 CREATE INDEX IF NOT EXISTS idx_office_title ON company.offices(title);
 CREATE INDEX IF NOT EXISTS idx_phone_name ON equipment."phoneInfo"(name);
+CREATE INDEX IF NOT EXISTS idx_platform_item_serial ON equipment."platformItems"("serialNumber");
 
 -- indexes for foreign keys
 -- geo indexes
