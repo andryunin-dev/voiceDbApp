@@ -5,12 +5,15 @@ namespace App\Controllers;
 use App\Models\Appliance;
 use App\Models\ApplianceType;
 use App\Models\DataPort;
+use App\ViewModels\GeoDev_View;
+use App\ViewModels\GeoDevModulePort_View;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Color;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use T4\Core\Exception;
+use T4\Dbal\Query;
 use T4\Mvc\Controller;
 use ZipArchive;
 
@@ -24,7 +27,7 @@ class Export extends Controller
     const UPS = 'ups';
     const VG = 'vg';
 
-    public function actionHardInvExcel()
+    public function actionHardInvExcelOldddddddddd()
     {
 
         $spreadsheet = new Spreadsheet();
@@ -149,8 +152,33 @@ FROM equipment.appliances AS appliance
     }
 
 
+
     public function actionIpAppliances()
     {
+
+//        $appliancesType = ['router', 'switch', 'vg'];
+//        $outputData = '';
+//
+//        foreach ($appliancesType as $type) {
+//            $appliances = ApplianceType::findByColumn('type', $type)->appliances;
+//
+//            foreach ($appliances as $appliance) {
+//
+//                $dataPort = $appliance->dataPorts->filter(
+//                    function ($dataPort) {
+//                        return true == $dataPort->isManagement;
+//                    }
+//                )->first();
+//
+//                $outputData .= $dataPort->appliance->details->hostname . ',' . preg_replace('~/.+~', '', $dataPort->ipAddress) . ',' . $dataPort->appliance->location->lotusId . ';';
+//            }
+//        }
+//
+//        echo $outputData;
+//
+//        die;
+
+
         $switch = 'switch';
         $router = 'router';
         $vg = 'vg';
@@ -170,29 +198,12 @@ FROM equipment.appliances AS appliance
         die;
     }
 
-    public function actionIpCucm()
-    {
-        $cucm = 'cucm';
-
-        $dataports = (DataPort::findAllByColumn('isManagement', true))->filter(
-            function ($dataport) use ($cucm) {
-                return $cucm == $dataport->appliance->type->type;
-            }
-        );
-
-        // Semicolon format
-        $outputData = '';
-        foreach ($dataports as $dataport) {
-            $outputData .= $dataport->appliance->details->hostname . ',' . preg_replace('~/.+~', '', $dataport->ipAddress) . ',' . $dataport->appliance->location->lotusId . ';';
-        }
-        echo $outputData;
-
-        die;
-    }
 
 
-
-    public function actionAppliancesExcel()
+    /**
+     * @throws Exception
+     */
+    public function actionHardInvExcel()
     {
         $pFilename = ROOT_PATH . DS . 'Logs' . DS . 'tempAppliancesToExcel.xlsx';
 
@@ -209,6 +220,7 @@ FROM equipment.appliances AS appliance
 
 
 // ------ Worksheet - 'Appliances' ----------------------
+
         // Header sheet 1
         $headerSheet1 = ['№п/п','Регион','Офис','Hostname','Type','Device','Device ser','Software','Software ver.','Appl. last update','Comment'];
         $columnsSheet1 = ['A','B','C','D','E','F','G','H','I','J','K'];
@@ -227,70 +239,44 @@ FROM equipment.appliances AS appliance
         $currentRowSheet1++;
 
 
-        // Body sheet 1
-        $query = 'SELECT
-  region.title AS region,
-  location.title AS office,
-  appliance.details,
-  applianceType.type,
-  vendor.title AS vendor,
-  platform.title AS platform,
-  platformItem."serialNumber" AS platform_serialnumber,
-  software.title AS soft_title,
-  softwareItem.version AS soft_version,
-  appliance."lastUpdate" AS appliance_lastupdate,
-  appliance.comment AS appliance_comment,
-  appliance."inUse" AS appliance_inuse
-FROM equipment.appliances AS appliance
-  INNER JOIN company.offices AS location ON location.__id = appliance.__location_id
-  INNER JOIN geolocation.addresses AS address ON address.__id = location.__address_id
-  INNER JOIN geolocation.cities AS city ON city.__id = address.__city_id
-  INNER JOIN geolocation.regions AS region ON region.__id = city.__region_id
-  INNER JOIN equipment."platformItems" AS platformItem ON platformItem.__id = appliance.__platform_item_id
-  INNER JOIN equipment.platforms AS platform ON platform.__id = platformItem.__platform_id
-  INNER JOIN equipment.vendors AS vendor ON vendor.__id = platform.__vendor_id
-  INNER JOIN equipment."softwareItems" AS softwareItem ON softwareItem.__id = appliance.__software_item_id
-  INNER JOIN equipment.software AS software ON software.__id = softwareItem.__software_id
-  INNER JOIN equipment."applianceTypes" AS applianceType ON applianceType.__id = appliance.__type_id WHERE applianceType.type IN (:appType1, :appType2, :appType3, :appType4, :appType5, :appType6)';
+        // Body sheet 1 - Выводим все устройства кроме телефонов
 
-        $params = [
-            ':appType1' => self::SWITCH,
-            ':appType2' => self::CMP,
-            ':appType3' => self::CMS,
-            ':appType4' => self::UPS,
-            ':appType5' => self::VG,
-            ':appType6' => self::ROUTER,
-        ];
+        $tableColumns = ['region','office','platformVendor','appDetails','appType','platformTitle','softwareTitle','softwareVersion','appLastUpdate','appComment','appInUse','moduleInfo'];
+        $query = (new Query())
+            ->select($tableColumns)
+            ->from(GeoDevModulePort_View::getTableName())
+            ->where('"appType" != :phone')
+        ;
+        $params = [':phone' => self::PHONE];
+        $appliances = GeoDevModulePort_View::findAllByQuery($query, $params);
 
-        $appliances = Appliance::findAllByQuery($query,$params);
-
-        $fields = ['','region','office','details','type','platform','platform_serialnumber','soft_title','soft_version','appliance_lastupdate','appliance_comment'];
         foreach ($appliances as $appliance) {
 
-// TODO remember - delete this
-            if (10002 == $currentRowSheet1) {
-                break;
-            }
-
-            $styleType = (false === $appliance->appliance_inuse) ? 4 : 3;
+            $styleType = (false === $appliance->appInUse) ? 4 : 3;
             $sheet1_rows .= '<row r="' . $currentRowSheet1 . '" spans="1:' . $rowSpansSheet1 . '" x14ac:dyDescent="0.25">';
-            for ($column = 0; $column < $rowSpansSheet1; $column++) {
-                if (0 === $column) {
-                    $sheet1_rows .= '<c r="' . $columnsSheet1[$column] . $currentRowSheet1 . '" s="' . $styleType . '"><v>' . ($currentRowSheet1 - 1) . '</v></c>';
-                    continue;
-                }
-                switch ($column) {
-                    case 3:
-                        $sharedStringsSI .= '<si><t>' . $appliance->details->hostname . '</t></si>';
-                        break;
-                    case 5:
-                        $sharedStringsSI .= '<si><t>' . $appliance->vendor . ' ' . $appliance->platform . '</t></si>';
-                        break;
-                    default:
-                        $sharedStringsSI .= '<si><t>' . $appliance[$fields[$column]] . '</t></si>';
-                }
-                $sheet1_rows .= '<c r="' . $columnsSheet1[$column] . $currentRowSheet1 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
-            }
+
+            $sheet1_rows .= '<c r="A' . $currentRowSheet1 . '" s="' . $styleType . '"><v>' . ($currentRowSheet1 - 1) . '</v></c>';
+            $sharedStringsSI .= '<si><t>' . $appliance->region . '</t></si>';
+            $sheet1_rows .= '<c r="B' . $currentRowSheet1 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
+            $sharedStringsSI .= '<si><t>' . $appliance->office . '</t></si>';
+            $sheet1_rows .= '<c r="C' . $currentRowSheet1 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
+            $sharedStringsSI .= '<si><t>' . json_decode($appliance->appDetails)->hostname . '</t></si>';
+            $sheet1_rows .= '<c r="D' . $currentRowSheet1 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
+            $sharedStringsSI .= '<si><t>' . $appliance->appType . '</t></si>';
+            $sheet1_rows .= '<c r="E' . $currentRowSheet1 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
+            $sharedStringsSI .= '<si><t>' . $appliance->platformVendor . ' ' . $appliance->platformTitle . '</t></si>';
+            $sheet1_rows .= '<c r="F' . $currentRowSheet1 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
+            $sharedStringsSI .= '<si><t>' . $appliance->_platform_serialnumber__ . '</t></si>';
+            $sheet1_rows .= '<c r="G' . $currentRowSheet1 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
+            $sharedStringsSI .= '<si><t>' . $appliance->softwareTitle . '</t></si>';
+            $sheet1_rows .= '<c r="H' . $currentRowSheet1 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
+            $sharedStringsSI .= '<si><t>' . $appliance->softwareVersion . '</t></si>';
+            $sheet1_rows .= '<c r="I' . $currentRowSheet1 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
+            $sharedStringsSI .= '<si><t>' . $appliance->appLastUpdate . '</t></si>';
+            $sheet1_rows .= '<c r="J' . $currentRowSheet1 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
+            $sharedStringsSI .= '<si><t>' . $appliance->appComment . '</t></si>';
+            $sheet1_rows .= '<c r="K' . $currentRowSheet1 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
+
             $sheet1_rows .= '</row>';
             $currentRowSheet1++;
         }
@@ -304,7 +290,8 @@ FROM equipment.appliances AS appliance
 
 
 // ------ Worksheet - 'Appliances with modules' ----------------------
-        // Header sheet 1
+
+        // Header sheet 2
         $headerSheet2 = ['№п/п','Регион','Офис','Hostname','Type','Device','Device ser','Software','Software ver.','Appl. last update','Module','Module ser','Module last update','Comment'];
         $columnsSheet2 = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N'];
         $rowSpansSheet2 = count($columnsSheet2);
@@ -319,78 +306,79 @@ FROM equipment.appliances AS appliance
         $currentRowSheet2++;
 
 
-        // Body sheet 1
-        $query = 'SELECT
-  region.title AS region,
-  location.title AS office,
-  appliance.details,
-  applianceType.type,
-  vendor.title AS vendor,
-  platform.title AS platform,
-  platformItem."serialNumber" AS platform_serialnumber,
-  software.title AS soft_title,
-  softwareItem.version AS soft_version,
-  appliance."lastUpdate" AS appliance_lastupdate,
-  appliance.comment AS appliance_comment,
-  module.title AS module,
-  moduleItem."serialNumber" AS module_serialnumber,
-  moduleItem."lastUpdate" AS module_lastupdate,
-  moduleItem.comment AS module_comment,
-  moduleItem."inUse" AS module_inuse
-FROM equipment.appliances AS appliance
-  INNER JOIN company.offices AS location ON location.__id = appliance.__location_id
-  INNER JOIN geolocation.addresses AS address ON address.__id = location.__address_id
-  INNER JOIN geolocation.cities AS city ON city.__id = address.__city_id
-  INNER JOIN geolocation.regions AS region ON region.__id = city.__region_id
-  INNER JOIN equipment."platformItems" AS platformItem ON platformItem.__id = appliance.__platform_item_id
-  INNER JOIN equipment.platforms AS platform ON platform.__id = platformItem.__platform_id
-  INNER JOIN equipment.vendors AS vendor ON vendor.__id = platform.__vendor_id
-  INNER JOIN equipment."softwareItems" AS softwareItem ON softwareItem.__id = appliance.__software_item_id
-  INNER JOIN equipment.software AS software ON software.__id = softwareItem.__software_id
-  LEFT JOIN equipment."moduleItems" AS moduleItem ON moduleItem.__appliance_id = appliance.__id
-  LEFT JOIN equipment.modules AS module ON module.__id = moduleItem.__module_id
-  INNER JOIN equipment."applianceTypes" AS applianceType ON applianceType.__id = appliance.__type_id WHERE applianceType.type IN (:appType1, :appType2, :appType3, :appType4, :appType5, :appType6)';
+        // Body sheet 2 - Выводим все устройства с модулями кроме телефонов
 
-        $params = [
-            ':appType1' => self::SWITCH,
-            ':appType2' => self::CMP,
-            ':appType3' => self::CMS,
-            ':appType4' => self::UPS,
-            ':appType5' => self::VG,
-            ':appType6' => self::ROUTER,
-        ];
-
-        $appliances = Appliance::findAllByQuery($query,$params);
-
-        $fields = ['','region','office','hostname','type','platform','platform_serialnumber','soft_title','soft_version','module','module_serialnumber','module_lastupdate','module_comment'];
         foreach ($appliances as $appliance) {
 
-// TODO remember - delete this
-            if (10002 == $currentRowSheet2) {
-                break;
-            }
+            $modules = json_decode($appliance->moduleInfo);
+            if (!is_null($modules)) {
 
-            $styleType = (false === $appliance->module_inuse) ? 4 : 3;
-            $sheet2_rows .= '<row r="' . $currentRowSheet2 . '" spans="1:' . $rowSpansSheet2 . '" x14ac:dyDescent="0.25">';
-            for ($column = 0; $column < $rowSpansSheet2; $column++) {
-                if (0 === $column) {
-                    $sheet2_rows .= '<c r="' . $columnsSheet2[$column] . $currentRowSheet2 . '" s="' . $styleType . '"><v>' . ($currentRowSheet2 - 1) . '</v></c>';
-                    continue;
+                foreach ($modules as $module) {
+
+                    $styleTypeAppliance = ((false === $appliance->appInUse) ? 4 : 3);
+                    $styleType = ((false === $module->inUse) || (false === $appliance->appInUse)) ? 4 : 3;
+                    $sheet2_rows .= '<row r="' . $currentRowSheet2 . '" spans="1:' . $rowSpansSheet2 . '" x14ac:dyDescent="0.25">';
+
+                    $sheet2_rows .= '<c r="A' . $currentRowSheet2 . '" s="' . $styleTypeAppliance . '"><v>' . ($currentRowSheet2 - 1) . '</v></c>';
+                    $sharedStringsSI .= '<si><t>' . $appliance->region . '</t></si>';
+                    $sheet2_rows .= '<c r="B' . $currentRowSheet2 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
+                    $sharedStringsSI .= '<si><t>' . $appliance->office . '</t></si>';
+                    $sheet2_rows .= '<c r="C' . $currentRowSheet2 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
+                    $sharedStringsSI .= '<si><t>' . json_decode($appliance->appDetails)->hostname . '</t></si>';
+                    $sheet2_rows .= '<c r="D' . $currentRowSheet2 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
+                    $sharedStringsSI .= '<si><t>' . $appliance->appType . '</t></si>';
+                    $sheet2_rows .= '<c r="E' . $currentRowSheet2 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
+                    $sharedStringsSI .= '<si><t>' . $appliance->platformVendor . ' ' . $appliance->platformTitle . '</t></si>';
+                    $sheet2_rows .= '<c r="F' . $currentRowSheet2 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
+                    $sharedStringsSI .= '<si><t>' . $appliance->_platform_serialnumber__ . '</t></si>';
+                    $sheet2_rows .= '<c r="G' . $currentRowSheet2 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
+                    $sharedStringsSI .= '<si><t>' . $appliance->softwareTitle . '</t></si>';
+                    $sheet2_rows .= '<c r="H' . $currentRowSheet2 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
+                    $sharedStringsSI .= '<si><t>' . $appliance->softwareVersion . '</t></si>';
+                    $sheet2_rows .= '<c r="I' . $currentRowSheet2 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
+                    $sharedStringsSI .= '<si><t>' . $appliance->appLastUpdate . '</t></si>';
+                    $sheet2_rows .= '<c r="J' . $currentRowSheet2 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
+                    $sharedStringsSI .= '<si><t>' . $module->title . '</t></si>';
+                    $sheet2_rows .= '<c r="K' . $currentRowSheet2 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
+                    $sharedStringsSI .= '<si><t>' . $module->serialNumber . '</t></si>';
+                    $sheet2_rows .= '<c r="L' . $currentRowSheet2 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
+                    $sharedStringsSI .= '<si><t>' . $module->lastUpdate . '</t></si>';
+                    $sheet2_rows .= '<c r="M' . $currentRowSheet2 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
+                    $sharedStringsSI .= '<si><t>' . $module->comment . '</t></si>';
+                    $sheet2_rows .= '<c r="N' . $currentRowSheet2 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
+
+                    $sheet2_rows .= '</row>';
+                    $currentRowSheet2++;
                 }
-                switch ($column) {
-                    case 3:
-                        $sharedStringsSI .= '<si><t>' . $appliance->details->hostname . '</t></si>';
-                        break;
-                    case 5:
-                        $sharedStringsSI .= '<si><t>' . $appliance->vendor . ' ' . $appliance->platform . '</t></si>';
-                        break;
-                    default:
-                        $sharedStringsSI .= '<si><t>' . $appliance[$fields[$column]] . '</t></si>';
-                }
-                $sheet2_rows .= '<c r="' . $columnsSheet2[$column] . $currentRowSheet2 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
+
+            } else {
+
+                $styleType = (false === $appliance->appInUse) ? 4 : 3;
+                $sheet2_rows .= '<row r="' . $currentRowSheet2 . '" spans="1:' . $rowSpansSheet2 . '" x14ac:dyDescent="0.25">';
+
+                $sheet2_rows .= '<c r="A' . $currentRowSheet2 . '" s="' . $styleType . '"><v>' . ($currentRowSheet2 - 1) . '</v></c>';
+                $sharedStringsSI .= '<si><t>' . $appliance->region . '</t></si>';
+                $sheet2_rows .= '<c r="B' . $currentRowSheet2 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
+                $sharedStringsSI .= '<si><t>' . $appliance->office . '</t></si>';
+                $sheet2_rows .= '<c r="C' . $currentRowSheet2 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
+                $sharedStringsSI .= '<si><t>' . json_decode($appliance->appDetails)->hostname . '</t></si>';
+                $sheet2_rows .= '<c r="D' . $currentRowSheet2 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
+                $sharedStringsSI .= '<si><t>' . $appliance->appType . '</t></si>';
+                $sheet2_rows .= '<c r="E' . $currentRowSheet2 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
+                $sharedStringsSI .= '<si><t>' . $appliance->platformVendor . ' ' . $appliance->platformTitle . '</t></si>';
+                $sheet2_rows .= '<c r="F' . $currentRowSheet2 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
+                $sharedStringsSI .= '<si><t>' . $appliance->_platform_serialnumber__ . '</t></si>';
+                $sheet2_rows .= '<c r="G' . $currentRowSheet2 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
+                $sharedStringsSI .= '<si><t>' . $appliance->softwareTitle . '</t></si>';
+                $sheet2_rows .= '<c r="H' . $currentRowSheet2 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
+                $sharedStringsSI .= '<si><t>' . $appliance->softwareVersion . '</t></si>';
+                $sheet2_rows .= '<c r="I' . $currentRowSheet2 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
+                $sharedStringsSI .= '<si><t>' . $appliance->appLastUpdate . '</t></si>';
+                $sheet2_rows .= '<c r="J' . $currentRowSheet2 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
+
+                $sheet2_rows .= '</row>';
+                $currentRowSheet2++;
             }
-            $sheet2_rows .= '</row>';
-            $currentRowSheet2++;
         }
 
         $dimensionSheet2 = '<dimension ref="A1:' . end($columnsSheet2) . ($currentRowSheet2 - 1). '"/>';
@@ -402,7 +390,7 @@ FROM equipment.appliances AS appliance
 
 
 // ------ Worksheet - 'Phones' ----------------------
-        // Header sheet 1
+        // Header sheet 3
         $headerSheet3 = ['№п/п','Регион','Офис','Publisher','Device','Name','IP','Partion','CSS','Prefix','DN','Status','Device ser','Software','Software ver.','Last update','Comment','Description','Device Pool','Alerting Name','Timezone','DHCP enable','DHCP server','Domain name','TFTP server 1','TFTP server 2','Default Router','DNS server 1','DNS server 2','Call manager 1','Call manager 2','Call manager 3','Call manager 4','VLAN ID','User locale','CDP neighbor device ID','CDP neighbor IP','CDP neighbor Port'];
         $columnsSheet3 = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','AA','AB','AC','AD','AE','AF','AG','AH','AI','AJ','AK','AL'];
         $rowSpansSheet3 = count($columnsSheet3);
@@ -417,7 +405,7 @@ FROM equipment.appliances AS appliance
         $currentRowSheet3++;
 
 
-        // Body sheet 1
+        // Body sheet 3
         $query = 'SELECT
   region.title            AS region,
   location.title          AS office,
