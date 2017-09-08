@@ -1445,9 +1445,26 @@ class Admin extends Controller
         }
     }
 
-    public function actionDelAppliance()
+    public function actionDelAppliance($id)
     {
-        // TO DO
+        try {
+            Appliance::getDbConnection()->beginTransaction();
+            if (empty($id)) {
+                throw new Exception('Bad request!', 400);
+            }
+            $appliance = Appliance::findByPK($id);
+            if (false === $appliance) {
+                throw new Exception('Устройство не найдено.', 404);
+            }
+            $appliance->delete();
+            Appliance::getDbConnection()->commitTransaction();
+        } catch (MultiException $e) {
+            Appliance::getDbConnection()->rollbackTransaction();
+            $this->data->errors = $e;
+        } catch (Exception $e) {
+            Appliance::getDbConnection()->rollbackTransaction();
+            $this->data->errors = (new MultiException())->add($e);
+        }
     }
 
     public function actionPortInventory()
