@@ -1048,20 +1048,16 @@ jqTable.workSetTmpl = {
                         if (inner.doubleClick(ws, 300)) { return; }
                         if ($(event.target).hasClass('ui-icon-seek-next')) {
                             ws.pager.page += 1;
-                            params = inner.updateBodyParams(ws);
-                            methods.updateBodyContent(ws, params);
+                            methods.updateBodyContent(ws);
                         } else if ($(event.target).hasClass('ui-icon-seek-end')) {
                             event.data.pager.page = event.data.pager.pages;
-                            params = inner.updateBodyParams(ws);
-                            methods.updateBodyContent(ws, params);
+                            methods.updateBodyContent(ws);
                         } else if ($(event.target).hasClass('ui-icon-seek-prev')) {
                             event.data.pager.page -= 1;
-                            params = inner.updateBodyParams(ws);
-                            methods.updateBodyContent(ws, params);
+                            methods.updateBodyContent(ws);
                         } else if ($(event.target).hasClass('ui-icon-seek-first')) {
                             event.data.pager.page = 1;
-                            params = inner.updateBodyParams(ws);
-                            methods.updateBodyContent(ws, params);
+                            methods.updateBodyContent(ws);
                         }
                     }
                 );
@@ -1078,7 +1074,7 @@ jqTable.workSetTmpl = {
                 });
             },
             //обработчик клика по ссылкам в пределах body таблицы
-            clikOnBodyHandler: function (ws) {
+            clickOnBodyHandler: function (ws) {
                 ws.obj.$body.on(
                     'click',
                     ws,
@@ -1099,7 +1095,7 @@ jqTable.workSetTmpl = {
             eventHandlersSet: function (ws) {
                 inner.windowResizeEvent(ws);
                 inner.pagerEvents(ws);
-                inner.clikOnBodyHandler(ws);
+                inner.clickOnBodyHandler(ws);
             },
             //методы фильтра и сортировки
             filterInit: function (ws) {
