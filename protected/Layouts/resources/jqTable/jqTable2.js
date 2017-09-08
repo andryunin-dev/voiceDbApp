@@ -1065,7 +1065,9 @@ jqTable.workSetTmpl = {
                         }
                     }
                 );
-                ws.obj.$pager.change(ws, function (event) {
+                ws.obj.$pager.change(
+                    ws,
+                    function (event) {
                     if ($(event.target).attr('id') == event.data.model.pager.selectors.rowsOnPageList.slice(1)) {
                         ws = event.data;
                         var rowsOnPage = $(event.target).find("option:selected").val();
@@ -1075,9 +1077,29 @@ jqTable.workSetTmpl = {
                     }
                 });
             },
+            //обработчик клика по ссылкам в пределах body таблицы
+            clikOnBodyHandler: function (ws) {
+                ws.obj.$body.on(
+                    'click',
+                    ws,
+                    function (e) {
+                        if ($(e.target).attr('href')) {
+                            var href = $(e.target).get(0);
+                            //если hostname и path равны в урле клика и текущем - значит обновляем контент таблицы
+                            //иначе выходим и переход по ссылке
+                            if (href.hostname != location.hostname || href.pathname != location.pathname) {
+                                return;
+                            }
+                            e.preventDefault();
+                            methods.updateBodyContent(ws, href.href)
+                        }
+                    }
+                );
+            },
             eventHandlersSet: function (ws) {
                 inner.windowResizeEvent(ws);
-                inner.pagerEvents(ws)
+                inner.pagerEvents(ws);
+                inner.clikOnBodyHandler(ws);
             },
             //методы фильтра и сортировки
             filterInit: function (ws) {
@@ -1132,7 +1154,9 @@ jqTable.workSetTmpl = {
                 ws.auxiliary.lastClickTime = currentTime;
                 return false;
             },
-            updateBodyParams: function (ws) {
+            updateBodyParams: function (ws, requestedURL) {
+                //если никакой URL не передали - берем текущий
+                requestedURL = requestedURL || location.href;
                 return {
                     body: {
                         filter: ws.filter,
@@ -1140,7 +1164,7 @@ jqTable.workSetTmpl = {
                         columns: ws.header.columns,
                         pager: ws.pager,
                         tableId: ws.mainSelector.slice(1),
-                        href: location.href
+                        href: requestedURL
                     }
                 };
             }
@@ -1183,7 +1207,7 @@ jqTable.workSetTmpl = {
                 inner.eventHandlersSet(ws);
                 return this;
             },
-            updateBodyContent: function (ws) {
+            updateBodyContent: function (ws, requestedURL) {
                 if (! ($.isPlainObject(ws) && ws.hasOwnProperty('mainSelector'))) {
                     ws = inner.getWorkSet(this);
                 }
@@ -1191,7 +1215,10 @@ jqTable.workSetTmpl = {
                     alert('Update Table Content: Fatal Error!');
                     throw 'updateBodyContent: не найден workSet';
                 }
-                var requestParams = inner.updateBodyParams(ws);
+                // для построения фильтра по GET параметрам берем URL либо из аргумента, либо текущий
+                requestedURL = requestedURL || location.href;
+                var requestParams = inner.updateBodyParams(ws, requestedURL);
+
                 ws.obj.$pgPreloader.show();
                 $.ajax({
                     url: ws.model.dataUrl,

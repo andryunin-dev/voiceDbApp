@@ -71,7 +71,10 @@
             }
             var devTable = $("#dev_tab");
             devTable.jqTable(tableSettings).jqTable('updateBodyContent');
-
+            //обработчик клика по ссылкам
+            devTable.on(
+                'click'
+            );
 
 
 //            var workSet = devTable.jqTable('getWorkSet');
