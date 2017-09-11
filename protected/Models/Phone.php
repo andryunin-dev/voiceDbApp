@@ -765,21 +765,25 @@ class Phone extends Appliance
 
                     // Update location for VGC port - location определяем по location устройства VGS
 
-                    $vgsDataPort = DataPort::findByColumn('ipAddress', $this->ipAddress);
-                    if (false !== $vgsDataPort && self::VGC == $vgsDataPort->appliance->type->type) {
-                        $vgc = $vgsDataPort->appliance;
+                    if (empty($this->ipAddress)) {
+                        throw new Exception('Phone (vgc) '. $this->name . ' (publisher = ' . $this->publisherIp . '): Empty or No field ipAddress');
+                    }
 
-                        if (false === $vgc->location) {
-                            throw new Exception('Phone ' . $appliance->platform->serialNumber . ': VGS (' . $this->ipAddress . ') location does not found');
-                        }
-                        if ($vgc->location->lotusId != $appliance->location->lotusId) {
-                            $appliance->fill([
-                                'location' => $vgc->location,
-                            ]);
-                        }
+                    $vgsIp = (new IpTools($this->ipAddress))->address;
+                    if (false === $vgsIp) {
+                        throw new Exception('Phone (vgc) '. $this->name . ' (publisher = ' . $this->publisherIp . '): No valid ipaddress');
+                    }
 
-                    } else {
-                        throw new Exception('Phone (vgc) ' . $this->name . ' ' . $this->ipAddress . ': Does not found the appliance VGC for the cluster');
+                    $vgsDataPort = DataPort::findByColumn('ipAddress', $vgsIp);
+                    if (false === $vgsDataPort || self::VGC != $vgsDataPort->appliance->type->type) {
+                        throw new Exception('Phone (vgc) '. $this->name . ' (publisher = ' . $this->publisherIp . '): Does not found VGS for the cluster');
+                    }
+
+                    $vgc = $vgsDataPort->appliance;
+                    if ($vgc->location->lotusId != $appliance->location->lotusId) {
+                        $appliance->fill([
+                            'location' => $vgc->location,
+                        ]);
                     }
 
 
@@ -858,15 +862,27 @@ class Phone extends Appliance
 
                     // -- Update Ip Phones --
 
-                    // Update location for Ip Phones - location определяем по location cucm на котором данный телефон зарегистрирован
+                    // Update location for Ip Phones - location определяем по location defaultRouter телефона
 
-                    $cucmLocation = (DataPort::findByColumn('ipAddress', $this->cucmIpAddress))->appliance->location;
-                    if (false === $cucmLocation) {
-                        throw new Exception('Phone ' . $appliance->platform->serialNumber . ': cucms (' . $this->cucmIpAddress . ') location does not found');
+                    if (empty($this->defaultRouter)) {
+                        throw new Exception('Phone '. $this->name . ' (publisher = ' . $this->publisherIp . '): Empty or No field defaultRouter');
                     }
-                    if ($cucmLocation->lotusId != $appliance->location->lotusId) {
+
+                    $defaultRouterIp = (new IpTools($this->defaultRouter))->address;
+                    if (false === $defaultRouterIp) {
+                        throw new Exception('Phone '. $this->name . ' (publisher = ' . $this->publisherIp . '): No valid ipaddress');
+                    }
+
+                    $defaultRouterDataPort = DataPort::findByColumn('ipAddress', $defaultRouterIp);
+                    if (false === $defaultRouterDataPort) {
+                        throw new Exception('Phone '. $this->name . ' (publisher = ' . $this->publisherIp . '): Does not found defaultRouter');
+                    }
+
+                    $defaultRouterLocation = $defaultRouterDataPort->appliance->location;
+
+                    if ($defaultRouterLocation->lotusId != $appliance->location->lotusId) {
                         $appliance->fill([
-                            'location' => $cucmLocation,
+                            'location' => $defaultRouterLocation,
                         ]);
                     }
 
@@ -1056,20 +1072,22 @@ class Phone extends Appliance
 
                     // Location for VGC port - location определяем по location устройства VGS
 
-                    $vgsDataPort = DataPort::findByColumn('ipAddress', $this->ipAddress);
-                    if (false !== $vgsDataPort && self::VGC == $vgsDataPort->appliance->type->type) {
-
-                        $vgc = $vgsDataPort->appliance;
-
-                        if (false === $vgc->location) {
-                            throw new Exception('Phone (create): VGS (' . $this->ipAddress . ') location does not found');
-                        }
-
-                        $location = $vgc->location;
-
-                    } else {
-                        throw new Exception('Phone (vgc) ' . $this->name . ' ' . $this->ipAddress . ': Does not found the appliance VGC for the cluster');
+                    if (empty($this->ipAddress)) {
+                        throw new Exception('Phone (vgc) '. $this->name . ' (publisher = ' . $this->publisherIp . '): Empty or No field ipAddress');
                     }
+
+                    $vgsIp = (new IpTools($this->ipAddress))->address;
+                    if (false === $vgsIp) {
+                        throw new Exception('Phone (vgc) '. $this->name . ' (publisher = ' . $this->publisherIp . '): No valid ipaddress');
+                    }
+
+                    $vgsDataPort = DataPort::findByColumn('ipAddress', $vgsIp);
+                    if (false === $vgsDataPort) {
+                        throw new Exception('Phone (vgc) '. $this->name . ' (publisher = ' . $this->publisherIp . '): Does not found VGS');
+                    }
+
+                    $vgc = $vgsDataPort->appliance;
+                    $location = $vgc->location;
 
 
                     // Cluster for VGC port
@@ -1122,12 +1140,23 @@ class Phone extends Appliance
 
                     // -- Ip Phone --
 
-                    // Location for Ip Phone - location определяем по location cucm на котором данный телефон зарегистрирован
+                    // Location for Ip Phone - location определяем по location defaultRouter телефона
 
-                    $location = (DataPort::findByColumn('ipAddress', $this->cucmIpAddress))->appliance->location;
-                    if (false === $location) {
-                        throw new Exception('Phone (create): cucms (' . $this->cucmIpAddress . ') location does not found');
+                    if (empty($this->defaultRouter)) {
+                        throw new Exception('Phone '. $this->name . ' (publisher = ' . $this->publisherIp . '): Empty or No field defaultRouter');
                     }
+
+                    $defaultRouterIp = (new IpTools($this->defaultRouter))->address;
+                    if (false === $defaultRouterIp) {
+                        throw new Exception('Phone '. $this->name . ' (publisher = ' . $this->publisherIp . '): No valid ipaddress');
+                    }
+
+                    $defaultRouterDataPort = DataPort::findByColumn('ipAddress', $defaultRouterIp);
+                    if (false === $defaultRouterDataPort) {
+                        throw new Exception('Phone '. $this->name . ' (publisher = ' . $this->publisherIp . '): Does not found defaultRouter');
+                    }
+
+                    $location = $defaultRouterDataPort->appliance->location;
 
 
                     // Software for Ip Phone
