@@ -99,12 +99,12 @@ class DevModulePortGeo extends Model
     ];
     protected static $columnMap = [
         'reg_id' => 'region_id',
+        'reg' => 'region',
         'loc_id' => 'office_id',
         'ven' => 'platformVendor',
         'ven_id' => 'platformVendor_id',
         'pl' => 'platformTitle',
         'pl_id' => 'platform_id',
-        'reg' => 'region',
         'soft' => 'softwareTitle',
         'soft_id' => 'software_id',
     ];

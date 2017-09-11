@@ -3,6 +3,8 @@
 namespace App\ViewModels;
 
 use App\Components\SqlFilter;
+use function foo\func;
+use phpDocumentor\Reflection\Types\Array_;
 use T4\Core\Std;
 use T4\Core\Url;
 use T4\Dbal\Query;
@@ -34,13 +36,20 @@ trait ViewHelperTrait
         $list = is_array($list) ? $list : preg_split("~[\s,]~", $list, -1, PREG_SPLIT_NO_EMPTY);
         return array_intersect($classColumns, $list);
     }
+
+    /**
+     * ищет $name в свойствах класса либо в массиве мапинга
+     * если не найдено - возвращает false
+     * @param $name
+     * @return bool
+     */
     public static function findColumn($name)
     {
         $classColumns = array_keys((self::class)::getColumns());
         if (in_array($name, $classColumns)) {
             return $name;
-        } elseif (key_exists($name, self::$columnMap)) {
-            return self::$columnMap[$name];
+        } elseif (isset(self::$columnMap)) {
+            return key_exists($name, self::$columnMap) ? self::$columnMap[$name] : false;
         } else {
             return false;
         }
@@ -53,71 +62,137 @@ trait ViewHelperTrait
      * в фильтр добавляет св-ва whereClause и queryParams
      * возвращает отредактированный фильтр
      *
-     * @param Std $filter
-     * @param string $href
+     * @param Std $tableFilter
+     * @param Std $hrefFilter
      * @return Std
      */
-    public static function buildFilter(Std $filter, string $href)
+    public static function buildFilter(Std $tableFilter, Std $hrefFilter)
     {
-        $resFilter = new Std();
-
-        foreach ($filter as $key => $value) {
-            if (key_exists($key, self::$columnMap)) {
-                $resFilter->{self::$columnMap[$key]} = $value;
-            } elseif (false !== key_exists($key, (self::class)::getColumns())) {
-                $resFilter->$key = $value;
-            }
-        }
-        //делаем фильтр из GET параметров
-        $query = (new Url($href))->query;
-        $search = empty($query) ? [] : $query;
-        foreach ($search as $key => $value) {
-            $value = is_numeric($value) ? intval($value) : $value;
-            //todo вставить поиск по массиву свойств модели!!!
+        //конвертирование tableFilter
+        $convertedFilter = new Std();
+        foreach ($tableFilter as $key => $value) {
             $column = self::findColumn($key);
             if ($column !== false) {
-                $resFilter->$column = (new Std(['eq' => $value]));
+                $convertedFilter->$column = $value;
             }
         }
-        self::joinFilter($resFilter);
-        return $resFilter;
+        $tableFilter = $convertedFilter;
+        return self::joinFilters($tableFilter, $hrefFilter);;
+    }
+    public static function buildTableFilter(Std $tableFilter)
+    {
+        //конвертирование tableFilter
+        $convertedFilter = new Std();
+        foreach ($tableFilter as $key => $value) {
+            $column = self::findColumn($key);
+            if ($column !== false) {
+                $convertedFilter->$column = $value;
+            }
+        }
+        $convertedFilter = $convertedFilter->toArrayRecursive();
+
+        //форматируем фильтр
+        foreach ($convertedFilter as $key => $filterItem) {
+            if (is_array($filterItem)) {
+                foreach ($filterItem as $clauseName => $clauseValue) {
+                    if (is_string($clauseValue)) {
+                        $asArray = preg_split("/\s*,\s*/", $clauseValue, -1, PREG_SPLIT_NO_EMPTY);
+                        foreach ($asArray as $index => $itemValue) {
+                            $asArray[$index] = is_numeric($itemValue) ? intval($itemValue) : $itemValue;
+                        }
+                        $convertedFilter[$key][$clauseName] = $asArray;
+                    } elseif (is_int($clauseValue)) {
+                        $asArray = [];
+                        $asArray[] = $filterItem[$clauseName];
+                        $filterItem[$key][$clauseName] = $asArray;
+                    }
+                }
+            }
+        }
+        return $convertedFilter;
     }
 
-    public static function joinFilter(Std $filter)
+    public static function buildHrefFilter(Std $hrefFilter)
     {
-        $res = [];
-        $params = [];
-        foreach ($filter as $key => $filterItem) {
-            switch (true) {
-                case isset($filterItem->eq):
-                    if (is_string($filterItem->eq)) {
-                        $eqArray = preg_split("/\s*,\s*/", $filterItem->eq, -1, PREG_SPLIT_NO_EMPTY);
-                        $filterItem->eq = $eqArray;
-                    } elseif (is_int($filterItem->eq)) {
-                        $eqArray = [];
-                        $eqArray[] = $filterItem->eq;
-                        $filterItem->eq = $eqArray;
-                    }
-                    $subRes = [];
-                    foreach ($filterItem->eq as $index => $value) {
-                        $subRes[] = self::quoteName($key) . ' = ' . ':' . $key . $index;
-                        $params[':' . $key . $index] = $value;
-                    }
-                    if (count($subRes) == 1) {
-                        $res[] = $subRes[0];
-                    } elseif (count($subRes) > 1) {
-                        $res[] = '(' . implode(' OR ', $subRes) . ')';
-                    }
-                    break;
-                case isset($key->like):
-                    $res[] = self::quoteName($key) . ' LIKE ' . ':' . $key;
-                    $params[':' . $key] = $filterItem->like;
-                    break;
+        $convertedFilter = new Std();
+        if (! isset($hrefFilter->href) || empty($hrefFilter->href)) {
+            return $hrefFilter;
+        }
+        $search = (new Url($hrefFilter->href))->query;
+        $search = (empty($search)) ?  [] : $search;
+        foreach ($search as $key => $value) {
+            $column = self::findColumn($key);
+            if ($column !== false) {
+                $convertedFilter->$column = (new Std(['eq' => $value]));
             }
         }
-        $filter->whereClause = implode(' AND ', $res);
-        $filter->queryParams = $params;
-        return $filter;
+        $convertedFilter->href = null;
+        //форматируем фильтр
+        $convertedFilter = $convertedFilter->toArrayRecursive();
+        foreach ($convertedFilter as $key => $filterItem) {
+            if (is_array($filterItem)) {
+                foreach ($filterItem as $clauseName => $clauseValue) {
+                    if (is_string($clauseValue)) {
+                        $asArray = preg_split("/\s*,\s*/", $clauseValue, -1, PREG_SPLIT_NO_EMPTY);
+                        foreach ($asArray as $index => $itemValue) {
+                            $asArray[$index] = is_numeric($itemValue) ? intval($itemValue) : $itemValue;
+                        }
+                        $convertedFilter[$key][$clauseName] = $asArray;
+                    } elseif (is_int($clauseValue)) {
+                        $asArray = [];
+                        $asArray[] = $filterItem[$clauseName];
+                        $convertedFilter[$key][$clauseName] = $asArray;
+                    }
+                }
+            }
+        }
+
+        return $convertedFilter;
+    }
+
+    public static function joinFilters($tableFilter, $hrefFilter)
+    {
+        $tableFilter = is_array($tableFilter) ? $tableFilter : ($tableFilter instanceof Std ? $tableFilter->toArrayRecursive() : []);
+        $hrefFilter = is_array($hrefFilter) ? $hrefFilter : ($hrefFilter instanceof Std ? $hrefFilter->toArrayRecursive() : []);
+        //join filters
+        $joinedFilter = array_merge($hrefFilter, $tableFilter);
+        //собираем  WHERE clause
+        $queryParam = [];
+        $tableClause = [];
+        foreach ($joinedFilter as $column => $clause) {
+            $columnClause = [];
+            if (! is_array($clause)) {
+                continue;
+            }
+            foreach ($clause as $clauseName => $clauseValue) {
+                switch ($clauseName) {
+                    case 'eq':
+                        foreach ($clauseValue as $index => $value) {
+                            $columnClause[] = self::quoteName($column) . ' = ' . ':' . $column . '_eq_' . $index;
+                            $queryParam[':' . $column . '_eq_' . $index] = $value;
+                        }
+                        break;
+                    case 'like':
+                        foreach ($clauseValue as $index => $value) {
+                            $columnClause[] = self::quoteName($column) . ' LIKE ' . ':' . $column . '_like_' . $index;
+                            $queryParam[':' . $column . '_like_' . $index] = $value;
+                        }
+                        break;
+                }
+            }
+            if (empty($columnClause)) {
+                continue;
+            }
+            if (1 == count($columnClause)) {
+                $tableClause[] = array_pop($columnClause);
+            } else {
+                $tableClause[] = '(' . implode(' OR ', $columnClause) . ')';
+            }
+        }
+        $joinedFilter = new Std($joinedFilter);
+        $joinedFilter->whereClause = implode(' AND ', $tableClause);
+        $joinedFilter->queryParams = $queryParam;
+        return $joinedFilter;
     }
 
     protected static function quoteName($data)
@@ -148,14 +223,26 @@ trait ViewHelperTrait
      */
     public static function buildQuery($filter, $sorting, $pager)
     {
-        $query = (new Query())
+        $count = (new Query())
             ->select()
             ->from(self::getTableName());
         if (! empty($filter->whereClause)) {
-            $query->where($filter->whereClause);
+            $count->where($filter->whereClause);
         }
-
-        return $query;
+//        $select = clone $count;
+//
+//        $sortingArray = preg_split("/\s*,\s*/", $sorting->sortBy, -1, PREG_SPLIT_NO_EMPTY);
+//        $direction = $sorting->direction;
+//        $sortingArray = array_map(function ($item) use ($direction) {
+//            return $item . ' ' . $direction;
+//        }, $sortingArray);
+//        $select->order(implode(', ', $sortingArray))
+//            ->offset($pager->rowsOnPage * ($pager->page - 1))
+//            ->limit($pager->rowsOnPage);
+//        $query = (new Std());
+//        $query->count = $count;
+//        $query->select = $select;
+        return $count;
     }
     public static function updatePager(Std $pager)
     {

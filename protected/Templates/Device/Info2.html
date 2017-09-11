@@ -59,48 +59,8 @@
         };
 
         jQuery(function ($) {
-            APP = APP || {};
-//            APP.devTableFilter = {appTypes: 'netDevices'};
-            APP.devTableFilter = {appTypes: 'all'};
-
-            var params = {};
-//            params.url = '/device/info?ven=8&pl=56';
-//            params.url = '/admin/devices?ven=8&pl=66';
-            if (window.location.search.length > 1) {
-                params.extUrl = window.location.href;
-            }
             var devTable = $("#dev_tab");
-            devTable.jqTable(tableSettings).jqTable('updateBodyContent');
-            //обработчик клика по ссылкам
-            devTable.on(
-                'click'
-            );
-
-
-//            var workSet = devTable.jqTable('getWorkSet');
-//            //устанавливаем начальный фильтр по девайсам
-//            workSet.params.filters =  APP.devTableFilter;
-//            devTable.jqTable('updateBodyJSON', workSet, params);
-//
-//            //обработчик клика по ссылкам
-//            var onLinkClickHandler = function () {
-//                var href;
-//                if (href = $(event.target).attr('href')) {
-//                    if (href.indexOf(':') > 0) {
-//                        //если нашли двоеточие - значит полный url - надо переходит по нему
-//                        return;
-//                    }
-//                    event.preventDefault();
-//                    params = workSet.params;
-//                    params.url = href;
-//                    devTable.jqTable('updateBodyJSON', workSet, params);
-//                }
-//            };
-//            workSet.bodyObj.on(
-//                'click',
-//                workSet,
-//                onLinkClickHandler
-//            );
+            devTable.jqTable(tableSettings).jqTable('updateBodyContent', {}, window.location.href);
         });
     </script>
     <script>

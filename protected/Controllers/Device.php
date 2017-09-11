@@ -38,23 +38,31 @@ class Device extends Controller
                     break;
                 case 'body':
                     $data['columns'] = $value->columns;
-                    $data['filter'] = isset($value->filter) ? $value->filter : new Std();
+                    $data['tableFilter'] = isset($value->tableFilter) ? $value->tableFilter : new Std();
+                    $data['hrefFilter'] = isset($value->hrefFilter) ? $value->hrefFilter : new Std();
                     $data['sorting'] = isset($value->sorting) ? $value->sorting : new Std();
                     $data['pager'] = isset($value->pager) ? $value->pager : new Std();
                     $data['user'] = $this->data->user;
                     $data['url'] = new Url($value->href);
-                    $data['filter'] = DevModulePortGeo::buildFilter($data['filter'], new Url($value->href));
                     $data['sorting'] = DevModulePortGeo::buildSorting($data['sorting']);
+
+                    $data['hrefFilter'] = DevModulePortGeo::buildHrefFilter($data['hrefFilter']);
+                    $data['tableFilter'] = DevModulePortGeo::buildTableFilter($data['tableFilter']);
+                    $data['filter'] = DevModulePortGeo::joinFilters($data['tableFilter'], $data['hrefFilter']);
+
                     $data['filter']->query = DevModulePortGeo::buildQuery($data['filter'], $data['sorting'], $data['pager']);
 
-                    $data['pager']->records = DevModulePortGeo::countAllByQuery(($data['filter'])->query,$data['filter']->queryParams);
+                    $data['pager']->records = DevModulePortGeo::countAllByQuery(($data['filter'])->query, $data['filter']->queryParams);
                     $data['pager'] = DevModulePortGeo::updatePager($data['pager']);
                     $data['filter']->query
                         ->offset(($data['pager'])->rowsOnPage * (($data['pager'])->page - 1))
                         ->limit(($data['pager'])->rowsOnPage);
+
                     $data['devices'] = DevModulePortGeo::findAllByQuery($data['filter']->query,$data['filter']->queryParams);
                     $data['appTypeMap'] = DevModulePortGeo::$applianceTypeMap;
                     $this->data->body->html = $this->view->render('DevicesTableBody.html', $data);
+                    $this->data->body->hrefFilter = $data['hrefFilter'];
+                    $this->data->body->tableFilter = $data['tableFilter'];
                     $this->data->body->pager = $data['pager'];
                     break;
                 default:
