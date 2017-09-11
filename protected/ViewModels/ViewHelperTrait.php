@@ -77,7 +77,7 @@ trait ViewHelperTrait
             }
         }
         $tableFilter = $convertedFilter;
-        return self::joinFilters($tableFilter, $hrefFilter);;
+        return self::joinFilters($tableFilter, $hrefFilter);
     }
     public static function buildTableFilter(Std $tableFilter)
     {
