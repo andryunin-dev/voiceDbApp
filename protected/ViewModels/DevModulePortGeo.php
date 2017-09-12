@@ -97,7 +97,7 @@ class DevModulePortGeo extends Model
             'managementIp' => ['type' => 'string']
         ]
     ];
-    protected static $columnMap = [
+    public static $columnMap = [
         'reg_id' => 'region_id',
         'reg' => 'region',
         'loc_id' => 'office_id',

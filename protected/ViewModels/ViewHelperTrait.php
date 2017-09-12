@@ -221,14 +221,22 @@ trait ViewHelperTrait
      * @param $pager
      * @return Query $$query
      */
-    public static function buildQuery($filter, $sorting, $pager)
+    public static function buildQueries($filter, $sorting = null, $pager = null)
     {
-        $count = (new Query())
+        $filter->countQuery = (new Query())
             ->select()
             ->from(self::getTableName());
-        if (! empty($filter->whereClause)) {
-            $count->where($filter->whereClause);
+        if (! empty($filter->whereStatement)) {
+            $filter->countQuery->where($filter->whereStatement);
         }
+        $filter->selectQuery = (new Query())
+            ->select()
+            ->from(self::getTableName());
+        if (! empty($filter->whereStatement)) {
+            $filter->countQuery->where($filter->whereStatement);
+        }
+
+
 //        $select = clone $count;
 //
 //        $sortingArray = preg_split("/\s*,\s*/", $sorting->sortBy, -1, PREG_SPLIT_NO_EMPTY);
