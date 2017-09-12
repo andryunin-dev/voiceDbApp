@@ -40,7 +40,7 @@
     <script src="{{ asset('/Layouts/resources/bootstrap/js/dropdown.js') }}"></script>
     {#<script src="{{ asset('/Layouts/resources/ajaxTable/main.js') }}"></script>#}
     <script src="{{ asset('/Layouts/resources/jqTable/jqTable.js') }}"></script>
-    <script src="{{ asset('/Layouts/resources/jsRender/jsrender.js') }}"></script>
+    {#<script src="{{ asset('/Layouts/resources/jsRender/jsrender.js') }}"></script>#}
     <script src="{{ asset('/Layouts/resources/js/script.js') }}"></script>
     {% block headerScript %}
     {% endblock %}
@@ -130,21 +130,21 @@
 {% block main %}
 {% endblock %}
 </div>
-<script>
-    var APP = APP || {};
-    if ("{{exportUrl}}") {
-        $("#excelExport").removeClass("hidden");
-        APP.setLink("#excelExport", "{{ exportUrl }}");
-    }
-    if ("{{eraseLogUrl}}") {
-        $("#eraseLog").removeClass("hidden");
-        APP.setLink("#eraseLog", "{{ eraseLogUrl }}");
-    }
-</script>
-<script>
-    $.views.settings.delimiters("#{", "}#");
-    $.views.settings.allowCode(true);
-</script>
+{#<script>#}
+    {#var APP = APP || {};#}
+    {#if ("{{exportUrl}}") {#}
+        {#$("#excelExport").removeClass("hidden");#}
+        {#APP.setLink("#excelExport", "{{ exportUrl }}");#}
+    {#}#}
+    {#if ("{{eraseLogUrl}}") {#}
+        {#$("#eraseLog").removeClass("hidden");#}
+        {#APP.setLink("#eraseLog", "{{ eraseLogUrl }}");#}
+    {#}#}
+{#</script>#}
+{#<script>#}
+    {#$.views.settings.delimiters("#{", "}#");#}
+    {#$.views.settings.allowCode(true);#}
+{#</script>#}
 {% block JS %}
 {% endblock %}
 {% if timer is defined and user.debugMode == true %}

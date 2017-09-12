@@ -135,9 +135,14 @@ class ContentFilter extends Std
         }
     }
 
-    public static function joinFilters(ContentFilter $targetFilter, ContentFilter $appendedFilter)
+    public static function joinFilters(ContentFilter $tableFilter, ContentFilter $hrefFilter)
     {
-        return $appendedFilter->merge($targetFilter);
+        $target = new self();
+        $target->merge($hrefFilter)->merge($tableFilter);
+        if (isset($target->{self::HREF_PROPERTY})) {
+            unset($target->{self::HREF_PROPERTY});
+        }
+        return $target;
     }
 
     protected static function quoteName($data)
@@ -184,8 +189,10 @@ class ContentFilter extends Std
         if (! empty($sorter)) {
             $query->order((string)$sorter);
         }
-        if (! empty($paginator)) {
-
+        if (! empty($paginator) && $paginator->rowsOnPage > 0) {
+            $query->offset(($paginator->page - 1) * $paginator->rowsOnPage);
+            $query->limit($paginator->rowsOnPage);
         }
+        return $query;
     }
 }

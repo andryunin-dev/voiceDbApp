@@ -50,12 +50,6 @@ class Test extends Controller
             'col2',
             'col3',
         ];
-        $tfilter = new ContentFilter($tabFilter, DevModulePortGeo::class, DevModulePortGeo::$columnMap);
-        $hrefFilter = new ContentFilter($hrefFilter, DevModulePortGeo::class, DevModulePortGeo::$columnMap);
-        var_dump($tfilter);
-//        var_dump(ContentFilter::joinFilters($tfilter, $hrefFilter));die;
-        var_dump($tfilter->countQuery(DevModulePortGeo::class));
-//        var_dump((new Url('/voice.rs.ru'))->query);
-//        var_dump(new Std($tabFilter));die;
+        var_dump(new Paginator());die;
     }
 }

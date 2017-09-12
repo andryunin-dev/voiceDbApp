@@ -32,28 +32,27 @@ class Paginator extends Std
     public function __construct($sourceData = null)
     {
         $data = self::$template;
+
         if ($sourceData instanceof Std) {
             $sourceData = $sourceData->toArrayRecursive();
         } elseif (! is_array($sourceData)) {
             $sourceData = [];
         }
-        $data['page'] = key_exists('page', $sourceData) && is_numeric($sourceData['page']) ? intval($sourceData['page']) : 1;
-        $data['rowsOnPage'] = key_exists('rowsOnPage', $sourceData) && is_numeric($sourceData['rowsOnPage']) ? intval($sourceData['rowsOnPage']) : -1;
+        $data = array_merge($data, $sourceData);
         parent::__construct($data);
     }
-
-    protected function setRecords($value)
+    public function update()
     {
-        if (is_numeric($value)) {
-            $this->records = intval($value);
-            $this->pages = (int)$this->rowsOnPage <= 0 ? 1 : ceil($this->records / $this->rowsOnPage);
-        }
+        $this->pages = $this->rowsOnPage <= 0 ? 1 : ceil($this->records / $this->rowsOnPage);
+        $this->page = $this->pages >= $this->page ? $this->page : 1;
     }
-    protected function setRowsOnPage($value)
+
+    protected function sanitizeRecords($value)
     {
-        if (is_numeric($value)) {
-            $this->rowsOnPage = intval($value);
-            $this->pages = (int)$this->rowsOnPage <= 0 ? 1 : ceil($this->records / $this->rowsOnPage);
-        }
+        return is_numeric($value) ? intval($value) : $value;
+    }
+    protected function sanitizeRowsOnPage($value)
+    {
+        return is_numeric($value) ? intval($value) : $value;
     }
 }
