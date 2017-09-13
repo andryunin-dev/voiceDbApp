@@ -79,6 +79,7 @@ class DevPhoneInfoGeo extends Model
             'cdpNeighborIP' => ['type' => 'string'],
             'cdpNeighborPort' => ['type' => 'string'],
             'publisherIp' => ['type' => 'string'],
+            'unknownLocation' => ['type' => 'boolean']
         ]
     ];
 
