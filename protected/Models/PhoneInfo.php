@@ -19,7 +19,7 @@ class PhoneInfo extends Model
             'devicePool' => ['type' => 'string'],
             'alertingName' => ['type' => 'string'],
             'partition' => ['type' => 'string'],
-            'timezone' => ['type' => 'string'], //
+            'timezone' => ['type' => 'string'],
             'dhcpEnabled' => ['type' => 'boolean'],
             'dhcpServer' => ['type' => 'string'],
             'domainName' => ['type' => 'string'],
@@ -38,6 +38,7 @@ class PhoneInfo extends Model
             'cdpNeighborIP' => ['type' => 'string'],
             'cdpNeighborPort' => ['type' => 'string'],
             'publisherIp' => ['type' => 'string'],
+            'unknownLocation' => ['type' => 'boolean'],
         ],
         'relations' => [
             'phone' => ['type' => self::BELONGS_TO, 'model' => Appliance::class],
@@ -47,8 +48,16 @@ class PhoneInfo extends Model
 
     protected function validate()
     {
+        if (empty(trim($this->name))) {
+            throw new Exception('PhoneInfo: Пустое значение Name');
+        }
+
         if (!($this->phone instanceof Appliance)) {
             throw new Exception('PhoneInfo: Неверный тип Appliance');
+        }
+
+        if (!is_bool($this->unknownLocation)) {
+            throw new Exception('PhoneInfo: Неверный тип UnknownLocation');
         }
 
         $phoneInfo = PhoneInfo::findByColumn('name', $this->name);

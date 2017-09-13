@@ -88,7 +88,7 @@ class Phone extends Appliance
         foreach ($registeredPhones as $phone) {
             // ------------------- DeviceInformationX -------------------------------------
             if (is_null($phone->getDataFromWebDevInfo())) {
-                $logger->info('PHONE: ' . '[name]=' . $phone->name . ' [ip]=' . $phone->ipAddress . ' [publisher]=' . $cucmIp . ' [message]=It does not have web access');
+                $logger->info('PHONE: ' . '[name]=' . $phone->name . ' [ip]=' . $phone->ipAddress . ' [publisher]=' . $cucmIp . ' [model]=' . $phone->model . ' [message]=It does not have web access');
                 continue;
             }
             // ------------------- NetworkConfigurationX -------------------------------------
@@ -875,7 +875,7 @@ class Phone extends Appliance
 
                     $defaultRouterDataPort = DataPort::findByColumn('ipAddress', $defaultRouterIp);
                     if (false === $defaultRouterDataPort) {
-                        throw new Exception('Phone '. $this->name . ' (publisher = ' . $this->publisherIp . '): Does not found defaultRouter');
+                        throw new Exception('Phone '. $this->name . ' (publisher = ' . $this->publisherIp . '): Does not found defaultRouter = ' . $defaultRouterIp);
                     }
 
                     $defaultRouterLocation = $defaultRouterDataPort->appliance->location;
@@ -1153,7 +1153,7 @@ class Phone extends Appliance
 
                     $defaultRouterDataPort = DataPort::findByColumn('ipAddress', $defaultRouterIp);
                     if (false === $defaultRouterDataPort) {
-                        throw new Exception('Phone '. $this->name . ' (publisher = ' . $this->publisherIp . '): Does not found defaultRouter');
+                        throw new Exception('Phone '. $this->name . ' (publisher = ' . $this->publisherIp . '): Does not found defaultRouter = ' . $defaultRouterIp);
                     }
 
                     $location = $defaultRouterDataPort->appliance->location;
