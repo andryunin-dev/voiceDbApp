@@ -49,10 +49,18 @@ class Paginator extends Std
 
     protected function sanitizeRecords($value)
     {
-        return is_numeric($value) ? intval($value) : $value;
+        return intval($value);
     }
     protected function sanitizeRowsOnPage($value)
     {
         return is_numeric($value) ? intval($value) : $value;
+    }
+    protected function sanitizePage($value)
+    {
+        return intval($value);
+    }
+    protected function sanitizePages($value)
+    {
+        return intval($value);
     }
 }

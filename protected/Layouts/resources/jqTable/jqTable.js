@@ -331,7 +331,7 @@ jqTable.workSetTmpl = {
     tableFilter: {}, //текущие параметры фильтра
     //hrefFilter - фильтр формируемый из URL (Get параметров)
     hrefFilter: {
-        href: undefined // ссылка из которой формируется(на стороне сервера href filter). После формирования set to undefined
+        href: '' // ссылка из которой формируется(на стороне сервера href filter). После формирования set to ''. Если ставить в undefined, то не передается в AJAX запросе
     },
 
     sorting: {}, //текущие параметры сортировки
@@ -439,15 +439,13 @@ jqTable.workSetTmpl = {
                 ws.obj.$bodyBox.css('height', height);
             },
 
-            footerInfo: function (workSet, info) {
-                workSet = inner.getWorkSet(this, workSet);
-                workSet.footer.infoCellObj.empty();
+            updateFooterInfo: function (ws, info) {
+                ws.obj.$footerInfo.empty();
                 $.each(info, function (index, value) {
-                    var info = $('<span/>').html(value);
-                    workSet.footer.infoCellObj.append(info);
-                    $('<span/>').html(' / ').appendTo(workSet.footer.infoCellObj);
+                    var infoItem = $('<span/>').html(value).append($('<span/>').text(' / '));
+                    ws.obj.$footerInfo.append(infoItem);
                 });
-                workSet.footer.infoCellObj.find('span').last().remove();
+                ws.obj.$footerInfo.find('span').last().remove();
             },
             setBodyScroll: function (ws) {
                 /*=== уровень контейнеров ===*/
@@ -1115,7 +1113,7 @@ jqTable.workSetTmpl = {
             initPagerSettings: function (ws) {
                 //если в куке хранится текущая страница - берем ее в качестве текущей
                 // ws.pager.page = + Cookies(ws.mainSelector.slice(1) + '_page') || ws.model.pager.startPage;
-                ws.pager.page = + ws.model.pager.startPage;
+                ws.pager.page = parseInt(ws.model.pager.startPage);
                 ws.pager.rowsOnPage = + Cookies(ws.mainSelector.slice(1) + '_rowsOnPage') || ws.model.pager.rowsOnPage;
                 inner.updatePager(ws);
             },
@@ -1158,7 +1156,7 @@ jqTable.workSetTmpl = {
             },
             updateBodyParams: function (ws, requestedURL) {
                 //requestedURL - пишем его в hrefFilter.href для формирования на стороне сервера из него href фильтра
-                ws.hrefFilter.href = requestedURL;
+                ws.hrefFilter.href = requestedURL || '';
                 return {
                     body: {
                         tableFilter: ws.tableFilter,
@@ -1166,8 +1164,7 @@ jqTable.workSetTmpl = {
                         sorting: ws.sorting,
                         columns: ws.header.columns,
                         pager: ws.pager,
-                        tableId: ws.mainSelector.slice(1),
-                        href: requestedURL
+                        tableId: ws.mainSelector.slice(1)
                     }
                 };
             }
@@ -1228,6 +1225,9 @@ jqTable.workSetTmpl = {
                     })
                     .done(function (data, textStatus, jqXHR) {
                         ws.obj.$body.children('tbody').html(data.body.html);
+                        if (data.body.info) {
+                            inner.updateFooterInfo(ws, data.body.info);
+                        }
                         ws.pager = data.body.pager;
                         ws.tableFilter = data.body.tableFilter;
                         ws.hrefFilter = data.body.hrefFilter;

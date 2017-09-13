@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+</head>
+<body>
+<p>before - {{ people.office_id }}</p>
+  {% set office_id = lotus_id %}
+  {% set people.office_id = attribute('LotusLocation', 'peopleCountByLotusId', office_id) %}
+<p>after - {{ people.office_id }}</p>
+</body>
+</html>

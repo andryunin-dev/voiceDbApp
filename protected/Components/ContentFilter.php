@@ -16,6 +16,7 @@ use T4\Dbal\Query;
 class ContentFilter extends Std
 {
     const HREF_PROPERTY = 'href';
+    const HREF_PROPERTY_EMPTY_VALUE = '';
     const COLUMN_NAME_KEY = 'column';
     const PREDICATE_NAME_KEY = 'predicate';
     const PREDICATES = ['eq', 'ne', 'lt', 'le', 'gt', 'ge', 'like'];
@@ -74,7 +75,7 @@ class ContentFilter extends Std
         if (key_exists(self::HREF_PROPERTY, $source)) {
             $isHrefFilter = true;
         }
-        if (true === $isHrefFilter && is_string($source[self::HREF_PROPERTY])) {
+        if (true === $isHrefFilter && is_string($source[self::HREF_PROPERTY]) && ! empty($source[self::HREF_PROPERTY])) {
             $search = (new Url($source[self::HREF_PROPERTY]))->query;
             $search = (empty($search)) ?  [] : $search;
             unset($source[self::HREF_PROPERTY]);
@@ -98,7 +99,7 @@ class ContentFilter extends Std
                 $data[$column][$predicate] = $value;
             }
             parent::__construct($data);
-            $this->{self::HREF_PROPERTY} = null;
+            $this->{self::HREF_PROPERTY} = self::HREF_PROPERTY_EMPTY_VALUE; //если ставить null, то он не передается при следующем запросе
         } else {
             if (true === $isHrefFilter) {
                 unset($source[self::HREF_PROPERTY]);
@@ -114,7 +115,7 @@ class ContentFilter extends Std
                     continue;
                 }
                 foreach ($item as $predicate => $value) {
-                    if (in_array($predicate, self::PREDICATES) && (is_string($value) || is_numeric($value))) {
+                    if (in_array($predicate, self::PREDICATES)) {
                         if (is_string($value)) {
                             $asArray = preg_split("/\s*,\s*/", $value, -1, PREG_SPLIT_NO_EMPTY);
                             foreach ($asArray as $index => $itemValue) {
@@ -123,6 +124,12 @@ class ContentFilter extends Std
                             $value = $asArray;
                         } elseif (is_int($value)) {
                             $value = array($value);
+                        } elseif (is_array($value)) {
+                            $value = array_map(function ($item) {
+                                return is_numeric($item) ? intval($item) : $item;
+                            }, $value);
+                        } else {
+                            continue;
                         }
                         $data[$column][$predicate] = $value;
                     }
@@ -130,7 +137,7 @@ class ContentFilter extends Std
             }
             parent::__construct($data);
             if (true === $isHrefFilter) {
-                $this->{self::HREF_PROPERTY} = null;
+                $this->{self::HREF_PROPERTY} = self::HREF_PROPERTY_EMPTY_VALUE;
             }
         }
     }

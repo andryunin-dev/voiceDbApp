@@ -7,9 +7,11 @@ use App\Components\ContentFilter;
 use App\Components\Paginator;
 use App\Components\Sorter;
 use App\Components\TableFilter;
+use App\Models\LotusLocation;
 use App\ViewModels\DevModulePortGeo;
 use T4\Core\Std;
 use T4\Core\Url;
+use T4\Dbal\Query;
 use T4\Mvc\Controller;
 
 class Test extends Controller
@@ -51,5 +53,13 @@ class Test extends Controller
             'col3',
         ];
         var_dump(new Paginator());die;
+    }
+    public function actionTwigTest()
+    {
+//        LotusLocation::countPeoples();
+        $query = (new Query())
+            ->select()
+            ->from(DevModulePortGeo::getTableName());
+        $res = DevModulePortGeo::officeIdListByQuery($query, 'lotusId');
     }
 }

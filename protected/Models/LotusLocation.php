@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use App\ViewModels\DevModulePortGeo;
 use T4\Core\Collection;
 use T4\Core\ISingleton;
 use T4\Core\TSingleton;
+use T4\Dbal\Query;
 use T4\Orm\Model;
 
 /**
@@ -49,6 +51,7 @@ class LotusLocation extends Model
      */
     private static $allLocations = [];
     private static $lotusIdToEmployees = [];
+    private static $peopleCounter = [];
 
     public static function peopleCountByLotusId($lotusId, $refresh = false)
     {
@@ -86,6 +89,18 @@ class LotusLocation extends Model
             $res[$office->lotus_id] = $office->employees;
         }
         return $res;
+    }
+
+    public static function countPeoples(array $Lotus_id = [])
+    {
+        $query = (new Query())
+            ->select('sum(employees)')
+            ->from(self::getTableName())
+            ->where('lotus_id IN (' . implode(',', $Lotus_id) . ')');
+        self::setConnection(self::CONNECTION_NAME);
+        $res = self::getDbConnection()->query($query)->fetchScalar();
+        return $res;
+
     }
 
 }
