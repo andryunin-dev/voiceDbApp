@@ -61,9 +61,25 @@
         jQuery(function ($) {
             var devTable = $("#dev_tab");
             devTable.jqTable(tableSettings).jqTable('updateBodyContent', {}, window.location.href);
+            var toggleInnerTable = function (e) {
+                if ($(e.target).hasClass('toggler') || $(e.target).parents('.toggler').hasClass('toggler')) {
+                    $(e.target).closest("table").find("tbody tr td").slideToggle("fast");
+                    $(e.target).closest("table").find(".js-caret").toggleClass("caret-down");
+                }
+            };
+            devTable.jqTable('addBodyEventHandler', 'click', toggleInnerTable);
         });
     </script>
     <script>
         var APP = APP || {};
+        if ("{{exportUrl}}") {
+            $("#excelExport").removeClass("hidden");
+            APP.setLink("#excelExport", "{{ exportUrl }}");
+        }
+        if ("{{eraseLogUrl}}") {
+        $("#eraseLog").removeClass("hidden");
+        APP.setLink("#eraseLog", "{{ eraseLogUrl }}");
+        }
+
     </script>
 {% endblock %}

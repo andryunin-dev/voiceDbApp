@@ -1240,6 +1240,18 @@ jqTable.workSetTmpl = {
                     });
                 return this;
             },
+            addBodyEventHandler: function (event, handler) {
+                ws = inner.getWorkSet(this);
+                if (typeof ws === 'undefined') {
+                    inner.debug(ws, 'addBodyEventHandler: Fatal Error! Не найден workSet');
+                    throw 'updateBodyContent: не найден workSet';
+                }
+                ws.obj.$body.on(
+                    event,
+                    ws,
+                    handler
+                )
+            },
             getWorkSet: function () {
                 var ws = inner.getWorkSet(this);
                 return ws;

@@ -93,12 +93,16 @@ class LotusLocation extends Model
 
     public static function countPeoples(array $Lotus_id = [])
     {
-        $query = (new Query())
-            ->select('sum(employees)')
-            ->from(self::getTableName())
-            ->where('lotus_id IN (' . implode(',', $Lotus_id) . ')');
-        self::setConnection(self::CONNECTION_NAME);
-        $res = self::getDbConnection()->query($query)->fetchScalar();
+        if (empty($Lotus_id)) {
+            $res = 0;
+        } else {
+            $query = (new Query())
+                ->select('sum(employees)')
+                ->from(self::getTableName())
+                ->where('lotus_id IN (' . implode(',', $Lotus_id) . ')');
+            self::setConnection(self::CONNECTION_NAME);
+            $res = self::getDbConnection()->query($query)->fetchScalar();
+        }
         return $res;
 
     }

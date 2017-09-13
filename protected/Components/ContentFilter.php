@@ -31,9 +31,18 @@ class ContentFilter extends Std
     ];
 
     /**
-     * @param string $column
-     * @param string $className
-     * @param array $mappingArray
+     * Ищется колонка сначала в массиве маппинга, затем в свойствах класса $className
+     * если найдена - возвращается ее имя, если нет - false
+     * массив мапинга состоит из пары:
+     *  альяс_колонки => имя_колонки
+     *  или
+     *  альяс_колонки => [COLUMN_NAME_KEY => имя_колонки, PREDICATE_NAME_KEY => предикат]
+     * если найдено соответствие по 1-му варианту(без предиката), то предикат устанавливается 'eq'
+     * если найдено соответствие по второму варианту - предикат берется из найденного массива по ключу PREDICATE_NAME_KEY
+     *
+     * @param string $column имя колонки для поиска
+     * @param string $className имя класса для которого ищется колнка
+     * @param array $mappingArray массив для мапинга
      * @return bool|array
      */
     protected static function findColumn(string $column, string $className, array $mappingArray = [])
