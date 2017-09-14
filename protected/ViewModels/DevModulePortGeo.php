@@ -119,8 +119,6 @@ class DevModulePortGeo extends Model
     public static $applianceTypeMap = [
         'switch' => 'SW',
         'router' => 'R',
-        'cmp' => 'CMP',
-        'cms' => 'CMS',
         'phone' => 'TEL'
     ];
 
