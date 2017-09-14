@@ -1167,6 +1167,9 @@ jqTable.workSetTmpl = {
                         tableId: ws.mainSelector.slice(1)
                     }
                 };
+            },
+            buildFinder: function (ws) {
+                ws.obj.$finder = $('<input/>', {type: 'text', class: 'finder-input'})
             }
         };
         var methods = {
@@ -1205,6 +1208,8 @@ jqTable.workSetTmpl = {
                 inner.setTableSizes(ws);
                 inner.setBodyScroll(ws);
                 inner.eventHandlersSet(ws);
+                //test finder
+                inner.buildFinder(ws);
                 return this;
             },
             updateBodyContent: function (ws, requestedURL) {
@@ -1247,6 +1252,31 @@ jqTable.workSetTmpl = {
                     throw 'updateBodyContent: не найден workSet';
                 }
                 ws.obj.$body.on(
+                    event,
+                    ws,
+                    handler
+                )
+            },
+            addHeaderEventHandler: function (event, handler) {
+                ws = inner.getWorkSet(this);
+                if (typeof ws === 'undefined') {
+                    inner.debug(ws, 'addBodyEventHandler: Fatal Error! Не найден workSet');
+                    throw 'updateBodyContent: не найден workSet';
+                }
+                ws.obj.$header.on(
+                    event,
+                    ws,
+                    handler
+                )
+            },
+            //для обработки событий самого поисковика (autocomplete)
+            addFinderEventHandler: function (event, handler) {
+                ws = inner.getWorkSet(this);
+                if (typeof ws === 'undefined') {
+                    inner.debug(ws, 'addHeaderEventHandler: Fatal Error! Не найден workSet');
+                    throw 'updateBodyContent: не найден workSet';
+                }
+                ws.obj.$finder.on(
                     event,
                     ws,
                     handler

@@ -68,6 +68,21 @@
                 }
             };
             devTable.jqTable('addBodyEventHandler', 'click', toggleInnerTable);
+            devTable.jqTable('addHeaderEventHandler', 'click', function (e) {
+                if ($(e.target).parent().hasClass('finder-icon') || $(e.target).hasClass('finder-icon')) {
+                    console.log('finder click');
+                    ws.obj.$finder.focusout(function (event) {
+                        console.log('focus out');
+                        ws.obj.$finder.remove();
+                    });
+                    ws.obj.$finder.appendTo(ws.obj.$tableBox).position({
+                        my: "right top",
+                        at: "center bottom",
+                        of: event.target
+                    }).focus()
+                }
+            })
+
         });
     </script>
     <script>
