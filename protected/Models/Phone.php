@@ -750,6 +750,7 @@ class Phone extends Appliance
             // Ура - телефон найден
             $appliance = $phoneInfo->phone;
 
+            // -- Update Phone--
             try {
 
                 // Start transaction
@@ -759,63 +760,82 @@ class Phone extends Appliance
                 Phone::getDbConnection()->beginTransaction();
 
 
-                // -- Update VGC port --
+                // -- Update fields VGC port or Ip Phones--
 
                 if (1 == preg_match('~^vgc|an~', mb_strtolower($this->name))) {
 
-                    // Update location for VGC port - location определяем по location устройства VGS
+                    // -- Update VGC port --
 
-                    if (empty($this->ipAddress)) {
-                        throw new Exception('Phone (vgc) '. $this->name . ' (publisher = ' . $this->publisherIp . '): Empty or No field ipAddress');
-                    }
+                    // Update Location and Cluster for VGC port - location and cluster определяем по устройству VGS
+                    if (!empty($this->ipAddress)) {
 
-                    $vgsIp = (new IpTools($this->ipAddress))->address;
-                    if (false === $vgsIp) {
-                        throw new Exception('Phone (vgc) '. $this->name . ' (publisher = ' . $this->publisherIp . '): No valid ipaddress');
-                    }
+                        // Проверяем на валидность VGS's ipaddress
+                        $vgsIp = (new IpTools($this->ipAddress))->address;
+                        if (false !== $vgsIp) {
 
-                    $vgsDataPort = DataPort::findByColumn('ipAddress', $vgsIp);
-                    if (false === $vgsDataPort || self::VGC != $vgsDataPort->appliance->type->type) {
-                        throw new Exception('Phone (vgc) '. $this->name . ' (publisher = ' . $this->publisherIp . '): Does not found VGS for the cluster');
-                    }
+                            // Ищем VGS's dataport
+                            $vgsDataPort = DataPort::findByColumn('ipAddress', $vgsIp);
+                            if (false !== $vgsDataPort) {
 
-                    $vgc = $vgsDataPort->appliance;
-                    if ($vgc->location->lotusId != $appliance->location->lotusId) {
-                        $appliance->fill([
-                            'location' => $vgc->location,
-                        ]);
-                    }
+                                // Определили устройство VGS
+                                $vgc = $vgsDataPort->appliance;
+
+                                // Определили VGS's location
+                                $vgcLocation = $vgc->location;
+
+                                // Если VGS's офис и офис VGS port разные -> изменить офис VGS port на VGS's офис
+                                if ($vgcLocation->lotusId != $appliance->location->lotusId) {
+                                    $appliance->fill([
+                                        'location' => $vgcLocation,
+                                    ]);
+                                }
+
+                                // Снимаем флаг
+                                $unknownLocation = false;
 
 
-                    // Update cluster for VGC port
+                                // Определили Cluster for VGC port
+                                $cluster = $vgc->cluster;
 
-                    $cluster = $vgc->cluster;
-                    $hostnameVgc = $vgc->details->hostname;
+                                // Есди кластер не определен для устройства VGS -> определим его
+                                if (empty($cluster) && !empty($hostnameVgc = $vgc->details->hostname)) {
+                                    $cluster = Cluster::findByColumn('title', $hostnameVgc);
 
-                    if (is_null($hostnameVgc)) {
-                        throw new Exception('Phone (vgc) ' . $this->name . ' ' . $this->ipAddress . ': VGC (' . $vgc->platform->serialNumber . ') does not have field HOSTNAME. Can not find the cluster');
-                    }
+                                    if (false === $cluster) {
+                                        $cluster = (new Cluster())->fill([
+                                            'title' => $hostnameVgc,
+                                        ]);
+                                        $cluster->save();
+                                    }
 
-                    if (is_null($cluster)) {
+                                    $vgc->fill([
+                                        'cluster' => $cluster,
+                                    ]);
+                                    $vgc->save();
+                                }
 
-                        $cluster = Cluster::findByColumn('title', $hostnameVgc);
+                                // Есди VGC и VGS port находятся в разных кластерах -> изменить кластер VGS port на кластер VGS
+                                if (!empty($cluster) && $cluster->title != $appliance->cluster->title) {
+                                    $appliance->fill([
+                                        'cluster' => $cluster,
+                                        'details' => [
+                                            'hostname' => $cluster->title,
+                                        ]
+                                    ]);
+                                }
 
-                        if (false === $cluster) {
-                            $cluster = (new Cluster())->fill([
-                                'title' => $hostnameVgc,
-                            ]);
-                            $cluster->save();
+                            } else {
+                                // Does not found VGS's dataport
+                                $unknownLocation = true;
+                            }
+                        } else {
+                            // No valid VGS's ipaddress
+                            $unknownLocation = true;
                         }
-
-                        $vgc->fill([
-                            'cluster' => $cluster,
-                        ]);
-                        $vgc->save();
+                    } else {
+                        // The VGC is not defined
+                        $unknownLocation = true;
                     }
-
-                    $appliance->fill([
-                        'cluster' => $cluster,
-                    ]);
 
 
                     // Update IP address - У VGC port недолжно быть data port, так как они должны быть в кластере
@@ -862,28 +882,40 @@ class Phone extends Appliance
 
                     // -- Update Ip Phones --
 
-                    // Update location for Ip Phones - location определяем по location defaultRouter телефона
+                    // Update Location for Ip Phone - Location for Ip Phone определяем по location defaultRouter телефона
+                    if (!empty($this->defaultRouter)) {
 
-                    if (empty($this->defaultRouter)) {
-                        throw new Exception('Phone '. $this->name . ' (publisher = ' . $this->publisherIp . '): Empty or No field defaultRouter');
-                    }
+                        // Проверяем на валидность defaultRouter's ipaddress
+                        $defaultRouterIp = (new IpTools($this->defaultRouter))->address;
+                        if (false !== $defaultRouterIp) {
 
-                    $defaultRouterIp = (new IpTools($this->defaultRouter))->address;
-                    if (false === $defaultRouterIp) {
-                        throw new Exception('Phone '. $this->name . ' (publisher = ' . $this->publisherIp . '): No valid ipaddress');
-                    }
+                            // Ищем defaultRouter's dataport
+                            $defaultRouterDataPort = DataPort::findByColumn('ipAddress', $defaultRouterIp);
+                            if (false !== $defaultRouterDataPort) {
 
-                    $defaultRouterDataPort = DataPort::findByColumn('ipAddress', $defaultRouterIp);
-                    if (false === $defaultRouterDataPort) {
-                        throw new Exception('Phone '. $this->name . ' (publisher = ' . $this->publisherIp . '): Does not found defaultRouter = ' . $defaultRouterIp);
-                    }
+                                // Определили defaultRouter's location
+                                $defaultRouterLocation = $defaultRouterDataPort->appliance->location;
 
-                    $defaultRouterLocation = $defaultRouterDataPort->appliance->location;
+                                // Если defaultRouter's офис и офис телефона разные -> изменить офис телефона
+                                if ($defaultRouterLocation->lotusId != $appliance->location->lotusId) {
+                                    $appliance->fill([
+                                        'location' => $defaultRouterLocation,
+                                    ]);
+                                }
 
-                    if ($defaultRouterLocation->lotusId != $appliance->location->lotusId) {
-                        $appliance->fill([
-                            'location' => $defaultRouterLocation,
-                        ]);
+                                $unknownLocation = false;
+
+                            } else {
+                                // Does not found defaultRouter's dataport
+                                $unknownLocation = true;
+                            }
+                        } else {
+                            // No valid defaultRouter's ipaddress
+                            $unknownLocation = true;
+                        }
+                    } else {
+                        // The defaultRouter is not defined
+                        $unknownLocation = true;
                     }
 
 
@@ -1023,11 +1055,12 @@ class Phone extends Appliance
                     'cdpNeighborIP' => (false === ($neighborIp = (new IpTools(($this->cdpNeighborIP) ?? ''))->address)) ? null : $neighborIp,
                     'cdpNeighborPort' => $this->cdpNeighborPort,
                     'publisherIp' => $this->publisherIp,
+                    'unknownLocation' => $unknownLocation,
                 ]);
                 $phoneInfo->save();
 
 
-                // Stop transaction
+                // End transaction
                 Phone::getDbConnection()->commitTransaction();
                 $this->dbUnLock();
 
@@ -1070,49 +1103,90 @@ class Phone extends Appliance
 
                     // -- VGS port --
 
-                    // Location for VGC port - location определяем по location устройства VGS
+                    // Location and cluster for VGC port определяем по устройству VGS
+                    if (!empty($this->ipAddress)) {
 
-                    if (empty($this->ipAddress)) {
-                        throw new Exception('Phone (vgc) '. $this->name . ' (publisher = ' . $this->publisherIp . '): Empty or No field ipAddress');
-                    }
+                        // Проверяем на валидность VGS's ipaddress
+                        $vgsIp = (new IpTools($this->ipAddress))->address;
+                        if (false !== $vgsIp) {
 
-                    $vgsIp = (new IpTools($this->ipAddress))->address;
-                    if (false === $vgsIp) {
-                        throw new Exception('Phone (vgc) '. $this->name . ' (publisher = ' . $this->publisherIp . '): No valid ipaddress');
-                    }
+                            // Ищем VGS's dataport
+                            $vgsDataPort = DataPort::findByColumn('ipAddress', $vgsIp);
+                            if (false !== $vgsDataPort) {
 
-                    $vgsDataPort = DataPort::findByColumn('ipAddress', $vgsIp);
-                    if (false === $vgsDataPort) {
-                        throw new Exception('Phone (vgc) '. $this->name . ' (publisher = ' . $this->publisherIp . '): Does not found VGS');
-                    }
+                                // Определили устройство VGS
+                                $vgc = $vgsDataPort->appliance;
 
-                    $vgc = $vgsDataPort->appliance;
-                    $location = $vgc->location;
+                                // Определили location for VGS port
+                                $location = $vgc->location;
+                                $unknownLocation = false;
 
 
-                    // Cluster for VGC port
+                                // Определили Cluster for VGC port
+                                $cluster = $vgc->cluster;
+                                $hostnameVgc = $vgc->details->hostname;
 
-                    $cluster = $vgc->cluster;
-                    $hostnameVgc = $vgc->details->hostname;
+                                // Есди кластер не определен для устройства VGS, то определим его
+                                if (empty($cluster) && !empty($hostnameVgc)) {
+                                    $cluster = Cluster::findByColumn('title', $hostnameVgc);
 
-                    if (is_null($hostnameVgc)) {
-                        throw new Exception('Phone (vgc) ' . $this->name . ' ' . $this->ipAddress . ': VGC (' . $vgc->platform->serialNumber . ') does not have field HOSTNAME. Can not find the cluster');
-                    }
+                                    if (false === $cluster) {
+                                        $cluster = (new Cluster())->fill([
+                                            'title' => $hostnameVgc,
+                                        ]);
+                                        $cluster->save();
+                                    }
 
-                    if (is_null($cluster)) {
-                        $cluster = Cluster::findByColumn('title', $hostnameVgc);
+                                    $vgc->fill([
+                                        'cluster' => $cluster,
+                                    ]);
+                                    $vgc->save();
+                                }
 
-                        if (false === $cluster) {
-                            $cluster = (new Cluster())->fill([
-                                'title' => $hostnameVgc,
-                            ]);
-                            $cluster->save();
+                            } else {
+                                // Does not found VGS's dataport
+                                $location = false;
+                            }
+                        } else {
+                            // No valid VGS's ipaddress
+                            $location = false;
                         }
+                    } else {
+                        // The VGC is not defined
+                        $location = false;
+                    }
 
-                        $vgc->fill([
-                            'cluster' => $cluster,
-                        ]);
-                        $vgc->save();
+
+                    // Есди не удалось определить location по устройству VGS, то определяем его по location cucm
+                    if (false === $location && !empty($this->cucmIpAddress)) {
+
+                        // Проверяем на валидность cumc's ipaddress
+                        $cucmIpAddress = (new IpTools($this->cucmIpAddress))->address;
+                        if (false !== $cucmIpAddress) {
+
+                            // Ищем cumc's dataport
+                            $cucmDataPort = DataPort::findByColumn('ipAddress', $cucmIpAddress);
+                            if (false !== $cucmDataPort) {
+
+                                $location = $cucmDataPort->appliance->location;
+
+                                // Поднимаем флаг, так как location cucm - это неточная location для телефона
+                                $unknownLocation = true;
+
+                            } else {
+                                // Does not found cumc's dataport
+                                $location = false;
+                            }
+                        } else {
+                            // No valid cumc's ipaddress
+                            $location = false;
+                        }
+                    }
+
+
+                    // Есди не удалось определить location ни по VGS , ни по location cucm
+                    if (false === $location) {
+                        throw new Exception('Phone '. $this->name . ' (publisher = ' . $this->publisherIp . '): The office is not defined');
                     }
 
 
@@ -1140,23 +1214,65 @@ class Phone extends Appliance
 
                     // -- Ip Phone --
 
-                    // Location for Ip Phone - location определяем по location defaultRouter телефона
+                    // Location for Ip Phone определяем по location defaultRouter телефона
+                    if (!empty($this->defaultRouter)) {
 
-                    if (empty($this->defaultRouter)) {
-                        throw new Exception('Phone '. $this->name . ' (publisher = ' . $this->publisherIp . '): Empty or No field defaultRouter');
+                        // Проверяем на валидность defaultRouter's ipaddress
+                        $defaultRouterIp = (new IpTools($this->defaultRouter))->address;
+                        if (false !== $defaultRouterIp) {
+
+                            // Ищем defaultRouter's dataport
+                            $defaultRouterDataPort = DataPort::findByColumn('ipAddress', $defaultRouterIp);
+                            if (false !== $defaultRouterDataPort) {
+
+                                $location = $defaultRouterDataPort->appliance->location;
+                                $unknownLocation = false;
+
+                            } else {
+                                // Does not found defaultRouter's dataport
+                                $location = false;
+                            }
+                        } else {
+                            // No valid defaultRouter's ipaddress
+                            $location = false;
+                        }
+                    } else {
+                        // The defaultRouter is not defined
+                        $location = false;
                     }
 
-                    $defaultRouterIp = (new IpTools($this->defaultRouter))->address;
-                    if (false === $defaultRouterIp) {
-                        throw new Exception('Phone '. $this->name . ' (publisher = ' . $this->publisherIp . '): No valid ipaddress');
+
+                    // Есди не удалось определить location по defaultRouter телефона, то определяем его по location cucm
+                    if (false === $location && !empty($this->cucmIpAddress)) {
+
+                        // Проверяем на валидность cumc's ipaddress
+                        $cucmIpAddress = (new IpTools($this->cucmIpAddress))->address;
+                        if (false !== $cucmIpAddress) {
+
+                            // Ищем cumc's dataport
+                            $cucmDataPort = DataPort::findByColumn('ipAddress', $cucmIpAddress);
+                            if (false !== $cucmDataPort) {
+
+                                $location = $cucmDataPort->appliance->location;
+
+                                // Поднимаем флаг, так как location cucm - это неточная location для телефона
+                                $unknownLocation = true;
+
+                            } else {
+                                // Does not found cumc's dataport
+                                $location = false;
+                            }
+                        } else {
+                            // No valid cumc's ipaddress
+                            $location = false;
+                        }
                     }
 
-                    $defaultRouterDataPort = DataPort::findByColumn('ipAddress', $defaultRouterIp);
-                    if (false === $defaultRouterDataPort) {
-                        throw new Exception('Phone '. $this->name . ' (publisher = ' . $this->publisherIp . '): Does not found defaultRouter = ' . $defaultRouterIp);
-                    }
 
-                    $location = $defaultRouterDataPort->appliance->location;
+                    // Есди не удалось определить location ни по defaultRouter телефона, ни по location cucm
+                    if (false === $location) {
+                        throw new Exception('Phone '. $this->name . ' (publisher = ' . $this->publisherIp . '): The office is not defined');
+                    }
 
 
                     // Software for Ip Phone
@@ -1306,10 +1422,11 @@ class Phone extends Appliance
                     'cdpNeighborIP' => (false === ($neighborIp = (new IpTools(($this->cdpNeighborIP) ?? ''))->address)) ? null : $neighborIp,
                     'cdpNeighborPort' => $this->cdpNeighborPort,
                     'publisherIp' => $this->publisherIp,
+                    'unknownLocation' => $unknownLocation,
                 ]);
                 $phoneInfo->save();
 
-                // Stop transaction
+                // End transaction
                 Phone::getDbConnection()->commitTransaction();
                 $this->dbUnLock();
 
