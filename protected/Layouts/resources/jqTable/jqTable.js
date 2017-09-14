@@ -1283,8 +1283,7 @@ jqTable.workSetTmpl = {
                 );
             },
             getWorkSet: function () {
-                var ws = inner.getWorkSet(this);
-                return ws;
+                return inner.getWorkSet(this);
             }
         };
         if ( methods[method] ) {
@@ -1309,5 +1308,5 @@ jqTable.workSetTmpl = {
             // если ничего не получилось
             $.error( 'Метод "' +  method + '" не найден в плагине jQuery.jqTable' );
         }
-    }
+    };
 })(jQuery);
