@@ -19,6 +19,7 @@ use T4\Orm\Model;
  * @property int $total
  * @property int $active
  * @property int $notActive
+ * @property int $notExamined
  * @property int $active_inUse
  * @property int $active_notInUse
  * @property int $inUse
@@ -45,7 +46,8 @@ class PlatformReport extends Std
             SELECT devs.platform_id AS platform_id, devs."platformTitle" AS "platformTitle", devs."platformVendor_id" AS "platformVendor_id", devs."platformVendor" AS "platformVendor",
                 count(devs.appliance_id) AS total,
                 sum(CASE WHEN devs."appAge" < :max_age THEN 1 ELSE 0 END ) AS active,
-                sum(CASE WHEN devs."appAge" >= :max_age OR devs."appAge" ISNULL THEN 1 ELSE 0 END ) AS "notActive",
+                sum(CASE WHEN devs."appAge" >= :max_age THEN 1 ELSE 0 END ) AS "notActive",
+                sum(CASE WHEN devs."appAge" ISNULL THEN 1 ELSE 0 END ) AS "notExamined",
                 sum(CASE WHEN devs."appAge" < :max_age AND devs."appInUse" THEN 1 ELSE 0 END ) AS "active_inUse",
                 sum(CASE WHEN devs."appAge" < :max_age AND NOT devs."appInUse" THEN 1 ELSE 0 END ) AS "active_notInUse",
                 sum(CASE WHEN devs."appInUse" THEN 1 ELSE 0 END ) AS "inUse",

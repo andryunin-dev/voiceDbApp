@@ -25,7 +25,10 @@
                 <td style="text-align:center" title="{{ dev.appType }}">
                     <b>
                         <a href="{{ url.path }}?appType_id={{ dev.appType_id }}">
-                            {{ attribute(appTypeMap, dev.appType) }}
+                            {% set appType = attribute(appTypeMap, dev.appType) %}
+                            {% if appType is empty %} {{ dev.appType|upper }}
+                            {% else %} {{ attribute(appTypeMap, dev.appType) }}
+                            {% endif %}
                         </a>
                     </b>
                 </td>
