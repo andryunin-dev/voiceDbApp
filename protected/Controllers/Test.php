@@ -9,7 +9,4 @@ class Test extends Controller
     public function actionDefault()
     {
     }
-    public function actionTwigTest()
-    {
-    }
 }
