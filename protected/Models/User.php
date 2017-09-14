@@ -47,7 +47,7 @@ class User
      */
     protected function createUser()
     {
-        $defaultLvl = 20;
+        $defaultLvl = 10;
         $http = new Request();
         $lvl = (int)$http->get->userLvl ?? $defaultLvl;
         $lvl = ($lvl > 0 && $lvl < 50) ? $lvl : $defaultLvl;
