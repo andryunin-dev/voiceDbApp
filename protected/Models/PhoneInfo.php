@@ -4,6 +4,41 @@ namespace App\Models;
 use T4\Core\Exception;
 use T4\Orm\Model;
 
+/**
+ * Class PhoneInfo
+ * @package App\Models
+ *
+ * @property string $model
+ * @property string $name
+ * @property int $prefix
+ * @property int $phoneDN
+ * @property string $status
+ * @property string $description
+ * @property string $css
+ * @property string $devicePool
+ * @property string $alertingName
+ * @property string $partition
+ * @property string $timezone
+ * @property boolean $dhcpEnabled
+ * @property string $dhcpServer
+ * @property string $domainName
+ * @property string $tftpServer1
+ * @property string $tftpServer2
+ * @property string $defaultRouter
+ * @property string $dnsServer1
+ * @property string $dnsServer2
+ * @property string $callManager1
+ * @property string $callManager2
+ * @property string $callManager3
+ * @property string $callManager4
+ * @property int $vlanId
+ * @property string $userLocale
+ * @property string $cdpNeighborDeviceId
+ * @property string $cdpNeighborIP
+ * @property string $cdpNeighborPort
+ * @property string $publisherIp
+ * @property boolean $unknownLocation
+ */
 class PhoneInfo extends Model
 {
     protected static $schema = [
