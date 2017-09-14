@@ -26,6 +26,7 @@ class Device extends Controller
 
     public function actionDevicesTable()
     {
+        $maxAge = 73;
         $url = new Url('/device/info');
         $request = (new Request())->get;
         foreach ($request as $key => $value ) {
@@ -58,6 +59,7 @@ class Device extends Controller
                     $twigData->appTypeMap = DevModulePortGeo::$applianceTypeMap;
                     $twigData->user = $this->data->user;
                     $twigData->url = $url;
+                    $twigData->maxAge = $maxAge;
                     $lotusIdList = DevModulePortGeo::officeIdListByQuery($query, 'lotusId');
                     $peoples = LotusLocation::countPeoples($lotusIdList);
 

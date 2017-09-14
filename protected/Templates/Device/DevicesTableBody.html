@@ -1,3 +1,4 @@
+{% spaceless %}
         {% for dev in devices %}
             {% if false == dev.appInUse %}
                 {% set applColorClass = "item-not-use" %}
@@ -98,5 +99,5 @@
                 </td>
             </tr>
         {% endfor %}    {#devices#}
-
+{% endspaceless %}
 

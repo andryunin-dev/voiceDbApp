@@ -107,7 +107,10 @@ class DevModulePortGeo extends Model
         'pl_id' => 'platform_id',
         'soft' => 'softwareTitle',
         'soft_id' => 'software_id',
-        'noActiveAge' => ['column' => 'appAge', 'predicate' => 'gt']
+        'cl_id' => 'cluster_id',
+        'noActiveAge' => ['column' => 'appAge', 'predicate' => 'ge'],
+        'activeAge' => ['column' => 'appAge', 'predicate' => 'lt'],
+        'inUse' => ['column' => 'appInUse', 'predicate' => 'is']
     ];
     public static $applianceTypeMap = [
         'switch' => 'SW',

@@ -27,7 +27,12 @@ class ContentFilter extends Std
         'le' => '<=',
         'gt' => '>',
         'ge' => '>=',
-        'like' => 'LIKE'
+        'like' => 'LIKE',
+        'is' => 'IS'
+    ];
+    const PREDICATES_WITHOUT_PARAM = [
+        'IS',
+        'IS NOT'
     ];
 
     /**
@@ -175,8 +180,12 @@ class ContentFilter extends Std
             $columnStatement = [];
             foreach ($conditions as $predicate => $valuesItem) {
                 foreach ($valuesItem as $index => $value) {
-                    $columnStatement[] = self::quoteName($column) . ' ' . self::PREDICATE_REPLACEMENT[$predicate] . ' ' . ':' . $column . '_' . $predicate . '_' . $index;
-                    $queryParams[':' . $column . '_' . $predicate . '_' . $index] = $value;
+                    if (in_array(self::PREDICATE_REPLACEMENT[$predicate], self::PREDICATES_WITHOUT_PARAM)) {
+                        $columnStatement[] = self::quoteName($column) . ' ' . self::PREDICATE_REPLACEMENT[$predicate] . ' ' . $value;
+                    } else {
+                        $columnStatement[] = self::quoteName($column) . ' ' . self::PREDICATE_REPLACEMENT[$predicate] . ' ' . ':' . $column . '_' . $predicate . '_' . $index;
+                        $queryParams[':' . $column . '_' . $predicate . '_' . $index] = $value;
+                    }
                 }
             }
             if (empty($columnStatement)) {
