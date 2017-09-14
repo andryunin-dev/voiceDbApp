@@ -97,6 +97,25 @@ class DevModulePortGeo extends Model
             'managementIp' => ['type' => 'string']
         ]
     ];
+    public static $columnMap = [
+        'reg_id' => 'region_id',
+        'reg' => 'region',
+        'loc_id' => 'office_id',
+        'ven' => 'platformVendor',
+        'ven_id' => 'platformVendor_id',
+        'pl' => 'platformTitle',
+        'pl_id' => 'platform_id',
+        'soft' => 'softwareTitle',
+        'soft_id' => 'software_id',
+        'noActiveAge' => ['column' => 'appAge', 'predicate' => 'gt']
+    ];
+    public static $applianceTypeMap = [
+        'switch' => 'SW',
+        'router' => 'R',
+        'cmp' => 'CMP',
+        'cms' => 'CMS',
+        'phone' => 'TEL'
+    ];
 
     protected static $sortOrders = [
         'default' => 'region, city, office, "appType", hostname, appliance_id',
@@ -106,10 +125,6 @@ class DevModulePortGeo extends Model
         'hostname' => ' hostname, appType, appliance_id',
     ];
 
-    public static function sortOrder($orderName = 'default')
-    {
-        return (array_key_exists($orderName, self::$sortOrders)) ? self::$sortOrders[$orderName] : self::$sortOrders['default'];
-    }
 
     protected function beforeSave()
     {

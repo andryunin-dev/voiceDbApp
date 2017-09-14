@@ -1,0 +1,44 @@
+@keyframes spin {
+    to { transform: rotate(1turn); }
+}
+.in_progress {
+    position: relative;
+    display: inline-block;
+    width: 5em;
+    height: 5em;
+    margin: 0 3px;
+    font-size: 0.2em;
+    text-indent: 999em;
+    overflow: hidden;
+    animation: spin 1s infinite steps(8);
+}
+.in_progress:before,
+.in_progress:after,
+.in_progress > div:before,
+.in_progress > div:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 2.25em;
+    width: .5em;
+    height: 1.5em;
+    border-radius: .2em;
+    background: #eee;
+    /*box-shadow: 0 3.5em #eee;*/
+    transform-origin: 50% 2.5em;
+}
+.in_progress:before {
+    background: #555;
+}
+.in_progress:after {
+    transform: rotate(-45deg);
+    background: #777;
+}
+.in_progress > div:before {
+    transform: rotate(-90deg);
+    background: #999;
+}
+.in_progress > div:after {
+    transform: rotate(-135deg);
+    background: #bbb;
+}
