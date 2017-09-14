@@ -63,6 +63,7 @@ class User
         $this->permissions->addAppliance = (6 <= $lvl) ? true : false;
         $this->permissions->changeModuleAndPorts = (7 <= $lvl) ? true : false;
         $this->permissions->delAppliance = (15 <= $lvl) ? true : false;
+        $this->permissions->delOffice = (15 <= $lvl) ? true : false;
     }
 
     public $level;
