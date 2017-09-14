@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use App\ViewModels\DevModulePortGeo;
 use T4\Core\Collection;
 use T4\Core\ISingleton;
 use T4\Core\TSingleton;
+use T4\Dbal\Query;
 use T4\Orm\Model;
 
 /**
@@ -49,8 +51,19 @@ class LotusLocation extends Model
      */
     private static $allLocations = [];
     private static $lotusIdToEmployees = [];
+    private static $peopleCounter = [];
 
-
+    public static function peopleCountByLotusId($lotusId, $refresh = false)
+    {
+        if (empty(self::$lotusIdToEmployees) || $refresh) {
+            self::setConnection(self::CONNECTION_NAME);
+            self::$allLocations = self::findAll();
+            foreach (self::$allLocations as $office) {
+                self::$lotusIdToEmployees[$office->lotus_id] = $office->employees;
+            }
+        }
+        return (key_exists((int)$lotusId, self::$lotusIdToEmployees)) ? self::$lotusIdToEmployees[(int)$lotusId] : false;
+    }
     public static function employeesByLotusId($lotusId, $refresh = false)
     {
         if (empty(self::$allLocations) || $refresh) {
@@ -76,6 +89,22 @@ class LotusLocation extends Model
             $res[$office->lotus_id] = $office->employees;
         }
         return $res;
+    }
+
+    public static function countPeoples(array $Lotus_id = [])
+    {
+        if (empty($Lotus_id)) {
+            $res = 0;
+        } else {
+            $query = (new Query())
+                ->select('sum(employees)')
+                ->from(self::getTableName())
+                ->where('lotus_id IN (' . implode(',', $Lotus_id) . ')');
+            self::setConnection(self::CONNECTION_NAME);
+            $res = self::getDbConnection()->query($query)->fetchScalar();
+        }
+        return $res;
+
     }
 
 }

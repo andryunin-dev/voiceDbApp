@@ -1,0 +1,103 @@
+{% spaceless %}
+        {% for dev in devices %}
+            {% if false == dev.appInUse %}
+                {% set applColorClass = "item-not-use" %}
+            {% else %}
+                {% set applColorClass = "" %}
+            {% endif %}
+            <tr>
+                {#Region#}
+                <td><a href="{{ url.path }}?reg_id={{ dev.region_id }}" >{{ dev.region }}</a></td>
+                <td><a href="{{ url.path }}?loc_id={{ dev.office_id }}" >{{ dev.office }}</a> {% if not dev.officeComment is empty %}<span id="{{ dev.office_id }}_{{ dev.appliance_id }}" class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>{% endif %}</td>
+                {#Hostname#}
+                <td title="{{ dev.hostname }}">
+                    {% if not dev.managementIp is empty %}
+                        <a href="ssh://{{ dev.managementIp }}" >{{ dev.hostname }}</a>
+                    {% else %}
+                        {{ dev.hostname }}
+                    {% endif %}
+                    {% if dev.cluster_id %}
+                        <br>
+                        <a href="{{ url.path }}?cl_id={{ dev.cluster_id }}">(кластер)</a>
+                    {% endif %}
+                </td>
+                {#Type#}
+                <td style="text-align:center" title="{{ dev.appType }}">
+                    <b>
+                        <a href="{{ url.path }}?appType_id={{ dev.appType_id }}">
+                            {{ attribute(appTypeMap, dev.appType) }}
+                        </a>
+                    </b>
+                </td>
+                {#Platform#}
+                <td {% if false == dev.appInUse %}class="item-not-use" {% endif %}><a href="{{ url.path }}?pl_id={{ dev.platform_id }}">
+                        {{ dev.platformVendor }} {{ dev.platformTitle }}</a> {% if not dev.appComment is empty %}<span id="{{ dev.appliance_id }}" class="glyphicon glyphicon-info-sign" aria-hidden="true" title="{{ dev.appComment }}"></span>{% endif %}
+                    <span class="lastUpdate {% if dev.appAge is null or dev.appAge >= maxAge %} stale {% endif %}" data-last-update="{{ dev.lastUpdateDateTime }}" title="{{ dev.lastUpdateDateTime }}">{{ dev.lastUpdateDate }}</span>
+                </td>
+                {#Software#}
+                <td>
+                    {{ dev.softwareTitle }} {{ dev.softwareVersion }}
+                </td>
+                {#ModuleItems#}
+                <td class="cell-container">
+                    <table class="inner table table-bordered">
+                        <tbody>
+                        {% for moduleItem in dev.modules %}
+                            <tr>
+                                {% if moduleItem.notFound %}
+                                    {% set colorClass = "item-not-found" %}
+                                {% elseif moduleItem.inUse is defined and false == moduleItem.inUse %}
+                                    {% set colorClass = "item-not-use" %}
+                                {% else %}
+                                    {% set colorClass = "" %}
+                                {% endif %}
+                                <td class="{{ colorClass }}" {% if moduleItem.notFound %}title="{{ moduleItem.lastUpdateDateTime }}"{% endif %}>
+                                    {{ moduleItem.title }}
+                                    {% if not moduleItem.comment is empty %}
+                                        <span id="{{ moduleItem.moduleItem_id }}" class="glyphicon glyphicon-info-sign" aria-hidden="true" title="{{ moduleItem.comment }}"></span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </td>
+                {#Interfaces#}
+                <td class="cell-container">
+                    <table class="inner table interfaces">
+                        <thead>
+                        {% if dev.managementIp is not empty %}
+                            <tr>
+                                <th>
+                                    <a href="ssh://{{ dev.managementIp }}" >{{ dev.managementIp }}</a>
+                                </th>
+                            </tr>
+                        {% endif %}
+                        {% set noMngmnt = dev.noManagementPorts %}
+                        {% if noMngmnt.count > 0 %}
+                            <tr>
+                                <th class="toggler btn btn-xs btn-grey"><span class=" js-caret caret-right"></span> другие интерфейсы ({{ noMngmnt.count }})</th>
+                            </tr>
+                        {% endif %}
+                        </thead>
+                        <tbody>
+                        {% for port in noMngmnt %}
+                            <tr title="{{ port.details.description }}">
+                                <td>{{ port.cidrIpAddress }} {% if not port.details.portName is empty %}({{ port.details.portName }}){% endif %}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </td>
+                {#Action#}
+                <td class="text-center">
+                    <a class="btn btn-success btn-xs" href="/modal/editAppliance?id={{ dev.appliance_id }}" role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать устройство"></span></a>
+                    {% if user.permissions.delAppliance %}
+                        <a class="btn btn-danger btn-xs" href="/admin/delAppliance?id={{ dev.appliance_id }}" role="button"
+                           data-action="delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" title="удалить устройство"></span></a>
+                    {% endif %} {#user level#}
+                </td>
+            </tr>
+        {% endfor %}    {#devices#}
+{% endspaceless %}
+

@@ -39,7 +39,7 @@
     <script src="{{ asset('/Layouts/resources/js/js.cookie.js') }}"></script>
     <script src="{{ asset('/Layouts/resources/bootstrap/js/dropdown.js') }}"></script>
     {#<script src="{{ asset('/Layouts/resources/ajaxTable/main.js') }}"></script>#}
-    <script src="{{ asset('/Layouts/resources/jqTable/jqTable.js') }}"></script>
+    <script src="{{ asset('/Layouts/resources/jqTable/jqTable2.js') }}"></script>
     {#<script src="{{ asset('/Layouts/resources/jsRender/jsrender.js') }}"></script>#}
     <script src="{{ asset('/Layouts/resources/js/script.js') }}"></script>
     {% block headerScript %}
@@ -66,11 +66,11 @@
                     <li {% if activeLink.offices == true %}class="active" {% endif %}>
                         <a href="/admin/offices">Офисы</a>
                     </li>
-                    {#<li {% if activeLink.devices == true %}class="active" {% endif %}>#}
-                        {#<a href="/admin/devices">Оборудование</a>#}
-                    {#</li>#}
+                    <li {% if activeLink.devices == true %}class="active" {% endif %}>
+                        <a href="/admin/devices">Оборудование</a>
+                    </li>
                     <li {% if activeLink.devicesNew == true %}class="active" {% endif %}>
-                        <a href="/device/info">Оборудование</a>
+                        <a href="/device/info">Оборудование(beta)</a>
                     </li>
                     {#<li class="dropdown {% if activeLink.devices == true %} active {% endif %}">#}
                     {#<a href="#" class="dropdown-toggle active" data-toggle="dropdown">Оборудование <b class="caret"></b></a>#}
@@ -87,11 +87,11 @@
                             <li><a href="/admin/NetworksTree">Networks(Tree)</a></li>
                         </ul>
                     </li>
-                    {#<li {% if activeLink.report == true %}class="active" {% endif %}>#}
-                        {#<a href="/report">Reports</a>#}
-                    {#</li>#}
+                    <li {% if activeLink.report == true %}class="active" {% endif %}>
+                        <a href="/report">Reports</a>
+                    </li>
                     <li {% if activeLink.reportNew == true %}class="active" {% endif %}>
-                        <a href="/report/new">Reports</a>
+                        <a href="/report/new">Reports(beta)</a>
                     </li>
 
                 </ul>
@@ -130,21 +130,21 @@
 {% block main %}
 {% endblock %}
 </div>
-{#<script>#}
-    {#var APP = APP || {};#}
-    {#if ("{{exportUrl}}") {#}
-        {#$("#excelExport").removeClass("hidden");#}
-        {#APP.setLink("#excelExport", "{{ exportUrl }}");#}
-    {#}#}
-    {#if ("{{eraseLogUrl}}") {#}
-        {#$("#eraseLog").removeClass("hidden");#}
-        {#APP.setLink("#eraseLog", "{{ eraseLogUrl }}");#}
-    {#}#}
-{#</script>#}
-{#<script>#}
-    {#$.views.settings.delimiters("#{", "}#");#}
-    {#$.views.settings.allowCode(true);#}
-{#</script>#}
+<script>
+    var APP = APP || {};
+    if ("{{exportUrl}}") {
+        $("#excelExport").removeClass("hidden");
+        APP.setLink("#excelExport", "{{ exportUrl }}");
+    }
+    if ("{{eraseLogUrl}}") {
+        $("#eraseLog").removeClass("hidden");
+        APP.setLink("#eraseLog", "{{ eraseLogUrl }}");
+    }
+</script>
+<script>
+    $.views.settings.delimiters("#{", "}#");
+    $.views.settings.allowCode(true);
+</script>
 {% block JS %}
 {% endblock %}
 {% if timer is defined and user.debugMode == true %}
