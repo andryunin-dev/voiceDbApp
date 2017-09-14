@@ -1169,7 +1169,7 @@ jqTable.workSetTmpl = {
                 };
             },
             buildFinder: function (ws) {
-                ws.obj.$finder = $('<input/>', {type: 'text', class: 'finder-input'})
+                ws.obj.$finder = $('<input/>', {type: 'text', class: 'finder-input'});
             }
         };
         var methods = {
@@ -1246,7 +1246,7 @@ jqTable.workSetTmpl = {
                 return this;
             },
             addBodyEventHandler: function (event, handler) {
-                ws = inner.getWorkSet(this);
+                var ws = inner.getWorkSet(this);
                 if (typeof ws === 'undefined') {
                     inner.debug(ws, 'addBodyEventHandler: Fatal Error! Не найден workSet');
                     throw 'updateBodyContent: не найден workSet';
@@ -1255,10 +1255,10 @@ jqTable.workSetTmpl = {
                     event,
                     ws,
                     handler
-                )
+                );
             },
             addHeaderEventHandler: function (event, handler) {
-                ws = inner.getWorkSet(this);
+                var ws = inner.getWorkSet(this);
                 if (typeof ws === 'undefined') {
                     inner.debug(ws, 'addBodyEventHandler: Fatal Error! Не найден workSet');
                     throw 'updateBodyContent: не найден workSet';
@@ -1267,11 +1267,11 @@ jqTable.workSetTmpl = {
                     event,
                     ws,
                     handler
-                )
+                );
             },
             //для обработки событий самого поисковика (autocomplete)
             addFinderEventHandler: function (event, handler) {
-                ws = inner.getWorkSet(this);
+                var ws = inner.getWorkSet(this);
                 if (typeof ws === 'undefined') {
                     inner.debug(ws, 'addHeaderEventHandler: Fatal Error! Не найден workSet');
                     throw 'updateBodyContent: не найден workSet';
@@ -1280,7 +1280,7 @@ jqTable.workSetTmpl = {
                     event,
                     ws,
                     handler
-                )
+                );
             },
             getWorkSet: function () {
                 var ws = inner.getWorkSet(this);
