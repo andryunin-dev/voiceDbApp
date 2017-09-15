@@ -1,21 +1,22 @@
 <thead>
 <tr>
-    <th id={{ columns.region.th_id }} class="text-left">{{ columns.region.name }}
-    <div class="finder-icon pull-right"><span class="glyphicon glyphicon-search"></span></div>
+    <th id={{ columns.region.th_id|trim('#') }} class="text-left">
+        {{ columns.region.name }}
     </th>
-    <th id={{ columns.office.th_id }}>{{ columns.office.name }}</th>
-    <th id={{ columns.hostname.th_id }}>{{ columns.hostname.name }}</th>
-    <th id={{ columns.appType.th_id }}>{{ columns.appType.name }}</th>
-    <th id={{ columns.appliance.th_id }}>{{ columns.appliance.name }}
+    <th id={{ columns.office.th_id|trim('#') }}>{{ columns.office.name }}</th>
+    <th id={{ columns.hostname.th_id|trim('#') }}>{{ columns.hostname.name }}</th>
+    <th id={{ columns.appType.th_id|trim('#') }}>{{ columns.appType.name }}</th>
+    <th id={{ columns.appliance.th_id|trim('#') }}>
         {% if user.permissions.addEmptyAppliance %}
             <a class="btn btn-success btn-xs btn-custom pull-right" href="/modal/addAppliance" role="button"
                data-action="get-popup" title="добавить устройство"><span class="glyphicon glyphicon-plus"
                                                                          aria-hidden="true"></span></a>
         {% endif %}
+        {{ columns.appliance.name }}
     </th>
-    <th id={{ columns.soft.th_id }}>{{ columns.soft.name }}</th>
-    <th id={{ columns.module.th_id }}>{{ columns.module.name }}</th>
-    <th id={{ columns.data_port.th_id }}>{{ columns.data_port.name }}</th>
-    <th id={{ columns.action.th_id }}>{{ columns.action.name }}</th>
+    <th id={{ columns.soft.th_id|trim('#') }}>{{ columns.soft.name }}</th>
+    <th id={{ columns.module.th_id|trim('#') }}>{{ columns.module.name }}</th>
+    <th id={{ columns.data_port.th_id|trim('#') }}>{{ columns.data_port.name }}</th>
+    <th id={{ columns.action.th_id|trim('#') }}>{{ columns.action.name }}</th>
 </tr>
 </thead>

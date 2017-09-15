@@ -1,10 +1,11 @@
-.finder-icon {
+.filter-box {
     height: 100%;
 }
-.finder-icon span {
+.filter-box span {
     vertical-align: middle;
+    font-size: x-small;
 }
-.finder-input {
+.filter-input {
     width: 120px;
     height: 20px;
     font-size: small

@@ -13,9 +13,8 @@ var jqTable = {};
  * Пример:
  * header: {
  *     fixed: true, //фиксировать или нет заголовок таблицы
- *     units: '%',
  *     columns: [
- *         {name: 'column 1', width: 25, class: 'class_1 class_2'},
+ *         {name: 'column 1', width: 25, class: 'class_1 class_2', sortable: true, filterable: true},
  *         {name: 'column 2', width: 25},
  *         {name: 'column 3', width: 25},
  *         {name: 'column 4', width: 25}
@@ -278,7 +277,8 @@ jqTable.workSetTmpl = {
         $pgRowsOnPageList: undefined,
         $pgInput: undefined,
         $pgPagesCount: undefined,
-        $pgPreloader: undefined
+        $pgPreloader: undefined,
+        $tableFilters: $()
     },
 
     table: {
@@ -893,15 +893,15 @@ jqTable.workSetTmpl = {
                     if (typeof value.id === 'undefined') {
                         value.id = key;
                     }
-                    value.th_id = ws.mainSelector.slice(1) + '_th_' + value.id;
-                    value.td_id = ws.mainSelector.slice(1) + '_td_' + value.id;
+                    value.th_id = ws.mainSelector + '_th_' + value.id;
+                    value.td_id = ws.mainSelector + '_td_' + value.id;
                 });
                 $.each(ws.model.header.columns, function (key,value) {
                     if (typeof value.id === 'undefined') {
                         value.id = key;
                     }
-                    value.th_id = ws.mainSelector.slice(1) + '_th_' + value.id;
-                    value.td_id = ws.mainSelector.slice(1) + '_td_' + value.id;
+                    value.th_id = ws.mainSelector + '_th_' + value.id;
+                    value.td_id = ws.mainSelector + '_td_' + value.id;
                 });
             },
             buildHeader: function (ws) {
@@ -929,6 +929,7 @@ jqTable.workSetTmpl = {
                             if (ws.table.isBuilt) {
                                 inner.setBodyHeight(ws);
                             }
+                            inner.addFilters(ws);
                             ws.header.isBuilt = true;
                         })
                         .fail(function (jqXHR, textStatus, errorThrown) {
@@ -942,7 +943,7 @@ jqTable.workSetTmpl = {
                         lastKey = key;
                         var tag = $('<th></th>');
                         tag.width(this.width);
-                        tag.attr({"id": value.th_id, title: value.name})
+                        tag.attr({"id": value.th_id.slice(1), title: value.name})
                             .html(value.name)
                             .appendTo(tr);
                     });
@@ -955,7 +956,7 @@ jqTable.workSetTmpl = {
                 //добавляем id к 1-й строке, наполняем ячейками с нужными id
                 ws.obj.$bodyFirstRow.attr("id", ws.model.body.selectors.firstRow.slice(1));
                 $.each(ws.model.header.columns, function (key,value) {
-                    $('<th></th>').attr({"id": value.td_id}).appendTo(ws.obj.$bodyFirstRow);
+                    $('<th></th>').attr({"id": value.td_id.slice(1)}).appendTo(ws.obj.$bodyFirstRow);
                 });
             },
             buildPreloader: function (fontSize) {
@@ -965,8 +966,8 @@ jqTable.workSetTmpl = {
             //управление размерами
             setColumnWidth: function (ws) {
                 $.each(ws.header.columns, function (key,value) {
-                    ws.obj.$header.find('#' + value.th_id).outerWidth(value.width);
-                    ws.obj.$bodyFirstRow.find('#' + value.td_id).outerWidth(value.width);
+                    ws.obj.$header.find(value.th_id).outerWidth(value.width);
+                    ws.obj.$bodyFirstRow.find(value.td_id).outerWidth(value.width);
                 });
                 //установка ширины ячейки компенсации скрола
                 ws.obj.$headerScrollCell.outerWidth(ws.scrolls.Y_scrollWidth + ws.scrolls.scrollMargin);
@@ -1168,8 +1169,31 @@ jqTable.workSetTmpl = {
                     }
                 };
             },
-            buildFinder: function (ws) {
-                ws.obj.$finder = $('<input/>', {type: 'text', class: 'finder-input'})
+            buildFilter: function (ws) {
+                var $obj = $('<div/>', {class: 'finder-box'}).append($('<input/>', {type: 'text', class: 'finder-input'}));
+                ws.obj.$finder.append($obj);
+                return $obj;
+            },
+            addFilters: function (ws) {
+                $.each(ws.header.columns, function (key, item) {
+                    if (item.filterable) {
+                        var $finder = $('<div/>', {class: 'filter-box'})
+                            .css({position: 'relative'})
+                            .append($('<span/>', {class: 'glyphicon glyphicon-filter'}))
+                            .addClass('pull-right');
+                        ws.obj.$header.find(item.th_id).prepend($finder);
+
+                        var $input = $('<input/>', {type: 'text', class: 'filter-input'})
+                            .css({position: 'absolute'});
+                        ws.obj.$headerBox.append($input);
+                        $input.position({
+                            of: $finder,
+                            my: 'right top',
+                            at: 'right bottom'
+                        });
+
+                    }
+                })
             }
         };
         var methods = {
@@ -1208,8 +1232,6 @@ jqTable.workSetTmpl = {
                 inner.setTableSizes(ws);
                 inner.setBodyScroll(ws);
                 inner.eventHandlersSet(ws);
-                //test finder
-                inner.buildFinder(ws);
                 return this;
             },
             updateBodyContent: function (ws, requestedURL) {
