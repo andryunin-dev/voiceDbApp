@@ -2,18 +2,8 @@
 
 namespace App\Controllers;
 
-use App\Models\Appliance;
-use App\Models\ApplianceType;
-use App\Models\DataPort;
 use App\ViewModels\DevModulePortGeo;
 use App\ViewModels\DevPhoneInfoGeo;
-use App\ViewModels\GeoDev_View;
-use App\ViewModels\GeoDevModulePort_View;
-use PhpOffice\PhpSpreadsheet\IOFactory;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Style\Alignment;
-use PhpOffice\PhpSpreadsheet\Style\Color;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
 use T4\Core\Exception;
 use T4\Dbal\Query;
 use T4\Mvc\Controller;
@@ -29,171 +19,27 @@ class Export extends Controller
     const UPS = 'ups';
     const VG = 'vg';
 
-    public function actionHardInvExcelOldddddddddd()
-    {
-
-        $spreadsheet = new Spreadsheet();
-
-// ------ Worksheet - 'Appliances' ----------------------
-        $workSheet = $spreadsheet->getActiveSheet();
-        $workSheet->setTitle('Appliances');
-
-        // HEADER
-        $sells = ['A1','B1','C1','D1','E1','F1','G1','H1','I1','J1','K1','L1','M1','N1'];
-        $vals = ['№п/п', 'Регион', 'Офис', 'Hostname', 'Type', 'Device', 'Device ser', 'Software', 'Software ver.', 'Appl. last update', 'Module', 'Module ser', 'Module last update', 'Comment'];
-        for ($i = 0; $i < count($sells); $i++) {
-            $workSheet->setCellValue($sells[$i], $vals[$i]);
-        }
-
-        // Format
-        $columns = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N'];
-        foreach ($columns as $column) {
-            $workSheet->getColumnDimension($column)->setAutoSize(true);
-        }
-        $workSheet->getStyle('A:N')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
-        $workSheet->getStyle('A1:N1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-
-        // Body
-
-        $query = 'SELECT
-  region.title AS region,
-  location.title AS office,
-  appliance.details,
-  applianceType.type,
-  vendor.title AS vendor,
-  platform.title AS platform,
-  platformItem."serialNumber" AS platform_serialnumber,
-  software.title AS soft_title,
-  softwareItem.version AS soft_version,
-  appliance."lastUpdate" AS appliance_lastupdate,
-  appliance.comment AS appliance_comment,
-  module.title AS module,
-  moduleItem."serialNumber" AS module_serialnumber,
-  moduleItem."lastUpdate" AS module_lastupdate,
-  moduleItem.comment AS module_comment,
-  moduleItem."inUse" AS module_inuse
-FROM equipment.appliances AS appliance
-  INNER JOIN company.offices AS location ON location.__id = appliance.__location_id
-  INNER JOIN geolocation.addresses AS address ON address.__id = location.__address_id
-  INNER JOIN geolocation.cities AS city ON city.__id = address.__city_id
-  INNER JOIN geolocation.regions AS region ON region.__id = city.__region_id
-  INNER JOIN equipment."platformItems" AS platformItem ON platformItem.__id = appliance.__platform_item_id
-  INNER JOIN equipment.platforms AS platform ON platform.__id = platformItem.__platform_id
-  INNER JOIN equipment.vendors AS vendor ON vendor.__id = platform.__vendor_id
-  INNER JOIN equipment."softwareItems" AS softwareItem ON softwareItem.__id = appliance.__software_item_id
-  INNER JOIN equipment.software AS software ON software.__id = softwareItem.__software_id
-  LEFT JOIN equipment."moduleItems" AS moduleItem ON moduleItem.__appliance_id = appliance.__id
-  LEFT JOIN equipment.modules AS module ON module.__id = moduleItem.__module_id
-  INNER JOIN equipment."applianceTypes" AS applianceType ON applianceType.__id = appliance.__type_id WHERE applianceType.type IN (:appType1, :appType2, :appType3, :appType4, :appType5, :appType6)';
-
-        $params = [
-            ':appType1' => self::SWITCH,
-            ':appType2' => self::CMP,
-            ':appType3' => self::CMS,
-            ':appType4' => self::UPS,
-            ':appType5' => self::VG,
-            ':appType6' => self::ROUTER,
-        ];
-
-        $appliances = Appliance::findAllByQuery($query,$params);
-
-        $data = [];
-        $n = 2;
-        foreach ($appliances as $appliance) {
-            $data[] = [
-                $n-1,
-                $appliance->region,
-                $appliance->office,
-                $appliance->details->hostname,
-                $appliance->type,
-                $appliance->vendor . ' ' . $appliance->platform,
-                $appliance->platform_serialnumber,
-                $appliance->soft_title,
-                $appliance->soft_version,
-                $appliance->module,
-                $appliance->module_serialnumber,
-                $appliance->module_lastupdate,
-                $appliance->module_comment
-            ];
-            if (false === $appliance->module_inuse) {
-                $workSheet->getStyle('K' . $n . ':N' . $n)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB(Color::COLOR_YELLOW);
-            }
-            $n++;
-        }
-
-        $workSheet->fromArray($data, NULL, 'A2');
-//        $workSheet->getStyle('A2:N' . $n)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
-
-
-        // Autofilter
-        $workSheet->setAutoFilter('B1:N' . ($n-1));
-        $workSheet->freezePane('A2');
-
-
-// ------ Export ----------------------
-        // Set active sheet index to the first sheet, so Excel opens this as the first sheet
-        $spreadsheet->setActiveSheetIndex(0);
-
-        // Redirect output to a client’s web browser (Xlsx)
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment;filename="Hard inventory__'. gmdate('d M Y') . '.xlsx"');
-        header('Cache-Control: max-age=0');
-
-        // If you're serving to IE 9, then the following may be needed
-        header('Cache-Control: max-age=1');
-
-        // If you're serving to IE over SSL, then the following may be needed
-        header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
-        header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT'); // always modified
-        header('Cache-Control: cache, must-revalidate'); // HTTP/1.1
-        header('Pragma: public'); // HTTP/1.0
-
-        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
-        $writer->save('php://output');
-        exit;
-    }
-
-
 
     public function actionIpAppliances()
     {
+        $tableColumns = ['hostname','managementIp','lotusId'];
 
-//        $appliancesType = ['router', 'switch', 'vg'];
-//        $outputData = '';
-//
-//        foreach ($appliancesType as $type) {
-//            $appliances = ApplianceType::findByColumn('type', $type)->appliances;
-//
-//            foreach ($appliances as $appliance) {
-//
-//                $dataPort = $appliance->dataPorts->filter(
-//                    function ($dataPort) {
-//                        return true == $dataPort->isManagement;
-//                    }
-//                )->first();
-//
-//                $outputData .= $dataPort->appliance->details->hostname . ',' . preg_replace('~/.+~', '', $dataPort->ipAddress) . ',' . $dataPort->appliance->location->lotusId . ';';
-//            }
-//        }
-//
-//        echo $outputData;
-//
-//        die;
-
-
-        $switch = 'switch';
-        $router = 'router';
-        $vg = 'vg';
-        $dataports = (DataPort::findAllByColumn('isManagement', true))->filter(
-            function ($dataport) use ($router, $switch, $vg) {
-                return $router == $dataport->appliance->type->type || $switch == $dataport->appliance->type->type || $vg == $dataport->appliance->type->type;
-            }
-        );
+        $query = (new Query())
+            ->select($tableColumns)
+            ->from(DevModulePortGeo::getTableName())
+            ->where('"appType" IN (:switch, :router, :vg) AND "managementIp" IS NOT NULL')
+            ->params([
+                ':switch' => self::SWITCH,
+                ':router' => self::ROUTER,
+                ':vg' => self::VG,
+            ])
+        ;
+        $appliances = DevModulePortGeo::findAllByQuery($query);
 
         // Semicolon format
         $outputData = '';
-        foreach ($dataports as $dataport) {
-            $outputData .= $dataport->appliance->details->hostname . ',' . preg_replace('~/.+~', '', $dataport->ipAddress) . ',' . $dataport->appliance->location->lotusId . ';';
+        foreach ($appliances as $appliance) {
+            $outputData .= $appliance->hostname . ',' . $appliance->managementIp . ',' . $appliance->lotusId . ';';
         }
         echo $outputData;
 
@@ -411,7 +257,7 @@ FROM equipment.appliances AS appliance
 
         // Body sheet 3 - выводим телефоны
 
-        $tableColumns = ['region','office','publisherIp','platformVendor','platformTitle','name','managementIp','partition','css','prefix','phoneDN','status','platformSerial','softwareTitle','softwareVersion','appLastUpdate','appComment','phoneDescription','devicePool','alertingName','timezone','dhcpEnabled','dhcpServer','domainName','tftpServer1','tftpServer2','defaultRouter','dnsServer1','dnsServer2','callManager1','callManager2','callManager3','callManager4','vlanId','userLocale','cdpNeighborDeviceId','cdpNeighborIP','cdpNeighborPort','appDetails','clusterTitle','appType'];
+        $tableColumns = ['region','office','publisherIp','platformVendor','platformTitle','name','managementIp','partition','css','prefix','phoneDN','status','platformSerial','softwareTitle','softwareVersion','appLastUpdate','appComment','phoneDescription','devicePool','alertingName','timezone','dhcpEnabled','dhcpServer','domainName','tftpServer1','tftpServer2','defaultRouter','dnsServer1','dnsServer2','callManager1','callManager2','callManager3','callManager4','vlanId','userLocale','cdpNeighborDeviceId','cdpNeighborIP','cdpNeighborPort','appDetails','clusterTitle','appType','unknownLocation','appInUse'];
 
         $query = (new Query())
             ->select($tableColumns)
@@ -425,13 +271,14 @@ FROM equipment.appliances AS appliance
         foreach ($appliances as $appliance) {
 
             $styleType = (false === $appliance->appInUse) ? 4 : 3;
+            $styleTypeOffice = (true == $appliance->unknownLocation) ? 5 : $styleType;
             $sheet3_rows .= '<row r="' . $currentRowSheet3 . '" spans="1:' . $rowSpansSheet3 . '" x14ac:dyDescent="0.25">';
 
             $sheet3_rows .= '<c r="A' . $currentRowSheet3 . '" s="' . $styleType . '"><v>' . ($currentRowSheet3 - 1) . '</v></c>';
             $sharedStringsSI .= '<si><t>' . $appliance->region . '</t></si>';
-            $sheet3_rows .= '<c r="B' . $currentRowSheet3 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
+            $sheet3_rows .= '<c r="B' . $currentRowSheet3 . '" s="' . $styleTypeOffice . '" t="s"><v>' . $charPosition++ . '</v></c>';
             $sharedStringsSI .= '<si><t>' . $appliance->office . '</t></si>';
-            $sheet3_rows .= '<c r="C' . $currentRowSheet3 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
+            $sheet3_rows .= '<c r="C' . $currentRowSheet3 . '" s="' . $styleTypeOffice . '" t="s"><v>' . $charPosition++ . '</v></c>';
             $sharedStringsSI .= '<si><t>' . $appliance->clusterTitle . '</t></si>';
             $sheet3_rows .= '<c r="D' . $currentRowSheet3 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
             $sharedStringsSI .= '<si><t>' . json_decode($appliance->appDetails)->hostname . '</t></si>';
@@ -534,7 +381,7 @@ FROM equipment.appliances AS appliance
 
         $zip->addFromString('xl/workbook.xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="x15" xmlns:x15="http://schemas.microsoft.com/office/spreadsheetml/2010/11/main"><fileVersion appName="xl" lastEdited="6" lowestEdited="4" rupBuild="14420"/><workbookPr filterPrivacy="1" defaultThemeVersion="124226"/><bookViews><workbookView xWindow="240" yWindow="105" windowWidth="14805" windowHeight="8010"/></bookViews><sheets><sheet name="Appliances" sheetId="1" r:id="rId1"/><sheet name="Appliances with modules" sheetId="2" r:id="rId2"/><sheet name="Phones" sheetId="3" r:id="rId3"/></sheets><calcPr calcId="122211"/></workbook>');
 
-        $zip->addFromString('xl/styles.xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="x14ac" xmlns:x14ac="http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac"><fonts count="1" x14ac:knownFonts="1"><font><sz val="11"/><color theme="1"/><name val="Calibri"/><family val="2"/><scheme val="minor"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FFFFFF00"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="4"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment vertical="center"/></xf><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment horizontal="left" vertical="center"/></xf>  <xf borderId="0" fillId="2" fontId="0" numFmtId="0" xfId="0" applyAlignment="1" applyFill="1"><alignment vertical="center" horizontal="left"/></xf></cellXfs><cellStyles count="1"><cellStyle name="Обычный" xfId="0" builtinId="0"/></cellStyles><dxfs count="0"/><tableStyles count="0" defaultTableStyle="TableStyleMedium2" defaultPivotStyle="PivotStyleMedium9"/><extLst><ext uri="{EB79DEF2-80B8-43e5-95BD-54CBDDF9020C}" xmlns:x14="http://schemas.microsoft.com/office/spreadsheetml/2009/9/main"><x14:slicerStyles defaultSlicerStyle="SlicerStyleLight1"/></ext><ext uri="{9260A510-F301-46a8-8635-F512D64BE5F5}" xmlns:x15="http://schemas.microsoft.com/office/spreadsheetml/2010/11/main"><x15:timelineStyles defaultTimelineStyle="TimeSlicerStyleLight1"/></ext></extLst></styleSheet>');
+        $zip->addFromString('xl/styles.xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="x14ac" xmlns:x14ac="http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac"><fonts count="1" x14ac:knownFonts="1"><font><sz val="11"/><color theme="1"/><name val="Calibri"/><family val="2"/><scheme val="minor"/></font></fonts><fills count="4"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FFFFFF00"/><bgColor indexed="64"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor tint="-0.14999847407452621" theme="0"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="6"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment vertical="center"/></xf><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment horizontal="left" vertical="center"/></xf><xf borderId="0" fillId="2" fontId="0" numFmtId="0" xfId="0" applyAlignment="1" applyFill="1"><alignment vertical="center" horizontal="left"/></xf><xf borderId="0" fillId="3" fontId="0" numFmtId="0" xfId="0" applyAlignment="1" applyFill="1"><alignment vertical="center" horizontal="left"/></xf></cellXfs><cellStyles count="1"><cellStyle name="Обычный" xfId="0" builtinId="0"/></cellStyles><dxfs count="0"/><tableStyles count="0" defaultTableStyle="TableStyleMedium2" defaultPivotStyle="PivotStyleMedium9"/><extLst><ext uri="{EB79DEF2-80B8-43e5-95BD-54CBDDF9020C}" xmlns:x14="http://schemas.microsoft.com/office/spreadsheetml/2009/9/main"><x14:slicerStyles defaultSlicerStyle="SlicerStyleLight1"/></ext><ext uri="{9260A510-F301-46a8-8635-F512D64BE5F5}" xmlns:x15="http://schemas.microsoft.com/office/spreadsheetml/2010/11/main"><x15:timelineStyles defaultTimelineStyle="TimeSlicerStyleLight1"/></ext></extLst></styleSheet>');
 
         $zip->addFromString('xl/theme/theme1.xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><a:theme xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" name="Тема Office"><a:themeElements><a:clrScheme name="Стандартная"><a:dk1><a:sysClr val="windowText" lastClr="000000"/></a:dk1><a:lt1><a:sysClr val="window" lastClr="FFFFFF"/></a:lt1><a:dk2><a:srgbClr val="1F497D"/></a:dk2><a:lt2><a:srgbClr val="EEECE1"/></a:lt2><a:accent1><a:srgbClr val="4F81BD"/></a:accent1><a:accent2><a:srgbClr val="C0504D"/></a:accent2><a:accent3><a:srgbClr val="9BBB59"/></a:accent3><a:accent4><a:srgbClr val="8064A2"/></a:accent4><a:accent5><a:srgbClr val="4BACC6"/></a:accent5><a:accent6><a:srgbClr val="F79646"/></a:accent6><a:hlink><a:srgbClr val="0000FF"/></a:hlink><a:folHlink><a:srgbClr val="800080"/></a:folHlink></a:clrScheme><a:fontScheme name="Стандартная"><a:majorFont><a:latin typeface="Cambria" panose="020F0302020204030204"/><a:ea typeface=""/><a:cs typeface=""/><a:font script="Jpan" typeface="ＭＳ Ｐゴシック"/><a:font script="Hang" typeface="맑은 고딕"/><a:font script="Hans" typeface="宋体"/><a:font script="Hant" typeface="新細明體"/><a:font script="Arab" typeface="Times New Roman"/><a:font script="Hebr" typeface="Times New Roman"/><a:font script="Thai" typeface="Tahoma"/><a:font script="Ethi" typeface="Nyala"/><a:font script="Beng" typeface="Vrinda"/><a:font script="Gujr" typeface="Shruti"/><a:font script="Khmr" typeface="MoolBoran"/><a:font script="Knda" typeface="Tunga"/><a:font script="Guru" typeface="Raavi"/><a:font script="Cans" typeface="Euphemia"/><a:font script="Cher" typeface="Plantagenet Cherokee"/><a:font script="Yiii" typeface="Microsoft Yi Baiti"/><a:font script="Tibt" typeface="Microsoft Himalaya"/><a:font script="Thaa" typeface="MV Boli"/><a:font script="Deva" typeface="Mangal"/><a:font script="Telu" typeface="Gautami"/><a:font script="Taml" typeface="Latha"/><a:font script="Syrc" typeface="Estrangelo Edessa"/><a:font script="Orya" typeface="Kalinga"/><a:font script="Mlym" typeface="Kartika"/><a:font script="Laoo" typeface="DokChampa"/><a:font script="Sinh" typeface="Iskoola Pota"/><a:font script="Mong" typeface="Mongolian Baiti"/><a:font script="Viet" typeface="Times New Roman"/><a:font script="Uigh" typeface="Microsoft Uighur"/><a:font script="Geor" typeface="Sylfaen"/></a:majorFont><a:minorFont><a:latin typeface="Calibri" panose="020F0502020204030204"/><a:ea typeface=""/><a:cs typeface=""/><a:font script="Jpan" typeface="ＭＳ Ｐゴシック"/><a:font script="Hang" typeface="맑은 고딕"/><a:font script="Hans" typeface="宋体"/><a:font script="Hant" typeface="新細明體"/><a:font script="Arab" typeface="Arial"/><a:font script="Hebr" typeface="Arial"/><a:font script="Thai" typeface="Tahoma"/><a:font script="Ethi" typeface="Nyala"/><a:font script="Beng" typeface="Vrinda"/><a:font script="Gujr" typeface="Shruti"/><a:font script="Khmr" typeface="DaunPenh"/><a:font script="Knda" typeface="Tunga"/><a:font script="Guru" typeface="Raavi"/><a:font script="Cans" typeface="Euphemia"/><a:font script="Cher" typeface="Plantagenet Cherokee"/><a:font script="Yiii" typeface="Microsoft Yi Baiti"/><a:font script="Tibt" typeface="Microsoft Himalaya"/><a:font script="Thaa" typeface="MV Boli"/><a:font script="Deva" typeface="Mangal"/><a:font script="Telu" typeface="Gautami"/><a:font script="Taml" typeface="Latha"/><a:font script="Syrc" typeface="Estrangelo Edessa"/><a:font script="Orya" typeface="Kalinga"/><a:font script="Mlym" typeface="Kartika"/><a:font script="Laoo" typeface="DokChampa"/><a:font script="Sinh" typeface="Iskoola Pota"/><a:font script="Mong" typeface="Mongolian Baiti"/><a:font script="Viet" typeface="Arial"/><a:font script="Uigh" typeface="Microsoft Uighur"/><a:font script="Geor" typeface="Sylfaen"/></a:minorFont></a:fontScheme><a:fmtScheme name="Стандартная"><a:fillStyleLst><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:gradFill rotWithShape="1"><a:gsLst><a:gs pos="0"><a:schemeClr val="phClr"><a:tint val="50000"/><a:satMod val="300000"/></a:schemeClr></a:gs><a:gs pos="35000"><a:schemeClr val="phClr"><a:tint val="37000"/><a:satMod val="300000"/></a:schemeClr></a:gs><a:gs pos="100000"><a:schemeClr val="phClr"><a:tint val="15000"/><a:satMod val="350000"/></a:schemeClr></a:gs></a:gsLst><a:lin ang="16200000" scaled="1"/></a:gradFill><a:gradFill rotWithShape="1"><a:gsLst><a:gs pos="0"><a:schemeClr val="phClr"><a:shade val="51000"/><a:satMod val="130000"/></a:schemeClr></a:gs><a:gs pos="80000"><a:schemeClr val="phClr"><a:shade val="93000"/><a:satMod val="130000"/></a:schemeClr></a:gs><a:gs pos="100000"><a:schemeClr val="phClr"><a:shade val="94000"/><a:satMod val="135000"/></a:schemeClr></a:gs></a:gsLst><a:lin ang="16200000" scaled="0"/></a:gradFill></a:fillStyleLst><a:lnStyleLst><a:ln w="9525" cap="flat" cmpd="sng" algn="ctr"><a:solidFill><a:schemeClr val="phClr"><a:shade val="95000"/><a:satMod val="105000"/></a:schemeClr></a:solidFill><a:prstDash val="solid"/></a:ln><a:ln w="25400" cap="flat" cmpd="sng" algn="ctr"><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:prstDash val="solid"/></a:ln><a:ln w="38100" cap="flat" cmpd="sng" algn="ctr"><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:prstDash val="solid"/></a:ln></a:lnStyleLst><a:effectStyleLst><a:effectStyle><a:effectLst><a:outerShdw blurRad="40000" dist="20000" dir="5400000" rotWithShape="0"><a:srgbClr val="000000"><a:alpha val="38000"/></a:srgbClr></a:outerShdw></a:effectLst></a:effectStyle><a:effectStyle><a:effectLst><a:outerShdw blurRad="40000" dist="23000" dir="5400000" rotWithShape="0"><a:srgbClr val="000000"><a:alpha val="35000"/></a:srgbClr></a:outerShdw></a:effectLst></a:effectStyle><a:effectStyle><a:effectLst><a:outerShdw blurRad="40000" dist="23000" dir="5400000" rotWithShape="0"><a:srgbClr val="000000"><a:alpha val="35000"/></a:srgbClr></a:outerShdw></a:effectLst><a:scene3d><a:camera prst="orthographicFront"><a:rot lat="0" lon="0" rev="0"/></a:camera><a:lightRig rig="threePt" dir="t"><a:rot lat="0" lon="0" rev="1200000"/></a:lightRig></a:scene3d><a:sp3d><a:bevelT w="63500" h="25400"/></a:sp3d></a:effectStyle></a:effectStyleLst><a:bgFillStyleLst><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:gradFill rotWithShape="1"><a:gsLst><a:gs pos="0"><a:schemeClr val="phClr"><a:tint val="40000"/><a:satMod val="350000"/></a:schemeClr></a:gs><a:gs pos="40000"><a:schemeClr val="phClr"><a:tint val="45000"/><a:shade val="99000"/><a:satMod val="350000"/></a:schemeClr></a:gs><a:gs pos="100000"><a:schemeClr val="phClr"><a:shade val="20000"/><a:satMod val="255000"/></a:schemeClr></a:gs></a:gsLst><a:path path="circle"><a:fillToRect l="50000" t="-80000" r="50000" b="180000"/></a:path></a:gradFill><a:gradFill rotWithShape="1"><a:gsLst><a:gs pos="0"><a:schemeClr val="phClr"><a:tint val="80000"/><a:satMod val="300000"/></a:schemeClr></a:gs><a:gs pos="100000"><a:schemeClr val="phClr"><a:shade val="30000"/><a:satMod val="200000"/></a:schemeClr></a:gs></a:gsLst><a:path path="circle"><a:fillToRect l="50000" t="50000" r="50000" b="50000"/></a:path></a:gradFill></a:bgFillStyleLst></a:fmtScheme></a:themeElements><a:objectDefaults/><a:extraClrSchemeLst/></a:theme>');
 
