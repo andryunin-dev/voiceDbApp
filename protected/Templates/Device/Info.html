@@ -70,14 +70,17 @@
             devTable.jqTable('addBodyEventHandler', 'click', toggleInnerTable);
             devTable.jqTable('addHeaderEventHandler', 'click', function (e) {
                 if ($(e.target).parent().hasClass('finder-icon') || $(e.target).hasClass('finder-icon')) {
+                    var ws = e.data;
                     console.log('finder click');
-                    ws.obj.$finder.focusout(function (event) {
+                    var $finder = $('<input/>', {type: 'text', class: 'finder-input'});
+                    ws.obj.$finder.blur(function (event) {
                         console.log('focus out');
                         ws.obj.$finder.remove();
                     });
-                    ws.obj.$finder.appendTo('body').position({
+                    ws.obj.$finder.css({position: 'absolute'});
+                    ws.obj.$finder.appendTo('.finder-icon').position({
                         my: "right top",
-                        at: "center bottom",
+                        at: "center bottom+5",
                         of: event.target
                     }).focus()
                 }

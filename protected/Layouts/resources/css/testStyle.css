@@ -8,5 +8,6 @@
 .filter-input {
     width: 120px;
     height: 20px;
-    font-size: small
+    font-size: small;
+    color: #323232;
 }
