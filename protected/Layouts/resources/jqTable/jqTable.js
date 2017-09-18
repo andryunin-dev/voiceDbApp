@@ -45,6 +45,9 @@ jqTable.defaultModel = {
         selectors: {
             table: '_hd',
             scrollCell: '_scrollCell' //ячейка для компенсации скрола
+        },
+        filters: { //параметры контекстных фильтров в заголовке таблицы.
+            url: undefined //URL по которому обращаются фильтры (jQuery UI autocomplete).
         }
     },
     body: {
@@ -278,7 +281,10 @@ jqTable.workSetTmpl = {
         $pgInput: undefined,
         $pgPagesCount: undefined,
         $pgPreloader: undefined,
-        $tableFilters: $()
+        $tableFilters: $(),
+        headerFilters: {
+            inputs: {}
+        }
     },
 
     table: {
@@ -990,7 +996,7 @@ jqTable.workSetTmpl = {
                 //ширина таблицы body
                 var bodyWidth = ws.table.width;
                 if (ws.table.Y_Scroll_enable) {
-                    bodyWidth = bodyWidth - ws.scrolls.Y_scrollWidth - ws.scrolls.scrollMargin
+                    bodyWidth = bodyWidth - ws.scrolls.Y_scrollWidth - ws.scrolls.scrollMargin;
                 }
                 ws.obj.$body.width(bodyWidth);
                 //ширина ячейки preloader
@@ -1169,31 +1175,62 @@ jqTable.workSetTmpl = {
                     }
                 };
             },
-            buildFilter: function (ws) {
-                var $obj = $('<div/>', {class: 'finder-box'}).append($('<input/>', {type: 'text', class: 'finder-input'}));
-                ws.obj.$finder.append($obj);
-                return $obj;
-            },
             addFilters: function (ws) {
                 $.each(ws.header.columns, function (key, item) {
                     if (item.filterable) {
-                        var $finder = $('<div/>', {class: 'filter-box'})
+                        var $finder = $('<div/>', {class: 'filter-box jqt-filter-icon'})
                             .css({position: 'relative'})
+                            .data("column", key)
                             .append($('<span/>', {class: 'glyphicon glyphicon-filter'}))
                             .addClass('pull-right');
                         ws.obj.$header.find(item.th_id).prepend($finder);
 
-                        var $input = $('<input/>', {type: 'text', class: 'filter-input'})
-                            .css({position: 'absolute'});
+                        var $input = $('<input/>', {type: 'text', class: 'filter-input jqt-filter-input'})
+                            .css({position: 'absolute'}).data("column", key);
+                        ws.obj.headerFilters.inputs[key] = $input;
                         ws.obj.$headerBox.append($input);
                         $input.position({
                             of: $finder,
                             my: 'right top',
                             at: 'right bottom'
                         });
-
+                        //инициализация autocomplete
+                        $input.autocomplete({
+                            source: function(request, response) {
+                                $.ajax({
+                                    url: ws.model.header.filters.url,
+                                    dataType: "json",
+                                    data: {
+                                        term : request.term,
+                                        column : key
+                                    },
+                                    success: function(data) {
+                                        response(data);
+                                    }
+                                });
+                            },
+                            minLength: 3,
+                            delay: 300
+                        });
+                        $input.hide();
                     }
-                })
+                });
+                //клик по иконке фильтра показывает соответствующее поле input
+                ws.obj.$header.on(
+                    'click',
+                    '.jqt-filter-icon',
+                    ws,
+                    function (e) {
+                        var column = $(this).data('column');
+                        $.each(ws.obj.headerFilters.inputs, function (key, item) {
+                            if (key == column) {
+                                item.show().focus();
+                            } else {
+                                item.hide();
+                            }
+                        });
+                    }
+                );
             }
         };
         var methods = {
@@ -1267,33 +1304,41 @@ jqTable.workSetTmpl = {
                     });
                 return this;
             },
-            addBodyEventHandler: function (event, handler) {
-                ws = inner.getWorkSet(this);
+            addBodyEventHandler: function (event, selector, handler) {
+                if (selector === '') {
+                    selector = null;
+                }
+                var ws = inner.getWorkSet(this);
                 if (typeof ws === 'undefined') {
                     inner.debug(ws, 'addBodyEventHandler: Fatal Error! Не найден workSet');
                     throw 'updateBodyContent: не найден workSet';
                 }
                 ws.obj.$body.on(
                     event,
+                    selector,
                     ws,
                     handler
-                )
+                );
             },
-            addHeaderEventHandler: function (event, handler) {
-                ws = inner.getWorkSet(this);
+            addHeaderEventHandler: function (event, selector, handler) {
+                if (selector === '') {
+                    selector = null;
+                }
+                var ws = inner.getWorkSet(this);
                 if (typeof ws === 'undefined') {
-                    inner.debug(ws, 'addBodyEventHandler: Fatal Error! Не найден workSet');
+                    inner.debug(ws, 'addHeaderEventHandler: Fatal Error! Не найден workSet');
                     throw 'updateBodyContent: не найден workSet';
                 }
                 ws.obj.$header.on(
                     event,
+                    selector,
                     ws,
                     handler
-                )
+                );
             },
             //для обработки событий самого поисковика (autocomplete)
             addFinderEventHandler: function (event, handler) {
-                ws = inner.getWorkSet(this);
+                var ws = inner.getWorkSet(this);
                 if (typeof ws === 'undefined') {
                     inner.debug(ws, 'addHeaderEventHandler: Fatal Error! Не найден workSet');
                     throw 'updateBodyContent: не найден workSet';
@@ -1302,7 +1347,7 @@ jqTable.workSetTmpl = {
                     event,
                     ws,
                     handler
-                )
+                );
             },
             getWorkSet: function () {
                 var ws = inner.getWorkSet(this);

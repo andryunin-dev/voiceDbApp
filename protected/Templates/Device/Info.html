@@ -36,6 +36,9 @@
                     {% if not user.readOnly %}
                     action: {id: 'action', name: 'Действия', width: '105px'}
                     {% endif %}
+                },
+                filters: {
+                    url: '/ajax/default.json'
                 }
             },
             pager: {
@@ -67,8 +70,8 @@
                     $(e.target).closest("table").find(".js-caret").toggleClass("caret-down");
                 }
             };
-            devTable.jqTable('addBodyEventHandler', 'click', toggleInnerTable);
-            devTable.jqTable('addHeaderEventHandler', 'click', function (e) {
+            devTable.jqTable('addBodyEventHandler', 'click', "", toggleInnerTable);
+            devTable.jqTable('addHeaderEventHandler', 'click', "", function (e) {
                 if ($(e.target).parent().hasClass('finder-icon') || $(e.target).hasClass('finder-icon')) {
                     var ws = e.data;
                     console.log('finder click');
