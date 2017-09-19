@@ -1226,6 +1226,7 @@ jqTable.workSetTmpl = {
                                     }
                                 });
                             },
+                            height: ws.obj.$bodyBox.height() + 'px',
                             minLength: 1,
                             delay: 300
                         });

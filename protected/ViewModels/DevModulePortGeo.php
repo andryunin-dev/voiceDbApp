@@ -53,6 +53,7 @@ class DevModulePortGeo extends Model
 {
     use DevTypesTrait;
     use ViewHelperTrait;
+    use DbaTrait;
 
     protected static $schema = [
         'table' => 'view.dev_module_port_geo',

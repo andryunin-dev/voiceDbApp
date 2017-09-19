@@ -11,6 +11,7 @@ use function foo\func;
 use T4\Core\Session;
 use T4\Core\Std;
 use T4\Core\Url;
+use T4\Dbal\Query;
 use T4\Http\Request;
 use T4\Mvc\Controller;
 
@@ -73,7 +74,7 @@ class Device extends Controller
                     break;
                 case 'headerFilter':
                     if (isset($value->filter)) {
-                        $filterScr[$value->filter->column][$value->filter->condition] = $value->filter->value;
+                        $filterScr[$value->filter->column] = [$value->filter->condition => $value->filter->value];
                     } else {
                         $filterScr = [];
                     }
@@ -87,8 +88,20 @@ class Device extends Controller
                         new ContentFilter($value->hrefFilter, DevModulePortGeo::class, DevModulePortGeo::$columnMap) :
                         new ContentFilter();
                     $joinedFilter = ContentFilter::joinFilters($tableFilter, $hrefFilter);
-                    $this->data->result = $joinedFilter->selectDistinctArrayByColumn($value->filter->column, DevModulePortGeo::class, DevModulePortGeo::$columnMap );
+//                    $this->data->result = $joinedFilter->selectDistinctArrayByColumn($value->filter->column, DevModulePortGeo::class, DevModulePortGeo::$columnMap );
+                    $query = (new Query())
+                        ->distinct()
+                        ->select($value->filter->column)
+                        ->from(DevModulePortGeo::getTableName())
+                        ->order($value->filter->column)
+                        ->where($joinedFilter->whereStatement->where)
+                        ->params($joinedFilter->whereStatement->params);
+                    if (! empty($value->filter->limit) && is_numeric($value->filter->limit)) {
+                        $query->limit((intval($value->filter->limit)));
+                    }
+                    $this->data->result = DevModulePortGeo::findAllDistictColumnValues($query);
                     unset($this->data->user);
+                    break;
                 default:
                     break;
             }

@@ -14,6 +14,12 @@ use T4\Core\Url;
 use T4\Dbal\Connection;
 use T4\Dbal\Query;
 
+/**
+ * Class ContentFilter
+ * @package App\Components
+ *
+ * @property WhereStatement $whereStatement
+ */
 class ContentFilter extends Std
 {
     const HREF_PROPERTY = 'href';
@@ -171,7 +177,7 @@ class ContentFilter extends Std
     {
         return '"' . $data . '"';
     }
-    protected function buildWhereStatement()
+    protected function getWhereStatement()
     {
         //собираем  WHERE statement
         $queryParams = [];
@@ -199,7 +205,7 @@ class ContentFilter extends Std
             }
         }
         $whereStatement = implode(' AND ', $tableStatements);
-        $res = (new Std())
+        $res = (new WhereStatement())
             ->fill([
                 'where' => $whereStatement,
                 'params' => $queryParams
