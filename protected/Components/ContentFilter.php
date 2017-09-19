@@ -11,6 +11,7 @@ namespace App\Components;
 
 use T4\Core\Std;
 use T4\Core\Url;
+use T4\Dbal\Connection;
 use T4\Dbal\Query;
 
 class ContentFilter extends Std
@@ -156,10 +157,10 @@ class ContentFilter extends Std
         }
     }
 
-    public static function joinFilters(ContentFilter $tableFilter, ContentFilter $hrefFilter)
+    public static function joinFilters(ContentFilter $mainFilter, ContentFilter $slaveFilter)
     {
         $target = new self();
-        $target->merge($hrefFilter)->merge($tableFilter);
+        $target->merge($slaveFilter)->merge($mainFilter);
         if (isset($target->{self::HREF_PROPERTY})) {
             unset($target->{self::HREF_PROPERTY});
         }
@@ -169,6 +170,41 @@ class ContentFilter extends Std
     protected static function quoteName($data)
     {
         return '"' . $data . '"';
+    }
+    protected function buildWhereStatement()
+    {
+        //собираем  WHERE statement
+        $queryParams = [];
+        $tableStatements = [];
+        foreach ($this as $column => $conditions) {
+            $columnStatement = [];
+            foreach ($conditions as $predicate => $valuesItem) {
+                foreach ($valuesItem as $index => $value) {
+                    if (in_array(self::PREDICATE_REPLACEMENT[$predicate], self::PREDICATES_WITHOUT_PARAM)) {
+                        $columnStatement[] = self::quoteName($column) . ' ' . self::PREDICATE_REPLACEMENT[$predicate] . ' ' . $value;
+                    } else {
+                        $predicate = self::PREDICATE_REPLACEMENT[$predicate];
+                        $columnStatement[] = self::quoteName($column) . ' ' . $predicate . ' ' . ':' . $column . '_' . $predicate . '_' . $index;
+                        $queryParams[':' . $column . '_' . $predicate . '_' . $index] = ('like' == strtolower($predicate)) ? $value . '%' : $value;
+                    }
+                }
+            }
+            if (empty($columnStatement)) {
+                continue;
+            }
+            if (1 == count($columnStatement)) {
+                $tableStatements[] = array_pop($columnStatement);
+            } else {
+                $tableStatements[] = '(' . implode(' OR ', $columnStatement) . ')';
+            }
+        }
+        $whereStatement = implode(' AND ', $tableStatements);
+        $res = (new Std())
+            ->fill([
+                'where' => $whereStatement,
+                'params' => $queryParams
+            ]);
+        return $res;
     }
 
     public function countQuery(string $className)
@@ -183,8 +219,9 @@ class ContentFilter extends Std
                     if (in_array(self::PREDICATE_REPLACEMENT[$predicate], self::PREDICATES_WITHOUT_PARAM)) {
                         $columnStatement[] = self::quoteName($column) . ' ' . self::PREDICATE_REPLACEMENT[$predicate] . ' ' . $value;
                     } else {
-                        $columnStatement[] = self::quoteName($column) . ' ' . self::PREDICATE_REPLACEMENT[$predicate] . ' ' . ':' . $column . '_' . $predicate . '_' . $index;
-                        $queryParams[':' . $column . '_' . $predicate . '_' . $index] = $value;
+                        $predicate = self::PREDICATE_REPLACEMENT[$predicate];
+                        $columnStatement[] = self::quoteName($column) . ' ' . $predicate . ' ' . ':' . $column . '_' . $predicate . '_' . $index;
+                        $queryParams[':' . $column . '_' . $predicate . '_' . $index] = ('like' == strtolower($predicate)) ? $value . '%' : $value;
                     }
                 }
             }
@@ -219,5 +256,30 @@ class ContentFilter extends Std
             $query->limit($paginator->rowsOnPage);
         }
         return $query;
+    }
+    public function selectDistinctArrayByColumn(string $column, string $className,  array $mappingArray = [])
+    {
+        $column = self::findColumn($column, $className, $mappingArray);
+        if (empty($column)) {
+            return false;
+        }
+        $column = $column[self::COLUMN_NAME_KEY];
+        $query = $this->countQuery($className);
+        $params = $query->params;
+
+        $query = 'SELECT DISTINCT ' . $column .
+            ' FROM ' . $className::getTableName() . ' WHERE ' . $query->where;
+        $query = (new Query($query));
+        $query->params = $params;
+        $con = $className::getDbConnection();
+        /**
+         * @var Connection $stm
+         */
+        $res = $con->query($query);
+        $res = $res->fetchAll(\PDO::FETCH_ASSOC);
+        $res = array_map(function ($item) {
+            return array_pop($item);
+        }, $res);
+        return $res;
     }
 }

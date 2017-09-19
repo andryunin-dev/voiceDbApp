@@ -935,7 +935,7 @@ jqTable.workSetTmpl = {
                             if (ws.table.isBuilt) {
                                 inner.setBodyHeight(ws);
                             }
-                            inner.addFilters(ws);
+                            headerFilters.addFilters(ws);
                             ws.header.isBuilt = true;
                         })
                         .fail(function (jqXHR, textStatus, errorThrown) {
@@ -1175,6 +1175,8 @@ jqTable.workSetTmpl = {
                     }
                 };
             },
+        };
+        var headerFilters = {
             addFilters: function (ws) {
                 $.each(ws.header.columns, function (key, item) {
                     if (item.filterable) {
@@ -1186,7 +1188,7 @@ jqTable.workSetTmpl = {
                         ws.obj.$header.find(item.th_id).prepend($finder);
 
                         var $input = $('<input/>', {type: 'text', class: 'filter-input jqt-filter-input'})
-                            .css({position: 'absolute'}).data("column", key);
+                            .css({position: 'absolute'}).data("column", key).data('condition', 'like');
                         ws.obj.headerFilters.inputs[key] = $input;
                         ws.obj.$headerBox.append($input);
                         $input.position({
@@ -1198,18 +1200,33 @@ jqTable.workSetTmpl = {
                         $input.autocomplete({
                             source: function(request, response) {
                                 $.ajax({
-                                    url: ws.model.header.filters.url,
+                                    url: ws.model.dataUrl,
                                     dataType: "json",
                                     data: {
-                                        term : request.term,
-                                        column : key
+                                        headerFilter: {
+                                            filter: {
+                                                column: key,
+                                                condition: $input.data('condition'),
+                                                value: request.term
+                                            },
+                                            tableFilter: ws.tableFilter,
+                                            hrefFilter: ws.hrefFilter
+                                        }
                                     },
-                                    success: function(data) {
-                                        response(data);
+                                    success: function(data){
+                                        // приведем полученные данные к необходимому формату и передадим в предоставленную функцию response
+                                        var res = $.map(data.result, function(item){
+                                            // return{
+                                            //     label: item,
+                                            //     value: item
+                                            // }
+                                            return item;
+                                        });
+                                        response(data.result);
                                     }
                                 });
                             },
-                            minLength: 3,
+                            minLength: 1,
                             delay: 300
                         });
                         $input.hide();
@@ -1231,6 +1248,19 @@ jqTable.workSetTmpl = {
                         });
                     }
                 );
+                //потеря фокуса  полем input фильтров
+                ws.obj.$tableBox.on(
+                    'blur change',
+                    '.jqt-filter-input',
+                    ws,
+                    function (e) {
+                        if (! $(this).is(':visible')) {
+                            return;
+                        }
+                        $(this).hide();
+                        console.log($(this).val());
+                    }
+                )
             }
         };
         var methods = {
@@ -1368,6 +1398,15 @@ jqTable.workSetTmpl = {
             $.error( 'Метод "' +  method + '" не найден в плагине jQuery.jqTable' );
         }
         if ( inner[method] ) {
+            // если запрашиваемый метод существует, мы его вызываем
+            // все параметры, кроме имени метода прийдут в метод
+            // this так же перекочует в метод
+            return inner[ method ].apply( this, Array.prototype.slice.call( arguments, 1 ));
+        } else {
+            // если ничего не получилось
+            $.error( 'Метод "' +  method + '" не найден в плагине jQuery.jqTable' );
+        }
+        if ( headerFilters[method] ) {
             // если запрашиваемый метод существует, мы его вызываем
             // все параметры, кроме имени метода прийдут в метод
             // this так же перекочует в метод

@@ -71,6 +71,24 @@ class Device extends Controller
                     $info[] = 'Сотрудников: ' . $peoples;
                     $this->data->body->info = $info;
                     break;
+                case 'headerFilter':
+                    if (isset($value->filter)) {
+                        $filterScr[$value->filter->column][$value->filter->condition] = $value->filter->value;
+                    } else {
+                        $filterScr = [];
+                    }
+                    $newTabFilter = new ContentFilter($filterScr, DevModulePortGeo::class, DevModulePortGeo::$columnMap);
+
+                    $tableFilter = isset($value->tableFilter) ?
+                        new ContentFilter($value->tableFilter, DevModulePortGeo::class, DevModulePortGeo::$columnMap) :
+                        new ContentFilter();
+                    $tableFilter = ContentFilter::joinFilters($newTabFilter, $tableFilter);
+                    $hrefFilter = isset($value->hrefFilter) ?
+                        new ContentFilter($value->hrefFilter, DevModulePortGeo::class, DevModulePortGeo::$columnMap) :
+                        new ContentFilter();
+                    $joinedFilter = ContentFilter::joinFilters($tableFilter, $hrefFilter);
+                    $this->data->result = $joinedFilter->selectDistinctArrayByColumn($value->filter->column, DevModulePortGeo::class, DevModulePortGeo::$columnMap );
+                    unset($this->data->user);
                 default:
                     break;
             }
