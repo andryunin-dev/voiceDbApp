@@ -1174,7 +1174,7 @@ jqTable.workSetTmpl = {
                         tableId: ws.mainSelector.slice(1)
                     }
                 };
-            },
+            }
         };
         var headerFilters = {
             addFilters: function (ws) {
