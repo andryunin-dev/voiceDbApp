@@ -11,3 +11,6 @@
     font-size: small;
     color: #323232;
 }
+.ui-filter-list {
+    position: relative;
+}
