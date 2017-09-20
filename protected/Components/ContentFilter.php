@@ -189,8 +189,8 @@ class ContentFilter extends Std
                     if (in_array(self::PREDICATE_REPLACEMENT[$predicate], self::PREDICATES_WITHOUT_PARAM)) {
                         $columnStatement[] = self::quoteName($column) . ' ' . self::PREDICATE_REPLACEMENT[$predicate] . ' ' . $value;
                     } else {
-                        $predicate = self::PREDICATE_REPLACEMENT[$predicate];
-                        $columnStatement[] = self::quoteName($column) . ' ' . $predicate . ' ' . ':' . $column . '_' . $predicate . '_' . $index;
+                        $realPredicate = self::PREDICATE_REPLACEMENT[$predicate];
+                        $columnStatement[] = self::quoteName($column) . ' ' . $realPredicate . ' ' . ':' . $column . '_' . $predicate . '_' . $index;
                         $queryParams[':' . $column . '_' . $predicate . '_' . $index] = ('like' == strtolower($predicate)) ? $value . '%' : $value;
                     }
                 }
@@ -225,8 +225,8 @@ class ContentFilter extends Std
                     if (in_array(self::PREDICATE_REPLACEMENT[$predicate], self::PREDICATES_WITHOUT_PARAM)) {
                         $columnStatement[] = self::quoteName($column) . ' ' . self::PREDICATE_REPLACEMENT[$predicate] . ' ' . $value;
                     } else {
-                        $predicate = self::PREDICATE_REPLACEMENT[$predicate];
-                        $columnStatement[] = self::quoteName($column) . ' ' . $predicate . ' ' . ':' . $column . '_' . $predicate . '_' . $index;
+                        $realPredicate = self::PREDICATE_REPLACEMENT[$predicate];
+                        $columnStatement[] = self::quoteName($column) . ' ' . $realPredicate . ' ' . ':' . $column . '_' . $predicate . '_' . $index;
                         $queryParams[':' . $column . '_' . $predicate . '_' . $index] = ('like' == strtolower($predicate)) ? $value . '%' : $value;
                     }
                 }

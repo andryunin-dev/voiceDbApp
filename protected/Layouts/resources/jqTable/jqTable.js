@@ -283,7 +283,7 @@ jqTable.workSetTmpl = {
         $pgPreloader: undefined,
         $tableFilters: $(),
         headerFilters: {
-            inputs: {}
+            items: {}
         }
     },
 
@@ -1180,18 +1180,25 @@ jqTable.workSetTmpl = {
             addFilters: function (ws) {
                 $.each(ws.header.columns, function (key, item) {
                     if (item.filterable) {
-                        var $finder = $('<div/>', {class: 'filter-box jqt-filter-icon'})
+                        var $finder = $('<div/>', {class: 'ui-filter-icon-box'})
                             .css({position: 'relative'})
                             .data("column", key)
                             .append($('<span/>', {class: 'glyphicon glyphicon-filter'}))
                             .addClass('pull-right');
                         ws.obj.$header.find(item.th_id).prepend($finder);
 
-                        var $input = $('<input/>', {type: 'text', class: 'filter-input jqt-filter-input'})
-                            .css({position: 'absolute'}).data("column", key).data('condition', 'like');
-                        ws.obj.headerFilters.inputs[key] = $input;
-                        ws.obj.$headerBox.append($input);
-                        $input.position({
+                        var $input = $('<input/>', {
+                            type: 'text',
+                            class: 'ui-filter-input',
+                            width: item.width
+                        }).data("column", key).data('condition', 'like');
+                        var $filterItems = $('<div/>', {class: 'ui-filter-items'});
+                        var $filterBox = $('<div/>', {class: 'ui-filter-box ui-front'})
+                            .css({position: 'absolute'});
+                        $filterBox.append($input).append($filterItems);
+                        ws.obj.headerFilters.items[key] = $filterBox;
+                        ws.obj.$headerBox.append($filterBox);
+                        $filterBox.position({
                             of: $finder,
                             my: 'right top',
                             at: 'right bottom'
@@ -1215,34 +1222,64 @@ jqTable.workSetTmpl = {
                                     },
                                     success: function(data){
                                         // приведем полученные данные к необходимому формату и передадим в предоставленную функцию response
-                                        var res = $.map(data.result, function(item){
-                                            // return{
-                                            //     label: item,
-                                            //     value: item
-                                            // }
-                                            return item;
-                                        });
+                                        // var res = $.map(data.result, function(item){
+                                        //     // return{
+                                        //     //     label: item,
+                                        //     //     value: item
+                                        //     // }
+                                        //     return item;
+                                        // });
                                         response(data.result);
-                                    }
+                                    },
                                 });
                             },
-                            height: ws.obj.$bodyBox.height() + 'px',
                             minLength: 1,
                             delay: 300
                         });
-                        $input.hide();
+                        $filterBox.hide();
                     }
                 });
+                //открытие списка вариантов
+                ws.obj.$headerBox.on(
+                    'autocompleteopen',
+                    '.ui-filter-box',
+                    function (e, ui) {
+                        $(this).find('.ui-autocomplete').css({
+                            'max-height': ws.obj.$bodyBox.height(),
+                            // 'height': ws.obj.$bodyBox.height(),
+                            'overflow-y': 'auto',
+                            'overflow-x': 'hidden'
+                        });
+                        // console.log(this);
+                    }
+                );
+                //событие при выборе элемента предлагаемого списка
+                ws.obj.$headerBox.on(
+                    'autocompleteselect',
+                    '.ui-filter-box',
+                    function (e, ui) {
+                        var $input = $(this).find('.ui-autocomplete-input');
+                        var $filterItems = $(this).find('.ui-filter-items');
+                        $('button').button({
+                            label: ui.item.label,
+                            icon: 'ui-icon-close'
+                        }).appendTo($filterItems);
+                        $input.data('condition', 'eq');
+                        headerFilters.updateTableFilter(ws, $input.data('column'), $input.data('condition'), ui.item.value);
+                        methods.updateBodyContent(ws);
+                        // console.log(ui);
+                    }
+                );
                 //клик по иконке фильтра показывает соответствующее поле input
                 ws.obj.$header.on(
                     'click',
-                    '.jqt-filter-icon',
+                    '.ui-filter-icon-box',
                     ws,
                     function (e) {
                         var column = $(this).data('column');
-                        $.each(ws.obj.headerFilters.inputs, function (key, item) {
+                        $.each(ws.obj.headerFilters.items, function (key, item) {
                             if (key == column) {
-                                item.show().focus();
+                                item.show().find('.ui-filter-input').focus();
                             } else {
                                 item.hide();
                             }
@@ -1252,16 +1289,22 @@ jqTable.workSetTmpl = {
                 //потеря фокуса  полем input фильтров
                 ws.obj.$tableBox.on(
                     'blur change',
-                    '.jqt-filter-input',
+                    '.ui-filter-box',
                     ws,
                     function (e) {
                         if (! $(this).is(':visible')) {
                             return;
                         }
                         $(this).hide();
-                        console.log($(this).val());
                     }
                 )
+            },
+            updateTableFilter: function (ws, column, statement, value) {
+                var newItem = {[column]: {[statement]: [value]}};
+                if ($.isArray(ws.tableFilter)) {
+                    ws.tableFilter = {};
+                }
+                ws.tableFilter = $.extend(true, ws.tableFilter, newItem);
             }
         };
         var methods = {

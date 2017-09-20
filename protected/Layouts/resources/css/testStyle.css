@@ -1,11 +1,11 @@
-.filter-box {
+.ui-filter-icon-box {
     height: 100%;
 }
-.filter-box span {
+.ui-filter-icon-box span {
     vertical-align: middle;
     font-size: x-small;
 }
-.filter-input {
+.ui-filter-input {
     width: 120px;
     height: 20px;
     font-size: small;
