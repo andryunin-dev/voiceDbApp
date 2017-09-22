@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-
 use T4\Core\Collection;
 use T4\Core\Exception;
 use T4\Core\MultiException;
@@ -17,6 +16,8 @@ use T4\Orm\Model;
  */
 class ApplianceType extends Model
 {
+    const CUCM_PUBLISHER = 'cmp';
+
     protected static $schema = [
         'table' => 'equipment.applianceTypes',
         'columns' => [
