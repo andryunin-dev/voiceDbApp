@@ -23,6 +23,7 @@ use T4\Orm\Model;
  * @property string $details
  * @property string $comment
  * @property bool $isManagement
+ * @property string $portName
  *
  * @property Appliance $appliance
  * @property DPortType $portType
@@ -30,6 +31,19 @@ use T4\Orm\Model;
  */
 class DataPort extends Model
 {
+    const DEFAULT_PORTNAME = '';
+    const DEFAULT_MACADDRESS = '00:00:00:00:00:00';
+
+
+    public function __construct($data = null)
+    {
+        $this->details = ['portName' => self::DEFAULT_PORTNAME];
+        $this->macAddress = self::DEFAULT_MACADDRESS;
+
+        parent::__construct($data);
+    }
+
+
     protected static $schema = [
         'table' => 'equipment.dataPorts',
         'columns' => [
@@ -38,6 +52,7 @@ class DataPort extends Model
             'macAddress' => ['type' => 'string'],
             'details' => ['type' => 'json'],
             'comment' => ['type' => 'text'],
+            'lastUpdate' => ['type' => 'datetime'],
             'isManagement' => ['type' => 'boolean']
         ],
         'relations' => [
@@ -115,6 +130,13 @@ class DataPort extends Model
         return empty($this->vrf) ? $this->vrf = $this->network->vrf : $this->vrf;
     }
 
+
+    protected function getPortName()
+    {
+        return $this->details->portName;
+    }
+
+
     public function formatMacAddress()
     {
         $key = 'macAddress';
@@ -182,7 +204,7 @@ class DataPort extends Model
     protected function validateMacAddress($val)
     {
         if (empty(trim($val))) {
-            return false;
+            return true;
         }
         if (!empty(trim($val)) && false === filter_var(trim($val), FILTER_VALIDATE_MAC)) {
             throw new Exception($val . ' - Неверный формат MAC адреса');
@@ -193,6 +215,10 @@ class DataPort extends Model
 
     protected function sanitizeMacAddress($val)
     {
+        if (empty($val)) {
+            $val = self::DEFAULT_MACADDRESS;
+        }
+
         return filter_var(trim($val), FILTER_VALIDATE_MAC);
     }
 
@@ -208,12 +234,18 @@ class DataPort extends Model
                 $details[$key] = trim($item);
             }
         }
+
+        if (empty($details)) {
+            $details = ['portName' => self::DEFAULT_PORTNAME];
+        }
+
         return $details;
     }
 
     protected function validate()
     {
         $ip = new IpTools($this->ipAddress, $this->masklen);
+
         if (false === $this->appliance) {
             throw new Exception('Устройство не найдено');
         }
@@ -378,6 +410,28 @@ class DataPort extends Model
     {
         $result = self::findAllByIpVrf($ip, $vrf)->first();
         return (null === $result) ? false : $result;
+    }
+
+
+    /**
+     * @param Appliance $appliance
+     * @param string $portName
+     * @param string $macAddress
+     * @return static
+     */
+    public static function findByAppliancePortnameMacaddress(Appliance $appliance, string $portName, string $macAddress)
+    {
+        $query = (new Query())
+            ->select('*')
+            ->from(self::getTableName())
+            ->where('__appliance_id = :appliance_id AND "macAddress" = :macAddress AND details::json->>\'portName\' = :portName')
+            ->params([
+                ':appliance_id' => $appliance->getPk(),
+                ':macAddress' => $macAddress,
+                ':portName' => $portName,
+            ]);
+
+        return self::findByQuery($query);
     }
 
 
