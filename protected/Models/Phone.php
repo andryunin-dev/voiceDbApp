@@ -109,10 +109,10 @@ class Phone extends Appliance
      */
     protected static function findAllCucmNodes(string $cucmIp)
     {
-        $axl = AxlClient::instance($cucmIp);
+        $axl = AxlClient::getInstance($cucmIp)->client;
 
         // Get all CmNodes from the publisher
-        switch (AxlClient::$schema->$cucmIp) {
+        switch (AxlClient::getInstance($cucmIp)->schema) {
             case '7.1':
                 $cmServers = ($axl->ListAllProcessNodes())->return->processNode;
                 break;
@@ -150,7 +150,7 @@ class Phone extends Appliance
      */
     protected static function findAllIntoCucmAxl(string $cucmIp)
     {
-        $axl = AxlClient::instance($cucmIp);
+        $axl = AxlClient::getInstance($cucmIp)->client;
 
         // Получить данные по телефонам из cucm
         $request = 'SELECT d.name AS Device, d.description,css.name AS css, css2.name AS name_off_clause, dp.name as dPool, TRIM (TRAILING "." FROM (TRIM (TRAILING "X" FROM n2.dnorpattern))) as prefix, n.dnorpattern, n.alertingname as FIO, partition.name AS pt, tm.name AS type FROM device AS d INNER JOIN callingsearchspace AS css ON css.pkid = d.fkcallingsearchspace AND d.tkclass = 1 AND  d.tkmodel != 72 INNER JOIN devicenumplanmap AS dmap ON dmap.fkdevice = d.pkid INNER JOIN numplan AS n ON dmap.fknumplan = n.pkid INNER JOIN routepartition AS partition ON partition.pkid = n.fkroutepartition INNER JOIN typemodel AS tm ON d.tkmodel = tm.enum INNER JOIN DevicePool AS dp ON dp.pkid = d.fkDevicePool INNER JOIN callingsearchspace AS css2 ON css2.clause LIKE "%" || partition.name || "%" INNER JOIN numplan AS n2 ON n2.fkcallingsearchspace_translation = css2.pkid WHERE n2.tkpatternusage = 3 AND n2.dnorpattern LIKE "5%" AND lessthan(LENGTH(substr(n2.dnorpattern, LENGTH(TRIM (TRAILING "X" FROM n2.dnorpattern))+1, LENGTH(n2.dnorpattern)-LENGTH(TRIM (TRAILING "X" FROM n2.dnorpattern)))),5)';
@@ -186,7 +186,7 @@ class Phone extends Appliance
      */
     protected static function findAllDevicesIntoCucmAxl(string $cucmIp)
     {
-        $axl = AxlClient::instance($cucmIp);
+        $axl = AxlClient::getInstance($cucmIp)->client;
 
         // Получить имена всех устройств из cucm
         $devices = ($axl->ExecuteSQLQuery(['sql' => 'SELECT d.name FROM device AS d']))->return->row;
@@ -210,10 +210,10 @@ class Phone extends Appliance
     protected static function findAllRegisteredDevicesIntoCucmRis(string $cucmIp, Collection $devices, Collection $nodes)
     {
         $registeredDevices = new Collection();
-        $ris = RisPortClient::instance($cucmIp);
+        $ris = RisPortClient::getInstance($cucmIp);
 
         // Определить max Number Of Devices Returned In the Query
-        switch (AxlClient::$schema->$cucmIp) {
+        switch (AxlClient::getInstance($cucmIp)->schema) {
             case '7.1':
                 $maxNumberOfDevicesReturnedInQuery = self::MAXRETURNEDDEVICES_SCH_7_1;
                 break;
@@ -511,174 +511,6 @@ class Phone extends Appliance
 
             } else {
                 return null;
-            }
-        }
-
-        return $this;
-    }
-
-
-
-    /**
-     * @param string $name
-     * @param string|null $cucmIp
-     * @return Phone|null
-     */
-    public static function findByNameIntoCucm(string $name, string $cucmIp = null)
-    {
-        $phone = new self();
-        $phone->fill([
-            'name' => mb_strtoupper($name),
-        ]);
-
-        // ------------------- AXL -------------------------------------
-        if (is_null($phone->getDataFromCucmAxl($cucmIp))) {
-            $phone->debugLogger->info('PHONE: ' . '[name]=' . $phone->name . ' [publisher]=' . $cucmIp . ' [message]=It is not found in AXL on the CUCM');
-            return null;
-        }
-        // ------------------- RisPort Service -------------------------------------
-        if (is_null($phone->getDataFromCucmRis($cucmIp))) {
-            $phone->debugLogger->info('PHONE: ' . '[name]=' . $phone->name . ' [publisher]=' . $cucmIp . ' [message]=It is not found in RisPort on the CUCM');
-            return null;
-        }
-        // ------------------- DeviceInformation -------------------------------------
-        if (is_null($phone->getDataFromWebDevInfo())) {
-            $phone->debugLogger->info('PHONE: ' . '[name]=' . $phone->name . ' [ip]=' . $phone->ipAddress . ' [publisher]=' . $cucmIp . ' [message]=It does not have web access');
-            return $phone;
-        }
-        // ------------------- NetworkConfiguration -------------------------------------
-        if (is_null($phone->getDataFromWebNetConf())) {
-            $phone->debugLogger->info('PHONE: ' . '[model]=' . $phone->model . ' [ip]=' . $phone->ipAddress . ' [publisher]=' . $cucmIp . ' [message]=It does not have web access by HTML for NetworkConfiguration');
-        }
-        // ------------------- PortInformation -------------------------------------
-        if (is_null($phone->getDataFromWebPortInfo())) {
-            $phone->debugLogger->info('PHONE: ' . '[model]=' . $phone->model . ' [ip]=' . $phone->ipAddress . ' [publisher]=' . $cucmIp . ' [message]=It does not have web access by HTML for PortInformation');
-        }
-
-        return $phone;
-    }
-
-    /**
-     * @param string|null $cucmIp
-     * @return $this|null
-     * @throws Exception
-     * @throws MultiException
-     */
-    public function getDataFromCucmRis(string $cucmIp = null)
-    {
-        if (!isset($this->name)) {
-            throw new Exception('PHONE: No field name');
-        }
-
-        if (is_null($cucmIp) && isset($this->cucmIpAddress)) {
-            $cucmIp = $this->cucmIpAddress;
-        }
-
-        // Если $cucmIp = null, ТО искать во всех CUCMs
-        $cucmIps = new Collection();
-        if (is_null($cucmIp)) {
-            foreach (Appliance::findAllByType(self::PUBLISHER) as $publisher) {
-                $cucmIps->add($publisher->managementIp);
-            }
-        } else {
-            $cucmIps->add($cucmIp);
-        }
-
-        foreach ($cucmIps as $cucmIp) {
-            try {
-                $ris = RisPortClient::instance($cucmIp);
-                $items[] = ['Item' => $this->name];
-                $result = $ris->SelectCmDevice('',[
-                    'Class' => self::RISPHONETYPE,
-                    'Model' => self::ALLMODELS,
-                    'Status' => self::PHONESTATUS_REGISTERED,
-                    'SelectBy' => 'Name',
-                    'SelectItems' => $items,
-                ]);
-
-                if (1 == $result['SelectCmDeviceResult']->TotalDevicesFound) {
-                    foreach ($result['SelectCmDeviceResult']->CmNodes as $cmNode) {
-                        if ('ok' == strtolower($cmNode->ReturnCode)) {
-                            $this->fill([
-                                'cucmIpAddress' => trim($cmNode->Name),
-                                'ipAddress' => trim($cmNode->CmDevices[0]->IpAddress),
-                                'status' => trim($cmNode->CmDevices[0]->Status),
-                            ]);
-
-                            return $this;
-                        }
-                    }
-                }
-
-            } catch (\SoapFault $e) {
-                $this->debugLogger->info('PHONE: ' . '[name]=' . $this->name . ' [publisher]=' . $cucmIp . ' [message]=' . $e->getMessage());
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * @param string|null $cucmIp
-     * @return $this|null
-     * @throws Exception
-     */
-    public function getDataFromCucmAxl(string $cucmIp = null)
-    {
-        if (!isset($this->name)) {
-            throw new Exception('PHONE: No field name');
-        }
-
-        // Если $cucmIp = null, ТО искать во всех CUCMs
-        $cucmIps = new Collection();
-        if (is_null($cucmIp)) {
-            foreach (Appliance::findAllByType(self::PUBLISHER) as $publisher) {
-                $cucmIps->add($publisher->managementIp);
-            }
-        } else {
-            $cucmIps->add($cucmIp);
-        }
-
-        // Искать CUCM на котором телефон заведен
-        foreach ($cucmIps as $cucmIp) {
-            try {
-                $axl = AxlClient::instance($cucmIp);
-                if (isset(($axl->ListPhoneByName(['searchString' => $this->name]))->return->phone)) {
-                    $cucm = (self::findAllCucmNodes($cucmIp))->findByAttributes(['cmNodeIpAddress' => $cucmIp]);
-                    $this->fill([
-                        'cucmName' => $cucm->cmNodeName,
-                        'cucmIpAddress' => $cucm->cmNodeIpAddress,
-                    ]);
-                    $result = true;
-                    break;
-                }
-                $result = false;
-            } catch (\SoapFault $e) {
-                $this->debugLogger->info('PHONE: ' . '[name]=' . $this->name . ' [publisher]=' . $cucmIp . ' [message]=' . $e->getMessage());
-            }
-        }
-        // ЕСЛИ телефон не найден ни в одном CUCM
-        if (false === $result) {
-            return null;
-        }
-
-        // Get phone's data
-        $request = 'SELECT d.name AS Device, d.description,css.name AS css, css2.name AS name_off_clause, dp.name as dPool, TRIM (TRAILING "." FROM (TRIM (TRAILING "X" FROM n2.dnorpattern))) as prefix, n.dnorpattern, n.alertingname as FIO, partition.name AS pt, tm.name AS type FROM device AS d INNER JOIN callingsearchspace AS css ON css.pkid = d.fkcallingsearchspace AND d.tkclass = 1 AND  d.tkmodel != 72 INNER JOIN devicenumplanmap AS dmap ON dmap.fkdevice = d.pkid INNER JOIN numplan AS n ON dmap.fknumplan = n.pkid INNER JOIN routepartition AS partition ON partition.pkid = n.fkroutepartition INNER JOIN typemodel AS tm ON d.tkmodel = tm.enum INNER JOIN DevicePool AS dp ON dp.pkid = d.fkDevicePool INNER JOIN callingsearchspace AS css2 ON css2.clause LIKE "%" || partition.name || "%" INNER JOIN numplan AS n2 ON n2.fkcallingsearchspace_translation = css2.pkid WHERE n2.tkpatternusage = 3 AND n2.dnorpattern LIKE "5%" AND lessthan(LENGTH(substr( n2.dnorpattern,LENGTH(TRIM (TRAILING "X" FROM n2.dnorpattern))+1, LENGTH(n2.dnorpattern)-LENGTH(TRIM (TRAILING "X" FROM n2.dnorpattern)))),5)';
-
-        $items = $axl->ExecuteSQLQuery(['sql' => $request])->return->row;
-
-        foreach ($items as $item) {
-            if ($item->device == $this->name) {
-                $this->fill([
-                    'css' => trim($item->css),
-                    'devicePool' => trim($item->dpool),
-                    'model' => trim($item->type),
-                    'prefix' => trim($item->prefix),
-                    'phoneDN' => trim($item->dnorpattern),
-                    'alertingName' => trim($item->fio),
-                    'partition' => trim($item->pt),
-                    'description' => trim($item->description),
-                ]);
             }
         }
 
@@ -1485,5 +1317,238 @@ class Phone extends Appliance
         fclose($this->dbLockFile);
 
         return true;
+    }
+
+
+    /**
+     * @param $name
+     * @param $cucmIp
+     * @return Phone|bool
+     */
+    public static function findByNameIntoCucm($name, $cucmIp)
+    {
+        //// Get phone's data from cucm's axl
+        $axl = AxlClient::getInstance($cucmIp)->client;
+        $request = 'SELECT d.name AS Device, d.description,css.name AS css, css2.name AS name_off_clause, dp.name as dPool, TRIM (TRAILING "." FROM (TRIM (TRAILING "X" FROM n2.dnorpattern))) as prefix, n.dnorpattern, n.alertingname as FIO, partition.name AS pt, tm.name AS type FROM device AS d INNER JOIN callingsearchspace AS css ON css.pkid = d.fkcallingsearchspace AND d.tkclass = 1 AND  d.tkmodel != 72 AND  d.name = "' . $name . '" INNER JOIN devicenumplanmap AS dmap ON dmap.fkdevice = d.pkid INNER JOIN numplan AS n ON dmap.fknumplan = n.pkid INNER JOIN routepartition AS partition ON partition.pkid = n.fkroutepartition INNER JOIN typemodel AS tm ON d.tkmodel = tm.enum INNER JOIN DevicePool AS dp ON dp.pkid = d.fkDevicePool INNER JOIN callingsearchspace AS css2 ON css2.clause LIKE "%" || partition.name || "%" INNER JOIN numplan AS n2 ON n2.fkcallingsearchspace_translation = css2.pkid WHERE n2.tkpatternusage = 3 AND n2.dnorpattern LIKE "5%" AND lessthan(LENGTH(substr( n2.dnorpattern,LENGTH(TRIM (TRAILING "X" FROM n2.dnorpattern))+1, LENGTH(n2.dnorpattern)-LENGTH(TRIM (TRAILING "X" FROM n2.dnorpattern)))),5)';
+
+        $axlResult = $axl->ExecuteSQLQuery(['sql' => $request])->return->row;
+
+
+        //// Get phone's data from cucm's ris
+        $ris = RisPortClient::getInstance($cucmIp);
+        $risResult = $ris->SelectCmDevice('',[
+            'Class' => self::RISPHONETYPE,
+            'Model' => self::ALLMODELS,
+            'Status' => self::PHONESTATUS_REGISTERED,
+            'SelectBy' => 'Name',
+            'SelectItems' => [['Item' => $name]],
+        ]);
+
+
+        //// Если телефон не найден ни в Axl, ни в Ris, то возвращаем false
+        if (is_null($axlResult) && 0 === $risResult['SelectCmDeviceResult']->TotalDevicesFound) {
+            return false;
+        }
+
+
+        //// Fill in phone data from Axl and Ris
+        $phone = new self();
+
+        if (!is_null($axlResult)) {
+            $phone->fill([
+                'name' => trim($axlResult->device),
+                'css' => trim($axlResult->css),
+                'devicePool' => trim($axlResult->dpool),
+                'model' => trim($axlResult->type),
+                'prefix' => trim($axlResult->prefix),
+                'phoneDN' => trim($axlResult->dnorpattern),
+                'alertingName' => trim($axlResult->fio),
+                'partition' => trim($axlResult->pt),
+                'description' => trim($axlResult->description),
+            ]);
+        }
+
+        if (1 == $risResult['SelectCmDeviceResult']->TotalDevicesFound) {
+            $cmNodes = $risResult['SelectCmDeviceResult']->CmNodes;
+            foreach ($cmNodes as $cmNode) {
+                if ('ok' == strtolower($cmNode->ReturnCode)) {
+                    $phone->fill([
+                        'cucmIpAddress' => trim($cmNode->Name),
+                        'ipAddress' => trim($cmNode->CmDevices[0]->IpAddress),
+                        'status' => trim($cmNode->CmDevices[0]->Status),
+                    ]);
+                }
+            }
+        }
+
+
+        //// Get phone's data from WEB - DeviceInformationX
+        $webDevInfoResult = simplexml_load_file('http://' . $phone->ipAddress . '/DeviceInformationX');
+        if (false !== $webDevInfoResult) {
+            $phone->fill([
+                'macAddress' => trim($webDevInfoResult->MACAddress->__toString()),
+                'serialNumber' => trim($webDevInfoResult->serialNumber->__toString()),
+                'modelNumber' => trim($webDevInfoResult->modelNumber->__toString()),
+                'versionID' => trim($webDevInfoResult->versionID->__toString()),
+                'appLoadID' => trim($webDevInfoResult->appLoadID->__toString()),
+                'timezone' => trim($webDevInfoResult->timezone->__toString()),
+            ]);
+        }
+
+
+        //// Get phone's data from WEB - NetworkConfigurationX
+        /// Чтение XML
+        $webNetConfigResult = simplexml_load_file('http://' . $phone->ipAddress . '/NetworkConfigurationX');
+        if (false !== $webNetConfigResult) {
+            $phone->fill([
+                'dhcpEnabled' => trim($webNetConfigResult->DHCPEnabled->__toString()),
+                'dhcpServer' => trim($webNetConfigResult->DHCPServer->__toString()),
+                'domainName' => trim($webNetConfigResult->DomainName->__toString()),
+                'subNetMask' => trim($webNetConfigResult->SubNetMask->__toString()),
+                'tftpServer1' => trim($webNetConfigResult->TFTPServer1->__toString()),
+                'tftpServer2' => trim($webNetConfigResult->TFTPServer2->__toString()),
+                'defaultRouter' => trim($webNetConfigResult->DefaultRouter1->__toString()),
+                'dnsServer1' => trim($webNetConfigResult->DNSServer1->__toString()),
+                'dnsServer2' => trim($webNetConfigResult->DNSServer2->__toString()),
+                'callManager1' => trim($webNetConfigResult->CallManager1->__toString()),
+                'callManager2' => trim($webNetConfigResult->CallManager2->__toString()),
+                'callManager3' => trim($webNetConfigResult->CallManager3->__toString()),
+                'callManager4' => trim($webNetConfigResult->CallManager4->__toString()),
+                'vlanId' => trim($webNetConfigResult->VLANId->__toString()),
+                'userLocale' => trim($webNetConfigResult->UserLocale->__toString()),
+            ]);
+
+        } else {
+
+            /// Чтение HTML
+            $dom = HtmlDomParser::str_get_html(file_get_contents('http://' . $phone->ipAddress . '/NetworkConfiguration'));
+            if (false !== $dom) {
+                // Define the phone's environment
+                preg_match('~\d+~', $phone->model, $matches);
+                switch ($matches[0]) {
+                    case '7912':
+                        $rows = $dom->find('form table tr');
+                        $item = 1;
+                        break;
+                    case '7905':
+                        $rows = $dom->find('form table tr');
+                        $item = 1;
+                        break;
+                    case '6921':
+                        $rows = $dom->find('table tr');
+                        $item = 2;
+                        break;
+                    default:
+                        $rows = [];
+                }
+
+                $phoneFields = [
+                    'dhcpenabled' => 'dhcpEnabled',
+                    'dhcpвключен' => 'dhcpEnabled',
+                    'dhcpserver' => 'dhcpServer',
+                    'domainname' => 'domainName',
+                    'tftpserver1' => 'tftpServer1',
+                    'tftpserver2' => 'tftpServer2',
+                    'defaultrouter' => 'defaultRouter',
+                    'defaultrouter1' => 'defaultRouter',
+                    'dnsserver1' => 'dnsServer1',
+                    'dnsserver2' => 'dnsServer2',
+                    'callmanager1' => 'callManager1',
+                    'unifiedcm1' => 'callManager1',
+                    'callmanager2' => 'callManager2',
+                    'callmanager3' => 'callManager3',
+                    'callmanager4' => 'callManager4',
+                    'operationalvlanid' => 'vlanId',
+                    'действующийкодvlan' => 'vlanId',
+                    'userlocale' => 'userLocale',
+                    'subnetmask' => 'subNetMask',
+                    'маскаподсети' => 'subNetMask',
+                ];
+
+                foreach ($rows as $row) {
+                    $field = $phoneFields[mb_ereg_replace(' ', '', mb_strtolower((is_null($row->find('td', 0))) ? '' : $row->find('td', 0)->text()))];
+                    if (!is_null($field)) {
+                        $var = trim((is_null($row->find('td', $item))) ? '' : $row->find('td', $item)->text());
+                        $phone->fill([
+                            $field => $var,
+                        ]);
+                    }
+                }
+
+            }
+        }
+
+
+        //// Get phone's data from WEB - PortInformationX
+        /// Чтение XML
+        $webPortInfoResult = simplexml_load_file('http://' . $phone->ipAddress . '/PortInformationX?1');
+        if (false !== $webPortInfoResult) {
+            preg_match('~\d+~', $phone->model, $matches);
+            switch ($matches[0]) {
+                case '7940':
+                    $phone->fill([
+                        'cdpNeighborDeviceId' => trim($webPortInfoResult->deviceId->__toString()),
+                        'cdpNeighborIP' => trim($webPortInfoResult->ipAddress->__toString()),
+                        'cdpNeighborPort' => trim($webPortInfoResult->port->__toString()),
+                    ]);
+                    break;
+                case '7911':
+                    $phone->fill([
+                        'cdpNeighborDeviceId' => trim($webPortInfoResult->NeighborDeviceId->__toString()),
+                        'cdpNeighborIP' => trim($webPortInfoResult->NeighborIP->__toString()),
+                        'cdpNeighborPort' => trim($webPortInfoResult->NeighborPort->__toString()),
+                    ]);
+                    break;
+                default:
+                    $phone->fill([
+                        'cdpNeighborDeviceId' => trim($webPortInfoResult->CDPNeighborDeviceId->__toString()),
+                        'cdpNeighborIP' => trim($webPortInfoResult->CDPNeighborIP->__toString()),
+                        'cdpNeighborPort' => trim($webPortInfoResult->CDPNeighborPort->__toString()),
+                    ]);
+            }
+
+
+        } else {
+            // Чтение HTML
+            $dom = HtmlDomParser::str_get_html(file_get_contents('http://' . $phone->ipAddress . '/PortInformation?1'));
+
+            if (false !== $dom) {
+                // Define the phone's environment
+                preg_match('~\d+~', $phone->model, $matches);
+                switch ($matches[0]) {
+                    case '6921':
+                        $rows = $dom->find('table tr');
+                        $item = 2;
+                        break;
+                    case '7911':
+                        $rows = $dom->find('table tr');
+                        $item = 2;
+                        break;
+                    default:
+                        $rows = [];
+                }
+
+                $phoneFields = [
+                    'идентустройствасоседа' => 'cdpNeighborDeviceId',
+                    'neighbordeviceid' => 'cdpNeighborDeviceId',
+                    'ipадрессоседа' => 'cdpNeighborIP',
+                    'neighboripaddress' => 'cdpNeighborIP',
+                    'портсоседа' => 'cdpNeighborPort',
+                    'neighborport' => 'cdpNeighborPort',
+                ];
+
+                foreach ($rows as $row) {
+                    $field = $phoneFields[mb_ereg_replace('[ -]', '', mb_strtolower((is_null($row->find('td', 0))) ? '' : $row->find('td', 0)->text()))];
+                    if (!is_null($field)) {
+                        $var = trim((is_null($row->find('td', $item))) ? '' : $row->find('td', $item)->text());
+                        $phone->fill([
+                            $field => $var,
+                        ]);
+                    }
+                }
+            }
+        }
+
+        return $phone;
     }
 }
