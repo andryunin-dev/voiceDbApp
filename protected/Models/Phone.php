@@ -1393,13 +1393,14 @@ class Phone extends Appliance
                 'appLoadID' => trim($webDevInfoResult->appLoadID->__toString()),
                 'timezone' => trim($webDevInfoResult->timezone->__toString()),
             ]);
+
         }
 
 
         //// Get phone's data from WEB - NetworkConfigurationX
-        /// Чтение XML
         $webNetConfigResult = simplexml_load_file('http://' . $phone->ipAddress . '/NetworkConfigurationX');
         if (false !== $webNetConfigResult) {
+            /// Чтение XML
             $phone->fill([
                 'dhcpEnabled' => trim($webNetConfigResult->DHCPEnabled->__toString()),
                 'dhcpServer' => trim($webNetConfigResult->DHCPServer->__toString()),
@@ -1419,7 +1420,6 @@ class Phone extends Appliance
             ]);
 
         } else {
-
             /// Чтение HTML
             $dom = HtmlDomParser::str_get_html(file_get_contents('http://' . $phone->ipAddress . '/NetworkConfiguration'));
             if (false !== $dom) {
@@ -1480,9 +1480,9 @@ class Phone extends Appliance
 
 
         //// Get phone's data from WEB - PortInformationX
-        /// Чтение XML
         $webPortInfoResult = simplexml_load_file('http://' . $phone->ipAddress . '/PortInformationX?1');
         if (false !== $webPortInfoResult) {
+            /// Чтение XML
             preg_match('~\d+~', $phone->model, $matches);
             switch ($matches[0]) {
                 case '7940':
@@ -1507,11 +1507,9 @@ class Phone extends Appliance
                     ]);
             }
 
-
         } else {
             // Чтение HTML
             $dom = HtmlDomParser::str_get_html(file_get_contents('http://' . $phone->ipAddress . '/PortInformation?1'));
-
             if (false !== $dom) {
                 // Define the phone's environment
                 preg_match('~\d+~', $phone->model, $matches);
