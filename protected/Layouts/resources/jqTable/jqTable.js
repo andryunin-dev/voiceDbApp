@@ -1073,7 +1073,7 @@ jqTable.workSetTmpl = {
                 });
             },
             //обработчик клика по ссылкам в пределах body таблицы
-            clickOnBodyHandler: function (ws) {
+            clickOnBodyLinkHandler: function (ws) {
                 ws.obj.$body.on(
                     'click',
                     ws,
@@ -1094,7 +1094,7 @@ jqTable.workSetTmpl = {
             eventHandlersSet: function (ws) {
                 inner.windowResizeEvent(ws);
                 inner.pagerEvents(ws);
-                inner.clickOnBodyHandler(ws);
+                inner.clickOnBodyLinkHandler(ws);
             },
             //методы фильтра и сортировки
             filterInit: function (ws) {
@@ -1166,6 +1166,24 @@ jqTable.workSetTmpl = {
         };
         var headerFilters = {
             addFilters: function (ws) {
+                /**
+                 * поле input каждого фильтра имеет data аттрибуты:
+                 * 'column' - имя колонки, для которой создается фильтр
+                 * 'statement' - оператор сравнения (текущий). Наверное он лишний!!
+                 * структура инстанса фильтра (на примерер колонки 'region'):
+                 * $filterBox (div id=(ws.model.hdFilter.selectors.boxPrefix + 'region') class='ui-filter-box', data-box-name='region'
+                 *      $filterItemsBox (div.ui-filter-items-box)
+                 *      end_$filterItemsBox
+                 *
+                 *      <input> class='ui-filter-input' data:{column: 'region', statement: 'like)}
+                 *
+                 * end_$filterBox
+                 * - событие select:
+                 *      - при селекте из списка вариантов не даем замещать содержимое поля input
+                 *      - выбраный элемент списка оформляем в виде кнопки и помещаем в $filterItemsBox(с предварительной проверкой, что такой элемент уже существует)
+                 *      - кнопка элемента создается в headerFilters.createFilterItem
+                 */
+
                 $.each(ws.header.columns, function (key, item) {
                     if (item.filterable) {
                         var $finder = $('<div/>', {class: 'ui-filter-icon-box'})
@@ -1178,7 +1196,7 @@ jqTable.workSetTmpl = {
                         var $input = $('<input/>', {
                             type: 'text',
                             class: 'ui-filter-input',
-                            width: item.width * 1.5
+                            width: item.width
                         }).data("column", key).data('statement', 'like');
 
                         //инициализация autocomplete
@@ -1212,7 +1230,7 @@ jqTable.workSetTmpl = {
                                     }
                                 });
                             },
-                            minLength: 1,
+                            minLength: 0,
                             delay: 300,
                             create: function (event, ui) {
                                 //собираем бокс для фильтра
@@ -1221,7 +1239,7 @@ jqTable.workSetTmpl = {
                                     // .data("column", key);
                                 var boxId = ws.model.hdFilter.selectors.boxPrefix + key;
                                 var $filterBox = $('<div/>', {id: boxId.slice(1), 'data-box-name': key, class: 'ui-filter-box ui-widget-content'})
-                                    .css({position: 'absolute'});
+                                    .css({position: 'absolute', 'z-index': 100});
                                 $filterBox.append($filterItemsBox).append($(this));
                                 //собраный объект добавляем в WS (может и не надо)
                                 ws.obj.headerFilters.items[key] = $filterBox;
@@ -1235,10 +1253,11 @@ jqTable.workSetTmpl = {
                                 $filterBox.hide();
                             },
                             open: function (e, ui) {
+                                //при каждом открытии списка фильтра устанавливаем максимальную высоту
                                 var boxId = ws.model.hdFilter.selectors.boxPrefix + $(this).data('column');
                                 ws.obj.$headerBox.find(boxId + ' .ui-autocomplete').css({
                                                 'max-height': ws.obj.$bodyBox.height() - $(boxId).find('.ui-filter-items-box').height() - $(boxId).find('input').height(),
-                                                'overflow-y': 'auto',
+                                                'overflow-y': 'scroll',
                                                 'overflow-x': 'hidden'
                                             });
                                 console.log('open');
@@ -1263,13 +1282,24 @@ jqTable.workSetTmpl = {
                                     return;
                                 }
                                 var $newItem = headerFilters.createFilterItem(ui, $(this).data('column'), 'eq');
-                                $newItem.appendTo($filterItemsBox);
+                                //добавляем в TableFilter и если ОК, то в $filterItemsBox и обновляем контент body
+                                if (headerFilters.appendToTableFilter(ws, $newItem)) {
+                                    $newItem.appendTo($filterItemsBox);
+                                    methods.updateBodyContent(ws);
+                                }
+
                                 console.log('select', this, ui);
                             },
                             focus: function (e, ui) {
                                 //prevent copy selected item to input tag
                                 e.preventDefault();
                                 console.log('focus', this, ui);
+                            },
+                            search: function (e, ui) {
+                                console.log('search', this, ui);
+                            },
+                            response: function (e, ui) {
+                                console.log('response', this, ui);
                             }
                         });
                     }
@@ -1286,14 +1316,15 @@ jqTable.workSetTmpl = {
                         ws.obj.$headerBox.find(ws.model.hdFilter.selectors.boxPrefix + column).show().find('input').focus();
                     }
                 );
-                //клик в области headerBodyBox вне filterBox приводит к закрытию открытых фильтров
+                //клик в области headerBodyBox вне filterBox приводит к закрытию открытых фильтров и очистке поля input
                 ws.obj.$headerBodyBox.on(
                     'click',
                     ws,
                     function (e) {
                         if (
-                            $(e.target).parents('[id^="' + ws.model.hdFilter.selectors.boxPrefix.slice(1) + '"]').length > 0 ||
-                            $(e.target).parents('.ui-filter-icon-box').length > 0
+                            // $(e.target).parents('[id^="' + ws.model.hdFilter.selectors.boxPrefix.slice(1) + '"]').length > 0 ||
+                            $(e.target).closest('.ui-filter-icon-box').length > 0 ||
+                            $(e.target).closest('[id^="' + ws.model.hdFilter.selectors.boxPrefix.slice(1) + '"]').length > 0
                         ) {
                             return;
                         }
@@ -1303,76 +1334,32 @@ jqTable.workSetTmpl = {
                         console.log('click out of the filterBox');
                     }
                 );
-
-                //открытие списка вариантов
-                // ws.obj.$headerBox.on(
-                //     'autocompleteopen',
-                //     '.ui-filter-box',
-                //     function (e, ui) {
-                //         $(this).find('.ui-autocomplete').css({
-                //             'max-height': ws.obj.$bodyBox.height(),
-                //             'overflow-y': 'auto',
-                //             'overflow-x': 'hidden'
-                //         });
-                //     }
-                // );
-                // //событие при выборе элемента предлагаемого списка
-                // ws.obj.$headerBox.on(
-                //     'autocompleteselect',
-                //     '.ui-filter-box',
-                //     function (e, ui) {
-                //         var $filterItemsBox = $(this).find('.ui-filter-items-box');
-                //         if ($filterItemsBox.children('button').filter(function (index, $element) {
-                //                 return $($element).data('value') == ui.item.value;
-                //             }).length > 0) {
-                //             return;
-                //         }
-                //         var $filterItem = $('<button/>').button({
-                //             label: ui.item.label,
-                //             icon: 'ui-icon-close'
-                //         }).css({
-                //                 'font-size': 'smaller',
-                //                 padding: '1px',
-                //                 margin: '1px',
-                //                 float: 'left',
-                //                 cursor: 'default'
-                //             });
-                //         $filterItem.find('.ui-button-icon').css({cursor: 'pointer'});
-                //         $filterItem.data({
-                //             condition: 'eq',
-                //             column: $filterItemsBox.data('column'),
-                //             value: ui.item.value
-                //         });
-                //         $filterItem.appendTo($filterItemsBox);
-                //         headerFilters.updateTableFilter(ws, $filterItemsBox.children('button'));
-                //         console.log(ws.tableFilter);
-                //         methods.updateBodyContent(ws);
-                //         // console.log(ui);
-                //     }
-                // );
-                // //закрытие списка
-                // ws.obj.$headerBox.on(
-                //     'autocompleteclose',
-                //     '.ui-filter-box',
-                //     function (e, ui) {
-                //         $(this).find('.ui-autocomplete-input').val('').focus();
-                //     }
-                // );
-                // //удаление элемента фильтра
-                // ws.obj.$headerBox.on(
-                //     'click',
-                //     '.ui-filter-items-box button',
-                //     ws,
-                //     function (e) {
-                //         if ($(e.target).hasClass('ui-icon-close')) {
-                //             headerFilters.removeTableFilterItem(ws, $(this));
-                //             methods.updateBodyContent(ws)
-                //         }
-                //         console.log(this);
-                //     }
-                // );
-
+                //удаление элемента фильтра
+                ws.obj.$headerBox.on(
+                    'click',
+                    '.ui-filter-items-box .ui-icon-close',
+                    ws,
+                    function (e) {
+                        e.stopPropagation();
+                        var $item = $(this).closest('button');
+                        if (headerFilters.removeFromTableFilter(ws, $item)) {
+                            $item.remove();
+                        }
+                        methods.updateBodyContent(ws);
+                        console.log('button close', $(this).closest('button'));
+                    }
+                );
             },
+            /**
+             * @param {Object} ui
+             * @param {Object} ui.item
+             * @param {string} ui.item.label text that appears on the button
+             * @param {string} ui.item.value text that writes in data prop. of button
+             * @param {string} column
+             * @param {string} statement statement for filter
+             *
+             * метод создания кнопки элемента фильтра
+             */
             createFilterItem: function (ui, column, statement) {
                 var $item = $('<button/>').button({
                     label: ui.item.label,
@@ -1392,41 +1379,99 @@ jqTable.workSetTmpl = {
                 });
                 return $item;
             },
-            updateTableFilter: function (ws, $filterItems) {
+            appendToTableFilter: function (ws, $filterItem) {
                 if ($.isArray(ws.tableFilter)) {
                     ws.tableFilter = {};
-                }
-                $.each($filterItems, function (index, value) {
-                    var filter = ws.tableFilter;
-                    var column = $(value).data().column;
-                    var statement = $(value).data().statement;
-                    var columnValue = $(value).data().value;
-                    if (! (filter.hasOwnProperty(column) && filter[column].hasOwnProperty(statement))) {
-                        filter[column] = {[statement]: []};
-                    }
-                    if ($.inArray(columnValue, filter[column][statement]) == -1) {
-                        filter[column][statement].push(columnValue)
-                    }
-                });
-            },
-            removeTableFilterItem: function (ws, $filterItem) {
-                if ($.isArray(ws.tableFilter)) {
-                    return;
                 }
                 var filter = ws.tableFilter;
                 var column = $filterItem.data().column;
                 var statement = $filterItem.data().statement;
-                var columnValue = $filterItem.data().value;
+                var value = $filterItem.data().value;
                 if (! (filter.hasOwnProperty(column) && filter[column].hasOwnProperty(statement))) {
-                    return;
+                    filter[column] = filter[column] || {};
+                    filter[column][statement] = [];
+                }
+                var index = $.inArray(value, filter[column][statement]);
+                if ( index === -1) {
+                    filter[column][statement].push(value);
+                    console.log('запись добавлена', filter);
+                    return true;
+                } else if (index >= 0) {
+                    console.log('элемент уже есть в фильтре');
+                    return false;
+                } else {
+                    console.log('appendToTableFilter: неизвестная ошибка');
+                    return false;
+                }
+            },
+            /**
+             *
+             * @param {Object} ws workset
+             * @param {Object} $filterItem
+             * @returns {boolean}
+             */
+            removeFromTableFilter: function (ws, $filterItem) {
+                if ($.isArray(ws.tableFilter)) {
+                    ws.tableFilter = {};
+                    console.log('removeFromTableFilter: tableFilter пустой');
+                    return false;
+                }
+                var filter = ws.tableFilter;
+                var column = $filterItem.data().column;
+                var statement = $filterItem.data().statement;
+                var value = $filterItem.data().value;
+                if (! (filter.hasOwnProperty(column) && filter[column].hasOwnProperty(statement))) {
+                    console.log('removeFromTableFilter: запись не обнаружена');
+                    return false;
+                }
+                var index = $.inArray(value, filter[column][statement]);
+                //если запись нашли - удаляем ее и если ветка пустая - удаляем ее
+                if (index >= 0) {
+                    filter[column][statement].splice(index, 1);
+                    if (filter[column][statement].length === 0) {
+                        delete filter[column][statement];
+                    }
+                    if (Object.keys(filter[column]).length === 0) {
+                        delete filter[column];
+                    }
+                    console.log('запись удалена', filter);
+                    return true;
+                } else {
+                    console.log('removeFromTableFilter: неизвестная ошибка');
+                    return false;
                 }
 
-                if ($.inArray(columnValue, filter[column][statement]) != -1) {
-                    var index = $.inArray(columnValue, filter[column][statement]);
-                    filter[column][statement].splice(index, 1);
-                    $filterItem.remove();
-                }
-            }
+            },
+        //     /**
+        //      *
+        //      * @param {Object} ws workset
+        //      * @param {Object} $filterItem
+        //      * 1) удаляем из tableFilter запись, соответствующая $filterItem
+        //      * 2) удаляем сам $filterItem
+        //      */
+        //     removeFilterItem: function (ws, $filterItem) {
+        //         if ($.isArray(ws.tableFilter)) {
+        //             $filterItem.remove();
+        //             console.log('tableFilter пустой');
+        //             return;
+        //         }
+        //         var filter = ws.tableFilter;
+        //         var column = $filterItem.data().column;
+        //         var statement = $filterItem.data().statement;
+        //         var value = $filterItem.data().value;
+        //         if (! (filter.hasOwnProperty(column) && filter[column].hasOwnProperty(statement))) {
+        //             return;
+        //         }
+        //
+        //         if ($.inArray(value, filter[column][statement]) !== -1) {
+        //             var index = $.inArray(value, filter[column][statement]);
+        //             filter[column][statement].splice(index, 1);
+        //         } else {
+        //             console.log('Запись соответствующая элементе не найдена в tableFilter');
+        //         }
+        //         $filterItem.remove();
+        //         console.log('filer item deleted');
+        //     }
         };
         var methods = {
             /**
@@ -1488,8 +1533,8 @@ jqTable.workSetTmpl = {
                             inner.updateFooterInfo(ws, data.body.info);
                         }
                         ws.pager = data.body.pager;
-                        ws.tableFilter = data.body.tableFilter;
-                        ws.hrefFilter = data.body.hrefFilter;
+                        ws.tableFilter = $.isPlainObject(data.body.tableFilter) ? data.body.tableFilter : {};
+                        ws.hrefFilter = $.isPlainObject(data.body.hrefFilter) ? data.body.hrefFilter : {};
                         inner.updatePager(ws);
                         ws.obj.$pgPreloader.hide();
                     })

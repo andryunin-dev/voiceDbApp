@@ -105,6 +105,7 @@ class DevModulePortGeo extends Model
         'ven' => 'platformVendor',
         'ven_id' => 'platformVendor_id',
         'pl' => 'platformTitle',
+        'appliance' => 'platformTitle',
         'pl_id' => 'platform_id',
         'soft' => 'softwareTitle',
         'soft_id' => 'software_id',
@@ -124,7 +125,7 @@ class DevModulePortGeo extends Model
     ];
 
     protected static $sortOrders = [
-        'default' => 'region, city, office, "appType", hostname, appliance_id',
+        'default' => 'region, city, office, appType, hostname, appliance_id',
         'region' => 'region, city, office, appType, hostname, appliance_id',
         'city' => 'city, office appType, hostname, appliance_id',
         'office' => 'office, appType, hostname, appliance_id, city',

@@ -6,15 +6,15 @@
     <th id={{ columns.office.th_id|trim('#') }}>{{ columns.office.name }}</th>
     <th id={{ columns.hostname.th_id|trim('#') }}>{{ columns.hostname.name }}</th>
     <th id={{ columns.appType.th_id|trim('#') }}>{{ columns.appType.name }}</th>
-    <th id={{ columns.appliance.th_id|trim('#') }}>
+    <th id={{ columns.platformTitle.th_id|trim('#') }}>
         {% if user.permissions.addEmptyAppliance %}
             <a class="btn btn-success btn-xs btn-custom pull-right" href="/modal/addAppliance" role="button"
                data-action="get-popup" title="добавить устройство"><span class="glyphicon glyphicon-plus"
                                                                          aria-hidden="true"></span></a>
         {% endif %}
-        {{ columns.appliance.name }}
+        {{ columns.platformTitle.name }}
     </th>
-    <th id={{ columns.soft.th_id|trim('#') }}>{{ columns.soft.name }}</th>
+    <th id={{ columns.softwareTitle.th_id|trim('#') }}>{{ columns.softwareTitle.name }}</th>
     <th id={{ columns.module.th_id|trim('#') }}>{{ columns.module.name }}</th>
     <th id={{ columns.data_port.th_id|trim('#') }}>{{ columns.data_port.name }}</th>
     <th id={{ columns.action.th_id|trim('#') }}>{{ columns.action.name }}</th>

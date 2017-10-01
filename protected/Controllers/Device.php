@@ -45,8 +45,8 @@ class Device extends Controller
                         new ContentFilter($value->hrefFilter, DevModulePortGeo::class, DevModulePortGeo::$columnMap) :
                         new ContentFilter();
                     $sorter = isset($value->sorting->sortBy) ?
-                        new Sorter(DevModulePortGeo::sortOrder($value->sorting->sortBy)) :
-                        new Sorter(DevModulePortGeo::sortOrder('default'));
+                        new Sorter(DevModulePortGeo::sortOrder($value->sorting->sortBy), '', DevModulePortGeo::class, DevModulePortGeo::$columnMap) :
+                        new Sorter(DevModulePortGeo::sortOrder('default'), '', DevModulePortGeo::class, DevModulePortGeo::$columnMap);
                     $paginator = isset($value->pager) ?
                         new Paginator($value->pager) :
                         new Paginator();
@@ -74,7 +74,7 @@ class Device extends Controller
                     break;
                 case 'headerFilter':
                     if (isset($value->filter)) {
-                        $filterScr[$value->filter->column] = [$value->filter->condition => $value->filter->value];
+                        $filterScr[$value->filter->column] = [$value->filter->statement => $value->filter->value];
                     } else {
                         $filterScr = [];
                     }
@@ -83,17 +83,26 @@ class Device extends Controller
                     $tableFilter = isset($value->tableFilter) ?
                         new ContentFilter($value->tableFilter, DevModulePortGeo::class, DevModulePortGeo::$columnMap) :
                         new ContentFilter();
-                    $tableFilter = ContentFilter::joinFilters($newTabFilter, $tableFilter);
+                    $tableFilter->mergeWith($newTabFilter);
+//                    $tableFilter = ContentFilter::joinFilters($newTabFilter, $tableFilter);
+                    //удалить statement 'eq' для поля column если есть statement 'like'
+                    // (чтобы можно было выбирать кажды раз из полного набора значений колонки)
+                    // без этого удаления выбрав, например "Астрахань", фильтр ничего другого выбрать уже не даст
+                    if (isset($tableFilter->{$value->filter->column}->like) && isset($tableFilter->{$value->filter->column}->eq)) {
+                        $tableFilter->removeStatement($value->filter->column, 'eq');
+                    }
                     $hrefFilter = isset($value->hrefFilter) ?
                         new ContentFilter($value->hrefFilter, DevModulePortGeo::class, DevModulePortGeo::$columnMap) :
                         new ContentFilter();
-                    $joinedFilter = ContentFilter::joinFilters($tableFilter, $hrefFilter);
+                    $joinedFilter = (new ContentFilter())->mergeWith($tableFilter)->mergeWith($hrefFilter);
+//                    $joinedFilter = ContentFilter::joinFilters($tableFilter, $hrefFilter);
 //                    $this->data->result = $joinedFilter->selectDistinctArrayByColumn($value->filter->column, DevModulePortGeo::class, DevModulePortGeo::$columnMap );
+                    $sorter = new Sorter($value->filter->column, '', DevModulePortGeo::class, DevModulePortGeo::$columnMap);
                     $query = (new Query())
                         ->distinct()
-                        ->select($value->filter->column)
+                        ->select($sorter->sortBy)
                         ->from(DevModulePortGeo::getTableName())
-                        ->order($value->filter->column)
+                        ->order($sorter->sortBy)
                         ->where($joinedFilter->whereStatement->where)
                         ->params($joinedFilter->whereStatement->params);
                     if (! empty($value->filter->limit) && is_numeric($value->filter->limit)) {

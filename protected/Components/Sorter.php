@@ -20,31 +20,74 @@ use T4\Core\Std;
  */
 class Sorter extends Std
 {
-    public function __construct($columns = null, string $direction = null)
+    const COLUMN_NAME_KEY = 'column';
+
+    protected $className;
+    protected $mappingArray;
+
+    public function __construct($columns = [], string $direction = '', string $className,  array $mappingArray = [])
     {
+        parent::__construct();
+        $this->className = (empty($className) || !class_exists($className)) ? '' : $className;
+        $this->mappingArray = $mappingArray;
+
         if (empty($columns)) {
-            $data = [];
+            $this->fill(['sortBy' => []]);
         } elseif (is_string($columns)) {
             $columns = preg_split("/\s*,\s*/", $columns, -1, PREG_SPLIT_NO_EMPTY);
-            $data['sortBy'] = $columns;
+            $columns = array_map([$this, 'findColumn'], $columns);
+            $this->fill(['sortBy' => $columns]);
         } elseif (is_array($columns)) {
-            $data['sortBy'] = $columns;
+            $columns = array_map([$this, 'findColumn'], $columns);
+            $this->fill(['sortBy' => $columns]);
         } else {
-            $data = [];
+            $this->fill(['sortBy' => []]);
         }
-        if (key_exists('sortBy', $data)) {
+        if (! empty($this->sortBy)) {
             $direction = ('asc' == strtolower($direction) || 'desc' == strtolower($direction)) ? strtoupper($direction): '';
-            $data['direction'] = $direction;
+            $this->fill(['direction' => $direction]);
+            $direction = empty($direction) ? '' : ' ' . $direction;
+            $this->sortBy = array_map(function ($item) use ($direction) {
+                return self::quoteName($item) . $direction;
+            }, $this->sortBy);
         }
-        parent::__construct($data);
     }
 
     public function __toString()
     {
         $direction = $this->direction;
         $tmpArray = array_map(function ($item) use ($direction) {
-            return $item . ' ' . $direction;
+            return self::quoteName($item) . ' ' . $direction;
         }, $this->sortBy->toArrayRecursive());
         return implode(', ', $tmpArray);
     }
+
+    protected static function quoteName($data)
+    {
+        return '"' . $data . '"';
+    }
+
+    protected function findColumn(string $column)
+    {
+        if (! class_exists($this->className) || ! is_array($this->mappingArray)) {
+            return false;
+        }
+        //сначала ищем в массиве маппинга, потом в списке свойств класса, если нет - return false
+        if (key_exists($column, $this->mappingArray)) {
+            $column = $this->mappingArray[$column];
+            if (is_array($column) && key_exists(self::COLUMN_NAME_KEY, $column)) {
+                $res = $column[self::COLUMN_NAME_KEY];
+            } elseif (is_string($column)) {
+                $res = $column;
+            } else {
+                $res = false;
+            }
+        } elseif (in_array($column, array_keys($this->className::getColumns()))) {
+            $res = $column;
+        } else {
+            $res = false;
+        }
+        return $res;
+    }
+
 }
