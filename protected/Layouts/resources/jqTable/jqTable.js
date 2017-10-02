@@ -1322,20 +1322,17 @@ jqTable.workSetTmpl = {
                 //удаление элемента фильтра
                 ws.obj.$headerBox.on(
                     'click',
-                    // '.ui-filter-items-box .ui-icon-close',
-                    'button',
+                    '.ui-filter-items-box .ui-icon-close',
+                    // 'button',
                     ws,
                     function (e) {
-                        if (! $(e.target).hasClass('ui-icon-close')) {
-                            return;
-                        }
                         e.stopPropagation();
-                        var $item = $(this).closest('button');
+                        var $item = $(this).closest('div.ui-button');
                         if (headerFilters.removeFromTableFilter(ws, $item)) {
                             $item.remove();
                         }
                         methods.updateBodyContent(ws);
-                        console.log('button close', $(this).closest('button'));
+                        console.log('button close', $(this).closest('div.ui-button'));
                     }
                 );
                 //клик в области headerBodyBox вне filterBox приводит к закрытию открытых фильтров и очистке поля input
@@ -1368,7 +1365,7 @@ jqTable.workSetTmpl = {
              * метод создания кнопки элемента фильтра
              */
             createFilterItem: function (ui, column, statement) {
-                var $item = $('<button/>').button({
+                var $item = $('<div/>').button({
                     label: ui.item.label,
                     icon: 'ui-icon-close'
                 }).css({
