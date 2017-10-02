@@ -31,8 +31,8 @@
                     appType: {id: 'app-type', name: 'Тип', width: "55px", sortable: true, filterable: true},
                     platformTitle: {id: 'appliance', name: 'Оборудование', width: 20, sortable: true, filterable: true},
                     softwareTitle: {id: 'soft', name: 'ПО', width: 15, sortable: true, filterable: true},
-                    module: {id: 'module', name: 'Модуль', width: 15, sortable: true, filterable: true},
-                    data_port: {id: 'dport', name: 'Интерфейсы', width: 15, filterable: true},
+                    module: {id: 'module', name: 'Модуль', width: 15, sortable: false, filterable: false},
+                    data_port: {id: 'dport', name: 'Интерфейсы', width: 15, filterable: false},
                     {% if not user.readOnly %}
                     action: {id: 'action', name: 'Действия', width: '105px'}
                     {% endif %}

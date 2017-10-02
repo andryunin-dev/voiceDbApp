@@ -1227,10 +1227,13 @@ jqTable.workSetTmpl = {
                                         // });
                                         console.log('ajax success');
                                         response(data.result);
+                                    },
+                                    error: function ( jqXHR, textStatus, errorThrown) {
+                                        console.log('ajax error');
                                     }
                                 });
                             },
-                            minLength: 0,
+                            minLength: 1,
                             delay: 300,
                             create: function (event, ui) {
                                 //собираем бокс для фильтра
@@ -1246,7 +1249,7 @@ jqTable.workSetTmpl = {
                                 ws.obj.$headerBox.append($filterBox);
                                 $filterBox.position({
                                     of: $finder,
-                                    my: 'right top',
+                                    my: 'right+5 top',
                                     at: 'right bottom'
                                 });
                                 $(this).autocomplete("option", "appendTo", boxId);

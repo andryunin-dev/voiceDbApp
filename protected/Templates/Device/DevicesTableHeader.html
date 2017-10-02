@@ -8,7 +8,7 @@
     <th id={{ columns.appType.th_id|trim('#') }}>{{ columns.appType.name }}</th>
     <th id={{ columns.platformTitle.th_id|trim('#') }}>
         {% if user.permissions.addEmptyAppliance %}
-            <a class="btn btn-success btn-xs btn-custom pull-right" href="/modal/addAppliance" role="button"
+            <a class="btn btn-success btn-xs btn-custom pull-left" href="/modal/addAppliance" role="button"
                data-action="get-popup" title="добавить устройство"><span class="glyphicon glyphicon-plus"
                                                                          aria-hidden="true"></span></a>
         {% endif %}
