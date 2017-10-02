@@ -1210,7 +1210,7 @@ jqTable.workSetTmpl = {
                                             filter: {
                                                 column: key,
                                                 statement: $input.data('statement'),
-                                                value: request.term
+                                                value: '%' + request.term
                                             },
                                             tableFilter: ws.tableFilter,
                                             hrefFilter: ws.hrefFilter
@@ -1319,6 +1319,25 @@ jqTable.workSetTmpl = {
                         ws.obj.$headerBox.find(ws.model.hdFilter.selectors.boxPrefix + column).show().find('input').focus();
                     }
                 );
+                //удаление элемента фильтра
+                ws.obj.$headerBox.on(
+                    'click',
+                    // '.ui-filter-items-box .ui-icon-close',
+                    'button',
+                    ws,
+                    function (e) {
+                        if (! $(e.target).hasClass('ui-icon-close')) {
+                            return;
+                        }
+                        e.stopPropagation();
+                        var $item = $(this).closest('button');
+                        if (headerFilters.removeFromTableFilter(ws, $item)) {
+                            $item.remove();
+                        }
+                        methods.updateBodyContent(ws);
+                        console.log('button close', $(this).closest('button'));
+                    }
+                );
                 //клик в области headerBodyBox вне filterBox приводит к закрытию открытых фильтров и очистке поля input
                 ws.obj.$headerBodyBox.on(
                     'click',
@@ -1335,21 +1354,6 @@ jqTable.workSetTmpl = {
                         $openedBoxes.find('input').val('');
                         $openedBoxes.hide();
                         console.log('click out of the filterBox');
-                    }
-                );
-                //удаление элемента фильтра
-                ws.obj.$headerBox.on(
-                    'click',
-                    '.ui-filter-items-box .ui-icon-close',
-                    ws,
-                    function (e) {
-                        e.stopPropagation();
-                        var $item = $(this).closest('button');
-                        if (headerFilters.removeFromTableFilter(ws, $item)) {
-                            $item.remove();
-                        }
-                        methods.updateBodyContent(ws);
-                        console.log('button close', $(this).closest('button'));
                     }
                 );
             },
