@@ -11,8 +11,17 @@ namespace App\Components;
 
 use T4\Core\Std;
 use T4\Core\Url;
+use T4\Dbal\Connection;
 use T4\Dbal\Query;
 
+/**
+ * Class ContentFilter
+ * @package App\Components
+ *
+ * @property string $className
+ * @property array $mappingArray
+ * @property WhereStatement $whereStatement
+ */
 class ContentFilter extends Std
 {
     const HREF_PROPERTY = 'href';
@@ -35,6 +44,9 @@ class ContentFilter extends Std
         'IS NOT'
     ];
 
+    protected $className;
+    protected $mappingArray;
+
     /**
      * Ищется колонка сначала в массиве маппинга, затем в свойствах класса $className
      * если найдена - возвращается ее имя, если нет - false
@@ -46,18 +58,16 @@ class ContentFilter extends Std
      * если найдено соответствие по второму варианту - предикат берется из найденного массива по ключу PREDICATE_NAME_KEY
      *
      * @param string $column имя колонки для поиска
-     * @param string $className имя класса для которого ищется колнка
-     * @param array $mappingArray массив для мапинга
      * @return bool|array
      */
-    protected static function findColumn(string $column, string $className, array $mappingArray = [])
+    protected function findColumn(string $column)
     {
-        if (! class_exists($className) || ! is_array($mappingArray)) {
+        if (! class_exists($this->className) || ! is_array($this->mappingArray)) {
             return false;
         }
         //сначала ищем в массиве маппинга, потом в списке свойств класса, если нет - return false
-        if (key_exists($column, $mappingArray)) {
-            $column = $mappingArray[$column];
+        if (key_exists($column, $this->mappingArray)) {
+            $column = $this->mappingArray[$column];
             if (is_string($column)) {
                 $res[self::COLUMN_NAME_KEY] = $column;
                 $res[self::PREDICATE_NAME_KEY] = 'eq';
@@ -67,7 +77,7 @@ class ContentFilter extends Std
             } else {
                 $res = false;
             }
-        } elseif (in_array($column, array_keys($className::getColumns()))) {
+        } elseif (in_array($column, array_keys($this->className::getColumns()))) {
             $res[self::COLUMN_NAME_KEY] = $column;
             $res[self::PREDICATE_NAME_KEY] = 'eq';
         } else {
@@ -76,9 +86,11 @@ class ContentFilter extends Std
         return $res;
     }
 
-    public function __construct($source = null, $className = null, array $mappingArray = [])
+    public function __construct($source = null, $className = '', array $mappingArray = [])
     {
-        $data = [];
+        parent::__construct();
+        $this->className = (empty($className) || !class_exists($className)) ? '' : $className;
+        $this->mappingArray = $mappingArray;
         $isHrefFilter = false;
 
         if ($source instanceof Std) {
@@ -93,82 +105,165 @@ class ContentFilter extends Std
             $search = (new Url($source[self::HREF_PROPERTY]))->query;
             $search = (empty($search)) ?  [] : $search;
             unset($source[self::HREF_PROPERTY]);
+
             foreach ($search as $column => $value) {
-                $findResult = self::findColumn($column, $className, $mappingArray);
-                if (false === $findResult) {
+                //map column to real property name of model
+                //если имя column не может быть найдено в массиве мапинга или свойствах класса - отбрасываем его
+                $columnSet = $this->findColumn($column);
+                if (false === $column) {
                     continue;
-                } else {
-                    $column = $findResult[self::COLUMN_NAME_KEY];
-                    $predicate = $findResult[self::PREDICATE_NAME_KEY];
-                    if (is_string($value)) {
-                        $asArray = preg_split("/\s*,\s*/", $value, -1, PREG_SPLIT_NO_EMPTY);
-                        foreach ($asArray as $index => $itemValue) {
-                            $asArray[$index] = is_numeric($itemValue) ? intval($itemValue) : $itemValue;
-                        }
-                        $value = $asArray;
-                    } else {
-                        continue;
-                    }
                 }
-                $data[$column][$predicate] = $value;
+                $column = $columnSet[self::COLUMN_NAME_KEY];
+                $statement = $columnSet[self::PREDICATE_NAME_KEY];
+                //добавляем свойство $column
+                $this
+                    ->fill([
+                        $column => new self()
+                    ]);
+                if (is_string($value)) {
+                    $value = preg_split("/\s*,\s*/", $value, -1, PREG_SPLIT_NO_EMPTY);
+                    foreach ($value as $index => $itemValue) {
+                        $value[$index] = is_numeric($itemValue) ? intval($itemValue) : $itemValue;
+                    }
+                } else {
+                    continue;
+                }
+                if (empty($value)) {
+                    unset($this->$column);
+                    continue;
+                }
+                $this->$column
+                    ->fill([$statement => $value]);
             }
-            parent::__construct($data);
             $this->{self::HREF_PROPERTY} = self::HREF_PROPERTY_EMPTY_VALUE; //если ставить null, то он не передается при следующем запросе
         } else {
             if (true === $isHrefFilter) {
                 unset($source[self::HREF_PROPERTY]);
             }
-            foreach ($source as $column => $item) {
-                $column = self::findColumn($column, $className, $mappingArray);
+            foreach ($source as $column => $statementSet) {
+                //map column to real property name of model
+                //если имя column не может быть найдено в массиве мапинга или свойствах класса - отбрасываем его
+                $column = $this->findColumn($column);
                 if (false === $column) {
                     continue;
-                } else {
-                    $column = $column[self::COLUMN_NAME_KEY];
                 }
-                if (! is_array($item)) {
+                //statement должен быть массивом
+                if (! is_array($statementSet)) {
                     continue;
                 }
-                foreach ($item as $predicate => $value) {
-                    if (in_array($predicate, self::PREDICATES)) {
-                        if (is_string($value)) {
-                            $asArray = preg_split("/\s*,\s*/", $value, -1, PREG_SPLIT_NO_EMPTY);
-                            foreach ($asArray as $index => $itemValue) {
-                                $asArray[$index] = is_numeric($itemValue) ? intval($itemValue) : $itemValue;
-                            }
-                            $value = $asArray;
-                        } elseif (is_int($value)) {
-                            $value = array($value);
-                        } elseif (is_array($value)) {
-                            $value = array_map(function ($item) {
-                                return is_numeric($item) ? intval($item) : $item;
-                            }, $value);
-                        } else {
-                            continue;
-                        }
-                        $data[$column][$predicate] = $value;
+                //добавляем свойство $column
+                $this
+                    ->fill([
+                        $column[self::COLUMN_NAME_KEY] => new self()
+                    ]);
+                //анализируем $statementSet
+                $statementRes = [];
+                foreach ($statementSet as $statement => $value) {
+                    if (! in_array(strtolower($statement), self::PREDICATES)) {
+                        continue;
                     }
+                    $statement = strtolower($statement);
+                    if (is_string($value)) {
+                        $value = preg_split("/\s*,\s*/", $value, -1, PREG_SPLIT_NO_EMPTY);
+                    } elseif (is_array($value)) {
+                        $value = array_values($value);
+                    } else {
+                        continue;
+                    }
+                    if (empty($value)) {
+                        continue;
+                    }
+                    $statementRes[$statement] = $value;
                 }
-            }
-            parent::__construct($data);
-            if (true === $isHrefFilter) {
-                $this->{self::HREF_PROPERTY} = self::HREF_PROPERTY_EMPTY_VALUE;
+                if (empty($statementRes)) {
+                    unset($this->$column);
+                    continue;
+                }
+                $this->{$column[self::COLUMN_NAME_KEY]}->fill($statementRes);
             }
         }
     }
 
-    public static function joinFilters(ContentFilter $tableFilter, ContentFilter $hrefFilter)
+    public static function joinFilters(ContentFilter $mainFilter, ContentFilter $slaveFilter)
     {
         $target = new self();
-        $target->merge($hrefFilter)->merge($tableFilter);
+        $target->merge($slaveFilter);
+        $target->merge($mainFilter);
         if (isset($target->{self::HREF_PROPERTY})) {
             unset($target->{self::HREF_PROPERTY});
         }
         return $target;
     }
 
+    public function mergeWith(ContentFilter $filter, $overwrite = true)
+    {
+        foreach ($filter as $column => $statements) {
+            foreach ($statements as $predicate => $values) {
+                if (isset($this->$column) && isset($this->$column->$predicate)) {
+                    $this->$column->$predicate = $overwrite ? $values : array_unique(array_merge($this->$column->$predicate, $values));
+                } else {
+                    if (! isset($this->$column)) {
+                        $this->$column = new self();
+                    }
+                    $this->$column->$predicate = $values;
+                }
+            }
+        }
+        return $this;
+    }
+
+    public function removeStatement(string $column, string $statement)
+    {
+        $column = $this->findColumn($column);
+        $column = is_array($column) ? $column[self::COLUMN_NAME_KEY] : false;
+        $statement = in_array(strtolower($statement), self::PREDICATES) ? strtolower($statement) : false;
+        if (false === $column || false === $statement) {
+            return $this;
+        }
+        if (isset($this->$column) && isset($this->$column->$statement)) {
+            unset($this->$column->$statement);
+        }
+        return $this;
+    }
+
     protected static function quoteName($data)
     {
         return '"' . $data . '"';
+    }
+    protected function getWhereStatement()
+    {
+        //собираем  WHERE statement
+        $queryParams = [];
+        $tableStatements = [];
+        foreach ($this as $column => $conditions) {
+            $columnStatement = [];
+            foreach ($conditions as $predicate => $valuesItem) {
+                foreach ($valuesItem as $index => $value) {
+                    if (in_array(self::PREDICATE_REPLACEMENT[$predicate], self::PREDICATES_WITHOUT_PARAM)) {
+                        $columnStatement[] = self::quoteName($column) . ' ' . self::PREDICATE_REPLACEMENT[$predicate] . ' ' . $value;
+                    } else {
+                        $realPredicate = self::PREDICATE_REPLACEMENT[$predicate];
+                        $columnStatement[] = self::quoteName($column) . ' ' . $realPredicate . ' ' . ':' . $column . '_' . $predicate . '_' . $index;
+                        $queryParams[':' . $column . '_' . $predicate . '_' . $index] = ('like' == strtolower($predicate)) ? $value . '%' : $value;
+                    }
+                }
+            }
+            if (empty($columnStatement)) {
+                continue;
+            }
+            if (1 == count($columnStatement)) {
+                $tableStatements[] = array_pop($columnStatement);
+            } else {
+                $tableStatements[] = '(' . implode(' OR ', $columnStatement) . ')';
+            }
+        }
+        $whereStatement = implode(' AND ', $tableStatements);
+        $res = (new WhereStatement())
+            ->fill([
+                'where' => $whereStatement,
+                'params' => $queryParams
+            ]);
+        return $res;
     }
 
     public function countQuery(string $className)
@@ -183,8 +278,9 @@ class ContentFilter extends Std
                     if (in_array(self::PREDICATE_REPLACEMENT[$predicate], self::PREDICATES_WITHOUT_PARAM)) {
                         $columnStatement[] = self::quoteName($column) . ' ' . self::PREDICATE_REPLACEMENT[$predicate] . ' ' . $value;
                     } else {
-                        $columnStatement[] = self::quoteName($column) . ' ' . self::PREDICATE_REPLACEMENT[$predicate] . ' ' . ':' . $column . '_' . $predicate . '_' . $index;
-                        $queryParams[':' . $column . '_' . $predicate . '_' . $index] = $value;
+                        $realPredicate = self::PREDICATE_REPLACEMENT[$predicate];
+                        $columnStatement[] = self::quoteName($column) . ' ' . $realPredicate . ' ' . ':' . $column . '_' . $predicate . '_' . $index;
+                        $queryParams[':' . $column . '_' . $predicate . '_' . $index] = ('like' == strtolower($predicate)) ? $value . '%' : $value;
                     }
                 }
             }
@@ -211,13 +307,39 @@ class ContentFilter extends Std
     public function selectQuery(string $className, Sorter $sorter = null,  Paginator $paginator = null)
     {
         $query = $this->countQuery($className);
+        $sorter = ($sorter instanceof Sorter) ? $sorter->sortBy : [];
         if (! empty($sorter)) {
-            $query->order((string)$sorter);
+            $query->order($sorter);
         }
         if (! empty($paginator) && $paginator->rowsOnPage > 0) {
             $query->offset(($paginator->page - 1) * $paginator->rowsOnPage);
             $query->limit($paginator->rowsOnPage);
         }
         return $query;
+    }
+    public function selectDistinctArrayByColumn(string $column, string $className,  array $mappingArray = [])
+    {
+        $column = $this->findColumn($column, $className, $mappingArray);
+        if (empty($column)) {
+            return false;
+        }
+        $column = $column[self::COLUMN_NAME_KEY];
+        $query = $this->countQuery($className);
+        $params = $query->params;
+
+        $query = 'SELECT DISTINCT ' . $column .
+            ' FROM ' . $className::getTableName() . ' WHERE ' . $query->where;
+        $query = (new Query($query));
+        $query->params = $params;
+        $con = $className::getDbConnection();
+        /**
+         * @var Connection $stm
+         */
+        $res = $con->query($query);
+        $res = $res->fetchAll(\PDO::FETCH_ASSOC);
+        $res = array_map(function ($item) {
+            return array_pop($item);
+        }, $res);
+        return $res;
     }
 }

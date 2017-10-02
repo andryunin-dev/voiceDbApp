@@ -13,9 +13,8 @@ var jqTable = {};
  * Пример:
  * header: {
  *     fixed: true, //фиксировать или нет заголовок таблицы
- *     units: '%',
  *     columns: [
- *         {name: 'column 1', width: 25, class: 'class_1 class_2'},
+ *         {name: 'column 1', width: 25, class: 'class_1 class_2', sortable: true, filterable: true},
  *         {name: 'column 2', width: 25},
  *         {name: 'column 3', width: 25},
  *         {name: 'column 4', width: 25}
@@ -46,6 +45,9 @@ jqTable.defaultModel = {
         selectors: {
             table: '_hd',
             scrollCell: '_scrollCell' //ячейка для компенсации скрола
+        },
+        filters: { //параметры контекстных фильтров в заголовке таблицы.
+            url: undefined //URL по которому обращаются фильтры (jQuery UI autocomplete).
         }
     },
     body: {
@@ -89,6 +91,11 @@ jqTable.defaultModel = {
             rowsOnPageList: '_pg_row_list',//список значение строк на страницу
             pagesCount: '_pg_pages_count', //общее кол-во страниц
             preloader: '_pg_preload' //общее кол-во страниц
+        }
+    },
+    hdFilter: {
+        selectors: {
+            boxPrefix: '_hdf_'
         }
     },
     /*
@@ -278,7 +285,11 @@ jqTable.workSetTmpl = {
         $pgRowsOnPageList: undefined,
         $pgInput: undefined,
         $pgPagesCount: undefined,
-        $pgPreloader: undefined
+        $pgPreloader: undefined,
+        $tableFilters: $(),
+        headerFilters: {
+            items: {}
+        }
     },
 
     table: {
@@ -778,26 +789,9 @@ jqTable.workSetTmpl = {
                  $.each(md.pager.selectors, function (index, value) {
                     md.pager.selectors[index] = ws.mainSelector + md.pager.selectors[index];
                 });
-                // md.header.selectors.table = ws.mainSelector + md.header.selectors.table;
-                // md.header.selectors.scrollCell = ws.mainSelector + md.header.selectors.scrollCell;
-
-                // md.body.selectors.table = ws.mainSelector + md.body.selectors.table;
-                // md.body.selectors.firstRow = ws.mainSelector + md.body.selectors.firstRow;
-
-                // md.footer.selectors.table = ws.mainSelector + md.footer.selectors.table;
-                // md.footer.selectors.infoCell = ws.mainSelector + md.footer.selectors.infoCell;
-                // md.footer.selectors.firstRow = ws.mainSelector + md.footer.selectors.firstRow;
-
-                // md.wrappers.selectors.table = ws.mainSelector + md.wrappers.selectors.table;
-                // md.wrappers.selectors.header= ws.mainSelector + md.wrappers.selectors.header;
-                // md.wrappers.selectors.body = ws.mainSelector + md.wrappers.selectors.body;
-                // md.wrappers.selectors.footer = ws.mainSelector + md.wrappers.selectors.footer;
-                // md.wrappers.selectors.headerBody = ws.mainSelector + md.wrappers.selectors.headerBody;
-
-                // md.pager.selectors.pager = ws.mainSelector + md.pager.selectors.pager;
-                // md.pager.selectors.input = ws.mainSelector + md.pager.selectors.input;
-                // md.pager.selectors.rowsOnPageList = ws.mainSelector + md.pager.selectors.rowsOnPageList;
-                // md.pager.selectors.pagesCount = ws.mainSelector + md.pager.selectors.pagesCount;
+                 $.each(md.hdFilter.selectors, function (index, value) {
+                    md.hdFilter.selectors[index] = ws.mainSelector + md.hdFilter.selectors[index];
+                });
             },
             buildFooter: function (ws) {
                 inner.buildPager(ws);
@@ -893,15 +887,15 @@ jqTable.workSetTmpl = {
                     if (typeof value.id === 'undefined') {
                         value.id = key;
                     }
-                    value.th_id = ws.mainSelector.slice(1) + '_th_' + value.id;
-                    value.td_id = ws.mainSelector.slice(1) + '_td_' + value.id;
+                    value.th_id = ws.mainSelector + '_th_' + value.id;
+                    value.td_id = ws.mainSelector + '_td_' + value.id;
                 });
                 $.each(ws.model.header.columns, function (key,value) {
                     if (typeof value.id === 'undefined') {
                         value.id = key;
                     }
-                    value.th_id = ws.mainSelector.slice(1) + '_th_' + value.id;
-                    value.td_id = ws.mainSelector.slice(1) + '_td_' + value.id;
+                    value.th_id = ws.mainSelector + '_th_' + value.id;
+                    value.td_id = ws.mainSelector + '_td_' + value.id;
                 });
             },
             buildHeader: function (ws) {
@@ -929,6 +923,7 @@ jqTable.workSetTmpl = {
                             if (ws.table.isBuilt) {
                                 inner.setBodyHeight(ws);
                             }
+                            headerFilters.addFilters(ws);
                             ws.header.isBuilt = true;
                         })
                         .fail(function (jqXHR, textStatus, errorThrown) {
@@ -942,7 +937,7 @@ jqTable.workSetTmpl = {
                         lastKey = key;
                         var tag = $('<th></th>');
                         tag.width(this.width);
-                        tag.attr({"id": value.th_id, title: value.name})
+                        tag.attr({"id": value.th_id.slice(1), title: value.name})
                             .html(value.name)
                             .appendTo(tr);
                     });
@@ -955,7 +950,7 @@ jqTable.workSetTmpl = {
                 //добавляем id к 1-й строке, наполняем ячейками с нужными id
                 ws.obj.$bodyFirstRow.attr("id", ws.model.body.selectors.firstRow.slice(1));
                 $.each(ws.model.header.columns, function (key,value) {
-                    $('<th></th>').attr({"id": value.td_id}).appendTo(ws.obj.$bodyFirstRow);
+                    $('<th></th>').attr({"id": value.td_id.slice(1)}).appendTo(ws.obj.$bodyFirstRow);
                 });
             },
             buildPreloader: function (fontSize) {
@@ -965,8 +960,8 @@ jqTable.workSetTmpl = {
             //управление размерами
             setColumnWidth: function (ws) {
                 $.each(ws.header.columns, function (key,value) {
-                    ws.obj.$header.find('#' + value.th_id).outerWidth(value.width);
-                    ws.obj.$bodyFirstRow.find('#' + value.td_id).outerWidth(value.width);
+                    ws.obj.$header.find(value.th_id).outerWidth(value.width);
+                    ws.obj.$bodyFirstRow.find(value.td_id).outerWidth(value.width);
                 });
                 //установка ширины ячейки компенсации скрола
                 ws.obj.$headerScrollCell.outerWidth(ws.scrolls.Y_scrollWidth + ws.scrolls.scrollMargin);
@@ -989,7 +984,7 @@ jqTable.workSetTmpl = {
                 //ширина таблицы body
                 var bodyWidth = ws.table.width;
                 if (ws.table.Y_Scroll_enable) {
-                    bodyWidth = bodyWidth - ws.scrolls.Y_scrollWidth - ws.scrolls.scrollMargin
+                    bodyWidth = bodyWidth - ws.scrolls.Y_scrollWidth - ws.scrolls.scrollMargin;
                 }
                 ws.obj.$body.width(bodyWidth);
                 //ширина ячейки preloader
@@ -1078,7 +1073,7 @@ jqTable.workSetTmpl = {
                 });
             },
             //обработчик клика по ссылкам в пределах body таблицы
-            clickOnBodyHandler: function (ws) {
+            clickOnBodyLinkHandler: function (ws) {
                 ws.obj.$body.on(
                     'click',
                     ws,
@@ -1099,7 +1094,7 @@ jqTable.workSetTmpl = {
             eventHandlersSet: function (ws) {
                 inner.windowResizeEvent(ws);
                 inner.pagerEvents(ws);
-                inner.clickOnBodyHandler(ws);
+                inner.clickOnBodyLinkHandler(ws);
             },
             //методы фильтра и сортировки
             filterInit: function (ws) {
@@ -1169,6 +1164,318 @@ jqTable.workSetTmpl = {
                 };
             }
         };
+        var headerFilters = {
+            addFilters: function (ws) {
+                /**
+                 * поле input каждого фильтра имеет data аттрибуты:
+                 * 'column' - имя колонки, для которой создается фильтр
+                 * 'statement' - оператор сравнения (текущий). Наверное он лишний!!
+                 * структура инстанса фильтра (на примерер колонки 'region'):
+                 * $filterBox (div id=(ws.model.hdFilter.selectors.boxPrefix + 'region') class='ui-filter-box', data-box-name='region'
+                 *      $filterItemsBox (div.ui-filter-items-box)
+                 *      end_$filterItemsBox
+                 *
+                 *      <input> class='ui-filter-input' data:{column: 'region', statement: 'like)}
+                 *
+                 * end_$filterBox
+                 * - событие select:
+                 *      - при селекте из списка вариантов не даем замещать содержимое поля input
+                 *      - выбраный элемент списка оформляем в виде кнопки и помещаем в $filterItemsBox(с предварительной проверкой, что такой элемент уже существует)
+                 *      - кнопка элемента создается в headerFilters.createFilterItem
+                 */
+
+                $.each(ws.header.columns, function (key, item) {
+                    if (item.filterable) {
+                        var $finder = $('<div/>', {class: 'ui-filter-icon-box'})
+                            .css({position: 'relative'})
+                            .data("column", key)
+                            .append($('<span/>', {class: 'glyphicon glyphicon-filter'}))
+                            .addClass('pull-right');
+                        ws.obj.$header.find(item.th_id).prepend($finder);
+
+                        var $input = $('<input/>', {
+                            type: 'text',
+                            class: 'ui-filter-input',
+                            width: item.width
+                        }).data("column", key).data('statement', 'like');
+
+                        //инициализация autocomplete
+                        $input.autocomplete({
+                            source: function (request, response) {
+                                $.ajax({
+                                    url: ws.model.dataUrl,
+                                    dataType: "json",
+                                    data: {
+                                        headerFilter: {
+                                            filter: {
+                                                column: key,
+                                                statement: $input.data('statement'),
+                                                value: request.term
+                                            },
+                                            tableFilter: ws.tableFilter,
+                                            hrefFilter: ws.hrefFilter
+                                        }
+                                    },
+                                    success: function (data) {
+                                        // приведем полученные данные к необходимому формату и передадим в предоставленную функцию response
+                                        // var res = $.map(data.result, function(item){
+                                        //     // return{
+                                        //     //     label: item,
+                                        //     //     value: item
+                                        //     // }
+                                        //     return item;
+                                        // });
+                                        console.log('ajax success');
+                                        response(data.result);
+                                    },
+                                    error: function ( jqXHR, textStatus, errorThrown) {
+                                        console.log('ajax error');
+                                    }
+                                });
+                            },
+                            minLength: 1,
+                            delay: 300,
+                            create: function (event, ui) {
+                                //собираем бокс для фильтра
+                                var $filterItemsBox = $('<div/>', {class: 'ui-filter-items-box ui-widget-content ui-helper-clearfix'})
+                                    .width($(this).width());
+                                    // .data("column", key);
+                                var boxId = ws.model.hdFilter.selectors.boxPrefix + key;
+                                var $filterBox = $('<div/>', {id: boxId.slice(1), 'data-box-name': key, class: 'ui-filter-box ui-widget-content'})
+                                    .css({position: 'absolute', 'z-index': 100});
+                                $filterBox.append($filterItemsBox).append($(this));
+                                //собраный объект добавляем в WS (может и не надо)
+                                ws.obj.headerFilters.items[key] = $filterBox;
+                                ws.obj.$headerBox.append($filterBox);
+                                $filterBox.position({
+                                    of: $finder,
+                                    my: 'right+5 top',
+                                    at: 'right bottom'
+                                });
+                                $(this).autocomplete("option", "appendTo", boxId);
+                                $filterBox.hide();
+                            },
+                            open: function (e, ui) {
+                                //при каждом открытии списка фильтра устанавливаем максимальную высоту
+                                var boxId = ws.model.hdFilter.selectors.boxPrefix + $(this).data('column');
+                                ws.obj.$headerBox.find(boxId + ' .ui-autocomplete').css({
+                                                'max-height': ws.obj.$bodyBox.height() - $(boxId).find('.ui-filter-items-box').height() - $(boxId).find('input').height(),
+                                                'overflow-y': 'scroll',
+                                                'overflow-x': 'hidden'
+                                            });
+                                console.log('open');
+                            },
+                            close: function(e, ui) {
+                                console.log('close list', this);
+                            },
+                            change: function (e, ui) {
+                                console.log('change ', this, ui);
+                            },
+                            select: function (e, ui) {
+                                //prevent copy selected item to input tag
+                                e.preventDefault();
+                                var $filterItemsBox = $(this).siblings('.ui-filter-items-box');
+                                if ($filterItemsBox.length === 0) {
+                                    inner.debug(ws, 'filter box not found');
+                                }
+                                if ($filterItemsBox.find('button').filter(function (index, element) {
+                                    return $(element).data('value') == ui.item.value;
+                                }).length > 0) {
+                                    console.log('this item already exists');
+                                    return;
+                                }
+                                var $newItem = headerFilters.createFilterItem(ui, $(this).data('column'), 'eq');
+                                //добавляем в TableFilter и если ОК, то в $filterItemsBox и обновляем контент body
+                                if (headerFilters.appendToTableFilter(ws, $newItem)) {
+                                    $newItem.appendTo($filterItemsBox);
+                                    methods.updateBodyContent(ws);
+                                }
+
+                                console.log('select', this, ui);
+                            },
+                            focus: function (e, ui) {
+                                //prevent copy selected item to input tag
+                                e.preventDefault();
+                                console.log('focus', this, ui);
+                            },
+                            search: function (e, ui) {
+                                console.log('search', this, ui);
+                            },
+                            response: function (e, ui) {
+                                console.log('response', this, ui);
+                            }
+                        });
+                    }
+                });
+
+                //клик по иконке фильтра показывает соответствующее поле input
+                ws.obj.$header.on(
+                    'click',
+                    '.ui-filter-icon-box',
+                    ws,
+                    function (e) {
+                        var column = $(this).data('column');
+                        ws.obj.$headerBox.find('[id^="' + ws.model.hdFilter.selectors.boxPrefix.slice(1) + '"]:visible').hide();
+                        ws.obj.$headerBox.find(ws.model.hdFilter.selectors.boxPrefix + column).show().find('input').focus();
+                    }
+                );
+                //клик в области headerBodyBox вне filterBox приводит к закрытию открытых фильтров и очистке поля input
+                ws.obj.$headerBodyBox.on(
+                    'click',
+                    ws,
+                    function (e) {
+                        if (
+                            // $(e.target).parents('[id^="' + ws.model.hdFilter.selectors.boxPrefix.slice(1) + '"]').length > 0 ||
+                            $(e.target).closest('.ui-filter-icon-box').length > 0 ||
+                            $(e.target).closest('[id^="' + ws.model.hdFilter.selectors.boxPrefix.slice(1) + '"]').length > 0
+                        ) {
+                            return;
+                        }
+                        var $openedBoxes = $('[id^="' + ws.model.hdFilter.selectors.boxPrefix.slice(1) + '"]:visible');
+                        $openedBoxes.find('input').val('');
+                        $openedBoxes.hide();
+                        console.log('click out of the filterBox');
+                    }
+                );
+                //удаление элемента фильтра
+                ws.obj.$headerBox.on(
+                    'click',
+                    '.ui-filter-items-box .ui-icon-close',
+                    ws,
+                    function (e) {
+                        e.stopPropagation();
+                        var $item = $(this).closest('button');
+                        if (headerFilters.removeFromTableFilter(ws, $item)) {
+                            $item.remove();
+                        }
+                        methods.updateBodyContent(ws);
+                        console.log('button close', $(this).closest('button'));
+                    }
+                );
+            },
+            /**
+             * @param {Object} ui
+             * @param {Object} ui.item
+             * @param {string} ui.item.label text that appears on the button
+             * @param {string} ui.item.value text that writes in data prop. of button
+             * @param {string} column
+             * @param {string} statement statement for filter
+             *
+             * метод создания кнопки элемента фильтра
+             */
+            createFilterItem: function (ui, column, statement) {
+                var $item = $('<button/>').button({
+                    label: ui.item.label,
+                    icon: 'ui-icon-close'
+                }).css({
+                        'font-size': 'smaller',
+                        padding: '1px',
+                        margin: '1px',
+                        float: 'left',
+                        cursor: 'default'
+                    });
+                $item.find('.ui-button-icon').css({cursor: 'pointer'});
+                $item.data({
+                    statement: statement,
+                    column: column,
+                    value: ui.item.value
+                });
+                return $item;
+            },
+            appendToTableFilter: function (ws, $filterItem) {
+                if ($.isArray(ws.tableFilter)) {
+                    ws.tableFilter = {};
+                }
+                var filter = ws.tableFilter;
+                var column = $filterItem.data().column;
+                var statement = $filterItem.data().statement;
+                var value = $filterItem.data().value;
+                if (! (filter.hasOwnProperty(column) && filter[column].hasOwnProperty(statement))) {
+                    filter[column] = filter[column] || {};
+                    filter[column][statement] = [];
+                }
+                var index = $.inArray(value, filter[column][statement]);
+                if ( index === -1) {
+                    filter[column][statement].push(value);
+                    console.log('запись добавлена', filter);
+                    return true;
+                } else if (index >= 0) {
+                    console.log('элемент уже есть в фильтре');
+                    return false;
+                } else {
+                    console.log('appendToTableFilter: неизвестная ошибка');
+                    return false;
+                }
+            },
+            /**
+             *
+             * @param {Object} ws workset
+             * @param {Object} $filterItem
+             * @returns {boolean}
+             */
+            removeFromTableFilter: function (ws, $filterItem) {
+                if ($.isArray(ws.tableFilter)) {
+                    ws.tableFilter = {};
+                    console.log('removeFromTableFilter: tableFilter пустой');
+                    return false;
+                }
+                var filter = ws.tableFilter;
+                var column = $filterItem.data().column;
+                var statement = $filterItem.data().statement;
+                var value = $filterItem.data().value;
+                if (! (filter.hasOwnProperty(column) && filter[column].hasOwnProperty(statement))) {
+                    console.log('removeFromTableFilter: запись не обнаружена');
+                    return false;
+                }
+                var index = $.inArray(value, filter[column][statement]);
+                //если запись нашли - удаляем ее и если ветка пустая - удаляем ее
+                if (index >= 0) {
+                    filter[column][statement].splice(index, 1);
+                    if (filter[column][statement].length === 0) {
+                        delete filter[column][statement];
+                    }
+                    if (Object.keys(filter[column]).length === 0) {
+                        delete filter[column];
+                    }
+                    console.log('запись удалена', filter);
+                    return true;
+                } else {
+                    console.log('removeFromTableFilter: неизвестная ошибка');
+                    return false;
+                }
+
+            },
+        //     /**
+        //      *
+        //      * @param {Object} ws workset
+        //      * @param {Object} $filterItem
+        //      * 1) удаляем из tableFilter запись, соответствующая $filterItem
+        //      * 2) удаляем сам $filterItem
+        //      */
+        //     removeFilterItem: function (ws, $filterItem) {
+        //         if ($.isArray(ws.tableFilter)) {
+        //             $filterItem.remove();
+        //             console.log('tableFilter пустой');
+        //             return;
+        //         }
+        //         var filter = ws.tableFilter;
+        //         var column = $filterItem.data().column;
+        //         var statement = $filterItem.data().statement;
+        //         var value = $filterItem.data().value;
+        //         if (! (filter.hasOwnProperty(column) && filter[column].hasOwnProperty(statement))) {
+        //             return;
+        //         }
+        //
+        //         if ($.inArray(value, filter[column][statement]) !== -1) {
+        //             var index = $.inArray(value, filter[column][statement]);
+        //             filter[column][statement].splice(index, 1);
+        //         } else {
+        //             console.log('Запись соответствующая элементе не найдена в tableFilter');
+        //         }
+        //         $filterItem.remove();
+        //         console.log('filer item deleted');
+        //     }
+        };
         var methods = {
             /**
              *
@@ -1229,8 +1536,8 @@ jqTable.workSetTmpl = {
                             inner.updateFooterInfo(ws, data.body.info);
                         }
                         ws.pager = data.body.pager;
-                        ws.tableFilter = data.body.tableFilter;
-                        ws.hrefFilter = data.body.hrefFilter;
+                        ws.tableFilter = $.isPlainObject(data.body.tableFilter) ? data.body.tableFilter : {};
+                        ws.hrefFilter = $.isPlainObject(data.body.hrefFilter) ? data.body.hrefFilter : {};
                         inner.updatePager(ws);
                         ws.obj.$pgPreloader.hide();
                     })
@@ -1240,17 +1547,50 @@ jqTable.workSetTmpl = {
                     });
                 return this;
             },
-            addBodyEventHandler: function (event, handler) {
-                ws = inner.getWorkSet(this);
+            addBodyEventHandler: function (event, selector, handler) {
+                if (selector === '') {
+                    selector = null;
+                }
+                var ws = inner.getWorkSet(this);
                 if (typeof ws === 'undefined') {
                     inner.debug(ws, 'addBodyEventHandler: Fatal Error! Не найден workSet');
                     throw 'updateBodyContent: не найден workSet';
                 }
                 ws.obj.$body.on(
                     event,
+                    selector,
                     ws,
                     handler
-                )
+                );
+            },
+            addHeaderEventHandler: function (event, selector, handler) {
+                if (selector === '') {
+                    selector = null;
+                }
+                var ws = inner.getWorkSet(this);
+                if (typeof ws === 'undefined') {
+                    inner.debug(ws, 'addHeaderEventHandler: Fatal Error! Не найден workSet');
+                    throw 'updateBodyContent: не найден workSet';
+                }
+                ws.obj.$header.on(
+                    event,
+                    selector,
+                    ws,
+                    handler
+                );
+            },
+            //для обработки событий самого поисковика (autocomplete)
+            addFinderEventHandler: function (event, handler) {
+                var ws = inner.getWorkSet(this);
+                if (typeof ws === 'undefined') {
+                    inner.debug(ws, 'addHeaderEventHandler: Fatal Error! Не найден workSet');
+                    throw 'updateBodyContent: не найден workSet';
+                }
+                ws.obj.$finder.on(
+                    event,
+                    ws,
+                    handler
+                );
             },
             getWorkSet: function () {
                 var ws = inner.getWorkSet(this);
@@ -1271,6 +1611,15 @@ jqTable.workSetTmpl = {
             $.error( 'Метод "' +  method + '" не найден в плагине jQuery.jqTable' );
         }
         if ( inner[method] ) {
+            // если запрашиваемый метод существует, мы его вызываем
+            // все параметры, кроме имени метода прийдут в метод
+            // this так же перекочует в метод
+            return inner[ method ].apply( this, Array.prototype.slice.call( arguments, 1 ));
+        } else {
+            // если ничего не получилось
+            $.error( 'Метод "' +  method + '" не найден в плагине jQuery.jqTable' );
+        }
+        if ( headerFilters[method] ) {
             // если запрашиваемый метод существует, мы его вызываем
             // все параметры, кроме имени метода прийдут в метод
             // this так же перекочует в метод
