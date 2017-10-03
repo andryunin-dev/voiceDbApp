@@ -226,9 +226,22 @@ class ContentFilter extends Std
         return $this;
     }
 
-    protected static function quoteName($data)
+    protected static function quoteName($column)
     {
-        return '"' . $data . '"';
+//        $column = preg_split("/\s+/", $column, -1, PREG_SPLIT_NO_EMPTY);
+//        if (count($column) > 1) {
+//            $tail = array_pop($column);
+//            if ('asc' == strtolower($tail) || 'desc' == strtolower($tail)) {
+//                $column = implode(' ', $column);
+//            } else {
+//                $column = implode(' ', $column) . ' ' . $tail;
+//            }
+//        } else {
+//            $column = array_pop($column);
+//            $tail = '';
+//        }
+//        return '"' . $column . '"' . $tail;
+        return '"' . $column . '"';
     }
     protected function getWhereStatement()
     {

@@ -58,7 +58,7 @@ trait ViewHelperTrait
     {
         return '"' . $data . '"';
     }
-        public static function sortOrder($orderName = 'default')
+    public static function sortOrder($orderName = 'default')
     {
         return (array_key_exists($orderName, self::$sortOrders)) ? self::$sortOrders[$orderName] : self::$sortOrders['default'];
     }

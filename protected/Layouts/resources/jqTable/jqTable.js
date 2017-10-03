@@ -1186,6 +1186,7 @@ jqTable.workSetTmpl = {
 
                 $.each(ws.header.columns, function (key, item) {
                     if (item.filterable) {
+                        var $headerCell = ws.obj.$header.find(item.th_id)
                         var $finder = $('<div/>', {class: 'ui-filter-icon-box'})
                             .css({position: 'relative'})
                             .data("column", key)
@@ -1236,9 +1237,21 @@ jqTable.workSetTmpl = {
                             minLength: 1,
                             delay: 300,
                             create: function (event, ui) {
+                                //добавляем в ячейку заголовка бейдж для отображения кол-ва filter items
+                                $headerCell.append($('<span/>', {class: 'badge badge-info'}).css({
+                                    'font-size': 'x-small',
+                                    padding: '3px 3px',
+                                    margin: '2px'
+                                }));
+
                                 //собираем бокс для фильтра
                                 var $filterItemsBox = $('<div/>', {class: 'ui-filter-items-box ui-widget-content ui-helper-clearfix'})
+                                    .data('cellId', item.th_id)
                                     .width($(this).width());
+                                $filterItemsBox.data({'updateBadge': function (value) {
+                                    $headerCell.find('.badge').text(value);
+                                }});
+
                                     // .data("column", key);
                                 var boxId = ws.model.hdFilter.selectors.boxPrefix + key;
                                 var $filterBox = $('<div/>', {id: boxId.slice(1), 'data-box-name': key, class: 'ui-filter-box ui-widget-content'})
@@ -1278,7 +1291,7 @@ jqTable.workSetTmpl = {
                                 if ($filterItemsBox.length === 0) {
                                     inner.debug(ws, 'filter box not found');
                                 }
-                                if ($filterItemsBox.find('button').filter(function (index, element) {
+                                if ($filterItemsBox.find('.ui-button').filter(function (index, element) {
                                     return $(element).data('value') == ui.item.value;
                                 }).length > 0) {
                                     console.log('this item already exists');
@@ -1288,6 +1301,8 @@ jqTable.workSetTmpl = {
                                 //добавляем в TableFilter и если ОК, то в $filterItemsBox и обновляем контент body
                                 if (headerFilters.appendToTableFilter(ws, $newItem)) {
                                     $newItem.appendTo($filterItemsBox);
+                                    var badgeText = $filterItemsBox.find('.ui-button').length > 0 ? $filterItemsBox.find('.ui-button').length : '';
+                                    $filterItemsBox.data('updateBadge')(badgeText);
                                     methods.updateBodyContent(ws);
                                 }
 
@@ -1328,8 +1343,11 @@ jqTable.workSetTmpl = {
                     function (e) {
                         e.stopPropagation();
                         var $item = $(this).closest('div.ui-button');
+                        var $itemsBox = $(this).closest('.ui-filter-items-box');
                         if (headerFilters.removeFromTableFilter(ws, $item)) {
                             $item.remove();
+                            var badgeText = $itemsBox.find('.ui-button').length > 0 ? $itemsBox.find('.ui-button').length : '';
+                            $itemsBox.data('updateBadge')(badgeText);
                         }
                         methods.updateBodyContent(ws);
                         console.log('button close', $(this).closest('div.ui-button'));
