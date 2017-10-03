@@ -1211,7 +1211,8 @@ jqTable.workSetTmpl = {
                                             filter: {
                                                 column: key,
                                                 statement: $input.data('statement'),
-                                                value: '%' + request.term
+                                                value: '%' + request.term,
+                                                limit: 50
                                             },
                                             tableFilter: ws.tableFilter,
                                             hrefFilter: ws.hrefFilter
