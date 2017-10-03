@@ -13,6 +13,7 @@ use T4\Orm\Model;
  * @package App\Models
  *
  * @property string $type
+ * @property integer $sortOrder
  * @property Collection|VoicePort[] $appliances
  */
 class ApplianceType extends Model
@@ -21,6 +22,7 @@ class ApplianceType extends Model
         'table' => 'equipment.applianceTypes',
         'columns' => [
             'type' => ['type' => 'string'],
+            'sortOrder' => ['type' => 'int'],
         ],
         'relations' => [
             'appliances' => ['type' => self::HAS_MANY, 'model' => Appliance::class, 'by' => '__type_id']
@@ -44,6 +46,15 @@ class ApplianceType extends Model
     protected function sanitizeType($val)
     {
         return trim($val);
+    }
+
+    protected function sanitizeSortOrder($val)
+    {
+        if (is_numeric($val)) {
+            return (int)$val;
+        } else {
+            return 0;
+        }
     }
 
     protected function validate()

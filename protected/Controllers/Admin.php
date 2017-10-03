@@ -565,9 +565,7 @@ class Admin extends Controller
                 throw new Exception('Такой тип существует');
             }
             $editedType
-                ->fill([
-                    'type' => $applianceType->type
-                ])
+                ->fill($applianceType)
                 ->save();
 
             ApplianceType::getDbConnection()->commitTransaction();

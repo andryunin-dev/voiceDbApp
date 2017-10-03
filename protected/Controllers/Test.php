@@ -13,19 +13,10 @@ class Test extends Controller
 {
     public function actionDefault()
     {
-    $test = new Std();
-    $prop1 = 'reg';
-    $prop2 = 'eq';
-    $val = ['a'];
-    $test
-        ->fill([
-            $prop1 => (new Std())
-        ]);
-    $test->$prop1
-        ->fill([
-            $prop2 => $val
-        ]);
-    var_dump($test);
-        die;
+        $column = 'string';
+        $column = preg_split("/\s+/", $column, -1, PREG_SPLIT_NO_EMPTY);
+
+        var_dump($column);
+
     }
 }

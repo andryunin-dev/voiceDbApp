@@ -27,6 +27,9 @@ use T4\Orm\Model;
  * @property int $hostname
  * @property string $appDetails
  * @property string $appComment
+ * @property string $appType_id
+ * @property string $appType
+ * @property int $appSortOrder
  * @property int $cluster_id
  * @property string $clusterTitle
  * @property string $clusterDetails
@@ -77,6 +80,7 @@ class DevModulePortGeo extends Model
             'appComment' => ['type' => 'string'],
             'appType_id' => ['type' => 'int', 'length' => 'big'],
             'appType' => ['type' => 'string'],
+            'appSortOrder' => ['type' => 'int'],
             'cluster_id' => ['type' => 'int', 'length' => 'big'],
             'clusterTitle' => ['type' => 'string'],
             'clusterDetails' => ['type' => 'jsonb'],
@@ -125,11 +129,11 @@ class DevModulePortGeo extends Model
     ];
 
     protected static $sortOrders = [
-        'default' => 'region, city, office, appType, hostname, appliance_id',
-        'region' => 'region, city, office, appType, hostname, appliance_id',
-        'city' => 'city, office appType, hostname, appliance_id',
-        'office' => 'office, appType, hostname, appliance_id, city',
-        'hostname' => ' hostname, appType, appliance_id',
+        'default' => 'region, city, office, appSortOrder asc, hostname, appliance_id',
+        'region' => 'region, city, office, appSortOrder asc, hostname, appliance_id',
+        'city' => 'city, office appSortOrder asc, hostname, appliance_id',
+        'office' => 'office, appSortOrder asc, hostname, appliance_id, city',
+        'hostname' => ' hostname, appSortOrder asc, appliance_id',
     ];
 
 
