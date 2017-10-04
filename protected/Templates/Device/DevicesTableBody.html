@@ -10,8 +10,8 @@
                 <td><a href="{{ url.path }}?reg_id={{ dev.region_id }}" >{{ dev.region }}</a></td>
                 <td><a href="{{ url.path }}?loc_id={{ dev.office_id }}" >{{ dev.office }}</a> {% if not dev.officeComment is empty %}<span id="{{ dev.office_id }}_{{ dev.appliance_id }}" class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>{% endif %}</td>
                 {#Hostname#}
-                {% set hostnameSet = dev.hostname|split(',',2) %}
-                <td title="{{ dev.hostname }}">
+                {% set hostnameSet = dev.hostname_dn|split(',',2) %}
+                <td title="{{ dev.hostname_dn }}">
                     {% if not dev.managementIp is empty %}
                         {#<a href="ssh://{{ dev.managementIp }}" >{{ dev.hostname }}</a>#}
                         <a href="ssh://{{ dev.managementIp }}" >
@@ -52,8 +52,8 @@
                     <span class="lastUpdate {% if dev.appAge is null or dev.appAge >= maxAge %} stale {% endif %}" data-last-update="{{ dev.lastUpdateDateTime }}" title="{{ dev.lastUpdateDateTime }}">{{ dev.lastUpdateDate }}</span>
                 </td>
                 {#Software#}
-                <td>
-                    {{ dev.softwareTitle }} {{ dev.softwareVersion }}
+                <td title="{{ dev.softwareAndVersion }}">
+                    {{ dev.softwareAndVersion }}
                 </td>
                 {#ModuleItems#}
                 <td class="cell-container">
