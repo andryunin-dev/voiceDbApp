@@ -1186,7 +1186,8 @@ jqTable.workSetTmpl = {
 
                 $.each(ws.header.columns, function (key, item) {
                     if (item.filterable) {
-                        var $headerCell = ws.obj.$header.find(item.th_id)
+                        var $headerCell = ws.obj.$header.find(item.th_id);
+                        //create an icon for filter
                         var $finder = $('<div/>', {class: 'ui-filter-icon-box'})
                             .css({position: 'relative'})
                             .data("column", key)

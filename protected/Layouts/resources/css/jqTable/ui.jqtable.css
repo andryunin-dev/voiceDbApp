@@ -66,6 +66,9 @@
     text-align: left;
     font-size: inherit;
 }
-
+/*ui-filter-icon-box hover styles*/
+.jqtable .ui-filter-icon-box:hover {
+    cursor: pointer;
+}
 /**/
 
