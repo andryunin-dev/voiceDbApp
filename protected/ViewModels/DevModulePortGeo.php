@@ -25,6 +25,7 @@ use T4\Orm\Model;
  * @property string $appAge
  * @property bool $appInUse
  * @property int $hostname
+ * @property int $hostname_dn
  * @property string $appDetails
  * @property string $appComment
  * @property string $appType_id
@@ -97,6 +98,7 @@ class DevModulePortGeo extends Model
             'software_id' => ['type' => 'int', 'length' => 'big'],
             'softwareTitle' => ['type' => 'string'],
             'softwareVersion' => ['type' => 'string'],
+            'softwareAndVersion' => ['type' => 'string'],
             'moduleInfo' => ['type' => 'jsonb'],
             'portInfo' => ['type' => 'jsonb'],
             'managementIp' => ['type' => 'string']
@@ -113,7 +115,9 @@ class DevModulePortGeo extends Model
         'pl_id' => 'platform_id',
         'soft' => 'softwareTitle',
         'soft_id' => 'software_id',
-        'softVer' => 'softwareVersion',
+        'softVer' => 'softwareAndVersion',
+        'software' => 'softwareAndVersion',
+        'hostname' => 'hostname_dn',
         'type' => 'appType',
         'type_id' => 'appType_id',
         'cl_id' => 'cluster_id',

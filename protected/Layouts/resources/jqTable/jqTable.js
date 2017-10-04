@@ -1236,7 +1236,7 @@ jqTable.workSetTmpl = {
                                     }
                                 });
                             },
-                            minLength: 1,
+                            minLength: 0,
                             delay: 300,
                             create: function (event, ui) {
                                 //добавляем в ячейку заголовка бейдж для отображения кол-ва filter items
@@ -1356,7 +1356,7 @@ jqTable.workSetTmpl = {
                     }
                 );
                 //клик в области headerBodyBox вне filterBox приводит к закрытию открытых фильтров и очистке поля input
-                ws.obj.$headerBodyBox.on(
+                $('body').on(
                     'click',
                     ws,
                     function (e) {
@@ -1373,6 +1373,18 @@ jqTable.workSetTmpl = {
                         console.log('click out of the filterBox');
                     }
                 );
+                //закрытие фильтров по esc
+                $('input').on(
+                    'keyup',
+                    ws,
+                    function(evt) {
+                    if (evt.keyCode == 27) {
+                        var $openedBoxes = $('[id^="' + ws.model.hdFilter.selectors.boxPrefix.slice(1) + '"]:visible');
+                        $openedBoxes.find('input').val('');
+                        $openedBoxes.hide();
+                        console.log('pressed ESC');
+                    }
+                });
             },
             /**
              * @param {Object} ui
