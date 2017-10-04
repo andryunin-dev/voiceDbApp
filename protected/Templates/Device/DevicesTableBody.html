@@ -18,11 +18,15 @@
                             <span class="hostname">{{ hostnameSet[0] }}</span>
                             {% if hostnameSet[1] is defined %}
                             <br>
-                                <span class="dn-number">{{ hostnameSet[1] }}</span>
+                            <span class="dn-number">{{ hostnameSet[1] }}</span>
                             {% endif %}
                         </a>
                     {% else %}
-                        {{ dev.hostname }}
+                        <span class="hostname">{{ hostnameSet[0] }}</span>
+                        {% if hostnameSet[1] is defined %}
+                            <br>
+                            <span class="dn-number">{{ hostnameSet[1] }}</span>
+                        {% endif %}
                     {% endif %}
                     {% if dev.cluster_id %}
                         <br>
