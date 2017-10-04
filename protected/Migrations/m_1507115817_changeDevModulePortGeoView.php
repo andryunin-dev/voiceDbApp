@@ -4,11 +4,11 @@ namespace App\Migrations;
 
 use T4\Orm\Migration;
 
-class m_1507107822_changeDevModulePortGeoView
+class m_1507115817_changeDevModulePortGeoView
     extends Migration
 {
     /**
-     * склеил software и soft ver
+     * add space in softAndVer
      */
     public function up()
     {
@@ -64,7 +64,7 @@ CREATE OR REPLACE VIEW view.dev_module_port_geo AS
         software.__id AS "software_id",
         software.title AS "softwareTitle",
         "softwareItem".version AS "softwareVersion",
-        CAST(software.title || "softwareItem".version AS citext) AS "softwareAndVersion",
+        CAST(software.title || \' \' || "softwareItem".version AS citext) AS "softwareAndVersion",
 
 
         ( SELECT array_to_json(array_agg(to_jsonb(t))) FROM
@@ -179,17 +179,18 @@ CREATE OR REPLACE VIEW view.dev_module_port_geo AS
         appliances."lastUpdate" AS "appLastUpdate",
         (EXTRACT(EPOCH FROM age(now(), appliances."lastUpdate"))/3600)::INT AS "appAge",
         appliances."inUse" AS "appInUse",
+        CAST(appliances.details::jsonb->>\'hostname\' AS citext) AS hostname,
         CASE WHEN ("phoneInfo".prefix IS NOT NULL) OR ("phoneInfo"."phoneDN" IS NOT NULL )
             THEN
-                CAST(appliances.details::jsonb->>\'hostname\' AS citext)||
+                CAST(appliances.details::jsonb->>\'hostname\'||
                 \',(DN \' ||
                 "phoneInfo".prefix ||
                 "phoneInfo"."phoneDN" ||
-                \')\'
+                \')\' AS citext)
             ELSE
                 CAST(appliances.details::jsonb->>\'hostname\' AS citext)
         END
-            AS hostname,
+            AS hostname_dn,
         appliances.details AS "appDetails",
         appliances."comment" AS "appComment",
         "appTypes".__id AS "appType_id",
@@ -211,6 +212,8 @@ CREATE OR REPLACE VIEW view.dev_module_port_geo AS
         software.__id AS "software_id",
         software.title AS "softwareTitle",
         "softwareItem".version AS "softwareVersion",
+        CAST(software.title || "softwareItem".version AS citext) AS "softwareAndVersion",
+
 
         ( SELECT array_to_json(array_agg(to_jsonb(t))) FROM
             (SELECT
