@@ -10,18 +10,23 @@
                 <td><a href="{{ url.path }}?reg_id={{ dev.region_id }}" >{{ dev.region }}</a></td>
                 <td><a href="{{ url.path }}?loc_id={{ dev.office_id }}" >{{ dev.office }}</a> {% if not dev.officeComment is empty %}<span id="{{ dev.office_id }}_{{ dev.appliance_id }}" class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>{% endif %}</td>
                 {#Hostname#}
-                {% set hostnameSet = dev.hostname|split(',') %}
+                {% set hostnameSet = dev.hostname|split(',',2) %}
                 <td title="{{ dev.hostname }}">
                     {% if not dev.managementIp is empty %}
                         {#<a href="ssh://{{ dev.managementIp }}" >{{ dev.hostname }}</a>#}
                         <a href="ssh://{{ dev.managementIp }}" >
-                            {#{% for item in hostnameSet %}#}
-                                {#<span>{{ item }}</span>#}
-                            {#{% endfor %}#}
-                            {{ hostnameSet|join('<br>')|raw }}
+                            <span class="hostname">{{ hostnameSet[0] }}</span>
+                            {% if hostnameSet[1] is defined %}
+                            <br>
+                            <span class="dn-number">{{ hostnameSet[1] }}</span>
+                            {% endif %}
                         </a>
                     {% else %}
-                        {{ dev.hostname }}
+                        <span class="hostname">{{ hostnameSet[0] }}</span>
+                        {% if hostnameSet[1] is defined %}
+                            <br>
+                            <span class="dn-number">{{ hostnameSet[1] }}</span>
+                        {% endif %}
                     {% endif %}
                     {% if dev.cluster_id %}
                         <br>

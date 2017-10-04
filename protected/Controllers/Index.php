@@ -12,13 +12,6 @@ class Index
 
     public function actionDefault()
     {
-        $query = (new Query())
-            ->select(['model', 'prefix'])
-            ->distinct()
-            ->from(DevPhoneInfoGeo::getTableName())
-            ->where('prefix NOTNULL')
-            ->limit(10);
-        var_dump(DevPhoneInfoGeo::findAllByQuery($query));
-        die;
+       header('location: /device/info');
     }
 }
