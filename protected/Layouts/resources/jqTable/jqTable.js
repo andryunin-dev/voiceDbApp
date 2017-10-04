@@ -1373,7 +1373,7 @@ jqTable.workSetTmpl = {
                         console.log('click out of the filterBox');
                     }
                 );
-                //закрытие фильтров по esc.
+                //закрытие фильтров по esc
                 $('input').on(
                     'keyup',
                     ws,
