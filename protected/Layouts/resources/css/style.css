@@ -562,3 +562,6 @@ table.inner.interfaces tbody td {
 .cell-bordered td {
     border: 1px solid #ddd;
 }
+.dn-number {
+    color: #008000;
+}
