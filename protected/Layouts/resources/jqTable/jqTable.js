@@ -1374,7 +1374,7 @@ jqTable.workSetTmpl = {
                     }
                 );
                 //закрытие фильтров по esc
-                $('input').on(
+                $(document).on(
                     'keyup',
                     ws,
                     function(evt) {
