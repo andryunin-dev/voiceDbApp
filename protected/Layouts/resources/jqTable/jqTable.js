@@ -63,7 +63,8 @@ jqTable.defaultModel = {
         selectors: {
             table: '_ft',
             infoCell: '_ft_info_cell',
-            firstRow: '_ft_1st_row'
+            firstRow: '_ft_1st_row',
+            secondRow: '_ft_2st_row'
         }
     },
     wrappers: {
@@ -92,6 +93,10 @@ jqTable.defaultModel = {
             pagesCount: '_pg_pages_count', //общее кол-во страниц
             preloader: '_pg_preload' //общее кол-во страниц
         }
+    },
+    globalSearch: {
+        width: '300px',
+        height: '20px'
     },
     hdFilter: {
         selectors: {
@@ -317,6 +322,10 @@ jqTable.workSetTmpl = {
     },
     footer: {
     },
+    globalSearch: {
+        width: 0
+    },
+
     scrolls: {
         Y_scrollWidth: '', //scroll y width in px
         X_scrollWidth: '', //scroll X width in px
@@ -344,7 +353,7 @@ jqTable.workSetTmpl = {
     hrefFilter: {
         href: '' // ссылка из которой формируется(на стороне сервера href filter). После формирования set to ''. Если ставить в undefined, то не передается в AJAX запросе
     },
-
+    globalFilter: {}, //фильтр для глобального поиска
     sorting: {}, //текущие параметры сортировки
     auxiliary: {
         lastClickTime: 0
@@ -488,6 +497,7 @@ jqTable.workSetTmpl = {
                 inner.tableHeightToPx(ws);
                 inner.colSizesToPx(ws);
                 inner.pagerWidthToPx(ws);
+                inner.globalSearchSizeToPx(ws);
             },
             tableWidthToPx: function (ws) {
                 var md = ws.model;
@@ -619,6 +629,10 @@ jqTable.workSetTmpl = {
             },
             pagerWidthToPx: function (ws) {
                 ws.pager.width = parseInt(ws.model.pager.width)
+            },
+            globalSearchSizeToPx: function (ws) {
+                ws.globalSearch.width = parseInt(ws.model.globalSearch.width);
+                ws.globalSearch.height = parseInt(ws.model.globalSearch.height);
             },
             //управление стилями
             setStyles: function (ws, subjectName) {
@@ -796,21 +810,34 @@ jqTable.workSetTmpl = {
             buildFooter: function (ws) {
                 inner.buildPager(ws);
                 inner.buildInfoCell(ws);
-                //append first row to footer and info cell and pager
-                ws.obj.$footer.find('tbody').append(
-                    $('<tr/>', {
-                        id: ws.model.footer.selectors.firstRow.slice(1)
-                    })
-                );
-                var $pgPreloaderCell = $('<td/>');
+                footer.buildGlobalSearch(ws);
                 ws.obj.$pgPreloader = inner.buildPreloader('0.2em');
+                var $pgPreloaderCell = $('<td/>');
                 $pgPreloaderCell.append(ws.obj.$pgPreloader);
-                //add to $footer $pgPreloaderCell $footerInfo and $pager
-                var $firstRw = ws.obj.$footer.find(ws.model.footer.selectors.firstRow);
-                $firstRw.append(ws.obj.$footerInfo).append($pgPreloaderCell).append(ws.obj.$pager);
+
+                //append two rows to footer and wraps they into table tags
+                var $firstRow = $('<tr/>', {id: ws.model.footer.selectors.firstRow.slice(1)});
+                var $secondRow = $('<tr/>', {id: ws.model.footer.selectors.secondRow.slice(1)});
+                ws.obj.$footer.find('tbody').append($('<tr/>').append($firstRow));
+                ws.obj.$footer.find('tbody').append($('<tr/>').append($secondRow));
+                //делаем каждую строку таблицей, чтобы менять ячейки независимо
+                $firstRow.wrap($('<table/>'));
+                $secondRow.wrap($('<table/>'));
+
+                //add $footerInfo to first row and $globalSearch, $pager
+                $firstRow.append($('<td/>')
+                    .append(ws.obj.$footerInfo))
+                    .append($('<td/>').append(ws.obj.$globalSearch))
+                    .append($('<td/>').append(ws.obj.$pgPreloader))
+                    .append($('<td/>').append(ws.obj.$pager));
+                // $secondRow.append(ws.obj.$footerInfo);
+                // $secondRow
+                //     .append($('<td/>').append(ws.obj.$globalSearch))
+                //     .append($('<td/>').append(ws.obj.$pgPreloader))
+                //     .append($('<td/>').append(ws.obj.$pager));
             },
             buildInfoCell: function (ws) {
-                ws.obj.$footerInfo = $('<td/>', {
+                ws.obj.$footerInfo = $('<div/>', {
                     id: ws.model.footer.selectors.infoCell.slice(1),
                     class: "table-footer-info-cell"
                 });
@@ -840,10 +867,10 @@ jqTable.workSetTmpl = {
                     id: ws.model.pager.selectors.pagesCount.slice(1)
                 }).text('');
 
-                ws.obj.$pager = $('<td/>', {
+                ws.obj.$pager = $('<div/>', {
                     id: ws.model.pager.selectors.pager.slice(1),
                     class: 'jqt-pager',
-                    align: 'center'
+                    'text-align': 'center'
                 }).append(
                     ws.obj.$pgPreloader
                 ).append(
@@ -990,7 +1017,12 @@ jqTable.workSetTmpl = {
                 //ширина ячейки preloader
                 ws.obj.$pgPreloader.parent('td').css('width', ws.model.pager.preloader.width);
                 //ширина ячейки пейджинатора
-                ws.obj.$pager.outerWidth(ws.pager.width);
+                ws.obj.$pager.parent('td').outerWidth(ws.pager.width);
+                //ширина ячейки globalSearch и высота поля поиска
+                ws.obj.$globalSearch.find('input').outerHeight(ws.globalSearch.height);
+                ws.obj.$globalSearch.parent('td').outerWidth(ws.pager.width);
+
+
                 /*=== Устанавливаем высоту для Body ===*/
                 //только если построен заголовок таблицы
                 if (ws.header.isBuilt) {
@@ -1162,6 +1194,24 @@ jqTable.workSetTmpl = {
                         tableId: ws.mainSelector.slice(1)
                     }
                 };
+            }
+        };
+        var footer = {
+            buildGlobalSearch: function (ws) {
+                ws.obj.$globalSearch = $('<div/>', {width: '100%', class: "input-group"})
+                    .append($('<input/>', {type: "text", class: "form-control", placeholder: "Search for..."}).css({'border-radius': '5px'}));
+                ws.obj.$globalSearch.find('input').autocomplete({
+                    source: function (request, response) {
+
+                    },
+                    minLength: 3,
+                    delay: 300,
+                    search: function (e, ui) {
+                        methods.updateBodyContent(ws)
+                        console.log('search', this, ui);
+                    },
+                });
+                return ws.obj.$globalSearch;
             }
         };
         var headerFilters = {
