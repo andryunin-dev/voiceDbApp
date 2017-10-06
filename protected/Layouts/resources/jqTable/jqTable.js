@@ -1198,6 +1198,8 @@ jqTable.workSetTmpl = {
         };
         var footer = {
             buildGlobalSearch: function (ws) {
+                var GFilter = new prototype.GlobalFilter(ws.header.columns);
+                console.log(GFilter);
                 ws.obj.$globalSearch = $('<div/>', {width: '100%', class: "input-group"})
                     .append($('<input/>', {type: "text", class: "form-control", placeholder: "Search for..."}).css({'border-radius': '5px'}));
                 ws.obj.$globalSearch.find('input').autocomplete({
@@ -1528,36 +1530,6 @@ jqTable.workSetTmpl = {
                 }
 
             },
-        //     /**
-        //      *
-        //      * @param {Object} ws workset
-        //      * @param {Object} $filterItem
-        //      * 1) удаляем из tableFilter запись, соответствующая $filterItem
-        //      * 2) удаляем сам $filterItem
-        //      */
-        //     removeFilterItem: function (ws, $filterItem) {
-        //         if ($.isArray(ws.tableFilter)) {
-        //             $filterItem.remove();
-        //             console.log('tableFilter пустой');
-        //             return;
-        //         }
-        //         var filter = ws.tableFilter;
-        //         var column = $filterItem.data().column;
-        //         var statement = $filterItem.data().statement;
-        //         var value = $filterItem.data().value;
-        //         if (! (filter.hasOwnProperty(column) && filter[column].hasOwnProperty(statement))) {
-        //             return;
-        //         }
-        //
-        //         if ($.inArray(value, filter[column][statement]) !== -1) {
-        //             var index = $.inArray(value, filter[column][statement]);
-        //             filter[column][statement].splice(index, 1);
-        //         } else {
-        //             console.log('Запись соответствующая элементе не найдена в tableFilter');
-        //         }
-        //         $filterItem.remove();
-        //         console.log('filer item deleted');
-        //     }
         };
         var methods = {
             /**
@@ -1678,6 +1650,22 @@ jqTable.workSetTmpl = {
             getWorkSet: function () {
                 var ws = inner.getWorkSet(this);
                 return ws;
+            }
+        };
+        var prototype = {
+            GlobalFilter: function (columns) {
+                this.setValue
+                var self = this;
+                if ($.isArray(columns) || $.isPlainObject(columns)) {
+                    $.each(columns, function (index, value) {
+                        if (columns[index].filterable) {
+                            self[index] = {'like': []}
+                        }
+                    });
+                    console.log('filter is created');
+                } else {
+                    console.log("filter isn't created");
+                }
             }
         };
         if ( methods[method] ) {
