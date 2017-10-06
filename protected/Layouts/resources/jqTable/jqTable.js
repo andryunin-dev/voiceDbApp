@@ -1207,7 +1207,7 @@ jqTable.workSetTmpl = {
                     minLength: 3,
                     delay: 300,
                     search: function (e, ui) {
-                        methods.updateBodyContent(ws)
+                        methods.updateBodyContent(ws);
                         console.log('search', this, ui);
                     },
                 });
