@@ -91,7 +91,6 @@ class Device extends Controller
                         new ContentFilter($value->tableFilter, DevModulePortGeo::class, DevModulePortGeo::$columnMap) :
                         new ContentFilter();
                     $tableFilter->mergeWith($newTabFilter);
-//                    $tableFilter = ContentFilter::joinFilters($newTabFilter, $tableFilter);
                     //удалить statement 'eq' для поля column если есть statement 'like'
                     // (чтобы можно было выбирать кажды раз из полного набора значений колонки)
                     // без этого удаления выбрав, например "Астрахань", фильтр ничего другого выбрать уже не даст
@@ -102,8 +101,6 @@ class Device extends Controller
                         new ContentFilter($value->hrefFilter, DevModulePortGeo::class, DevModulePortGeo::$columnMap) :
                         new ContentFilter();
                     $joinedFilter = (new ContentFilter())->mergeWith($tableFilter)->mergeWith($hrefFilter);
-//                    $joinedFilter = ContentFilter::joinFilters($tableFilter, $hrefFilter);
-//                    $this->data->result = $joinedFilter->selectDistinctArrayByColumn($value->filter->column, DevModulePortGeo::class, DevModulePortGeo::$columnMap );
                     $sorter = new Sorter($value->filter->column, '', DevModulePortGeo::class, DevModulePortGeo::$columnMap);
                     $query = (new Query())
                         ->distinct()
