@@ -46,6 +46,9 @@ class ContentFilter extends Std
 
     protected $className;
     protected $mappingArray;
+    protected $innerConcatenation;
+    protected $outerConcatenation;
+    protected $prefix;
 
     /**
      * Ищется колонка сначала в массиве маппинга, затем в свойствах класса $className
@@ -86,9 +89,12 @@ class ContentFilter extends Std
         return $res;
     }
 
-    public function __construct($source = null, $className = '', array $mappingArray = [])
+    public function __construct($source = null, $className = '', array $mappingArray = [], string $prefix = '', string $innerConcatenation = 'OR', string $outerConcatenation = 'AND')
     {
         parent::__construct();
+        $this->innerConcatenation = $innerConcatenation;
+        $this->outerConcatenation = $outerConcatenation;
+        $this->prefix = empty($prefix) ? '' : $prefix . '_';
         $this->className = (empty($className) || !class_exists($className)) ? '' : $className;
         $this->mappingArray = $mappingArray;
         $isHrefFilter = false;
@@ -256,8 +262,8 @@ class ContentFilter extends Std
                         $columnStatement[] = self::quoteName($column) . ' ' . self::PREDICATE_REPLACEMENT[$predicate] . ' ' . $value;
                     } else {
                         $realPredicate = self::PREDICATE_REPLACEMENT[$predicate];
-                        $columnStatement[] = self::quoteName($column) . ' ' . $realPredicate . ' ' . ':' . $column . '_' . $predicate . '_' . $index;
-                        $queryParams[':' . $column . '_' . $predicate . '_' . $index] = ('like' == strtolower($predicate)) ? $value . '%' : $value;
+                        $columnStatement[] = self::quoteName($column) . ' ' . $realPredicate . ' ' . ':' . $this->prefix . $column . '_' . $predicate . '_' . $index;
+                        $queryParams[':' . $this->prefix . $column . '_' . $predicate . '_' . $index] = ('like' == strtolower($predicate)) ? $value . '%' : $value;
                     }
                 }
             }
@@ -267,10 +273,10 @@ class ContentFilter extends Std
             if (1 == count($columnStatement)) {
                 $tableStatements[] = array_pop($columnStatement);
             } else {
-                $tableStatements[] = '(' . implode(' OR ', $columnStatement) . ')';
+                $tableStatements[] = '(' . implode(' ' . $this->innerConcatenation . ' ', $columnStatement) . ')';
             }
         }
-        $whereStatement = implode(' AND ', $tableStatements);
+        $whereStatement = implode(' ' . $this->outerConcatenation . ' ', $tableStatements);
         $res = (new WhereStatement())
             ->fill([
                 'where' => $whereStatement,
@@ -279,7 +285,7 @@ class ContentFilter extends Std
         return $res;
     }
 
-    public function countQuery(string $className)
+    public function countQuery(string $className, ContentFilter $globalQuery = null)
     {
         //собираем  WHERE clause
         $queryParams = [];
@@ -292,8 +298,8 @@ class ContentFilter extends Std
                         $columnStatement[] = self::quoteName($column) . ' ' . self::PREDICATE_REPLACEMENT[$predicate] . ' ' . $value;
                     } else {
                         $realPredicate = self::PREDICATE_REPLACEMENT[$predicate];
-                        $columnStatement[] = self::quoteName($column) . ' ' . $realPredicate . ' ' . ':' . $column . '_' . $predicate . '_' . $index;
-                        $queryParams[':' . $column . '_' . $predicate . '_' . $index] = ('like' == strtolower($predicate)) ? $value . '%' : $value;
+                        $columnStatement[] = self::quoteName($column) . ' ' . $realPredicate . ' ' . ':' . $this->prefix  . $column . '_' . $predicate . '_' . $index;
+                        $queryParams[':' . $this->prefix  . $column . '_' . $predicate . '_' . $index] = ('like' == strtolower($predicate)) ? $value . '%' : $value;
                     }
                 }
             }
@@ -303,10 +309,10 @@ class ContentFilter extends Std
             if (1 == count($columnStatement)) {
                 $tableStatements[] = array_pop($columnStatement);
             } else {
-                $tableStatements[] = '(' . implode(' OR ', $columnStatement) . ')';
+                $tableStatements[] = '(' . implode(' ' . $this->innerConcatenation . ' ', $columnStatement) . ')';
             }
         }
-        $whereStatement = implode(' AND ', $tableStatements);
+        $whereStatement = implode(' ' . $this->outerConcatenation . ' ', $tableStatements);
         $query = (new Query())
             ->select()
             ->from($className::getTableName());
@@ -315,11 +321,27 @@ class ContentFilter extends Std
                 ->where($whereStatement)
                 ->params($queryParams);
         }
+        if (empty($globalQuery)) {
+            return $query;
+        }
+        $gWhereStatement = $globalQuery->whereStatement;
+        if (empty($query->where)) {
+            $whereStatement = $gWhereStatement->where;
+            $queryParams = $gWhereStatement->params;
+        } else {
+            $whereStatement = empty($gWhereStatement->where) ? $query->where : $query->where . ' AND ' . '(' . $gWhereStatement->where . ')';
+            $queryParams = empty($gWhereStatement->where) ? $query->params : array_merge($query->params, $gWhereStatement->params);
+        }
+        if (! empty($whereStatement)) {
+            $query
+                ->where($whereStatement)
+                ->params($queryParams);
+        }
         return $query;
     }
-    public function selectQuery(string $className, Sorter $sorter = null,  Paginator $paginator = null)
+    public function selectQuery(string $className, Sorter $sorter = null,  Paginator $paginator = null, ContentFilter $globalFilter = null)
     {
-        $query = $this->countQuery($className);
+        $query = $this->countQuery($className, $globalFilter);
         $sorter = ($sorter instanceof Sorter) ? $sorter->sortBy : [];
         if (! empty($sorter)) {
             $query->order($sorter);

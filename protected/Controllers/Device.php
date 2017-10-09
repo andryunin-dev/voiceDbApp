@@ -44,6 +44,10 @@ class Device extends Controller
                     $hrefFilter = isset($value->hrefFilter) ?
                         new ContentFilter($value->hrefFilter, DevModulePortGeo::class, DevModulePortGeo::$columnMap) :
                         new ContentFilter();
+                    $globalFilter = isset($value->globalFilter) ?
+                        new ContentFilter($value->globalFilter, DevModulePortGeo::class, DevModulePortGeo::$columnMap, 'g', 'OR', 'OR') :
+                        new ContentFilter();
+
                     $sorter = isset($value->sorting->sortBy) ?
                         new Sorter(DevModulePortGeo::sortOrder($value->sorting->sortBy), '', DevModulePortGeo::class, DevModulePortGeo::$columnMap) :
                         new Sorter(DevModulePortGeo::sortOrder('default'), '', DevModulePortGeo::class, DevModulePortGeo::$columnMap);
@@ -51,10 +55,13 @@ class Device extends Controller
                         new Paginator($value->pager) :
                         new Paginator();
                     $joinedFilter = ContentFilter::joinFilters($tableFilter, $hrefFilter);
-                    $query = $joinedFilter->countQuery(DevModulePortGeo::class);
+
+                    $query = $joinedFilter->countQuery(DevModulePortGeo::class, $globalFilter);
+
+
                     $paginator->records = DevModulePortGeo::countAllByQuery($query);
                     $paginator->update();
-                    $query = $joinedFilter->selectQuery(DevModulePortGeo::class, $sorter, $paginator);
+                    $query = $joinedFilter->selectQuery(DevModulePortGeo::class, $sorter, $paginator, $globalFilter);
                     $twigData = new Std();
                     $twigData->devices = DevModulePortGeo::findAllByQuery($query);
                     $twigData->appTypeMap = DevModulePortGeo::$applianceTypeMap;

@@ -1188,6 +1188,7 @@ jqTable.workSetTmpl = {
                     body: {
                         tableFilter: ws.tableFilter,
                         hrefFilter: ws.hrefFilter,
+                        globalFilter: ws.globalFilter,
                         sorting: ws.sorting,
                         columns: ws.header.columns,
                         pager: ws.pager,
@@ -1198,21 +1199,24 @@ jqTable.workSetTmpl = {
         };
         var footer = {
             buildGlobalSearch: function (ws) {
-                var GFilter = new prototype.GlobalFilter(ws.header.columns);
-                console.log(GFilter);
+                ws.globalFilter = new prototype.GlobalFilter(ws.header.columns);
+
                 ws.obj.$globalSearch = $('<div/>', {width: '100%', class: "input-group"})
                     .append($('<input/>', {type: "text", class: "form-control", placeholder: "Search for..."}).css({'border-radius': '5px'}));
-                ws.obj.$globalSearch.find('input').autocomplete({
-                    source: function (request, response) {
+                ws.obj.$globalSearch.find('input')
+                    .data('filter', ws.globalFilter)
+                    .autocomplete({
+                        source: function (request, response) {
 
-                    },
-                    minLength: 3,
-                    delay: 300,
-                    search: function (e, ui) {
-                        methods.updateBodyContent(ws);
-                        console.log('search', this, ui);
-                    },
-                });
+                        },
+                        minLength: 0,
+                        delay: 300,
+                        search: function (e, ui) {
+                            $(this).data('filter').value = $(this).val();
+                            methods.updateBodyContent(ws);
+                            console.log('search', this, ui);
+                        },
+                    });
                 return ws.obj.$globalSearch;
             }
         };
@@ -1593,6 +1597,7 @@ jqTable.workSetTmpl = {
                         ws.pager = data.body.pager;
                         ws.tableFilter = $.isPlainObject(data.body.tableFilter) ? data.body.tableFilter : {};
                         ws.hrefFilter = $.isPlainObject(data.body.hrefFilter) ? data.body.hrefFilter : {};
+
                         inner.updatePager(ws);
                         ws.obj.$pgPreloader.hide();
                     })
@@ -1654,18 +1659,31 @@ jqTable.workSetTmpl = {
         };
         var prototype = {
             GlobalFilter: function (columns) {
-                this.setValue
+                var filterValue = '';
                 var self = this;
+                this.concatenation = 'OR';
+                Object.defineProperty(this, 'concatenation', {enumerable: false});
                 if ($.isArray(columns) || $.isPlainObject(columns)) {
                     $.each(columns, function (index, value) {
                         if (columns[index].filterable) {
                             self[index] = {'like': []}
                         }
                     });
-                    console.log('filter is created');
+                    console.log('global filter is created');
                 } else {
-                    console.log("filter isn't created");
+                    console.log("global filter isn't created");
                 }
+                Object.defineProperty(this, 'value', {
+                    set: function (value) {
+                        filterValue = value;
+                        $.each(self, function (index, item) {
+                            self[index]['like'][0] = '%' + filterValue;
+                        })
+                    },
+                    get: function () {
+                        return filterValue;
+                    }
+                });
             }
         };
         if ( methods[method] ) {
