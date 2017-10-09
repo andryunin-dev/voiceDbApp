@@ -862,7 +862,7 @@ jqTable.workSetTmpl = {
                     type: 'text',
                     size: 3,
                     maxlength: 7
-                }).width(20);
+                });
                 ws.obj.$pgPagesCount = $('<span/>', {
                     id: ws.model.pager.selectors.pagesCount.slice(1)
                 }).text('');
@@ -1202,7 +1202,7 @@ jqTable.workSetTmpl = {
                 ws.globalFilter = new prototype.GlobalFilter(ws.header.columns);
 
                 ws.obj.$globalSearch = $('<div/>', {width: '100%', class: "input-group"})
-                    .append($('<input/>', {type: "text", class: "form-control", placeholder: "Search for..."}).css({'border-radius': '5px', padding: '2px 12px'}));
+                    .append($('<input/>', {type: "text", class: "form-control global-filter", placeholder: "Search for..."}).css({'border-radius': '5px', padding: '2px 12px'}));
                 ws.obj.$globalSearch.find('input')
                     .data('filter', ws.globalFilter)
                     .autocomplete({

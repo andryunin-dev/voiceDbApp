@@ -40,7 +40,8 @@
     border-left: 2px solid #ccc ;
 }
 .jqtable .ui-pg-input {
-    width: 20px;
+    width: 30px;
+    height: 100%
 }
 /*pager*/
 
@@ -53,7 +54,7 @@
 }
 .jqtable .jqt-pager input {
     margin-left: 5px;
-    height: 1em;
+    /*height: 1em;*/
     border: none;
 }
 .jqtable .jqt-pager .ui-icon {
@@ -69,6 +70,10 @@
 /*ui-filter-icon-box hover styles*/
 .jqtable .ui-filter-icon-box:hover {
     cursor: pointer;
+}
+/*global search input field*/
+.jqtable .global-filter {
+    height: 90% !important;
 }
 /**/
 
