@@ -25,8 +25,12 @@ use T4\Orm\Model;
  * @property string $appAge
  * @property bool $appInUse
  * @property int $hostname
+ * @property int $hostname_dn
  * @property string $appDetails
  * @property string $appComment
+ * @property string $appType_id
+ * @property string $appType
+ * @property int $appSortOrder
  * @property int $cluster_id
  * @property string $clusterTitle
  * @property string $clusterDetails
@@ -53,6 +57,7 @@ class DevModulePortGeo extends Model
 {
     use DevTypesTrait;
     use ViewHelperTrait;
+    use DbaTrait;
 
     protected static $schema = [
         'table' => 'view.dev_module_port_geo',
@@ -72,10 +77,12 @@ class DevModulePortGeo extends Model
             'appAge' => ['type' => 'int'],
             'appInUse' => ['type' => 'boolean'],
             'hostname' => ['type' => 'string'],
+            'hostname_dn' => ['type' => 'string'],
             'appDetails' => ['type' => 'jsonb'],
             'appComment' => ['type' => 'string'],
             'appType_id' => ['type' => 'int', 'length' => 'big'],
             'appType' => ['type' => 'string'],
+            'appSortOrder' => ['type' => 'int'],
             'cluster_id' => ['type' => 'int', 'length' => 'big'],
             'clusterTitle' => ['type' => 'string'],
             'clusterDetails' => ['type' => 'jsonb'],
@@ -92,6 +99,7 @@ class DevModulePortGeo extends Model
             'software_id' => ['type' => 'int', 'length' => 'big'],
             'softwareTitle' => ['type' => 'string'],
             'softwareVersion' => ['type' => 'string'],
+            'softwareAndVersion' => ['type' => 'string'],
             'moduleInfo' => ['type' => 'jsonb'],
             'portInfo' => ['type' => 'jsonb'],
             'managementIp' => ['type' => 'string']
@@ -104,10 +112,12 @@ class DevModulePortGeo extends Model
         'ven' => 'platformVendor',
         'ven_id' => 'platformVendor_id',
         'pl' => 'platformTitle',
+        'appliance' => 'platformTitle',
         'pl_id' => 'platform_id',
         'soft' => 'softwareTitle',
         'soft_id' => 'software_id',
-        'softVer' => 'softwareVersion',
+        'softVer' => 'softwareAndVersion',
+        'software' => 'softwareAndVersion',
         'type' => 'appType',
         'type_id' => 'appType_id',
         'cl_id' => 'cluster_id',
@@ -123,11 +133,11 @@ class DevModulePortGeo extends Model
     ];
 
     protected static $sortOrders = [
-        'default' => 'region, city, office, "appType", hostname, appliance_id',
-        'region' => 'region, city, office, appType, hostname, appliance_id',
-        'city' => 'city, office appType, hostname, appliance_id',
-        'office' => 'office, appType, hostname, appliance_id, city',
-        'hostname' => ' hostname, appType, appliance_id',
+        'default' => 'region, city, office, appSortOrder asc, hostname, appliance_id',
+        'region' => 'region, city, office, appSortOrder asc, hostname, appliance_id',
+        'city' => 'city, office appSortOrder asc, hostname, appliance_id',
+        'office' => 'office, appSortOrder asc, hostname, appliance_id, city',
+        'hostname' => ' hostname, appSortOrder asc, appliance_id',
     ];
 
 

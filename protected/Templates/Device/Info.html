@@ -27,15 +27,18 @@
                 columns: {
                     region: {name: 'Регион', width: 10, sortable: true, filterable: true},
                     office: {id: 'office', name: 'Офис', width: 15, sortable: true, filterable: true, class: "text-left"},
-                    hostname: {id: 'hostname', name: 'Hostname', width: 10, sortable: true, filterable: true},
-                    appType: {id: 'app-type', name: 'Тип', width: "45px", sortable: true, filterable: true},
-                    appliance: {id: 'appliance', name: 'Оборудование', width: 20},
-                    soft: {id: 'soft', name: 'ПО', width: 15, sortable: true, filterable: true},
-                    module: {id: 'module', name: 'Модуль', width: 15, sortable: true, filterable: true},
-                    data_port: {id: 'dport', name: 'Интерфейсы', width: 15, filterable: true},
+                    hostname_dn: {id: 'hostname', name: 'Hostname', width: 15, sortable: true, filterable: true},
+                    appType: {id: 'app-type', name: 'Тип', width: "70px", sortable: true, filterable: true},
+                    platformTitle: {id: 'appliance', name: 'Оборудование', width: 20, sortable: true, filterable: true},
+                    softwareAndVersion: {id: 'soft', name: 'ПО', width: 15, sortable: true, filterable: true},
+                    module: {id: 'module', name: 'Модуль', width: 10, sortable: false, filterable: false},
+                    data_port: {id: 'dport', name: 'Интерфейсы', width: 15, filterable: false},
                     {% if not user.readOnly %}
                     action: {id: 'action', name: 'Действия', width: '105px'}
                     {% endif %}
+                },
+                filters: {
+                    url: '/ajax/default.json'
                 }
             },
             pager: {
@@ -67,7 +70,25 @@
                     $(e.target).closest("table").find(".js-caret").toggleClass("caret-down");
                 }
             };
-            devTable.jqTable('addBodyEventHandler', 'click', toggleInnerTable);
+            devTable.jqTable('addBodyEventHandler', 'click', "", toggleInnerTable);
+            devTable.jqTable('addHeaderEventHandler', 'click', "", function (e) {
+                if ($(e.target).parent().hasClass('finder-icon') || $(e.target).hasClass('finder-icon')) {
+                    var ws = e.data;
+                    console.log('finder click');
+                    var $finder = $('<input/>', {type: 'text', class: 'finder-input'});
+                    ws.obj.$finder.blur(function (event) {
+                        console.log('focus out');
+                        ws.obj.$finder.remove();
+                    });
+                    ws.obj.$finder.css({position: 'absolute'});
+                    ws.obj.$finder.appendTo('.finder-icon').position({
+                        my: "right top",
+                        at: "center bottom+5",
+                        of: event.target
+                    }).focus()
+                }
+            })
+
         });
     </script>
     <script>
