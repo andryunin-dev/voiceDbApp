@@ -17,6 +17,8 @@ use T4\Orm\Model;
  */
 class DPortType extends Model
 {
+    const TYPE_ETHERNET = 'Ethernet';
+
     protected static $schema = [
         'table' => 'equipment.dataPortTypes',
         'columns' => [
