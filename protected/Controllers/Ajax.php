@@ -19,7 +19,7 @@ class Ajax extends Controller
 
     public function actionDefault()
     {
-
+        var_dump($_GET);
     }
 
     public function actionPlugin()

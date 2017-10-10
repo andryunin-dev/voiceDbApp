@@ -42,6 +42,7 @@
                                             <tr>
                                                 <th class="bg-primary">Тип(роль)<a class="btn btn-success btn-xs pull-right" href="/modal/addApplianceType" role="button" data-action="get-popup"><span class="glyphicon glyphicon-plus" aria-hidden="true" title="добавить"></span></a>
                                                 </th>
+                                                <th class="bg-primary col-10" title="Порядок сортировки (от большего к меньшему)">Sort order</th>
                                                 <th class="bg-primary col-10">Действия</th>
                                             </tr>
                                         </thead>
@@ -52,6 +53,7 @@
                                                 <td>{{ applianceType }}
                                                     {#<a href="{{ devsUrl.cloneToShortUrl.addQuery({'type': applianceType.getPk}) }}"><span class="pull-right">({{ applianceType.appliances.count }} items)</span></a>#}
                                                 </td>
+                                                <td class="text-center">{{ applianceType.sortOrder }}</td>
                                                 <td class="text-center">
                                                     <a class="btn btn-success btn-xs" href="/modal/editApplianceType?id={{ applianceType.getPK }}" role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать"></span></a>
                                                     <a class="btn btn-danger btn-xs" href="/admin/delApplianceType?id={{ applianceType.getPK }}" role="button" data-action="delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" title="удалить"></span></a>

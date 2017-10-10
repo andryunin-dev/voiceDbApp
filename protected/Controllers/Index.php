@@ -2,6 +2,8 @@
 
 namespace App\Controllers;
 
+use App\ViewModels\DevPhoneInfoGeo;
+use T4\Dbal\Query;
 use T4\Mvc\Controller;
 
 class Index
@@ -10,6 +12,6 @@ class Index
 
     public function actionDefault()
     {
-        header('Location: /admin/offices');
+       header('location: /device/info');
     }
 }
