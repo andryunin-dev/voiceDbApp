@@ -10,11 +10,23 @@
                 <td><a href="{{ url.path }}?reg_id={{ dev.region_id }}" >{{ dev.region }}</a></td>
                 <td><a href="{{ url.path }}?loc_id={{ dev.office_id }}" >{{ dev.office }}</a> {% if not dev.officeComment is empty %}<span id="{{ dev.office_id }}_{{ dev.appliance_id }}" class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>{% endif %}</td>
                 {#Hostname#}
-                <td title="{{ dev.hostname }}">
+                {% set hostnameSet = dev.hostname_dn|split(',',2) %}
+                <td title="{{ dev.hostname_dn }}">
                     {% if not dev.managementIp is empty %}
-                        <a href="ssh://{{ dev.managementIp }}" >{{ dev.hostname }}</a>
+                        {#<a href="ssh://{{ dev.managementIp }}" >{{ dev.hostname }}</a>#}
+                        <a href="ssh://{{ dev.managementIp }}" >
+                            <span class="hostname">{{ hostnameSet[0] }}</span>
+                            {% if hostnameSet[1] is defined %}
+                            <br>
+                            <span class="dn-number">{{ hostnameSet[1] }}</span>
+                            {% endif %}
+                        </a>
                     {% else %}
-                        {{ dev.hostname }}
+                        <span class="hostname">{{ hostnameSet[0] }}</span>
+                        {% if hostnameSet[1] is defined %}
+                            <br>
+                            <span class="dn-number">{{ hostnameSet[1] }}</span>
+                        {% endif %}
                     {% endif %}
                     {% if dev.cluster_id %}
                         <br>
@@ -22,15 +34,17 @@
                     {% endif %}
                 </td>
                 {#Type#}
+                {#<td style="text-align:center" title="{{ dev.appType }}">#}
                 <td style="text-align:center" title="{{ dev.appType }}">
-                    <b>
+                    {#<b>#}
                         <a href="{{ url.path }}?appType_id={{ dev.appType_id }}">
-                            {% set appType = attribute(appTypeMap, dev.appType) %}
-                            {% if appType is empty %} {{ dev.appType|upper }}
-                            {% else %} {{ attribute(appTypeMap, dev.appType) }}
-                            {% endif %}
+                            {{ dev.appType }}
+                            {#{% set appType = attribute(appTypeMap, dev.appType) %}#}
+                            {#{% if appType is empty %} {{ dev.appType|upper }}#}
+                            {#{% else %} {{ attribute(appTypeMap, dev.appType) }}#}
+                            {#{% endif %}#}
                         </a>
-                    </b>
+                    {#</b>#}
                 </td>
                 {#Platform#}
                 <td {% if false == dev.appInUse %}class="item-not-use" {% endif %}><a href="{{ url.path }}?pl_id={{ dev.platform_id }}">
@@ -38,8 +52,8 @@
                     <span class="lastUpdate {% if dev.appAge is null or dev.appAge >= maxAge %} stale {% endif %}" data-last-update="{{ dev.lastUpdateDateTime }}" title="{{ dev.lastUpdateDateTime }}">{{ dev.lastUpdateDate }}</span>
                 </td>
                 {#Software#}
-                <td>
-                    {{ dev.softwareTitle }} {{ dev.softwareVersion }}
+                <td title="{{ dev.softwareAndVersion }}">
+                    {{ dev.softwareAndVersion }}
                 </td>
                 {#ModuleItems#}
                 <td class="cell-container">
