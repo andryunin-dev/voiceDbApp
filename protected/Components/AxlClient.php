@@ -1,18 +1,19 @@
 <?php
 namespace App\Components;
 
-use T4\Core\Exception;
-
 class AxlClient
 {
+    private static $uniqueInstance = [];
+
     const DEFAULTSCHEMA = '7.1';
-    static $instance;
-    static $schema;
 
-    protected function __construct(string $cucmIp, string $axlSchema = null)
+    public $client;
+    public $schema;
+
+
+    protected function __construct(string $cucmIp)
     {
-        $ip = (new IpTools($cucmIp))->address;
-
+        // Create the environment
         if ('cli' == PHP_SAPI) {
             $app = \T4\Console\Application::instance();
         } else {
@@ -30,51 +31,52 @@ class AxlClient
         ]);
 
 
-        if (is_null($axlSchema)) {
-            $axlSchema = self::DEFAULTSCHEMA;
+        // Create the default axlClient
+        $axlClientWithDefaultSchema = new \SoapClient(realpath(ROOT_PATH . '/AXLscheme/' . self::DEFAULTSCHEMA . '/AXLAPI.wsdl'), [
+            'trace' => true,
+            'exception' => true,
+            'location' => 'https://' . $cucmIp . ':8443/axl',
+            'login' => $username,
+            'password' => $password,
+            'stream_context' => $context,
+        ]);
 
-            if (false === realpath(ROOT_PATH . '/AXLscheme/' . $axlSchema . '/AXLAPI.wsdl')) {
-                throw new Exception('AxlClient: Default AXL scheme is not found');
+
+        // Get the cucm's scheme
+        $result = preg_match('~^\d+\.\d+~', $axlClientWithDefaultSchema->GetCCMVersion($cucmIp)->return->componentVersion->version, $axlSchema);
+
+        if (1 == $result) {
+
+            // Если cucm's scheme получена, то создать или вернуть axlClient с cucm's scheme
+            $this->schema = $axlSchema[0];
+
+            if (self::DEFAULTSCHEMA == $this->schema) {
+                $this->client = $axlClientWithDefaultSchema;
+            } else {
+                $this->client = new \SoapClient(realpath(ROOT_PATH . '/AXLscheme/' . $axlSchema[0] . '/AXLAPI.wsdl'), [
+                    'trace' => true,
+                    'exception' => true,
+                    'location' => 'https://' . $cucmIp . ':8443/axl',
+                    'login' => $username,
+                    'password' => $password,
+                    'stream_context' => $context,
+                ]);
             }
-
-            self::$instance->default = new \SoapClient(realpath(ROOT_PATH . '/AXLscheme/' . $axlSchema . '/AXLAPI.wsdl'), [
-                'trace' => true,
-                'exception' => true,
-                'location' => 'https://' . $ip . ':8443/axl',
-                'login' => $username,
-                'password' => $password,
-                'stream_context' => $context,
-            ]);
 
         } else {
-            if (false === realpath(ROOT_PATH . '/AXLscheme/' . $axlSchema . '/AXLAPI.wsdl')) {
-                throw new Exception('AxlClient: AXL scheme ' . $axlSchema . ' is not found');
-            }
-
-            self::$instance->$cucmIp = new \SoapClient(realpath(ROOT_PATH . '/AXLscheme/' . $axlSchema . '/AXLAPI.wsdl'), [
-                'trace' => true,
-                'exception' => true,
-                'location' => 'https://' . $ip . ':8443/axl',
-                'login' => $username,
-                'password' => $password,
-                'stream_context' => $context,
-            ]);
-
-            self::$schema->$cucmIp = $axlSchema;
+            // Если не удалось получить cucm's scheme,то вернуть false
+            $this->client = false;
+            $this->schema = false;
         }
     }
 
-    public static function instance(string $cucmIp)
-    {
-        if (!isset(self::$instance->$cucmIp)) {
-            if (!isset(self::$instance->default)) {
-                new self($cucmIp);
-            }
 
-            preg_match('~^\d+\.\d+~', (self::$instance->default)->GetCCMVersion($cucmIp)->return->componentVersion->version, $axlSchema);
-            new self($cucmIp, $axlSchema[0]);
+    public static function getInstance(string $cucmIp)
+    {
+        if (null === self::$uniqueInstance[$cucmIp]) {
+            self::$uniqueInstance[$cucmIp] = new self($cucmIp);
         }
 
-        return self::$instance->$cucmIp;
+        return self::$uniqueInstance[$cucmIp];
     }
 }

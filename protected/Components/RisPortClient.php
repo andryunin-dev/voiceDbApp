@@ -3,12 +3,12 @@ namespace App\Components;
 
 class RisPortClient
 {
-    static $instance;
+    private static $uniqueInstance = [];
+
+    protected $client;
 
     protected function __construct(string $cucmIp)
     {
-        $ip = (new IpTools($cucmIp))->address;
-
         if ('cli' == PHP_SAPI) {
             $app = \T4\Console\Application::instance();
         } else {
@@ -25,21 +25,23 @@ class RisPortClient
             ]
         ]);
 
-        self::$instance->$cucmIp = new \SoapClient('https://' . $ip . ':8443/realtimeservice/services/RisPort?wsdl', [
+        $this->client = new \SoapClient('https://' . $cucmIp . ':8443/realtimeservice/services/RisPort?wsdl', [
             'trace' => true,
             'exception' => true,
-            'location' => 'https://' . $ip . ':8443/realtimeservice/services/RisPort',
+            'location' => 'https://' . $cucmIp . ':8443/realtimeservice/services/RisPort',
             'login' => $username,
             'password' => $password,
             'stream_context' => $context,
         ]);
     }
 
-    public static function instance(string $cucmIp)
+
+    public static function getInstance(string $cucmIp)
     {
-        if (!isset(self::$instance->$cucmIp)) {
-            new self($cucmIp);
+        if (null === self::$uniqueInstance[$cucmIp]) {
+            self::$uniqueInstance[$cucmIp] = new self($cucmIp);
         }
-        return self::$instance->$cucmIp;
+
+        return self::$uniqueInstance[$cucmIp]->client;
     }
 }
