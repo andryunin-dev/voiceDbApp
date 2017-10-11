@@ -13,11 +13,5 @@ class Test extends Controller
 {
     public function actionDefault()
     {
-        $this->data->phone = '123456789';
-//        $column = 'string';
-//        $column = preg_split("/\s+/", $column, -1, PREG_SPLIT_NO_EMPTY);
-//
-//        var_dump($column);
-
     }
 }
