@@ -11,7 +11,6 @@ use T4\Core\MultiException;
 
 class CucmsPhones extends Command
 {
-    const PUBLISHER = 'cmp';
 
     public function actionDefault()
     {
@@ -22,11 +21,12 @@ class CucmsPhones extends Command
 
     public function actionGetAll()
     {
-        $logger = RLogger::getInstance('Cucm', realpath(ROOT_PATH . '/Logs/phones.log'));
         file_put_contents($this->getBackupFileName(),'');
+        file_put_contents(realpath(ROOT_PATH . '/Logs/phones.log'),'');
+        $logger = RLogger::getInstance('Cucm', realpath(ROOT_PATH . '/Logs/phones.log'));
 
         // Получить все зарегистрированные телефоны из всех cucms
-        foreach (Appliance::findAllByType(self::PUBLISHER) as $publisher) {
+        foreach (Appliance::findAllByType(ApplianceType::CUCM_PUBLISHER) as $publisher) {
             $cucmIp = $publisher->managementIp;
 
             $logger->info('START:[cucm]=' . $cucmIp);
@@ -95,11 +95,11 @@ class CucmsPhones extends Command
      */
     public function actionGetFrom(string $cucmIp)
     {
-        $logger = RLogger::getInstance('Cucm', realpath(ROOT_PATH . '/Logs/phones.log'));
         file_put_contents($this->getBackupFileName($cucmIp),'');
+        file_put_contents(realpath(ROOT_PATH . '/Logs/phones.log'),'');
+        $logger = RLogger::getInstance('Cucm', realpath(ROOT_PATH . '/Logs/phones.log'));
 
-
-        if (self::PUBLISHER == Appliance::findByManagementIP($cucmIp)->type->type) {
+        if (ApplianceType::CUCM_PUBLISHER == Appliance::findByManagementIP($cucmIp)->type->type) {
             $logger->info('START:[cucm]=' . $cucmIp);
 
             try {
@@ -169,44 +169,5 @@ class CucmsPhones extends Command
             return ROOT_PATH . DS . 'Backups' . DS . 'backup_phones_' . preg_replace('~\.~', '_', $cucmIP) . '.txt';
         }
     }
-
-
-    public function actionDelete()
-    {
-        $appliances = ApplianceType::findByColumn('type', 'phone')->appliances;
-
-        foreach ($appliances as $appliance) {
-
-            $dataPorts = $appliance->dataPorts;
-            foreach ($dataPorts as $dataPort) {
-                $dataPort->delete();
-            }
-
-            $modules = $appliance->modules;
-            foreach ($modules as $module) {
-                $module->delete();
-            }
-
-            if (!is_null($appliance->phoneInfo)) {
-                $appliance->phoneInfo->delete();
-            }
-
-            $software = $appliance->software;
-            $platform = $appliance->platform;
-
-            $serial = $platform->serialNumber;
-
-            $appliance->delete();
-
-            if (!is_null($platform)) {
-                $platform->delete();
-            }
-
-            if (!is_null($software)) {
-                $software->delete();
-            }
-
-            $this->writeLn('Phone ' . $serial . ' deleted');
-        }
-    }
 }
+
