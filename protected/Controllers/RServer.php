@@ -102,30 +102,4 @@ class RServer extends Controller
         echo(json_encode($response->toArray()));
         die;
     }
-
-
-    public function actionInfile()
-    {
-        $rawdata = file_get_contents('php://input');
-        $inputDataset = json_decode(file_get_contents('php://input'));
-        $ip = (isset($inputDataset->ip)) ? str_replace('/', '-', $inputDataset->ip) : '';
-
-//        $cacheDir = realpath(ROOT_PATH . '/Tmp/Test_test/');
-//        $cacheDir = realpath(ROOT_PATH . '/Tmp/Test_dataset_2/');
-//        $cacheDir = realpath(ROOT_PATH . '/Tmp/Test_dataset_1/');
-        $cacheDir = realpath(ROOT_PATH . '/Tmp/Test_dataset_1_errors/');
-//        $cacheDir = realpath(ROOT_PATH . '/Tmp/Test_cache/');
-//        $cacheDir = realpath(ROOT_PATH . '/Tmp/Test_src/');
-
-        $mt = explode(' ', microtime());
-        $rawmc = explode('.', $mt[0]);
-        $mc = $rawmc[1];
-        $datetime = date('Y-m-d__G-i-s.', $mt[1]);
-        $fileName = $cacheDir . '\\' . $ip . '__' . $datetime . $mc . '.json';
-
-        $file = fopen($fileName, 'w+');
-        fwrite($file,$rawdata);
-        fclose($file);
-        die;
-    }
 }
