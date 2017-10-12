@@ -1,0 +1,72 @@
+<?php
+
+namespace App\Migrations;
+
+use T4\Orm\Migration;
+
+class m_1507814222_createGeoPeopleView
+    extends Migration
+{
+
+    public function up()
+    {
+        $sql['geoPeople'] = '
+        CREATE OR REPLACE VIEW view.geo_people AS
+        SELECT
+            CAST("lotusLoc".reg_center AS citext) AS "regCenter",
+            region.title AS region,
+            region.__id AS region_id,
+            city.title AS city,
+            city.__id AS city_id,
+            offices.title AS office,
+            offices.__id AS office_id,
+            offices."lotusId" AS "lotusId",
+            offices.comment AS "officeComment",
+            offices.details AS "officeDetails",
+            address.address AS "officeAddress",
+            "lotusLoc".employees AS people
+        
+        FROM company.offices AS offices
+            JOIN geolocation.addresses AS address ON address.__id = offices.__address_id
+            JOIN geolocation.cities AS city ON city.__id = address.__city_id
+            JOIN geolocation.regions AS region ON region.__id = city.__region_id
+            LEFT JOIN lotus.locations AS "lotusLoc" ON offices."lotusId" = "lotusLoc".lotus_id
+        ';
+
+        // For main DB
+        foreach ($sql as $key => $query) {
+            if (true === $this->db->execute($query)) {
+                echo 'Main DB: ' . $key . ' - OK' . PHP_EOL;
+            }
+        }
+        // For test DB
+        $this->setDb('phpUnitTest');
+        foreach ($sql as $key => $query) {
+            if (true === $this->db->execute($query)) {
+                echo 'Test DB: ' . $key . ' - OK' . PHP_EOL;
+            }
+        }
+
+    }
+
+    public function down()
+    {
+        $sql['geoPeople'] = 'DROP VIEW view.geo_people';
+
+        // For main DB
+        foreach ($sql as $key => $query) {
+            if (true === $this->db->execute($query)) {
+                echo 'Main DB: ' . $key . ' - OK' . PHP_EOL;
+            }
+        }
+        // For test DB
+        $this->setDb('phpUnitTest');
+        foreach ($sql as $key => $query) {
+            if (true === $this->db->execute($query)) {
+                echo 'Test DB: ' . $key . ' - OK' . PHP_EOL;
+            }
+        }
+
+    }
+    
+}
