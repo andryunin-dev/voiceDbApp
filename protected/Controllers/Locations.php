@@ -3,13 +3,20 @@
 namespace App\Controllers;
 
 use App\Components\ContentFilter;
-use App\ViewModels\GeoPeople_View;
+use App\Components\Paginator;
+use App\Components\Sorter;
+use App\ViewModels\Geo_View;
+use App\ViewModels\GeoDevStat;
+use T4\Core\Std;
 use T4\Core\Url;
+use T4\Dbal\Query;
 use T4\Http\Request;
 use T4\Mvc\Controller;
 
 class Locations extends Controller
 {
+    use DebugTrait;
+
     public function actionDefault()
     {
         $this->data->activeLink->offices = true;
@@ -23,48 +30,44 @@ class Locations extends Controller
                 case 'header':
                     $data['columns'] = $value->columns->toArrayRecursive();
                     $data['user'] = $this->data->user;
-                    $this->data->header->html = $this->view->render('DevicesTableHeader.html', $data);
+                    $this->data->header->html = $this->view->render('LocTableHeader.html', $data);
                     break;
                 case 'body':
                     $tableFilter = isset($value->tableFilter) ?
-                        new ContentFilter($value->tableFilter, GeoPeople_View::class, GeoPeople_View::$columnMap) :
+                        new ContentFilter($value->tableFilter, GeoDevStat::class, GeoDevStat::$columnMap) :
                         new ContentFilter();
                     $hrefFilter = isset($value->hrefFilter) ?
-                        new ContentFilter($value->hrefFilter, GeoPeople_View::class, GeoPeople_View::$columnMap) :
+                        new ContentFilter($value->hrefFilter, GeoDevStat::class, GeoDevStat::$columnMap) :
                         new ContentFilter();
                     $globalFilter = isset($value->globalFilter) ?
-                        new ContentFilter($value->globalFilter, GeoPeople_View::class, GeoPeople_View::$columnMap, 'g', 'OR', 'OR') :
+                        new ContentFilter($value->globalFilter, GeoDevStat::class, GeoDevStat::$columnMap, 'g', 'OR', 'OR') :
                         new ContentFilter();
 
                     $sorter = isset($value->sorting->sortBy) ?
-                        new Sorter(DevModulePortGeo::sortOrder($value->sorting->sortBy), '', DevModulePortGeo::class, DevModulePortGeo::$columnMap) :
-                        new Sorter(DevModulePortGeo::sortOrder('default'), '', DevModulePortGeo::class, DevModulePortGeo::$columnMap);
+                        new Sorter(GeoDevStat::sortOrder($value->sorting->sortBy), '', GeoDevStat::class, GeoDevStat::$columnMap) :
+                        new Sorter(GeoDevStat::sortOrder('default'), '', GeoDevStat::class, GeoDevStat::$columnMap);
                     $paginator = isset($value->pager) ?
                         new Paginator($value->pager) :
                         new Paginator();
                     $joinedFilter = ContentFilter::joinFilters($tableFilter, $hrefFilter);
 
-                    $query = $joinedFilter->countQuery(DevModulePortGeo::class, $globalFilter);
+                    $query = $joinedFilter->countQuery(GeoDevStat::class, $globalFilter);
 
 
-                    $paginator->records = DevModulePortGeo::countAllByQuery($query);
+                    $paginator->records = GeoDevStat::countAllByQuery($query);
                     $paginator->update();
-                    $query = $joinedFilter->selectQuery(DevModulePortGeo::class, $sorter, $paginator, $globalFilter);
+                    $query = $joinedFilter->selectQuery(GeoDevStat::class, $sorter, $paginator, $globalFilter);
                     $twigData = new Std();
-                    $twigData->devices = DevModulePortGeo::findAllByQuery($query);
-                    $twigData->appTypeMap = DevModulePortGeo::$applianceTypeMap;
+                    $twigData->offices = GeoDevStat::findAllByQuery($query);
                     $twigData->user = $this->data->user;
                     $twigData->url = $url;
-                    $twigData->maxAge = $maxAge;
-                    $lotusIdList = DevModulePortGeo::officeIdListByQuery($query, 'lotusId');
-                    $peoples = LotusLocation::countPeoples($lotusIdList);
 
-                    $this->data->body->html = $this->view->render('DevicesTableBody.html', $twigData);
+                    $this->data->body->html = $this->view->render('LocTableBody.html', $twigData);
                     $this->data->body->hrefFilter = $hrefFilter;
                     $this->data->body->tableFilter = $tableFilter;
                     $this->data->body->pager = $paginator;
                     $info[] = 'Записей: ' . $paginator->records;
-                    $info[] = 'Сотрудников: ' . $peoples;
+//                    $info[] = 'Сотрудников: ' . $peoples;
                     $this->data->body->info = $info;
                     break;
                 case 'headerFilter':
@@ -73,10 +76,10 @@ class Locations extends Controller
                     } else {
                         $filterScr = [];
                     }
-                    $newTabFilter = new ContentFilter($filterScr, DevModulePortGeo::class, DevModulePortGeo::$columnMap);
+                    $newTabFilter = new ContentFilter($filterScr, GeoDevStat::class, GeoDevStat::$columnMap);
 
                     $tableFilter = isset($value->tableFilter) ?
-                        new ContentFilter($value->tableFilter, DevModulePortGeo::class, DevModulePortGeo::$columnMap) :
+                        new ContentFilter($value->tableFilter, GeoDevStat::class, GeoDevStat::$columnMap) :
                         new ContentFilter();
                     $tableFilter->mergeWith($newTabFilter);
                     //удалить statement 'eq' для поля column если есть statement 'like'
@@ -86,21 +89,21 @@ class Locations extends Controller
                         $tableFilter->removeStatement($value->filter->column, 'eq');
                     }
                     $hrefFilter = isset($value->hrefFilter) ?
-                        new ContentFilter($value->hrefFilter, DevModulePortGeo::class, DevModulePortGeo::$columnMap) :
+                        new ContentFilter($value->hrefFilter, GeoDevStat::class, GeoDevStat::$columnMap) :
                         new ContentFilter();
                     $joinedFilter = (new ContentFilter())->mergeWith($tableFilter)->mergeWith($hrefFilter);
-                    $sorter = new Sorter($value->filter->column, '', DevModulePortGeo::class, DevModulePortGeo::$columnMap);
+                    $sorter = new Sorter($value->filter->column, '', GeoDevStat::class, GeoDevStat::$columnMap);
                     $query = (new Query())
                         ->distinct()
                         ->select($sorter->sortBy)
-                        ->from(DevModulePortGeo::getTableName())
+                        ->from(GeoDevStat::getTableName())
                         ->order($sorter->sortBy)
                         ->where($joinedFilter->whereStatement->where)
                         ->params($joinedFilter->whereStatement->params);
                     if (! empty($value->filter->limit) && is_numeric($value->filter->limit)) {
                         $query->limit((intval($value->filter->limit)));
                     }
-                    $this->data->result = DevModulePortGeo::findAllDistictColumnValues($query);
+                    $this->data->result = GeoDevStat::findAllDistictColumnValues($query);
                     unset($this->data->user);
                     break;
                 default:

@@ -1,0 +1,36 @@
+{% spaceless %}
+        {% for office in offices %}
+            <tr>
+                {#RegCenter#}
+                <td>{{ office.regCenter }}</td>
+                {#Region#}
+                <td><a href="{{ url.path }}?reg_id={{ office.region_id }}" >{{ office.region }}</a></td>
+                {#city#}
+                <td><a href="{{ url.path }}?reg_id={{ office.city_id }}" >{{ office.city }}</a></td>
+                {#address#}
+                <td>{{ office.address }}</td>
+                {#office#}
+                <td title="{{ office.office }} (LotusID: {{ office.lotusId }})"><a href="{{ url.path }}?loc_id={{ office.office_id }}" >{{ office.office }}</a>
+                    {% if not office.comment is empty %}
+                    <span id="{{ office.getPk }}" class="glyphicon glyphicon-info-sign" aria-hidden="true" title="{{ office.comment }}"></span>
+                    {% endif %}
+                </td>
+                {#status#}
+                <td>{{ office.officeStatus }}</td>
+                {#lotusId#}
+                {#<td class="text-center">{{ office.lotusId }}</td>#}
+                {#Peoples#}
+                <td class="text-center">{{ office.people }}</td>
+                {#Statistic#}
+                <td></td>
+                {#actions#}
+                <td class="text-center">
+                    <a class="btn btn-success btn-xs" href="/modal/editOffice?id={{ office.office_id }}" role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать офис"></span></a>
+                    {% if user.permissions.delOffice %}
+                        <a class="btn btn-danger btn-xs" href="/admin/delOffice?id={{ office.office_id }}" role="button" data-action="delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" title="удалить офис"></span></a>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+{% endspaceless %}
+

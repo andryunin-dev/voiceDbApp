@@ -4,14 +4,14 @@ namespace App\Migrations;
 
 use T4\Orm\Migration;
 
-class m_1507814222_createGeoPeopleView
+class m_1507814222_createGeoView
     extends Migration
 {
 
     public function up()
     {
-        $sql['geoPeople'] = '
-        CREATE OR REPLACE VIEW view.geo_people AS
+        $sql['create_view_geo'] = '
+        CREATE OR REPLACE VIEW view.geo AS
         SELECT
             CAST("lotusLoc".reg_center AS citext) AS "regCenter",
             region.title AS region,
@@ -21,9 +21,9 @@ class m_1507814222_createGeoPeopleView
             offices.title AS office,
             offices.__id AS office_id,
             offices."lotusId" AS "lotusId",
-            offices.comment AS "officeComment",
-            offices.details AS "officeDetails",
-            address.address AS "officeAddress",
+            offices.comment AS "comment",
+            offices.details AS "details",
+            address.address AS "address",
             "lotusLoc".employees AS people
         
         FROM company.offices AS offices
@@ -51,7 +51,7 @@ class m_1507814222_createGeoPeopleView
 
     public function down()
     {
-        $sql['geoPeople'] = 'DROP VIEW view.geo_people';
+        $sql['drop_view_geo'] = 'DROP VIEW view.geo';
 
         // For main DB
         foreach ($sql as $key => $query) {
