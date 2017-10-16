@@ -52,7 +52,7 @@ class Locations extends Controller
                     $joinedFilter = ContentFilter::joinFilters($tableFilter, $hrefFilter);
 
                     $query = $joinedFilter->countQuery(GeoDevStat::class, $globalFilter);
-
+                    $peoplesCount = GeoDevStat::countPeople($query);
 
                     $paginator->records = GeoDevStat::countAllByQuery($query);
                     $paginator->update();
@@ -67,7 +67,7 @@ class Locations extends Controller
                     $this->data->body->tableFilter = $tableFilter;
                     $this->data->body->pager = $paginator;
                     $info[] = 'Записей: ' . $paginator->records;
-//                    $info[] = 'Сотрудников: ' . $peoples;
+                    $info[] = 'Сотрудников: ' . $peoplesCount;
                     $this->data->body->info = $info;
                     break;
                 case 'headerFilter':

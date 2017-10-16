@@ -317,6 +317,17 @@ custom striped table
     background: #f4f4f4 !important;
 }
 
+.cust-table-striped-theme-2 > tbody > tr:nth-child(odd),
+.cust-table-striped-theme-2 > tbody > tr:nth-child(odd) table.inner
+ {
+    background: #c6c6c6;
+}
+.cust-table-striped-theme-2 > tbody > tr:nth-child(even),
+.cust-table-striped-theme-2 > tbody > tr:nth-child(even) table.inner
+ {
+    background: #f4f4f4 !important;
+}
+
 /*.cust-table-striped > tbody >  tr:hover {*/
     /*background: #c1c1c1;*/
 /*}*/
@@ -494,7 +505,9 @@ td.cell-container {
     vertical-align: top;
     padding: 0 !important;
 }
-/*стили для вложенной таблицы*/
+/*===========================
+стили для вложенной таблицы
+==============================*/
 table.inner {
     margin: 0 !important;
     border: none !important;
@@ -502,17 +515,22 @@ table.inner {
 }
 /*отключить все бордеры*/
 table.inner tr td,
-
 table.inner tr th {
     border: none !important;
 }
+
+
 table.inner tr {
     border-right: none;
     border-left: none;
+    border-top: 1px solid #bbbbbb !important;
+    border-bottom: 1px solid #bbbbbb !important;
 }
-table.inner tr:last-of-type,
 table.inner tr:first-of-type {
-    border: none;
+    border-top: none !important;
+}
+table.inner tr:last-of-type {
+    border-bottom: none !important;
 }
 /*========================*/
 /*Временные стили*/

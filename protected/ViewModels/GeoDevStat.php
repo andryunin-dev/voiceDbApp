@@ -5,6 +5,7 @@ namespace App\ViewModels;
 
 
 use T4\Core\Std;
+use T4\Dbal\Query;
 use T4\Orm\Model;
 
 /**
@@ -65,5 +66,14 @@ class GeoDevStat extends Model
     protected function beforeSave()
     {
         return false;
+    }
+
+    public static function countPeople($query)
+    {
+        $peopleColumn = 'peoples';
+        $peopleQuery = clone $query;
+        $peopleQuery->select('sum(people) AS peoples');
+        $result = self::findByQuery($peopleQuery)->$peopleColumn;
+        return $result;
     }
 }
