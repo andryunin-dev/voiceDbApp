@@ -36,7 +36,7 @@ use T4\Orm\Model;
  * @property int $softwareTitle
  * @property int $softwareVersion
  */
-class GeoDev_View extends Model
+class GeoDev extends Model
 {
     protected static $schema = [
         'table' => 'view.geo_dev',
