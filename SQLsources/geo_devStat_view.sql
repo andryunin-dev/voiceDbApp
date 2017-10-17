@@ -65,14 +65,14 @@ SELECT
         SELECT
             "appTypes".type AS "appType",
             "appTypes".__id AS "appType_id",
-            count(appliances.__id) AS "appTypeQuantityTotal",
-            sum(CASE WHEN ((EXTRACT(EPOCH FROM age(now(), appliances."lastUpdate")) / 3600)::INT < 73) THEN 1 ELSE 0 END ) AS "appTypeQuantityActive",
+            count(appliances.__id) AS "totalQty",
+            sum(CASE WHEN ((EXTRACT(EPOCH FROM age(now(), appliances."lastUpdate")) / 3600)::INT < 73) THEN 1 ELSE 0 END ) AS "activeQty",
             (SELECT jsonb_agg((to_jsonb(t))) FROM (
             SELECT
                 platforms.__id AS platform_id,
                 cast(vendors.title || ' ' || platforms.title AS citext) AS "platformTitle",
-                count(platforms.__id) AS total,
-                sum(CASE WHEN ((EXTRACT(EPOCH FROM age(now(), appliances_loc."lastUpdate")) / 3600)::INT < 73) THEN 1 ELSE 0 END ) AS active
+                count(platforms.__id) AS "totalQty",
+                sum(CASE WHEN ((EXTRACT(EPOCH FROM age(now(), appliances_loc."lastUpdate")) / 3600)::INT < 73) THEN 1 ELSE 0 END ) AS "activeQty"
             FROM equipment.appliances AS appliances_loc
                 JOIN equipment."applianceTypes" AS "appTypes_l2" ON appliances_loc.__type_id = "appTypes".__id
                 JOIN equipment."platformItems" AS "platformItems" ON appliances_loc.__platform_item_id = "platformItems".__id
@@ -95,3 +95,6 @@ FROM company.offices AS offices
     JOIN geolocation.cities AS cities ON addresses.__city_id = cities.__id
     JOIN geolocation.regions AS regions ON cities.__region_id = regions.__id
 WHERE offices.__id = 227;
+
+
+

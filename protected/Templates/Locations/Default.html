@@ -32,7 +32,7 @@
                     office: {id: 'office', name: 'Офис', width: 15, sortable: true, filterable: true, class: "text-left"},
                     officeStatus: {id: 'office-status', name: 'Статус', width: "80px", sortable: true, filterable: true, class: "text-center"},
                     people: {name: 'кол-во сотр.', width: "100px", sortable: true, filterable: false},
-                    devStatistics: {name: 'Статистика', width: 35, sortable: true, filterable: false},
+                    devStatistics: {name: 'Статистика(всего/активных)', width: 35, sortable: true, filterable: false},
                     {% if not user.readOnly %}
                     action: {id: 'action', name: 'Действия', width: '105px'}
                     {% endif %}

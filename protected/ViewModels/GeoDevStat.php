@@ -50,7 +50,8 @@ class GeoDevStat extends Model
             'region_id' => ['type' => 'int', 'length' => 'big'],
             'region' => ['type' => 'string'],
             'regCenter' => ['type' => 'string'],
-            'devStatistics' => ['type' => 'json']
+            'devStatistics' => ['type' => 'json'],
+            'devStatistics2' => ['type' => 'json']
         ]
     ];
 
