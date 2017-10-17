@@ -27,13 +27,13 @@
                         <tbody>
                         {% for devStat in office.devStatistics  %}
                             <tr>
-                                <td class="col-30">{{ devStat.appType }} ({{ devStat.appTypeQuantity }})</td>
+                                <td class="col-30">{{ devStat.appType }} ({{ devStat.totalQty }}/{{ devStat.activeQty }})</td>
                                 <td>
                                     <table class="inner table cell-bordered">
                                         <tbody>
                                         {% for plStat in devStat.platformStat  %}
                                             <tr>
-                                                <td>{{ plStat.platformTitle }} ({{ plStat.count }})</td>
+                                                <td>{{ plStat.platformTitle }} ({{ plStat.totalQty }}/{{ plStat.activeQty }})</td>
                                             </tr>
                                         {% endfor %}
                                         </tbody>
