@@ -147,11 +147,18 @@ class Appliance extends Model
      */
     public static function findByVendorTitlePlatformSerial(string $vendorTitle, string $platformSerial)
     {
-        return (self::findAll())->filter(
-            function($appliance) use ($vendorTitle, $platformSerial) {
-                return $vendorTitle == $appliance->vendor->title && $platformSerial == $appliance->platform->serialNumber;
+        $platformItems = PlatformItem::findAllByColumn('serialNumber', $platformSerial);
+        $platformItem = $platformItems->filter(
+            function ($platformItem) use ($vendorTitle) {
+                return $vendorTitle == $platformItem->platform->vendor->title;
             }
         )->first();
+
+        if (is_null($platformItem)) {
+            return false;
+        } else {
+            return $platformItem->appliance;
+        }
     }
 
     /**
