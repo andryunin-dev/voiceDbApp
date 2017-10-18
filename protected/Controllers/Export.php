@@ -23,12 +23,12 @@ class Export extends Controller
 
     public function actionIpAppliances()
     {
-        $tableColumns = ['hostname','managementIp','lotusId'];
+        $tableColumns = ['hostname','portInfo','lotusId'];
 
         $query = (new Query())
             ->select($tableColumns)
             ->from(DevModulePortGeo::getTableName())
-            ->where('"appType" IN (:switch, :router, :vg) AND "managementIp" IS NOT NULL')
+            ->where('"appType" IN (:switch, :router, :vg)')
             ->params([
                 ':switch' => self::SWITCH,
                 ':router' => self::ROUTER,
@@ -40,7 +40,14 @@ class Export extends Controller
         // Semicolon format
         $outputData = '';
         foreach ($appliances as $appliance) {
-            $outputData .= $appliance->hostname . ',' . $appliance->managementIp . ',' . $appliance->lotusId . ';';
+            $dataPorts = json_decode($appliance->portInfo);
+            if (!is_null($dataPorts)) {
+                foreach ($dataPorts as $dataPort) {
+                    if (true == $dataPort->isManagement) {
+                        $outputData .= $appliance->hostname . ',' . $dataPort->ipAddress . ',' . $appliance->lotusId . ';';
+                    }
+                }
+            }
         }
         echo $outputData;
 
