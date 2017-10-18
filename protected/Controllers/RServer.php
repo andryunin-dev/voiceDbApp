@@ -55,24 +55,29 @@ class RServer extends Controller
                 case 'cluster':
                     $logger = RLogger::getInstance('DS-cluster');
                     $result = (new DSPcluster($inputDataset))->run();
+                    if (true !== $result) {
+                        throw new Exception('Runtime error');
+                    }
                     break;
 
                 case 'error':
                     $logger = RLogger::getInstance('DS-error');
                     $result = (new DSPerror($inputDataset))->run();
+                    if (true !== $result) {
+                        throw new Exception('Runtime error');
+                    }
                     break;
 
                 case 'prefixes':
                     $logger = RLogger::getInstance('DS-prefixes');
                     $result = (new DSPprefixes($inputDataset))->run();
+                    if (true !== $result) {
+                        throw new Exception('Runtime error');
+                    }
                     break;
 
                 default:
                     throw new Exception('DATASET: Not known dataSetType');
-            }
-
-            if (true !== $result) {
-                throw new Exception('Runtime error');
             }
 
         } catch (MultiException $errs) {
