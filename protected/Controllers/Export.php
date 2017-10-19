@@ -293,8 +293,8 @@ class Export extends Controller
 
 // ------ Worksheet - 'Phones' ----------------------
         // Header sheet 3
-        $headerSheet3 = ['№п/п','Регион','Офис','Cluster','Hostname','Type','Device','Name','IP','Publisher','Partion','CSS','Prefix','DN','Status','Device ser','Software','Software ver.','Last update','Comment','Description','Device Pool','Alerting Name','Timezone','DHCP enable','DHCP server','Domain name','TFTP server 1','TFTP server 2','Default Router','DNS server 1','DNS server 2','Call manager 1','Call manager 2','Call manager 3','Call manager 4','VLAN ID','User locale','CDP neighbor device ID','CDP neighbor IP','CDP neighbor Port'];
-        $columnsSheet3 = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','AA','AB','AC','AD','AE','AF','AG','AH','AI','AJ','AK','AL','AM','AN','AO'];
+        $headerSheet3 = ['№п/п','Регион','Офис','Cluster','Hostname','Type','Device','Name','IP','Publisher','Publisher Description','Partion','CSS','Prefix','DN','Status','Device ser','Software','Software ver.','Last update','Comment','Description','Device Pool','Alerting Name','Timezone','DHCP enable','DHCP server','Domain name','TFTP server 1','TFTP server 2','Default Router','DNS server 1','DNS server 2','Call manager 1','Call manager 2','Call manager 3','Call manager 4','VLAN ID','User locale','CDP neighbor device ID','CDP neighbor IP','CDP neighbor Port'];
+        $columnsSheet3 = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','AA','AB','AC','AD','AE','AF','AG','AH','AI','AJ','AK','AL','AM','AN','AO','AP'];
         $rowSpansSheet3 = count($columnsSheet3);
 
         $currentRowSheet3 = 1;
@@ -306,6 +306,23 @@ class Export extends Controller
         $sheet3_rows .= '</row>';
         $currentRowSheet3++;
 
+
+        // Подготовим массив значений PublisherManagementIp => ReportName
+        $cucmTableColumns = ['appDetails','managementIp'];
+        $query = (new Query())
+            ->select($cucmTableColumns)
+            ->from(DevPhoneInfoGeo::getTableName())
+            ->where('"appType" = :cmp')
+            ->params([':cmp' => self::CMP])
+        ;
+        $cucms = DevPhoneInfoGeo::findAllByQuery($query);
+        $publishersReportNames = [];
+        foreach ($cucms as $cucm) {
+            $details = json_decode($cucm->appDetails);
+            if (!is_null($details) && isset($details->reportName)) {
+                $publishersReportNames[$cucm->managementIp] = $details->reportName;
+            }
+        }
 
 
         // Body sheet 3 - выводим телефоны
@@ -363,68 +380,70 @@ class Export extends Controller
             $sheet3_rows .= '<c r="I' . $currentRowSheet3 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
             $sharedStringsSI .= '<si><t>' . $appliance->publisherIp . '</t></si>';
             $sheet3_rows .= '<c r="J' . $currentRowSheet3 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
-            $sharedStringsSI .= '<si><t>' . $appliance->partition . '</t></si>';
+            $sharedStringsSI .= '<si><t>' . $publishersReportNames[$appliance->publisherIp] . '</t></si>';
             $sheet3_rows .= '<c r="K' . $currentRowSheet3 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
-            $sharedStringsSI .= '<si><t>' . $appliance->css . '</t></si>';
+            $sharedStringsSI .= '<si><t>' . $appliance->partition . '</t></si>';
             $sheet3_rows .= '<c r="L' . $currentRowSheet3 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
-            $sharedStringsSI .= '<si><t>' . $appliance->prefix . '</t></si>';
+            $sharedStringsSI .= '<si><t>' . $appliance->css . '</t></si>';
             $sheet3_rows .= '<c r="M' . $currentRowSheet3 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
-            $sharedStringsSI .= '<si><t>' . $appliance->phoneDN . '</t></si>';
+            $sharedStringsSI .= '<si><t>' . $appliance->prefix . '</t></si>';
             $sheet3_rows .= '<c r="N' . $currentRowSheet3 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
-            $sharedStringsSI .= '<si><t>' . $appliance->status . '</t></si>';
+            $sharedStringsSI .= '<si><t>' . $appliance->phoneDN . '</t></si>';
             $sheet3_rows .= '<c r="O' . $currentRowSheet3 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
-            $sharedStringsSI .= '<si><t>' . $appliance->platformSerial . '</t></si>';
+            $sharedStringsSI .= '<si><t>' . $appliance->status . '</t></si>';
             $sheet3_rows .= '<c r="P' . $currentRowSheet3 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
-            $sharedStringsSI .= '<si><t>' . $appliance->softwareTitle . '</t></si>';
+            $sharedStringsSI .= '<si><t>' . $appliance->platformSerial . '</t></si>';
             $sheet3_rows .= '<c r="Q' . $currentRowSheet3 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
-            $sharedStringsSI .= '<si><t>' . $appliance->softwareVersion . '</t></si>';
+            $sharedStringsSI .= '<si><t>' . $appliance->softwareTitle . '</t></si>';
             $sheet3_rows .= '<c r="R' . $currentRowSheet3 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
-            $sharedStringsSI .= '<si><t>' . $appliance->appLastUpdate . '</t></si>';
+            $sharedStringsSI .= '<si><t>' . $appliance->softwareVersion . '</t></si>';
             $sheet3_rows .= '<c r="S' . $currentRowSheet3 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
-            $sharedStringsSI .= '<si><t>' . $appliance->appComment . '</t></si>';
+            $sharedStringsSI .= '<si><t>' . $appliance->appLastUpdate . '</t></si>';
             $sheet3_rows .= '<c r="T' . $currentRowSheet3 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
-            $sharedStringsSI .= '<si><t>' . $appliance->phoneDescription . '</t></si>';
+            $sharedStringsSI .= '<si><t>' . $appliance->appComment . '</t></si>';
             $sheet3_rows .= '<c r="U' . $currentRowSheet3 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
-            $sharedStringsSI .= '<si><t>' . $appliance->devicePool . '</t></si>';
+            $sharedStringsSI .= '<si><t>' . $appliance->phoneDescription . '</t></si>';
             $sheet3_rows .= '<c r="V' . $currentRowSheet3 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
-            $sharedStringsSI .= '<si><t>' . $appliance->alertingName . '</t></si>';
+            $sharedStringsSI .= '<si><t>' . $appliance->devicePool . '</t></si>';
             $sheet3_rows .= '<c r="W' . $currentRowSheet3 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
-            $sharedStringsSI .= '<si><t>' . $appliance->timezone . '</t></si>';
+            $sharedStringsSI .= '<si><t>' . $appliance->alertingName . '</t></si>';
             $sheet3_rows .= '<c r="X' . $currentRowSheet3 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
-            $sharedStringsSI .= '<si><t>' . $appliance->dhcpEnabled . '</t></si>';
+            $sharedStringsSI .= '<si><t>' . $appliance->timezone . '</t></si>';
             $sheet3_rows .= '<c r="Y' . $currentRowSheet3 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
-            $sharedStringsSI .= '<si><t>' . $appliance->dhcpServer . '</t></si>';
+            $sharedStringsSI .= '<si><t>' . $appliance->dhcpEnabled . '</t></si>';
             $sheet3_rows .= '<c r="Z' . $currentRowSheet3 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
-            $sharedStringsSI .= '<si><t>' . $appliance->domainName . '</t></si>';
+            $sharedStringsSI .= '<si><t>' . $appliance->dhcpServer . '</t></si>';
             $sheet3_rows .= '<c r="AA' . $currentRowSheet3 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
-            $sharedStringsSI .= '<si><t>' . $appliance->tftpServer1 . '</t></si>';
+            $sharedStringsSI .= '<si><t>' . $appliance->domainName . '</t></si>';
             $sheet3_rows .= '<c r="AB' . $currentRowSheet3 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
-            $sharedStringsSI .= '<si><t>' . $appliance->tftpServer2 . '</t></si>';
+            $sharedStringsSI .= '<si><t>' . $appliance->tftpServer1 . '</t></si>';
             $sheet3_rows .= '<c r="AC' . $currentRowSheet3 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
-            $sharedStringsSI .= '<si><t>' . $appliance->defaultRouter . '</t></si>';
+            $sharedStringsSI .= '<si><t>' . $appliance->tftpServer2 . '</t></si>';
             $sheet3_rows .= '<c r="AD' . $currentRowSheet3 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
-            $sharedStringsSI .= '<si><t>' . $appliance->dnsServer1 . '</t></si>';
+            $sharedStringsSI .= '<si><t>' . $appliance->defaultRouter . '</t></si>';
             $sheet3_rows .= '<c r="AE' . $currentRowSheet3 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
-            $sharedStringsSI .= '<si><t>' . $appliance->dnsServer2 . '</t></si>';
+            $sharedStringsSI .= '<si><t>' . $appliance->dnsServer1 . '</t></si>';
             $sheet3_rows .= '<c r="AF' . $currentRowSheet3 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
-            $sharedStringsSI .= '<si><t>' . $appliance->callManager1 . '</t></si>';
+            $sharedStringsSI .= '<si><t>' . $appliance->dnsServer2 . '</t></si>';
             $sheet3_rows .= '<c r="AG' . $currentRowSheet3 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
-            $sharedStringsSI .= '<si><t>' . $appliance->callManager2 . '</t></si>';
+            $sharedStringsSI .= '<si><t>' . $appliance->callManager1 . '</t></si>';
             $sheet3_rows .= '<c r="AH' . $currentRowSheet3 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
-            $sharedStringsSI .= '<si><t>' . $appliance->callManager3 . '</t></si>';
+            $sharedStringsSI .= '<si><t>' . $appliance->callManager2 . '</t></si>';
             $sheet3_rows .= '<c r="AI' . $currentRowSheet3 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
-            $sharedStringsSI .= '<si><t>' . $appliance->callManager4 . '</t></si>';
+            $sharedStringsSI .= '<si><t>' . $appliance->callManager3 . '</t></si>';
             $sheet3_rows .= '<c r="AJ' . $currentRowSheet3 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
-            $sharedStringsSI .= '<si><t>' . $appliance->vlanId . '</t></si>';
+            $sharedStringsSI .= '<si><t>' . $appliance->callManager4 . '</t></si>';
             $sheet3_rows .= '<c r="AK' . $currentRowSheet3 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
-            $sharedStringsSI .= '<si><t>' . $appliance->userLocale . '</t></si>';
+            $sharedStringsSI .= '<si><t>' . $appliance->vlanId . '</t></si>';
             $sheet3_rows .= '<c r="AL' . $currentRowSheet3 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
-            $sharedStringsSI .= '<si><t>' . $appliance->cdpNeighborDeviceId . '</t></si>';
+            $sharedStringsSI .= '<si><t>' . $appliance->userLocale . '</t></si>';
             $sheet3_rows .= '<c r="AM' . $currentRowSheet3 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
-            $sharedStringsSI .= '<si><t>' . $appliance->cdpNeighborIP . '</t></si>';
+            $sharedStringsSI .= '<si><t>' . $appliance->cdpNeighborDeviceId . '</t></si>';
             $sheet3_rows .= '<c r="AN' . $currentRowSheet3 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
-            $sharedStringsSI .= '<si><t>' . $appliance->cdpNeighborPort . '</t></si>';
+            $sharedStringsSI .= '<si><t>' . $appliance->cdpNeighborIP . '</t></si>';
             $sheet3_rows .= '<c r="AO' . $currentRowSheet3 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
+            $sharedStringsSI .= '<si><t>' . $appliance->cdpNeighborPort . '</t></si>';
+            $sheet3_rows .= '<c r="AP' . $currentRowSheet3 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
 
             $sheet3_rows .= '</row>';
             $currentRowSheet3++;
