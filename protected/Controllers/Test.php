@@ -18,6 +18,18 @@ class Test extends Controller
 {
     public function actionDefault()
     {
+        GeoDev_View::initReport();
+        GeoDev_View::setPivotColumn('platformTitle', 'citext');
+        GeoDev_View::setRowNamesColumn('office', 'citext');
+        GeoDev_View::setPivotFilter(['appType' => 'phone']);
+        GeoDev_View::setValueColumn('appliance_id', 'citext', 'sum');
+        GeoDev_View::setExtraColumn(['region' => 'citext', 'test' => 'type']);
+
+//        var_dump(GeoDev_View::reportConfig());
+        GeoDev_View::saveReportConf();
+        var_dump(GeoDev_View::pivotColumnNames());
+        die;
+
         GeoDev_View::setRowNamesColumn('office', 'citext');
         GeoDev_View::setPivotColumn('platformTitle', 'citext');
         GeoDev_View::setValueColumn('platformItem_id', 'citext');
