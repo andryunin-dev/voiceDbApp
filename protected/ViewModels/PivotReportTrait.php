@@ -203,7 +203,7 @@ trait PivotReportTrait
     public static function pivotColumnNames($withExtraColumns = true)
     {
         $res[] = self::rowNamesColumn()->name;
-        if (! empty(self::extraColumns())) {
+        if (true === $withExtraColumns && ! empty(self::extraColumns())) {
             foreach (self::extraColumns() as $key => $value) {
                 $res[] = $key;
             }
