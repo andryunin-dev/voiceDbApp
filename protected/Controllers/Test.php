@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Components\ContentFilter;
 use App\Components\ContentFilters\HeaderFilter;
+use App\Components\Reports\PivotReport;
 use App\Components\TableFilterNew;
 use App\ViewModels\DevModulePortGeo;
 use App\ViewModels\Geo_View;
@@ -18,12 +19,18 @@ class Test extends Controller
 {
     public function actionDefault()
     {
-        GeoDev_View::initReport();
-        GeoDev_View::setPivotColumn('platformTitle', 'citext');
-        GeoDev_View::setRowNamesColumn('office', 'citext');
-        GeoDev_View::setPivotFilter(['appType' => 'phone']);
-        GeoDev_View::setValueColumn('appliance_id', 'citext', 'sum');
-        GeoDev_View::setExtraColumn(['region' => 'citext', 'test' => 'type']);
+        $rep = new PivotReport('test', GeoDev_View::class);
+        $rep->setPivotColumn('platformTitle', 'citext');
+        $rep->setRowNamesColumn('office', 'citext');
+        $rep->setRowNamesColumn('office', 'citext');
+        $rep->setPivotFilter(['appType' => 'phone']);
+        $rep->setValueColumn('appliance_id', 'citext', 'sum');
+        $rep->setExtraColumn(['region' => 'citext', 'test' => 'type']);
+        $rep->save();
+        var_dump($rep);
+        var_dump($rep->pivotColumnNames);
+        $rep->save();
+        die;
 
 //        var_dump(GeoDev_View::reportConfig());
         GeoDev_View::saveReportConf();

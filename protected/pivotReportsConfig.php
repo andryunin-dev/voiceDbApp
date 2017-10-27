@@ -1,8 +1,9 @@
 <?php
 
 return [
-  'App\\ViewModels\\GeoDev_View' =>
+  'test' =>
   [
+    'className' => 'App\\ViewModels\\GeoDev_View',
     'pivotColumn' =>
     [
       'filter' =>

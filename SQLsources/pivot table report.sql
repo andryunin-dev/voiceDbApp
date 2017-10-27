@@ -1,14 +1,32 @@
-DROP VIEW IF EXISTS view.pivot_test;
+CREATE EXTENSION IF NOT EXISTS tablefunc;
 
-CREATE OR REPLACE VIEW view.pivot_test AS
-SELECT  offices.title AS office, pl.title AS platform, count(appliances.__id) AS quantity
-FROM company.offices AS offices
-  JOIN equipment.appliances AS appliances ON offices.__id = appliances.__location_id
-  JOIN equipment."platformItems" AS "plItems" ON appliances.__platform_item_id = "plItems".__id
-  JOIN equipment.platforms AS pl ON "plItems".__platform_id = pl.__id
-GROUP BY offices.title, pl.title;
+SELECT * FROM crosstab(
+  'SELECT office, region, "platformTitle", count(appliance_id) as count  ' ||
+  'FROM view.geo_dev  ' ||
+  'WHERE "platformTitle" = ''CP-7942G'' OR "platformTitle" = ''CP-6921''  GROUP BY office, "platformTitle"'
+) AS pvt(office citext , "7942" BIGINT, tel69 BIGINT);
 
-SELECT * FROM view.pivot_test;
+SELECT office, "platformTitle", count(appliance_id)
+FROM view.geo_dev
+-- WHERE "platformTitle" = 'CP-7942G'
+GROUP BY office, "platformTitle";
 
-SELECT array_to_string(array_agg(t1),' INT, ') FROM (SELECT DISTINCT platform FROM view.pivot_test ORDER BY platform) AS t1;
-SELECT string_agg(t1::text, ',') FROM (SELECT title FROM company.offices) AS t1;
+CREATE TABLE ct(id SERIAL, rowid TEXT, attribute TEXT, value TEXT);
+INSERT INTO ct(rowid, attribute, value) VALUES('test1','att1','val1');
+INSERT INTO ct(rowid, attribute, value) VALUES('test1','att2','val2');
+INSERT INTO ct(rowid, attribute, value) VALUES('test1','att3','val3');
+INSERT INTO ct(rowid, attribute, value) VALUES('test1','att4','val4');
+INSERT INTO ct(rowid, attribute, value) VALUES('test2','att1','val5');
+INSERT INTO ct(rowid, attribute, value) VALUES('test2','att2','val6');
+INSERT INTO ct(rowid, attribute, value) VALUES('test2','att3','val7');
+INSERT INTO ct(rowid, attribute, value) VALUES('test2','att4','val8');
+
+SELECT * FROM ct;
+
+SELECT *
+FROM crosstab(
+         'select rowid, attribute, value
+          from ct
+          where attribute = ''att2'' or attribute = ''att3''
+          order by 1,2')
+  AS ct2(row_name text, category_1 text, category_2 text, category_3 text);

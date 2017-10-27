@@ -31,14 +31,14 @@ trait PivotReportTrait
      */
     protected static $driver;
 
-    public static function initReport()
+    public static function initReport(string $reportName)
     {
         self::$allReportsConf = (new Config(self::$reportConfPath));
-        if (! isset(self::$allReportsConf->{self::class})) {
-            self::$allReportsConf->{self::class} = new Config();
+        if (! isset(self::$allReportsConf->$reportName)) {
+            self::$allReportsConf->$reportName = new Config();
         }
-        //get config for current class
-        self::$reportConf = self::$allReportsConf->{self::class};
+        //get config for current report name
+        self::$reportConf = self::$allReportsConf->$reportName;
         if (! isset(self::$reportConf->pivotColumn)) {
             self::$reportConf->pivotColumn = new Config();
         }
