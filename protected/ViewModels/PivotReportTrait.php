@@ -24,7 +24,7 @@ trait PivotReportTrait
         'sum'
     ];
     protected static $defaultCountMethod = 'count';
-    protected static $reportsConf;
+    protected static $allReportsConf;
     protected static $reportConf;
     /**
      * @var IDriver $driver
@@ -33,12 +33,12 @@ trait PivotReportTrait
 
     public static function initReport()
     {
-        self::$reportsConf = (new Config(self::$reportConfPath));
-        if (! isset(self::$reportsConf->{self::class})) {
-            self::$reportsConf->{self::class} = new Config();
+        self::$allReportsConf = (new Config(self::$reportConfPath));
+        if (! isset(self::$allReportsConf->{self::class})) {
+            self::$allReportsConf->{self::class} = new Config();
         }
         //get config for current class
-        self::$reportConf = self::$reportsConf->{self::class};
+        self::$reportConf = self::$allReportsConf->{self::class};
         if (! isset(self::$reportConf->pivotColumn)) {
             self::$reportConf->pivotColumn = new Config();
         }
@@ -53,7 +53,7 @@ trait PivotReportTrait
 
     public static function saveReportConf()
     {
-        self::$reportsConf->save();
+        self::$allReportsConf->save();
     }
 
 
