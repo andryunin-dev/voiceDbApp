@@ -57,6 +57,7 @@ class User
         $this->permissions->readOnly = (0 == $lvl) ? true : false;
         $this->permissions->changeDescription = (1 <= $lvl) ? true : false;
         $this->permissions->setInUse = (2 <= $lvl) ? true : false;
+        $this->permissions->addOffice = (3 <= $lvl) ? true : false;
         $this->permissions->addEmptyAppliance = (3 <= $lvl) ? true : false;
         $this->permissions->changeApplianceType = (4 <= $lvl) ? true : false;
         $this->permissions->changeManagementIP = (5 <= $lvl) ? true : false;

@@ -187,35 +187,40 @@
                                         <!--Данные-->
                                         <tbody>
                                         {% for soft in softs %}
+                                            {% if soft.softTitle is empty or soft.softVersion is empty %}
+                                                {% set softAndVer = [soft.softTitle, soft.softVersion]|join('') %}
+                                            {% else %}
+                                                {% set softAndVer = [soft.softTitle, soft.softVersion]|join(' ') %}
+                                            {% endif %}
                                             <tr>
-                                                <td><a href="{{ devsUrl.cloneToShortUrl.addQuery({'ven_id': soft.platformVendor_id, 'soft_id': soft.soft_id, 'softVer': soft.softVersion}) }}">
+                                                <td><a href="{{ devsUrl.cloneToShortUrl.addQuery({'ven_id': soft.platformVendor_id, 'soft_id': soft.soft_id, 'softVer': softAndVer}) }}">
                                                         {% if soft.softTitle is empty and soft.softVersion is empty %}ПО не указано
                                                         {% else %}{{ soft.softTitle }} {{ soft.softVersion }}
                                                         {% endif %}
                                                     </a></td>
                                                 <td>{{ soft.platformVendor }}</td>
                                                 <td title="Всего устройств">
-                                                    <a href="{{ devsUrl.cloneToShortUrl.addQuery({'ven_id': soft.platformVendor_id, 'soft_id': soft.soft_id, 'softVer': soft.softVersion}) }}">
+                                                    <a href="{{ devsUrl.cloneToShortUrl.addQuery({'ven_id': soft.platformVendor_id, 'soft_id': soft.soft_id, 'softVer': softAndVer}) }}">
                                                         {{ soft.total }}
                                                     </a>
                                                 </td>
                                                 <td title="Активных">
-                                                    <a href="{{ devsUrl.cloneToShortUrl.addQuery({'ven_id': soft.platformVendor_id, 'soft_id': soft.soft_id, 'softVer': soft.softVersion, 'activeAge': soft.age}) }}">
+                                                    <a href="{{ devsUrl.cloneToShortUrl.addQuery({'ven_id': soft.platformVendor_id, 'soft_id': soft.soft_id, 'softVer': ssoftAndVer, 'activeAge': soft.age}) }}">
                                                         {{ soft.active }}
                                                     </a>
                                                 </td>
                                                 <td title="Активных (not inUse)">
-                                                    <a href="{{ devsUrl.cloneToShortUrl.addQuery({'ven_id': soft.platformVendor_id, 'soft_id': soft.soft_id, 'softVer': soft.softVersion, 'inUse': 'true', 'activeAge': soft.age, 'inUse': 'false'}) }}">
+                                                    <a href="{{ devsUrl.cloneToShortUrl.addQuery({'ven_id': soft.platformVendor_id, 'soft_id': soft.soft_id, 'softVer': softAndVer, 'inUse': 'true', 'activeAge': soft.age, 'inUse': 'false'}) }}">
                                                         {{ soft.active_notInUse }}
                                                     </a>
                                                 </td>
                                                 <td title="Неактивных">
-                                                    <a href="{{ devsUrl.cloneToShortUrl.addQuery({'ven_id': soft.platformVendor_id, 'soft_id': soft.soft_id, 'softVer': soft.softVersion, 'noActiveAge': soft.age}) }}">
+                                                    <a href="{{ devsUrl.cloneToShortUrl.addQuery({'ven_id': soft.platformVendor_id, 'soft_id': soft.soft_id, 'softVer': softAndVer, 'noActiveAge': soft.age}) }}">
                                                         {{ soft.notActive }}
                                                     </a>
                                                 </td>
                                                 <td title="Не опрошенных">
-                                                    <a href="{{ devsUrl.cloneToShortUrl.addQuery({'ven_id': soft.platformVendor_id, 'soft_id': soft.soft_id, 'softVer': soft.softVersion, 'age_null': 'null'}) }}">
+                                                    <a href="{{ devsUrl.cloneToShortUrl.addQuery({'ven_id': soft.platformVendor_id, 'soft_id': soft.soft_id, 'softVer': softAndVer, 'age_null': 'null'}) }}">
                                                         {{ soft.notExamined }}
                                                     </a>
                                                 </td>
