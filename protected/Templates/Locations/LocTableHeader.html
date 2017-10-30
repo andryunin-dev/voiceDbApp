@@ -4,7 +4,14 @@
     <th id={{ columns.region.th_id|trim('#') }} class="text-left">{{ columns.region.name }}</th>
     <th id={{ columns.city.th_id|trim('#') }} class="text-left">{{ columns.city.name }}</th>
     <th id={{ columns.address.th_id|trim('#') }} class="text-left">{{ columns.address.name }}</th>
-    <th id={{ columns.office.th_id|trim('#') }}>{{ columns.office.name }}</th>
+    <th id={{ columns.office.th_id|trim('#') }}>
+        {% if user.permissions.addOffice %}
+            <a class="btn btn-success btn-xs btn-custom pull-left" href="/modal/addOffice" role="button"
+               data-action="get-popup" title="добавить офис"><span class="glyphicon glyphicon-plus"
+                                                                         aria-hidden="true"></span></a>
+        {% endif %}
+        {{ columns.office.name }}
+    </th>
     <th id={{ columns.officeStatus.th_id|trim('#') }}>{{ columns.officeStatus.name }}</th>
     {#<th id={{ columns.lotusId.th_id|trim('#') }}>{{ columns.lotusId.name }}</th>#}
     <th id={{ columns.people.th_id|trim('#') }}>{{ columns.people.name }}</th>
