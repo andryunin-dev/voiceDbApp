@@ -1,18 +1,11 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: karasev-dl
- * Date: 26.10.2017
- * Time: 12:34
- */
 
 namespace App\Components\Reports;
-
 
 use T4\Core\Config;
 use T4\Core\Exception;
 use T4\Core\Std;
-use T4\Core\TStdGetSet;
+use T4\Dbal\Connection;
 use T4\Dbal\Query;
 use T4\Orm\Model;
 
@@ -20,12 +13,18 @@ use T4\Orm\Model;
  * Class PivotReport
  * @package App\Components\Reports
  *
- * @property array $pivotColumnNames
+ * @property-read Std $rowNamesColumn
+ * @property-read string $rowNamesColumnName
+ * @property-read array $extraColumns
+ * @property-read array $extraColumnsNames
+ * @property-read Std $pivotColumn
+ * @property-read string $pivotColumnName
+ * @property-read array $pivotColumnValues
+ * @property-read Std $valueColumn
+ * @property-read string $valueColumnName
  */
-class PivotReport
+class PivotReport extends Std
 {
-    use TStdGetSet;
-
     const REPORT_CONF_PATH = ROOT_PATH_PROTECTED . DS . 'pivotReportsConfig.php';
 
     protected static $countMethods = [
@@ -39,6 +38,7 @@ class PivotReport
 
     public function __construct(string $reportName, string $className = null)
     {
+        parent::__construct();
         $this->reportConf = (new Config(self::REPORT_CONF_PATH))->$reportName;
         if (empty($this->reportConf) && empty($className)) {
             throw new Exception('Config for report "' . $reportName . '" is not exists and className is not present for creating a new config');
@@ -68,9 +68,17 @@ class PivotReport
         $allReports->save();
     }
 
-    protected function isPivotColumnSet()
+    public function setRowNamesColumn(string $colName, string $sqlType, string $orderBy = '', string $direction = '')
     {
-        return !empty($this->reportConf->pivotColumn->name);
+        $classColumns = $this->reportConf->className::getColumns();
+        if (! array_key_exists($colName, $classColumns)) {
+            throw new Exception('column with row names has to be one of ' . $this->reportConf->className::getTableName() . ' table columns!');
+        }
+        $this->reportConf->rowNamesColumn->name = $colName;
+        $this->reportConf->rowNamesColumn->orderBy = array_key_exists($orderBy, $classColumns) ? $orderBy : $colName;
+        $this->reportConf->rowNamesColumn->direction = ('asc' == strtolower($direction) || 'asc' == strtolower($direction))
+            ? strtoupper($direction) : '';
+        $this->reportConf->rowNamesColumn->sqlType = $sqlType;
     }
     public function setPivotColumn(string $colName, string $sqlType, string $orderBy = '', string $direction = '')
     {
@@ -84,40 +92,9 @@ class PivotReport
             ? strtoupper($direction) : '';
         $this->reportConf->pivotColumn->sqlType = $sqlType;
     }
-    public function setRowNamesColumn(string $colName, string $sqlType, string $orderBy = '', string $direction = '')
+    protected function isPivotColumnSet()
     {
-        $classColumns = $this->reportConf->className::getColumns();
-        if (! array_key_exists($colName, $classColumns)) {
-            throw new Exception('column with row names has to be one of ' . $this->reportConf->className::getTableName() . ' table columns!');
-        }
-        $this->reportConf->rowNamesColumn->name = $colName;
-        $this->reportConf->rowNamesColumn->orderBy = array_key_exists($orderBy, $classColumns) ? $orderBy : $colName;
-        $this->reportConf->rowNamesColumn->direction = ('asc' == strtolower($direction) || 'asc' == strtolower($direction))
-            ? strtoupper($direction) : '';
-        $this->reportConf->rowNamesColumn->sqlType = $sqlType;
-    }
-    public function setValueColumn(string $colName, string $sqlType, $countMethod = 'count')
-    {
-        $classColumns = $this->reportConf->className::getColumns();
-        if (! array_key_exists($colName, $classColumns)) {
-            throw new Exception('column with row names has to be one of ' . $this->reportConf->className::getTableName() . ' table columns!');
-        }
-        $this->reportConf->valueColumn->name = $colName;
-        $this->reportConf->valueColumn->sqlType = $sqlType;
-        $this->reportConf->valueColumn->countMethod = in_array($countMethod, self::$countMethods) ? $countMethod : self::$defaultCountMethod;
-    }
-    public function setExtraColumn(array $columns)
-    {
-        $extra = [];
-        $classColumns = $this->reportConf->className::getColumns();
-        foreach ($columns as $name => $type) {
-            if (array_key_exists($name, $classColumns)) {
-                $extra[$name] = $type;
-            }
-        }
-        if (count($extra) > 0) {
-            $this->reportConf->extraColumns = $extra;
-        }
+        return !empty($this->reportConf->pivotColumn->name);
     }
     public function setPivotFilter(array $filter = [], bool $allowNull = false)
     {
@@ -154,6 +131,12 @@ class PivotReport
             }
         }
     }
+
+    /**
+     * @param Std $columnConfig
+     * @return mixed
+     * statement WHERE for sql query to get PivotColumnNames
+     */
     protected function buildFilterWhereStatement(Std $columnConfig)
     {
 
@@ -176,8 +159,85 @@ class PivotReport
         $result['params'] = $params;
         return $result;
     }
+
+    /**
+     * @param Std $columnConfig
+     * @return string
+     *
+     * PostgreSQL only!
+     */
+    protected function buildStringFilterWhereStatement(Std $columnConfig)
+    {
+        /**
+         * @var Connection $connection
+         */
+        $connection = $this->reportConf->className::getDbConnection();
+        $columnsStatements = [];
+        foreach ($columnConfig->filter->conditions as $column => $values) {
+            $values = explode(',', $values);
+            $columnStatements = [];
+            foreach ($values as $index => $value) {
+                $columnStatements[] = $this->driver->quoteName($column) . ' = ' . $connection->quote($value);
+            }
+            $columnsStatements[$column] = '(' . implode(' OR ',$columnStatements) . ')';
+        }
+        //append null statement
+        if (! $columnConfig->filter->allowNull) {
+            $columnsStatements[] = $this->driver->quoteName($columnConfig->name) . ' NOTNULL';
+        }
+        $result = implode(' AND ', $columnsStatements);
+        return $result;
+    }
+    public function setValueColumn(string $colName, string $sqlType, $countMethod = 'count')
+    {
+        $classColumns = $this->reportConf->className::getColumns();
+        if (! array_key_exists($colName, $classColumns)) {
+            throw new Exception('column with row names has to be one of ' . $this->reportConf->className::getTableName() . ' table columns!');
+        }
+        $this->reportConf->valueColumn->name = $colName;
+        $this->reportConf->valueColumn->sqlType = $sqlType;
+        $this->reportConf->valueColumn->countMethod = in_array($countMethod, self::$countMethods) ? $countMethod : self::$defaultCountMethod;
+    }
+    public function setExtraColumns(array $columns)
+    {
+        $extra = [];
+        $classColumns = $this->reportConf->className::getColumns();
+        foreach ($columns as $name => $type) {
+            if (array_key_exists($name, $classColumns)) {
+                $extra[$name] = $type;
+            }
+        }
+        if (count($extra) > 0) {
+            $this->reportConf->extraColumns = $extra;
+        }
+    }
+
+    //query builds
     public static function buildSelectPivotTableQuery()
     {
+
+    }
+    public function buildSourceSql()
+    {
+        $sourceSqlColumns = [];
+        $sourceSqlColumns[] = $this->rowNamesColumnName;
+        $sourceSqlColumns[] = implode(', ', $this->extraColumnsNames);
+        $sourceSqlColumns[] = $this->pivotColumnName;
+        $sourceSqlColumns[] = $this->valueColumnName;
+        $order[] = $this->rowNamesColumn->orderBy;
+        $order = array_merge($order, $this->extraColumnsNames);
+        foreach ($sourceSqlColumns as $key => $column) {
+            $sourceSqlColumns[$key] = $this->driver->quoteName($column);
+        }
+        foreach ($order as $key => $column) {
+            $order[$key] = $this->driver->quoteName($column);
+        }
+        $pivotFilterStatement = $this->buildStringFilterWhereStatement($this->pivotColumn);
+        $pivotColumnValues = implode(', ', $this->pivotColumnValues);
+        $sourceSql = 'SELECT ' . implode(', ', $sourceSqlColumns) . "\n" .
+            'FROM ' . $this->sourceTableName() . "\n" .
+            'WHERE ' . $pivotFilterStatement . "\n" .
+            'ORDER BY' . implode(', ', $order);
 
     }
     //getters and setters
@@ -185,26 +245,64 @@ class PivotReport
     {
         return $this->reportConf;
     }
+    protected function sourceTableName()
+    {
+        return $this->reportConf->className::getTableName();
+    }
+    /**
+     * @return array
+     */
+    protected function getRowNamesColumn()
+    {
+        return $this->reportConf->rowNamesColumn;
+    }
+
+    /**
+     * @return string
+     */
+    protected function getRowNamesColumnName()
+    {
+        return $this->rowNamesColumn->name;
+    }
     protected function getPivotColumn()
     {
-        return $this->reportConf->rowNameColumn;
+        return $this->reportConf->pivotColumn;
     }
+    protected function getPivotColumnName()
+    {
+        return $this->pivotColumn->name;
+    }
+
     protected function getValueColumn()
     {
-        return $this->reportConf->rowNameColumn;
+        return $this->reportConf->valueColumn;
     }
-    protected function getExtraColumn()
+    protected function getValueColumnName()
     {
-        return $this->reportConf->rowNameColumn;
+        return $this->valueColumn->name;
     }
-    protected function getPivotColumnNames($withExtraColumns = true)
+
+    /**
+     * @return array
+     *
+     * return associated array like [column_name => sqlType]
+     */
+    protected function getExtraColumns()
     {
-        $res[] = $this->reportConf->rowNamesColumn->name;
-        if (true === $withExtraColumns && ! empty($this->reportConf->extraColumns)) {
-            foreach ($this->reportConf->extraColumns as $key => $value) {
-                $res[] = $key;
-            }
-        }
+        return $this->reportConf->extraColumns;
+    }
+
+    /**
+     * @return array
+     *
+     * return extra columns names array
+     */
+    protected function getExtraColumnsNames()
+    {
+        return array_keys($this->reportConf->extraColumns);
+    }
+    protected function getPivotColumnValues()
+    {
         $query = (new Query())
             ->select($this->reportConf->pivotColumn->name)
             ->distinct()
@@ -220,10 +318,7 @@ class PivotReport
 
         $query = $this->driver->makeQueryString($query);
         $queryRes = $this->reportConf->className::getDbConnection()->query($query, $params)->fetchAll(\PDO::FETCH_COLUMN, 0);
-        if (! empty($queryRes)) {
-            $res = array_merge($res, $queryRes);
-        }
-        return $res;
+        return $queryRes;
     }
     //======end getters setters
 }

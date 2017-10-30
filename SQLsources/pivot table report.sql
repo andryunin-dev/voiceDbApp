@@ -30,3 +30,9 @@ FROM crosstab(
           where attribute = ''att2'' or attribute = ''att3''
           order by 1,2')
   AS ct2(row_name text, category_1 text, category_2 text, category_3 text);
+
+-- source SQL query
+SELECT office, region, "platformTitle", count(appliance_id) as count
+FROM view.geo_dev
+WHERE "appType" = 'phone'  
+GROUP BY office, region, "platformTitle";

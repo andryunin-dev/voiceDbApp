@@ -11,7 +11,7 @@ return [
         'allowNull' => false,
         'conditions' =>
         [
-          'appType' => 'phone',
+          'appType_id' => 3,
         ],
       ],
       'name' => 'platformTitle',
