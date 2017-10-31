@@ -6,35 +6,47 @@ return [
     'className' => 'App\\ViewModels\\GeoDev_View',
     'pivotColumn' =>
     [
+      'name' =>
+      [
+        0 => 'platformTitle',
+      ],
+      'sortOrder' =>
+      [
+        'platformTitle' => '',
+      ],
       'filter' =>
       [
         'allowNull' => false,
         'conditions' =>
         [
-          'appType_id' => 3,
+          'appType' =>
+          [
+            0 => 'phone',
+          ],
         ],
       ],
-      'name' => 'platformTitle',
-      'orderBy' => 'platformTitle',
-      'direction' => '',
-      'sqlType' => 'citext',
     ],
-    'rowNamesColumn' =>
+    'columns' =>
     [
-      'name' => 'office',
-      'orderBy' => 'office',
-      'direction' => '',
-      'sqlType' => 'citext',
-    ],
-    'valueColumn' =>
-    [
-      'name' => 'appliance_id',
-      'sqlType' => 'citext',
-      'countMethod' => 'sum',
-    ],
-    'extraColumns' =>
-    [
-      'region' => 'citext',
+      'name' =>
+      [
+        0 => 'region',
+        1 => 'office',
+        2 => 'platformTitle',
+      ],
+      'sortOrder' =>
+      [
+        'region' => '',
+        'office' => '',
+        'platformTitle' => '',
+      ],
+      'filter' =>
+      [
+        'allowNull' => true,
+        'conditions' =>
+        [
+        ],
+      ],
     ],
   ],
 ];
