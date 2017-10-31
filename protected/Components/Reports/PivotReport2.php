@@ -15,13 +15,14 @@ use T4\Orm\Model;
  *
  * @property-read Config $reportConfig
  * @property-read string $className
+ * @property-read string $tableName
  * @property-read array $reportColumns
  * @property-read Config $reportColumnsConfig
  * @property-read array $pivotColumn
  * @property-read Config $pivotColumnConfig
  * @property-read array $pivotColumnValues
  */
-class PivotReport2 extends Std
+class PivotReport2 extends Config
 {
     const REPORT_CONF_PATH = ROOT_PATH_PROTECTED . DS . 'pivotReportsConfig.php';
 
@@ -49,7 +50,7 @@ class PivotReport2 extends Std
             if (get_parent_class($className) != Model::class) {
                 throw new Exception('Class for report must extends Model class');
             }
-            $this->reportConf = new Std();
+            $this->reportConf = new Config();
             $this->reportConf->className = $className;
             $this->reportConf->pivotColumn = new Config();
             $this->reportConf->columns = new Config();
@@ -75,64 +76,65 @@ class PivotReport2 extends Std
     //задание колонок, участвующих в отчете
     public function setReportColumns(array $columns, array $sortOrder = [], $direction = '')
     {
-        $classColumns = $this->reportConf->className::getColumns();
+        $classColumns = array_keys($this->className::getColumns());
         //set list of columns for report
-        $list = [];
-        foreach ($columns as $column) {
-            if (array_key_exists($column, $classColumns)) {
-                $list[] = $column;
-            } else {
-                throw new Exception('columns have to belong ' . $this->reportConf->className::getTableName() . ' table!');
-            }
-        }
-        if (empty($list)) {
+        if (empty($columns)) {
             throw new Exception('You have to set at least 2 columns (row column and pivot column) for report!');
         }
-        $this->reportConf->columns->name = new Config($list);
+        $diff = array_diff($columns, $classColumns);
+        if (count($diff) > 0) {
+            throw new Exception('columns have to belong ' . $this->className::getTableName() . ' table!');
+        }
+        $this->reportColumnsConfig->name = new Config($columns);
 
         //set sort order
         $direction = ('asc' == strtolower($direction) || 'asc' == strtolower($direction)) ? strtoupper($direction) : '';
         if (empty($sortOrder)) {
-            $sortOrder = $this->reportConf->columns->name;
+            $sortOrder = $columns;
         }
-        $list = [];
+        $diff = array_diff($sortOrder, $classColumns);
+        if (count($diff) > 0) {
+            throw new Exception('columns for sorting have to belong ' . $this->reportConf->className::getTableName() . ' table!');
+        }
         foreach ($sortOrder as $column) {
-            if (array_key_exists($column, $classColumns)) {
-                $list[$column] = $direction;
-            } else {
-                throw new Exception('columns for sorting have to belong ' . $this->reportConf->className::getTableName() . ' table!');
-            }
+            $this->reportColumnsConfig->sortOrder->$column = $direction;
         }
-        $this->reportConf->columns->sortOrder = $list;
+        return $this->reportColumnsConfig;
     }
+
 
     /**
      * @param string $colName
-     * @param string $sortOrder
+     * @param array $sortOrder
      * @param string $direction
+     * @return Config
      * @throws Exception
      */
-    public function setPivotColumn(string $colName, string $sortOrder = '', string $direction = '')
+    public function setPivotColumn(string $colName, array $sortOrder = [], string $direction = '')
     {
+        // set pivot column name
         if (false === $this->isReportColumnsSet()) {
             throw new Exception('Before assign pivot column you have to define report column set');
         }
-        $classColumns = $this->reportConf->className::getColumns();
-        $repCol = $this->reportColumns;
-        if (! in_array($colName, $this->getReportColumns())) {
+        $classColumns = array_keys($this->className::getColumns());
+        if (! in_array($colName, $this->reportColumns)) {
             throw new Exception('pivot column has to has been defined in Report Column Set!');
         }
-        if (!empty($orderBy) && !array_key_exists($colName, $classColumns)) {
-            throw new Exception('column for sorting has to belong ' . $this->reportConf->className::getTableName() . ' table!');
-        }
-        $this->reportConf->pivotColumn->name = new Config([$colName]);
-        //set sort order
+        $this->pivotColumnConfig->name = new Config([$colName]);
+
+        //set sort order for pivot column values
         $direction = ('asc' == strtolower($direction) || 'asc' == strtolower($direction)) ? strtoupper($direction) : '';
-        $sortOrder = empty($sortOrder) ? $this->pivotColumn : array_map('trim', explode(',',$sortOrder));
-        foreach ($sortOrder as $column) {
-            $this->reportConf->pivotColumn->sortOrder->$column = $direction;
+        if (empty($sortOrder)) {
+            $sortOrder[] = $colName;
         }
-//        $this->reportConf->pivotColumn->sortOrder = [$sortOrder => $direction];
+        $diff = array_diff($sortOrder, $classColumns);
+        if (count($diff) > 0) {
+            throw new Exception('columns for sorting have to belong ' . $this->reportConf->className::getTableName() . ' table!');
+        }
+        foreach ($sortOrder as $column) {
+            $this->pivotColumnConfig->sortOrder->$column = $direction;
+        }
+        return $this->pivotColumnConfig;
     }
     protected function isPivotColumnSet()
     {
@@ -148,7 +150,7 @@ class PivotReport2 extends Std
         if (! $this->isPivotColumnSet()) {
             throw new Exception('Before set filter for pivot column set one');
         }
-        $this->setFilter($this->reportConf->pivotColumn, $filter, $allowNull);
+        return $this->setFilter($this->pivotColumnConfig, $filter, $allowNull);
     }
     public function setReportColumnsFilter(array $filter = [], bool $allowNull = false)
     {
@@ -156,12 +158,13 @@ class PivotReport2 extends Std
         if (! $this->isReportColumnsSet()) {
             throw new Exception('Before set filter for report columns  column set them');
         }
-        $this->setFilter($this->reportConf->columns, $filter, $allowNull);
+        return $this->setFilter($this->reportColumnsConfig, $filter, $allowNull);
     }
     /**
-     * @param Std $columnConfig
+     * @param Config $columnConfig
      * @param array $filter
      * @param boolean $allowNull допускать значения null в pivotColumn
+     * @return Config
      * @throws Exception if pivot column isn't set
      *
      * задает фильтр значений для выборки
@@ -176,26 +179,42 @@ class PivotReport2 extends Std
      *              'column_N' => [val_1, val_2...val_N]
      *         ]
      */
-    protected function setFilter(Std $columnConfig, array $filter = [], bool $allowNull) {
+    protected function setFilter(Config $columnConfig, array $filter = [], bool $allowNull) {
         $columnConfig->filter->allowNull = $allowNull;
-        $classColumns = $this->reportConf->className::getColumns();
-        $conditions = [];
-        foreach ($filter as $column => $value) {
-            if (array_key_exists($column, $classColumns)) {
-                $conditions[$column] = array_map('trim', explode(',', $value));
-            }
+        $classColumns = array_keys($this->className::getColumns());
+        $filterColumns = array_keys($filter);
+        if (count(array_diff($filterColumns, $classColumns)) > 0) {
+            throw new Exception('columns in filter array have to belong ' . $this->className::getTableName() . ' table!');
         }
-        $columnConfig->filter->conditions = $conditions;
+        foreach ($filter as $column => $value) {
+            $columnConfig->filter->conditions->$column = new Config(array_map('trim', explode(',', $value)));
+        }
+        return $columnConfig->filter;
     }
 
+    protected function buildPivotFilterStatement(string $innerPrefix, string $outerPrefix)
+    {
+        $repCol = $this->reportColumns;
+        $statements = [];
+        $filterStatement = $this->buildFilterStatement($this->pivotColumnConfig);
+        $statements[] = $filterStatement['statement'];
+        $res['params'] = $filterStatement['params'];
+        foreach ($repCol as $col) {
+            $statements[] = $this->driver->quoteName($innerPrefix . '.' . $col) . ' = ' . $this->driver->quoteName($outerPrefix . '.' . $col);
+        }
+        $res['statement'] = implode(' AND ', $statements);
+        return $res;
+    }
     /**
-     * @param Std $columnConfig
+     * @param Config $columnConfig
      * @param string $columnPrefix
      * @return array
      * build condition statement for sql query from filter config
      * you can define prefix for columns. This prefix will use as table name an will be quoted.
+     *
+     * return associated array with keys 'statement' and 'params'
      */
-    protected function buildFilterStatement(Std $columnConfig, string $columnPrefix = '')
+    protected function buildFilterStatement(Config $columnConfig, string $columnPrefix = '')
     {
         $params = [];
         $columnsStatements = [];
@@ -227,9 +246,84 @@ class PivotReport2 extends Std
     //query builds
     public function buildSelectQuery()
     {
-        $columnSet = $this->buildFilterStatement($this->getPivotColumnConfig(), 't2');
-        return $columnSet;
+        $reportColumns = $this->reportColumns;
+        $pivotColumn = $this->pivotColumn;
+        $pivotColumnStr = array_pop($pivotColumn);
+        $sql = 'SELECT' . "\n";
+        foreach ($reportColumns as $col) {
+            if ($col != $pivotColumnStr) {
+                $sql .= "\t" . $this->driver->quoteName($col) . ',' . "\n";
+            } else {
+                $sql .= "\t";
+                $sql .= '(SELECT jsonb_object_agg(t2.' . $this->driver->quoteName($pivotColumnStr) . ') AS numbers' . "\n";
+                $sql .= "\t";
+                $sql .= 'FROM ' . $this->driver->quoteName($this->tableName) . '  AS t3' . "\n";
+                $sql .= "\t";
+                $pivotStatement = $this->buildPivotFilterStatement('t3', 't1');
+                $sql .= 'WHERE ' . $pivotStatement['statement'];
+            }
+        }
+        return $sql;
     }
+
+
+    //getters and setters
+
+    /**
+     * @return Config
+     */
+    protected function getReportConfig()
+    {
+        return $this->reportConf;
+    }
+
+    /**
+     * @return string
+     */
+    protected function getClassName()
+    {
+        return $this->reportConf->className;
+    }
+    /**
+     * @return string
+     */
+    protected function getTableName()
+    {
+        return $this->reportConf->className::getTableName();
+    }
+    /**
+     * @return array
+     */
+    protected function getReportColumns()
+    {
+        return $this->reportConf->columns->name->toArray();
+    }
+
+    /**
+     * @return Config
+     */
+    protected function getReportColumnsConfig()
+    {
+        return $this->reportConf->columns;
+    }
+
+    /**
+     * @return array
+     * return once value as array only for compatibility
+     */
+    protected function getPivotColumn()
+    {
+        return $this->reportConf->pivotColumn->name->toArray();
+    }
+    protected function getPivotColumnConfig()
+    {
+        return $this->reportConf->pivotColumn;
+    }
+    /**
+     * @return array
+     *
+     * return array of pivot column values
+     */
     protected function getPivotColumnValues()
     {
         $order = [];
@@ -239,7 +333,6 @@ class PivotReport2 extends Std
         }
         $order = implode(', ', $order);
         $columns = $this->pivotColumn;
-//        $columns = ($columns instanceof Std) ? $columns->toArray() : $columns;
         $query = (new Query())
             ->select($columns)
             ->distinct()
@@ -256,39 +349,6 @@ class PivotReport2 extends Std
         $query = $this->driver->makeQueryString($query);
         $queryRes = $this->reportConf->className::getDbConnection()->query($query, $params)->fetchAll(\PDO::FETCH_COLUMN, 0);
         return $queryRes;
-    }
-
-    //getters and setters
-    protected function getReportConfig()
-    {
-        return $this->reportConf;
-    }
-    protected function getClassName()
-    {
-        return $this->reportConf->className;
-    }
-    /**
-     * @return array
-     */
-    protected function getReportColumns()
-    {
-        return ($this->reportConf->columns->name instanceof Std) ?
-            $this->reportConf->columns->name->toArray() :
-            $this->reportConf->columns->name;
-    }
-    protected function getReportColumnsConfig()
-    {
-        return $this->reportConf->columns;
-    }
-    protected function getPivotColumn()
-    {
-        return ($this->reportConf->pivotColumn->name instanceof Std) ?
-            $this->reportConf->pivotColumn->name->toArray() :
-            $this->reportConf->pivotColumn->name;
-    }
-    protected function getPivotColumnConfig()
-    {
-        return $this->reportConf->pivotColumn;
     }
     //======end getters setters
 }

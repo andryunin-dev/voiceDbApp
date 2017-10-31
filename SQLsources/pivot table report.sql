@@ -36,3 +36,18 @@ SELECT office, region, "platformTitle", count(appliance_id) as count
 FROM view.geo_dev
 WHERE "appType" = 'phone'  
 GROUP BY office, region, "platformTitle";
+
+-- query with packing platform Title info into JSOB object
+SELECT
+  region,
+  office,
+  (SELECT jsonb_object_agg(t2."platformTitle", t2.numbers) FROM
+    (SELECT "platformTitle", count("platformTitle") AS numbers
+     FROM view.dev_geo AS t3
+     WHERE "appType" = 'phone' AND t3.region = t1.region AND t3.office = t1.office
+     GROUP BY "platformTitle"
+     ORDER BY "platformTitle") AS t2) AS "platformTitle"
+FROM view.dev_geo AS t1
+WHERE "appType" = 'phone'
+GROUP BY office, region
+ORDER BY region, office;

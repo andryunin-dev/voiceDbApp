@@ -14,13 +14,19 @@ class Test extends Controller
     public function actionDefault()
     {
         $rep = new PivotReport2('test', GeoDev_View::class);
-        $rep->delete();
-        $rep = new PivotReport2('test', GeoDev_View::class);
-        $rep->setReportColumns(['region', 'office', 'platformTitle']);
-        $rep->setPivotColumn('platformTitle');
-        $rep->setPivotFilter(['appType' => 'phone']);
-        $rep->setReportColumnsFilter([], true);
-        $rep->save();
+//        $rep->delete();
+//        $rep = new PivotReport2('test', GeoDev_View::class);
+//        var_dump($rep);
+//        var_dump($rep->setReportColumns(['region', 'office', 'platformTitle']));
+//        var_dump($rep->setPivotColumn('platformTitle'));
+//        var_dump($rep->setPivotFilter(['appType' => 'phone']));
+//        var_dump($rep->setReportColumnsFilter([], true));
+//        $rep->save();
+        var_dump($rep->pivotColumnValues);
+        var_dump($rep->buildSelectQuery());
+        var_dump($rep->reportConfig);
+        var_dump($rep->reportColumns);
+        var_dump($rep->pivotColumn);
         var_dump($rep->pivotColumnValues);
         die;
 

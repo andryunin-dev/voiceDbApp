@@ -43,9 +43,6 @@ return [
       'filter' =>
       [
         'allowNull' => true,
-        'conditions' =>
-        [
-        ],
       ],
     ],
   ],
