@@ -20,14 +20,14 @@ class Test extends Controller
 //        var_dump($rep->setReportColumns(['region', 'office', 'platformTitle']));
 //        var_dump($rep->setPivotColumn('platformTitle'));
 //        var_dump($rep->setPivotFilter(['appType' => 'phone']));
-//        var_dump($rep->setReportColumnsFilter([], true));
+//        var_dump($rep->setReportColumnsFilter([], false));
 //        $rep->save();
-        var_dump($rep->pivotColumnValues);
+//        var_dump($rep->pivotColumnValues);
         var_dump($rep->buildSelectQuery());
-        var_dump($rep->reportConfig);
-        var_dump($rep->reportColumns);
-        var_dump($rep->pivotColumn);
-        var_dump($rep->pivotColumnValues);
+//        var_dump($rep->reportConfig);
+//        var_dump($rep->reportColumns);
+//        var_dump($rep->pivotColumn);
+//        var_dump($rep->pivotColumnValues);
         die;
 
     }

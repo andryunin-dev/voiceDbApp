@@ -32,17 +32,15 @@ return [
       [
         0 => 'region',
         1 => 'office',
-        2 => 'platformTitle',
       ],
       'sortOrder' =>
       [
         'region' => '',
         'office' => '',
-        'platformTitle' => '',
       ],
       'filter' =>
       [
-        'allowNull' => true,
+        'allowNull' => false,
       ],
     ],
   ],

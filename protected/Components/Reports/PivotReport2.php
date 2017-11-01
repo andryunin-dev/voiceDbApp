@@ -121,6 +121,13 @@ class PivotReport2 extends Config
             throw new Exception('pivot column has to has been defined in Report Column Set!');
         }
         $this->pivotColumnConfig->name = new Config([$colName]);
+        //unset pivot column from report columns config
+        foreach ($this->reportColumnsConfig->name as $key => $reportColName) {
+            if ($reportColName == $colName) {
+                unset($this->reportColumnsConfig->name->$key);
+            }
+        }
+        unset($this->reportColumnsConfig->sortOrder->$colName);
 
         //set sort order for pivot column values
         $direction = ('asc' == strtolower($direction) || 'asc' == strtolower($direction)) ? strtoupper($direction) : '';
@@ -192,29 +199,17 @@ class PivotReport2 extends Config
         return $columnConfig->filter;
     }
 
-    protected function buildPivotFilterStatement(string $innerPrefix, string $outerPrefix)
-    {
-        $repCol = $this->reportColumns;
-        $statements = [];
-        $filterStatement = $this->buildFilterStatement($this->pivotColumnConfig);
-        $statements[] = $filterStatement['statement'];
-        $res['params'] = $filterStatement['params'];
-        foreach ($repCol as $col) {
-            $statements[] = $this->driver->quoteName($innerPrefix . '.' . $col) . ' = ' . $this->driver->quoteName($outerPrefix . '.' . $col);
-        }
-        $res['statement'] = implode(' AND ', $statements);
-        return $res;
-    }
     /**
      * @param Config $columnConfig
      * @param string $columnPrefix
+     * @param bool $asString //if true - result will as string with integrated params
      * @return array
      * build condition statement for sql query from filter config
      * you can define prefix for columns. This prefix will use as table name an will be quoted.
      *
      * return associated array with keys 'statement' and 'params'
      */
-    protected function buildFilterStatement(Config $columnConfig, string $columnPrefix = '')
+    protected function buildFilterStatement(Config $columnConfig, string $columnPrefix = '', $includeAllowNull = true)
     {
         $params = [];
         $columnsStatements = [];
@@ -232,8 +227,8 @@ class PivotReport2 extends Config
                 array_pop($currentColumnStatements) :
                 '(' . implode(' OR ',$currentColumnStatements) . ')';
         }
-        //append null statement
-        if (false === $columnConfig->filter->allowNull) {
+        //append null statement only if $includeAllowNull = true
+        if (true === $includeAllowNull && false === $columnConfig->filter->allowNull) {
             foreach ($columnConfig->name as $column) {
                 $columnsStatements[] = $this->driver->quoteName($column) . ' NOTNULL';
             }
@@ -246,23 +241,81 @@ class PivotReport2 extends Config
     //query builds
     public function buildSelectQuery()
     {
+        $result = [];
+        $tableName = $this->driver->quoteName($this->tableName);
+
+        //report columns with pivot column
         $reportColumns = $this->reportColumns;
-        $pivotColumn = $this->pivotColumn;
-        $pivotColumnStr = array_pop($pivotColumn);
-        $sql = 'SELECT' . "\n";
-        foreach ($reportColumns as $col) {
-            if ($col != $pivotColumnStr) {
-                $sql .= "\t" . $this->driver->quoteName($col) . ',' . "\n";
-            } else {
-                $sql .= "\t";
-                $sql .= '(SELECT jsonb_object_agg(t2.' . $this->driver->quoteName($pivotColumnStr) . ') AS numbers' . "\n";
-                $sql .= "\t";
-                $sql .= 'FROM ' . $this->driver->quoteName($this->tableName) . '  AS t3' . "\n";
-                $sql .= "\t";
-                $pivotStatement = $this->buildPivotFilterStatement('t3', 't1');
-                $sql .= 'WHERE ' . $pivotStatement['statement'];
-            }
+        $reportColumns = array_map(function($col) { return $this->driver->quoteName($col); }, $reportColumns);
+
+
+        //report sort columns (associated array like [col_name => sort_direct])
+        $reportSortOrder = $this->reportColumnsConfig->sortOrder->toArray();
+        foreach ($reportSortOrder as $col=> $direct) {
+            unset($reportSortOrder[$col]);
+            $reportSortOrder[$this->driver->quoteName($col)] = $direct;
         }
+
+        //report sort columns only (without direction, numeric array)
+        $reportSortOrderCols = array_keys($reportSortOrder);
+
+        //pivot columns
+        $pivotColumn = $this->pivotColumn;
+        $pivotColumn = array_map(function($col) { return $this->driver->quoteName($col); }, $pivotColumn);
+
+        $pivotColumnStr = array_pop($pivotColumn);
+
+        //pivot sort columns (associated array like [col_name => sort_direct])
+        $pivotSortOrder = $this->pivotColumnConfig->sortOrder->toArray();
+        foreach ($pivotSortOrder as $col=> $direct) {
+            unset($pivotSortOrder[$col]);
+            $pivotSortOrder[$this->driver->quoteName($col)] = $direct;
+        }
+
+        //pivot sort columns only (without direction, numeric array)
+        $pivotSortOrderCols = array_keys($pivotSortOrder);
+
+        //pivot filter columns
+        $pivotFilterCols = array_keys($this->pivotColumnConfig->filter->conditions->toArray());
+        $pivotFilterCols = array_map(function($col) { return $this->driver->quoteName($col); }, $pivotFilterCols);
+
+        //condition array (statement + params array) for pivot filter
+        $pivotFilterCond = $this->buildFilterStatement($this->pivotColumnConfig);
+        $pivotCond = [];
+        if (!empty($pivotFilterCond)) {
+            $pivotCond[] = $pivotFilterCond['statement'];
+            $result['params'] = $pivotFilterCond['params'];
+        }
+        foreach ($reportColumns as $col) {
+            $pivotCond[] = 't2' . '.' . $col . ' = ' . 't1' . '.' . $col;
+        }
+        $sql = 'SELECT' . "\n\t";
+        foreach ($reportColumns as $col) {
+            $sql .= $col . ',' . "\n\t";
+        }
+        $sql .= '(SELECT jsonb_object_agg(t3.' . $pivotColumnStr . ',' . ' t3.numbers)' . "\n\t";
+        $sql .= 'FROM (' . "\n\t\t";
+        $sql .= 'SELECT' . "\n\t\t\t";
+        $sql .= $pivotColumnStr . ',' . "\n\t\t\t";
+        $sql .= 'count(' . $pivotColumnStr . ') AS numbers' . "\n\t\t";
+        $sql .= 'FROM ' . $tableName . '  AS t2' . "\n\t\t";
+        $sql .= 'WHERE ' . implode(' AND ', $pivotCond) . "\n\t\t";
+        $sql .= 'GROUP BY ' . 't2' . '.' . $pivotColumnStr . "\n\t\t";
+        $order = [];
+        foreach ($pivotSortOrder as $col => $direct) {
+            $order[] = empty($direct) ? 't2' . '.' . $col : 't2' . '.' . $col . ' ' . $direct;
+        }
+        $sql .= 'ORDER BY ' . implode(', ', $order) . "\n\t";
+        $sql .= ') AS t3' . "\n";
+        $sql .= ') AS ' . $pivotColumnStr . "\n";
+        $sql .= 'FROM ' . $tableName . ' AS t1' . "\n";
+        $groupByCols = array_merge($reportColumns, $pivotFilterCols);
+        $sql .= 'GROUP BY ' . implode(', ', $groupByCols) . "\n";
+        if (false == $this->reportColumnsConfig->filter->allowNull) {
+            $stmnt = $this->buildFilterStatement($this->pivotColumnConfig, '', false);
+            $sql .= 'HAVING ' . $stmnt['statement'] . "\n";
+        }
+        $sql .= 'ORDER BY ' . implode(', ', $reportSortOrderCols);
         return $sql;
     }
 
@@ -314,6 +367,10 @@ class PivotReport2 extends Config
     protected function getPivotColumn()
     {
         return $this->reportConf->pivotColumn->name->toArray();
+    }
+    protected function getPivotOrder()
+    {
+        return $this->reportConf->pivotColumn->sortOrder->toArray();
     }
     protected function getPivotColumnConfig()
     {
