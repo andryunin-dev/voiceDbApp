@@ -53,6 +53,7 @@ class GeoDev_View extends Model
             'lotusId' => ['type' => 'int'],
             'officeComment' => ['type' => 'string'],
             'officeDetails' => ['type' => 'jsonb'],
+            'officeAddress' => ['type' => 'string'],
             'appliance_id' => ['type' => 'int', 'length' => 'big'],
             'location_id' => ['type' => 'int', 'length' => 'big'],
             'appLastUpdate' => ['type' => 'datetime'],
