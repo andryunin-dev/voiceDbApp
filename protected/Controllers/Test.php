@@ -44,5 +44,7 @@ class Test extends Controller
     public function actionTable()
     {
         $tab = new TableConfig('test');
+        $tab->width = 100;
+        $tab->save();
     }
 }
