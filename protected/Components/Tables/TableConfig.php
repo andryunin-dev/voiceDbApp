@@ -2,6 +2,7 @@
 
 namespace App\Components\Tables;
 
+use App\Components\Sql\SqlFilter;
 use T4\Core\Config;
 use T4\Core\Exception;
 
@@ -14,17 +15,53 @@ class TableConfig extends Config
 
     /**
      * TableConfig constructor.
-     * @param string $table
-     * @throws Exception
+     * @param string $class
+     * @param string $tableName
      */
-    public function __construct(string $table)
+    public function __construct(string $class, string $tableName)
     {
-        if (empty($table)) {
-            throw new Exception('Table name can not be empty' );
-        }
-        parent::__construct(self::BASE_CONF_PATH . $table . '.php');
-        $this->table = $table;
+
     }
+
+    /**
+     * @param array $columns ['SQL_field => tile]
+     * set table columns and its order
+     * this method should be called before setColumnAttribute()
+     */
+    public function columns(array $columns)
+    {}
+
+    /**
+     * @param mixed $width column width. if int (10) - set width in percents, if string ('10px') - set width in pixels
+     * @param bool $sortable
+     * @param bool $filterable
+     */
+    public function columnAttribute($width, bool $sortable, bool $filterable)
+    {}
+
+    public function addTableCondition(SqlFilter $filter)
+    {}
+
+    /**
+     * @param string $column column name for witch set sortOrder. Column has to be sortable
+     * @param array $sortOrderList real columns list for sorting
+     */
+    public function addSortOrder(string $column, array $sortOrderList)
+    {}
+
+    /**
+     * return SQL query as string
+     */
+    protected function getSelectStatement() :string
+    {}
+
+    /**
+     * @return array params for SQL query
+     */
+    protected function getSelectParams() :array
+    {}
+
+
 
     public function validateWidth($val)
     {

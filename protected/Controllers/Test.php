@@ -6,8 +6,10 @@ namespace App\Controllers;
 
 
 use App\Components\Reports\PivotReport;
+use App\Components\Sql\SqlFilter;
 use App\Components\Tables\TableConfig;
 use App\ViewModels\GeoDev_View;
+use T4\Core\Std;
 use T4\Mvc\Controller;
 
 class Test extends Controller
@@ -46,5 +48,13 @@ class Test extends Controller
         $tab = new TableConfig('test');
         $tab->width = 100;
         $tab->save();
+    }
+
+    public function actionTest()
+    {
+        $a1 = ['val1', 'val2' ];
+        $a2 = ['val2', 'val1' ];
+        var_dump(array_diff($a1, $a2));
+
     }
 }
