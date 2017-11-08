@@ -1,13 +1,6 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Dmitry
- * Date: 07.11.2017
- * Time: 14:08
- */
 
 namespace App\Components\Sql;
-
 
 use T4\Core\Exception;
 use T4\Core\Std;
@@ -102,10 +95,10 @@ class SqlFilter extends Std
      * @return $this
      * @throws Exception
      */
-    public function addFilter(string $operator, string $column, array $values, $overwrite = false)
+    public function addFilter(string $column, string $operator, array $values, $overwrite = false)
     {
-        $this->validateOperator($operator);
         $this->validateColumn($column);
+        $this->validateOperator($operator);
 
         $operator = strtolower($operator);
         //todo make check for unary operator
@@ -113,32 +106,35 @@ class SqlFilter extends Std
             return $this;
         }
 
-        if (! isset($this->filter->$operator)) {
-            $this->filter->$operator = new Std([$column => $values]);
-        } elseif (! isset($this->filter->$operator->$column)) {
-            $this->filter->$operator->$column = new Std($values);
+        if (! isset($this->filter->$column)) {
+            $this->filter->$column = new Std([$operator => $values]);
+        } elseif (! isset($this->filter->$column->$operator)) {
+            $this->filter->$column->$operator = new Std($values);
         } else {
-            $this->filter->$operator->$column = (true === $overwrite) ?
+            $this->filter->$column->$operator = (true === $overwrite) ?
                 new Std($values) :
-                new Std(array_merge($this->filter->$operator->$column->toArray(), array_diff($values, $this->filter->$operator->$column->toArray())));
+                new Std(array_merge($this->filter->$column->$operator->toArray(), array_diff($values, $this->filter->$column->$operator->toArray())));
         }
         return $this;
     }
 
-    public function setFilter(string $operator, string $column, array $values)
+    public function setFilter(string $column, string $operator, array $values)
     {
-        $this->validateOperator($operator);
         $this->validateColumn($column);
+        $this->validateOperator($operator);
 
-        $this->addFilter($operator, $column, $values, true);
+        $this->addFilter($column, $operator, $values, true);
         return $this;
     }
 
-    public function removeFilter(string $operator, string $column)
+    public function removeFilter(string $column, string $operator)
     {
-        $this->validateOperator($operator);
         $this->validateColumn($column);
-        unset($this->filter->$operator->$column);
+        $this->validateOperator($operator);
+        unset($this->filter->$column->$operator);
+        if (0 == $this->filter->$column->count()) {
+            unset($this->filter->$column);
+        }
         return $this;
     }
 
@@ -148,26 +144,26 @@ class SqlFilter extends Std
     protected function getFilterStatement()
     {
         $statementsByColumns = [];
-        foreach ($this->filter as $op =>$cols) {
-            foreach ($cols as $col => $vals) {
-                $colStatement = [];
+        foreach ($this->filter as $col =>$ops) {
+            foreach ($ops as $op => $vals) {
+                $opStatement = [];
                 foreach ($vals as $index => $val) {
-                    $transRes = $this->sqlTranslator($op, $col, $index, $val);
-                    $colStatement[] = $transRes['string'];
+                    $transRes = $this->sqlTranslator($col, $op, $index, $val);
+                    $opStatement[] = $transRes['string'];
                     $this->params = array_merge($this->params, $transRes['param']);
                 }
-                $statementsByColumns[] = (count($colStatement) > 1) ?
-                    '(' . implode(' OR ', $colStatement) . ')' :
-                    array_pop($colStatement);
+                $statementsByColumns[] = (count($opStatement) > 1) ?
+                    '(' . implode(' OR ', $opStatement) . ')' :
+                    array_pop($opStatement);
             }
         }
         $this->statementString = implode(' AND ', $statementsByColumns);
         return $this->statementString;
     }
 
-    protected function sqlTranslator ($operator, $column, $index, $value)
+    protected function sqlTranslator ($column, $operator, $index, $value)
     {
-        $marker = ':' . $operator . '_' . $column . '_' . $index;
+        $marker = ':' . $column . '_' . $operator . '_' . $index;
         $param = [];
         if ($this->isOperatorUnary($operator)) {
             $string = $this->driver->quoteName($column) . ' ' . strtoupper(self::$operatorsToSings[$operator]);
@@ -202,14 +198,23 @@ class SqlFilter extends Std
      * @param string $mergeMode
      */
     public function mergeWith(SqlFilter $filter, string $mergeMode = 'replace')
-    {}
+    {
+        $overwrite = 'replace' == $mergeMode ? true : false;
+        $ignore = ('ignore' == $mergeMode) ? true : false;
+        foreach ($filter as $col => $ops) {
+            foreach ($ops as $op => $val) {
+                if (isset($this->$col->$op) && true === $ignore) {
+                    continue;
+                } else {
+                    $this->addFilter($col, $op, $val, $overwrite);
+                }
+            }
+        }
+    }
 
     public function toArray(): array
     {
         return $this->filter->toArray();
     }
 
-    public function fromArray($dataSet) {
-
-    }
 }
