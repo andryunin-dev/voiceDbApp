@@ -77,12 +77,14 @@ class SqlFilter extends Std
         if (! $this->isOperatorValid($operator)) {
             throw new Exception('Unknown operator - ' . $operator);
         }
+        return true;
     }
     protected function validateColumn($column)
     {
         if (! $this->isColumnValid($column)) {
             throw new Exception('Property  ' . '\'' . $column . '\' is not found in class ' . $this->class);
         }
+        return true;
     }
 
     /**
@@ -201,9 +203,12 @@ class SqlFilter extends Std
     {
         $overwrite = 'replace' == $mergeMode ? true : false;
         $ignore = ('ignore' == $mergeMode) ? true : false;
+        $filter = $filter->toArray();
         foreach ($filter as $col => $ops) {
             foreach ($ops as $op => $val) {
-                if (isset($this->$col->$op) && true === $ignore) {
+                if (! isset($this->filter->$col->$op)) {
+                    $this->addFilter($col, $op, $val, true);
+                } elseif (isset($this->filter->$col->$op) && (true === $ignore)) {
                     continue;
                 } else {
                     $this->addFilter($col, $op, $val, $overwrite);
@@ -217,4 +222,32 @@ class SqlFilter extends Std
         return $this->filter->toArray();
     }
 
+    public function setFilterFromArray($data)
+    {
+        foreach ($data as $col => $ops) {
+            $this->validateColumn($col);
+            foreach ($ops as $op => $vals) {
+                $this->validateOperator($op);
+                if (! is_array($vals)) {
+                    throw new Exception('Values have to pass as array');
+                }
+                $this->setFilter($col, $op, $vals);
+            }
+        }
+        return $this->filter;
+    }
+    public function addFilterFromArray($data, $overwrite = false)
+    {
+        foreach ($data as $col => $ops) {
+            $this->validateColumn($col);
+            foreach ($ops as $op => $vals) {
+                $this->validateOperator($op);
+                if (! is_array($vals)) {
+                    throw new Exception('Values have to pass as array');
+                }
+                $this->addFilter($col, $op, $vals, $overwrite);
+            }
+        }
+        return $this->filter;
+    }
 }

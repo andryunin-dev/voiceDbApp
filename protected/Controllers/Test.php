@@ -9,6 +9,7 @@ use App\Components\Reports\PivotReport;
 use App\Components\Sql\SqlFilter;
 use App\Components\Tables\TableConfig;
 use App\ViewModels\GeoDev_View;
+use T4\Core\Config;
 use T4\Core\Std;
 use T4\Mvc\Controller;
 
@@ -52,9 +53,12 @@ class Test extends Controller
 
     public function actionTest()
     {
-        $a1 = ['val1', 'val2' ];
-        $a2 = ['val2', 'val1' ];
-        var_dump(array_diff($a1, $a2));
+        $path = ROOT_PATH . DS . 'Configs' . DS;
+        $file = 'testConf.php';
+        $conf = new Config();
+        $conf ->setPath($path . $file);
+        $conf->test1->test2 = 3;
+        var_dump($conf->save());
 
     }
 }
