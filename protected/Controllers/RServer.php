@@ -4,6 +4,7 @@ namespace App\Controllers;
 use App\Components\DSPappliance;
 use App\Components\DSPcluster;
 use App\Components\DSPerror;
+use App\Components\DSPpre;
 use App\Components\DSPprefixes;
 use App\Components\RLogger;
 use App\Models\Appliance;
@@ -29,8 +30,8 @@ class RServer extends Controller
 //        $debugLogger = RLogger::getInstance('RServer', realpath(ROOT_PATH . '/Logs/debug.log'));
 
         try {
-            $rawInput = file_get_contents('php://input');
-            $inputDataset = (new Std())->fill(json_decode($rawInput));
+            $rawInput = json_decode(file_get_contents('php://input'));
+            $inputDataset = (new Std())->fromArray($rawInput);
 
             $logger = RLogger::getInstance('R-Server');
 
@@ -70,7 +71,7 @@ class RServer extends Controller
 
                 case 'prefixes':
                     $logger = RLogger::getInstance('DS-prefixes');
-                    $result = (new DSPprefixes($inputDataset))->run();
+                    $result = (new DSPprefixes())->process($inputDataset);
                     if (true !== $result) {
                         throw new Exception('Runtime error');
                     }
