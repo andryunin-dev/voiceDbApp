@@ -34,7 +34,7 @@ interface TableConfigInterface
      * @return mixed
      * return columns config
      */
-    public function columnsConfig() : Std;
+    public function allColumnsConfig() : Std;
 
     /**
      * @param string $column

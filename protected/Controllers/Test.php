@@ -53,12 +53,8 @@ class Test extends Controller
 
     public function actionTest()
     {
-        $path = ROOT_PATH . DS . 'Configs' . DS;
-        $file = 'testConf.php';
-        $conf = new Config();
-        $conf ->setPath($path . $file);
-        $conf->test1->test2 = 3;
-        var_dump($conf->save());
+
+        var_dump(is_numeric('50'));
 
     }
 }

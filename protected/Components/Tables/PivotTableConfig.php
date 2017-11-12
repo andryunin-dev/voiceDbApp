@@ -134,40 +134,73 @@ class PivotTableConfig extends Config
             return $this->pivot->$pivotColumn->sortBy;
         }
         $this->validateSortDirection($direction);
-        $this->isColumnsDefined($sortColumns);
+        $this->isAllColumnsDefined($sortColumns);
         $this->pivot->$pivotColumn->sortBy = new Config(array_fill_keys($sortColumns, strtolower($direction)));
         return $this->pivot->$pivotColumn->sortBy;
     }
 
     /**
-     * @param string|integer $width
      * @param string $pivotColumn
-     * @return string|integer width each item of columns based on pivot column
+     * @param string|integer $width
+     * @return int|string width each item of columns based on pivot column
+     * @throws Exception
      */
-    public function widthPivotItems(string $pivotColumn, $width)
+    public function widthPivotItems(string $pivotColumn, $width = null)
     {
-
+        $this->validatePivotColumn($pivotColumn);
+        if (is_null($width)) {
+            return $this->pivot->$pivotColumn->width;
+        }
+        if(!is_string($width) && !is_int($width)) {
+            throw new Exception('Width has to be int like 10 or string like 10px');
+        }
+        if(is_numeric($width)) {
+            //width set in percents
+            $this->pivot->$pivotColumn->width = intval($width);
+            return $this->pivot->$pivotColumn->width;
+        } elseif(is_string($width) && substr(trim(strtolower($width)), -2) == 'px') {
+            $this->pivot->$pivotColumn->width = trim(strtolower($width));
+            return $this->pivot->$pivotColumn->width;
+        } else {
+            //Incorrect value of width
+            throw new Exception('Width has to be int like 10 or string like 10px');
+        }
     }
 
     /**
      * @return mixed
      * return columns config
      */
-    public function columnsConfig(): Std
+    public function allColumnsConfig(): Std
     {
-        // TODO: Implement columnsConfig() method.
     }
 
     /**
      * @param string $column
      * @param Std|null $config
-     * @return mixed
+     * @return Config if $config is null - return current config $column column
      * if $config is null - return current config $column column
-     * if $config is array - set config for $column column
+     * if $config is Std - set config for $column column
+     * @throws Exception
      */
     public function columnConfig(string $column, Std $config = null)
     {
-        // TODO: Implement columnConfig() method.
+        $this->isColumnSet($column);
+        if (is_null($config)) {
+            return $this->columns->$column;
+        }
+        $diff = array_diff(array_keys($config->toArray()), array_keys($this->columnPropertiesTemplate));
+        if (count($diff) > 0) {
+            throw new Exception('Some config parameters are not correct');
+        }
+        foreach ($config as $param => $value) {
+            $this->validateConfigParam($param, $value);
+            $config->$param = $this->sanitizeConfigParam($param, $value);
+        }
+        foreach ($config as $param => $value) {
+            $this->columns->$column->$param = $value;
+        }
+        return $this->columns->$column;
     }
 
     public function sortOrderSets($sortSets = null)
@@ -212,7 +245,16 @@ class PivotTableConfig extends Config
         return true;
     }
 
-    protected function isColumnsDefined(array $columns)
+    protected function isAllColumnsDefined(array $columns)
+    {
+        $classColumns = array_keys($this->className::getColumns());
+        $diff = array_diff($columns, $classColumns);
+        if (count($diff) > 0) {
+            throw new Exception('columns have to belong ' . $this->className::getTableName() . ' table!');
+        }
+        return true;
+    }
+    protected function isColumnDefined(array $columns)
     {
         $classColumns = array_keys($this->className::getColumns());
         $diff = array_diff($columns, $classColumns);
@@ -229,6 +271,77 @@ class PivotTableConfig extends Config
             return true;
         } else {
             throw new Exception('Allowed sort direction is: \'asc\' or \'desc\'');
+        }
+    }
+
+    protected function validateConfigParam($param, $val)
+    {
+        switch($param) {
+            case 'id':
+                if (! is_string($val)) {
+                    throw new Exception('Not valid id');
+                }
+                break;
+            case 'title':
+                if (! is_string($val)) {
+                    throw new Exception('Not valid title');
+                }
+                break;
+            case 'width':
+                if(is_numeric($val)) {
+                    //width set in percents
+                    return true;
+                } elseif(is_string($val) && substr(trim(strtolower($val)), -2) == 'px') {
+                    $val = substr($val, 0, strlen($val) - 2);
+                    if (is_numeric($val)) {
+                        return true;
+                    }
+                }
+                throw new Exception('Invalid width value');
+                break;
+            case 'sortable':
+                if (! is_bool($val)) {
+                    throw new Exception('Invalid sortable value');
+                }
+                break;
+            case 'filterable':
+                if (! is_bool($val)) {
+                    throw new Exception('Invalid filterable value');
+                }
+                break;
+            default:
+                throw new Exception('Unknown parameter \'' . $param . '\'');
+        }
+        return true;
+    }
+
+    protected function sanitizeConfigParam($param, $val)
+    {
+        switch($param) {
+            case 'id':
+                return trim($val);
+                break;
+            case 'title':
+                return $val;
+                break;
+            case 'width':
+                if(is_numeric($val)) {
+                    //width set in percents
+                    return intval($val);
+                } elseif(is_string($val) && substr(trim(strtolower($val)), -2) == 'px') {
+                    return trim(strtolower($val));
+                } else {
+                    return $val;
+                }
+                break;
+            case 'sortable':
+                return $val;
+                break;
+            case 'filterable':
+                return $val;
+                break;
+            default:
+                return $val;
         }
     }
 }
