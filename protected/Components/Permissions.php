@@ -10,16 +10,20 @@ use T4\Core\Std;
  *
  * use for users permissions
  *
- * @property $readOnly - только чтение
- * @property $changeDescription - редактирование дескрипшинове
- * @property $setInUse
- * @property $addEmptyAppliance - добавление устройств
- * @property $changeApplianceType - изменять роль устройства
- * @property $changeManagementIP
- * @property $addAppliance - добавление устройств(полных)
- * @property $changeModuleAndPorts - добавление устройств(полных)
+ * @property bool $readOnly - только чтение
+ * @property bool $changeDescription - редактирование дескрипшинове
+ * @property bool $setInUse
+ * @property bool $addOffice
+ * @property bool $editOffice
+ * @property bool $delOffice
+ * @property bool $addEmptyAppliance - добавление устройств
+ * @property bool $addAppliance - добавление устройств(полных)
+ * @property bool $editAppliance - редактирование устройств
+ * @property bool $changeApplianceType - изменять роль устройства
+ * @property bool $changeManagementIP
+ * @property bool $changeModuleAndPorts - добавление/редактирование устройств(полных)
 
- * @property $delAppliance
+ * @property bool $delAppliance
  */
 class Permissions extends Std
 {
