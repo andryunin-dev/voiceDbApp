@@ -20,6 +20,12 @@ class PivotTableConfig extends Config
 {
     const BASE_CONF_PATH = ROOT_PATH . DS . 'Configs' . DS;
 
+    protected $tablePropertiesTemplate = [
+        'className' => '',
+        'sortOrderSets' => [],
+        'sortBy' => [],
+        'preFilter' => []
+    ];
     protected $columnPropertiesTemplate = [
         'id' => '',
         'title' => '',
@@ -42,6 +48,15 @@ class PivotTableConfig extends Config
         'width' => 0, //width for each column from pivot values.
     ];
 
+    /**
+     * PivotTableConfig constructor.
+     * @param string $tableName
+     * @param string|null $class
+     * @throws Exception
+     *
+     * if $class doesn't set - read config
+     * if $class is set and valid - create new config but not save it.
+     */
     public function __construct(string $tableName, string $class = null)
     {
         parent::__construct();
@@ -58,6 +73,10 @@ class PivotTableConfig extends Config
             throw new Exception('Class for table must extends Model class');
         } else {
             $this->setPath($path);
+            foreach ($this->tablePropertiesTemplate as $prop => $value) {
+                $value = (is_array($value)) ? new Config($value) : $value;
+                $this->$prop = $value;
+            }
             $this->className = $class;
         }
     }
@@ -134,7 +153,7 @@ class PivotTableConfig extends Config
             return $this->pivot->$pivotColumn->sortBy;
         }
         $this->validateSortDirection($direction);
-        $this->isAllColumnsDefined($sortColumns);
+        $this->isAllColumnsSet($sortColumns);
         $this->pivot->$pivotColumn->sortBy = new Config(array_fill_keys($sortColumns, strtolower($direction)));
         return $this->pivot->$pivotColumn->sortBy;
     }
@@ -203,29 +222,74 @@ class PivotTableConfig extends Config
         return $this->columns->$column;
     }
 
-    public function sortOrderSets($sortSets = null)
+    /**
+     * define sets of columns to sort table
+     * ['template_name/column_name' => ['column_1 => 'direction', 'column_N' => 'direction']]
+     * You can pass several templates in one array like this:
+     * [
+     *      'column_1 => 'direction', 'column_N' => 'direction'],
+     *      'column_N => 'direction', 'column_N' => 'direction'],
+     * ]
+     * To set template as current sort order use method 'sortBy'
+     * if template already exists, it'll be overwritten
+     * if direction is set, it can't be overwritten with sortBy method
+     *
+     * @param array|null $template
+     * @return Config
+     */
+    public function sortOrderSets(array $template = null)
     {
-        // TODO: Implement sortOrderSets() method.
+        foreach ($template as $name => $columns) {
+            foreach ($columns as $col => $dir) {
+                $this->validateColumnName($col);
+                $this->validateSortDirection($dir);
+            }
+        }
+        foreach ($template as $templName => $columns) {
+            $this->sortOrderSets->$templName = new Config($columns);
+        }
+        return $this->sortOrderSets;
     }
 
+    /**
+     * @param string $sortTemplate
+     * @param string $direction
+     *
+     * This method define default sort order for table. This order will be saved with save() method
+     * if $sortTemplate exists as set in sortOrderSets - apply this set
+     * if not - tread $sortTemplate as column.
+     * @return null|Config
+     * @throws Exception
+     */
     public function sortBy(string $sortTemplate, string $direction = '')
     {
-        // TODO: Implement sortBy() method.
+        $this->validateSortDirection($direction);
+        if (isset($this->sortOrderSets->$sortTemplate)) {
+            $this->sortBy = new Config($this->sortOrderSets->$sortTemplate->toArray());
+            foreach ($this->sortBy as $col => $dir) {
+                $this->sortBy->$col = empty($dir) ? $direction : $dir;
+            }
+        } elseif ($this->isColumnSet($sortTemplate)) {
+            $this->sortBy->$sortTemplate = empty($this->sortBy->$sortTemplate) ? $direction : $this->sortBy->$sortTemplate;
+        } else {
+            throw new Exception('Column ' . $sortTemplate . ' can\' be used as sort column because it\'s not defined for this table');
+        }
+        return $this->sortBy;
     }
 
-    public function setTablePreFilter(SqlFilter $condition)
+    /**
+     * @param Std $preFilter
+     * get/set table preFilter
+     * if preFilter already exists, it'll be overwritten
+     * preFilter can not be overwritten any operations filter
+     * @return null
+     */
+    public function tablePreFilter(Std $preFilter = null)
     {
-        // TODO: Implement setPreFilter() method.
-    }
-
-    public function setFilter(SqlFilter $condition)
-    {
-        // TODO: Implement setFilter() method.
-    }
-
-    public function addFilter(SqlFilter $condition, $appendMode)
-    {
-        // TODO: Implement addFilter() method.
+        if (! is_null($preFilter)) {
+            $this->preFilter = new Config($preFilter->toArray());
+        }
+        return $this->preFilter;
     }
 
     public function isPivot($column) :bool
@@ -245,7 +309,7 @@ class PivotTableConfig extends Config
         return true;
     }
 
-    protected function isAllColumnsDefined(array $columns)
+    protected function isAllColumnsSet(array $columns)
     {
         $classColumns = array_keys($this->className::getColumns());
         $diff = array_diff($columns, $classColumns);
@@ -254,11 +318,10 @@ class PivotTableConfig extends Config
         }
         return true;
     }
-    protected function isColumnDefined(array $columns)
+    protected function validateColumnName(string $columns)
     {
         $classColumns = array_keys($this->className::getColumns());
-        $diff = array_diff($columns, $classColumns);
-        if (count($diff) > 0) {
+        if (! in_array($columns, $classColumns)) {
             throw new Exception('columns have to belong ' . $this->className::getTableName() . ' table!');
         }
         return true;

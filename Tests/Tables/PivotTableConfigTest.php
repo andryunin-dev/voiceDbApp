@@ -339,4 +339,206 @@ class PivotTableConfigTest extends \PHPUnit\Framework\TestCase
         $column = 'columnOne';
         $conf->columnConfig($column,$colConfig);
     }
+
+    public function providerSortOrderSets()
+    {
+        return [
+            '_1' => [
+                ['template_1' => ['columnOne' => '', 'columnTwo' => '']]
+            ],
+            '_2' => [
+                [
+                    'template_2' => ['columnThree' => '', 'columnTwo' => ''],
+                    'template_3' => ['columnThree' => 'desc', 'columnTwo' => 'asc']
+                ],
+            ]
+        ];
+    }
+
+    /**
+     * @dataProvider providerSortOrderSets
+     * @param $template
+     */
+    public function testSortOrderSets($template)
+    {
+        $fileName = '__unitTest_testTableConfig.php';
+        $columnsArray = array_keys(ModelClass_1::getColumns());
+        /**
+         * @var PivotTableConfig $conf
+         */
+        $conf = (new PivotTableConfig($fileName, ModelClass_1::class))
+            ->columns($columnsArray);
+        $res = $conf->sortOrderSets($template);
+        $this->assertEquals($template, $res->toArray());
+    }
+
+    public function providerSortOrderSets_Exceptions()
+    {
+        return [
+            '_wrong_direction' => [
+                [
+                    'template_2' => ['columnThree' => '', 'columnTwo' => ''],
+                    'template_3' => ['columnThree' => '', 'columnTwo' => 'wrong']
+                ]
+            ],
+            '_wrong_column' => [
+                [
+                    'template_2' => ['Unknown' => '', 'columnTwo' => ''],
+                    'template_3' => ['columnThree' => '', 'columnTwo' => '']
+                ]
+            ],
+        ];
+    }
+    /**
+     * @dataProvider providerSortOrderSets_Exceptions
+     * @param $template
+     * @expectedException \T4\Core\Exception
+     */
+    public function testSortOrderSets_Exceptions($template)
+    {
+        $fileName = '__unitTest_testTableConfig.php';
+        $columnsArray = array_keys(ModelClass_1::getColumns());
+        /**
+         * @var PivotTableConfig $conf
+         */
+        $conf = (new PivotTableConfig($fileName, ModelClass_1::class))
+            ->columns($columnsArray);
+        $conf->sortOrderSets($template);
+    }
+
+    public function providerSortBy()
+    {
+        return [
+            '_1' => [
+                [
+                    'template_1' => ['columnThree' => '', 'columnTwo' => ''],
+                ],
+                'template_1',
+                'asc',
+                ['columnThree' => 'asc', 'columnTwo' => 'asc']
+            ],
+            '_2' => [
+                [
+                    'template_1' => ['columnThree' => '', 'columnTwo' => ''],
+                    'template_2' => ['columnTwo' => 'desc', 'columnOne' => '']
+                ],
+                'template_2',
+                'asc',
+                ['columnTwo' => 'desc', 'columnOne' => 'asc']
+            ],
+            '_3' => [
+                [
+                    'template_1' => ['columnThree' => '', 'columnTwo' => ''],
+                ],
+                'columnOne',
+                'asc',
+                ['columnOne' => 'asc']
+            ],
+        ];
+    }
+
+    /**
+     * @param $orderSets
+     * @param $template
+     * @param $direction
+     * @param $expected
+     * @dataProvider providerSortBy
+     */
+    public function testSortBy($orderSets, $template, $direction, $expected)
+    {
+        $fileName = '__unitTest_testTableConfig.php';
+        $columnsArray = array_keys(ModelClass_1::getColumns());
+        /**
+         * @var PivotTableConfig $conf
+         */
+        $conf = (new PivotTableConfig($fileName, ModelClass_1::class))
+            ->columns($columnsArray);
+        $conf->sortOrderSets($orderSets);
+        $res = $conf->sortBy($template, $direction);
+        $this->assertEquals($expected, $res->toArray());
+    }
+
+    public function providerSortBy_Exceptions()
+    {
+        return [
+            'invalid direction' => [
+                [
+                    'template_1' => ['columnThree' => '', 'columnTwo' => ''],
+                ],
+                'template_1',
+                'invalid'
+            ],
+            'not defined template' => [
+                [
+                    'template_1' => ['columnThree' => '', 'columnTwo' => ''],
+                    'template_2' => ['columnTwo' => 'desc', 'columnOne' => '']
+                ],
+                'template_3',
+                'asc'
+            ],
+            'not defined column' => [
+                [
+                    'template_1' => ['columnThree' => '', 'columnTwo' => ''],
+                    'template_2' => ['columnTwo' => 'desc', 'columnOne' => '']
+                ],
+                'columnFour',
+                'asc'
+            ],
+        ];
+    }
+
+    /**
+     * @param $orderSets
+     * @param $template
+     * @param $direction
+     * @dataProvider providerSortBy_Exceptions
+     * @expectedException \T4\Core\Exception
+     */
+    public function testSortBy_Exceptions($orderSets, $template, $direction)
+    {
+        $fileName = '__unitTest_testTableConfig.php';
+        $columnsArray = array_keys(ModelClass_1::getColumns());
+        /**
+         * @var PivotTableConfig $conf
+         */
+        $conf = (new PivotTableConfig($fileName, ModelClass_1::class))
+            ->columns($columnsArray);
+        $conf->sortOrderSets($orderSets);
+        $conf->sortBy($template, $direction);
+    }
+
+    public function providerTablePreFilterSetter()
+    {
+        return [
+            '_1' => [
+                [
+                    'columnOne' => [
+                        'lt' => ['val_1']
+                    ],
+                    'columnTwo' => [
+                        'eq' => ['val_1', 'val_2']
+                    ],
+                ]
+            ]
+        ];
+    }
+
+    /**
+     * @param $preFilter
+     * @dataProvider providerTablePreFilterSetter
+     */
+    public function testTablePreFilterSetter($preFilter)
+    {
+        $pf = (new SqlFilter(ModelClass_1::class))->setFilterFromArray($preFilter);
+
+        $fileName = '__unitTest_testTableConfig.php';
+        $columnsArray = array_keys(ModelClass_1::getColumns());
+        /**
+         * @var PivotTableConfig $conf
+         */
+        $conf = (new PivotTableConfig($fileName, ModelClass_1::class))
+            ->columns($columnsArray);
+        $res = $conf->tablePreFilter($pf);
+        $this->assertEquals($res->toArray(), $preFilter);
+    }
 }

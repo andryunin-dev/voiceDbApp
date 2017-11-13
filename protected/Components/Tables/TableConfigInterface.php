@@ -45,11 +45,9 @@ interface TableConfigInterface
      */
     public function columnConfig(string $column, Std $config = null);
 
-    public function sortOrderSets($sortSets = null);
+    public function sortOrderSets(array $sortSets = null);
     public function sortBy(string $sortTemplate, string $direction = '');
-    public function setTablePreFilter(SqlFilter $condition);
-    public function setFilter(SqlFilter $condition);
+    public function tablePreFilter(Std $preFilter);
 
-    public function addFilter(SqlFilter $condition, $appendMode);
     public function isColumnSet($column) :bool ;
 }
