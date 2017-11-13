@@ -6,26 +6,33 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 require_once __DIR__ . '/../../protected/boot.php';
 
 use App\Components\Sql\SqlFilter;
+use UnitTest\UnitTestClasses\ModelClass_1;
+use UnitTest\UnitTestClasses\StdClass_1;
 
 class SqlFilterTest extends \PHPUnit\Framework\TestCase
 {
-    public function testCreateFilter()
+    public function testCreateFilterObj()
     {
-        $this->assertInstanceOf(\App\Components\Sql\SqlFilter::class, new \App\Components\Sql\SqlFilter(\UnitTest\UnitTestClasses\ModelClass_1::class));
+        $this->assertInstanceOf(SqlFilter::class, new SqlFilter(ModelClass_1::class));
+    }
+    public function testCreateEmptyFilter()
+    {
+        $this->assertInstanceOf(SqlFilter::class, new SqlFilter());
+        $this->assertEquals([], (new SqlFilter())->toArray());
     }
     /**
      * @expectedException \T4\Core\Exception
      */
     public function testCreateFilter_UnExistedClass()
     {
-        new \App\Components\Sql\SqlFilter('notExistedClass');
+        new SqlFilter('notExistedClass');
     }
     /**
      * @expectedException \T4\Core\Exception
      */
     public function testCreateFilter_NotModelClass()
     {
-        new \App\Components\Sql\SqlFilter(\UnitTest\UnitTestClasses\StdClass_1::class);
+        new SqlFilter(StdClass_1::class);
     }
 
     /**
@@ -33,7 +40,7 @@ class SqlFilterTest extends \PHPUnit\Framework\TestCase
      */
     public function testAddFilter_UnknownOperator()
     {
-        $filter = new \App\Components\Sql\SqlFilter(\UnitTest\UnitTestClasses\ModelClass_1::class);
+        $filter = new SqlFilter(ModelClass_1::class);
         $filter->addFilter('columnOne', 'unknown', ['val_1']);
     }
     /**
@@ -41,22 +48,39 @@ class SqlFilterTest extends \PHPUnit\Framework\TestCase
      */
     public function testAddFilter_UnknownProperty()
     {
-        $filter = new \App\Components\Sql\SqlFilter(\UnitTest\UnitTestClasses\ModelClass_1::class);
+        $filter = new SqlFilter(ModelClass_1::class);
         $filter->addFilter('column_unknown', 'eq', ['val_1']);
     }
 
-    public function testAddNewFilter()
+    public function providerAddFilter()
     {
-        $refClass = new ReflectionClass(\App\Components\Sql\SqlFilter::class);
-        $prop = $refClass->getProperty('filter');
-        $prop->setAccessible(true);
+        return [
+            '_1' => [
+                'columnOne', 'eq', ['val_1'], ['columnOne' => ['eq' => ['val_1']]]
+            ]
+        ];
+    }
 
-        $filter = new \App\Components\Sql\SqlFilter(\UnitTest\UnitTestClasses\ModelClass_1::class);
+    /**
+     * @param $col
+     * @param $op
+     * @param $val
+     * @param $expected
+     * @return SqlFilter
+     * @dataProvider providerAddFilter
+     */
+    public function testAddNewFilter($col, $op, $val, $expected)
+    {
+        /*$refClass = new ReflectionClass(\App\Components\Sql\SqlFilter::class);
+        $prop = $refClass->getProperty('filter');
+        $prop->setAccessible(true);*/
+
+        $filter = new SqlFilter(ModelClass_1::class);
         //set new filter
-        $filter->addFilter('columnOne', 'eq', ['val_1']);
-        $prop = $prop->getValue($filter);
-        $expected = ['columnOne' => ['eq' => ['val_1']]];
-        $this->assertEquals($expected, $prop->toArray());
+        $res = $filter->addFilter($col, $op, $val);
+//        $prop = $prop->getValue($filter);
+//        $expected = ['columnOne' => ['eq' => ['val_1']]];
+        $this->assertEquals($expected, $res->toArray());
         return $filter;
     }
 

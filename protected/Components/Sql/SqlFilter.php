@@ -42,23 +42,30 @@ class SqlFilter extends Std
     protected $statementString = '';
     protected $params = [];
 
-    public function __construct(string $class)
+    public function __construct($data = null)
     {
-        if (! class_exists($class)) {
-            throw new Exception('Class ' . $class . ' is not exists');
+        if (is_array($data) || is_null($data)) {
+            parent::__construct($data);
+        } elseif (is_string($data)) {
+            if (empty($data)) {
+                throw new Exception('Class name can\'t be empty');
+            }
+            if (! class_exists($data)) {
+                throw new Exception('Class ' . $data . ' is not exists');
+            }
+            if (get_parent_class($data) != Model::class) {
+                throw new Exception('Class for SqlFilter must extends Model class');
+            }
+            $this->class = $data;
+            $this->driver = $data::getDbDriver();
+        } else {
+            throw new Exception('Unknown argument for SqlFilter construct');
         }
-        if (get_parent_class($class) != Model::class) {
-            throw new Exception('Class for SqlFilter must extends Model class');
-        }
-        parent::__construct();
-        $this->class = $class;
-        $this->driver = $class::getDbDriver();
-        $this->filter = new Std();
     }
 
     protected function isFilterExists($operator, $column)
     {
-        return isset($this->filter->$operator->$column);
+        return isset($this->$operator->$column);
     }
     protected function isOperatorUnary($operator)
     {
@@ -72,14 +79,14 @@ class SqlFilter extends Std
     {
         return array_key_exists($column, $this->class::getColumns());
     }
-    protected function validateOperator($operator)
+    protected function validateOperatorName($operator)
     {
         if (! $this->isOperatorValid($operator)) {
             throw new Exception('Unknown operator - ' . $operator);
         }
         return true;
     }
-    protected function validateColumn($column)
+    protected function validateColumnName($column)
     {
         if (! $this->isColumnValid($column)) {
             throw new Exception('Property  ' . '\'' . $column . '\' is not found in class ' . $this->class);
@@ -99,31 +106,31 @@ class SqlFilter extends Std
      */
     public function addFilter(string $column, string $operator, array $values, $overwrite = false)
     {
-        $this->validateColumn($column);
-        $this->validateOperator($operator);
+        $this->validateColumnName($column);
+        $this->validateOperatorName($operator);
 
         $operator = strtolower($operator);
         //todo make check for unary operator
-        if (empty($values)) {
+        if (! $this->isOperatorUnary($operator) && empty($values)) {
             return $this;
         }
-
-        if (! isset($this->filter->$column)) {
-            $this->filter->$column = new Std([$operator => $values]);
-        } elseif (! isset($this->filter->$column->$operator)) {
-            $this->filter->$column->$operator = new Std($values);
+        $values = $this->isOperatorUnary($operator) ? [] : $values;
+        if (! isset($this->$column)) {
+            $this->$column = new self([$operator => $values]);
+        } elseif (! isset($this->$column->$operator)) {
+            $this->$column->$operator = new self($values);
         } else {
-            $this->filter->$column->$operator = (true === $overwrite) ?
-                new Std($values) :
-                new Std(array_merge($this->filter->$column->$operator->toArray(), array_diff($values, $this->filter->$column->$operator->toArray())));
+            $this->$column->$operator = (true === $overwrite) ?
+                new self($values) :
+                new self(array_merge($this->filter->$column->$operator->toArray(), array_diff($values, $this->filter->$column->$operator->toArray())));
         }
         return $this;
     }
 
     public function setFilter(string $column, string $operator, array $values)
     {
-        $this->validateColumn($column);
-        $this->validateOperator($operator);
+        $this->validateColumnName($column);
+        $this->validateOperatorName($operator);
 
         $this->addFilter($column, $operator, $values, true);
         return $this;
@@ -131,8 +138,8 @@ class SqlFilter extends Std
 
     public function removeFilter(string $column, string $operator)
     {
-        $this->validateColumn($column);
-        $this->validateOperator($operator);
+        $this->validateColumnName($column);
+        $this->validateOperatorName($operator);
         unset($this->filter->$column->$operator);
         if (0 == $this->filter->$column->count()) {
             unset($this->filter->$column);
@@ -219,15 +226,15 @@ class SqlFilter extends Std
 
     public function toArray(): array
     {
-        return $this->filter->toArray();
+        return parent::toArray();
     }
 
     public function setFilterFromArray($data)
     {
         foreach ($data as $col => $ops) {
-            $this->validateColumn($col);
+            $this->validateColumnName($col);
             foreach ($ops as $op => $vals) {
-                $this->validateOperator($op);
+                $this->validateOperatorName($op);
                 if (! is_array($vals)) {
                     throw new Exception('Values have to pass as array');
                 }
@@ -239,9 +246,9 @@ class SqlFilter extends Std
     public function addFilterFromArray($data, $overwrite = false)
     {
         foreach ($data as $col => $ops) {
-            $this->validateColumn($col);
+            $this->validateColumnName($col);
             foreach ($ops as $op => $vals) {
-                $this->validateOperator($op);
+                $this->validateOperatorName($op);
                 if (! is_array($vals)) {
                     throw new Exception('Values have to pass as array');
                 }
