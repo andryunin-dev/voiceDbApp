@@ -17,17 +17,23 @@ class DSPprefixes extends Std
 
     private $dbLockFile;
 
-
+    /**
+     * @param Std $data
+     * @return bool
+     * @throws Exception
+     * @throws MultiException
+     */
     public function process(Std $data)
     {
         // At the moment, we do not support the uniqueness of VRF within only one device,
         // so we'll find the Appliance by the managementIP
-        $managementIp = $data->ip;
-        $foundDataPort = DataPort::findByColumn('ipAddress', $managementIp);
+        $managementDataPortIp = $data->ip;
+        $managementDataPortVrf = Vrf::findByColumn('name', $data->vrf_name);
+        $foundDataPort = DataPort::findByIpVrf($managementDataPortIp, $managementDataPortVrf);
         if (!is_null($foundDataPort) && $foundDataPort->isManagement) {
             $appliance = $foundDataPort->appliance;
         } else {
-            throw new Exception('PREFIXES: [message]=Management dataport does not found; [managementIp]=' . $managementIp);
+            throw new Exception('PREFIXES: [message]=Management dataport does not found; [managementIp]=' . $managementDataPortIp);
         }
 
         // Update or create the appliances's dataports
@@ -70,7 +76,7 @@ class DSPprefixes extends Std
                     'ipAddress' => $dataPortIp,
                     'vrf' => $dataPortVrf,
                     'masklen' => $dataPortMasklen,
-                    'isManagement' => ($dataPortIp == $managementIp) ? true : false,
+                    'isManagement' => ($dataPortIp == $managementDataPortIp) ? true : false,
                     'details' => [
                         'portName' => $dataPortData->interface,
                         'description' => $dataPortData->description,

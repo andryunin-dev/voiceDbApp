@@ -114,17 +114,11 @@ class CucmsPhones extends Command
             $data = json_decode($phoneData);
             if (!is_null($data)) {
                 try {
-
-// todo - delete
-$start = microtime(true);
                     $data = (new Std())->fromArray($data);
                     (new DSPphones())->process($data);
-$end = microtime(true) - $start;
-$this->writeLn(' fill and save ' . $end . ' sek ' . $data->name);
-
                 } catch (Exception $e) {
-                    $logger->error('UPDATE PHONE: [message]=' . ($e->getMessage() ?? '""') . '; [data]=' . $phoneData);
-                    echo 'UPDATE PHONE: [message]=' . ($e->getMessage() ?? '""') . '; [data]=' . $phoneData . PHP_EOL;
+                    $logger->error('UPDATE PHONE: ' . ($e->getMessage() ?? '""') . '; [data]=' . $phoneData);
+                    echo 'UPDATE PHONE: ' . ($e->getMessage() ?? '""') . '; [data]=' . $phoneData . PHP_EOL;
                 }
             }
         }

@@ -368,7 +368,7 @@ class DSPphones extends Std
         $this->updateAppliance($phoneInfo->phone, $dataAppliance);
 
         //// UPDATE PHONE INFO
-        $phoneInfo = (new PhoneInfo())->fill([
+        $phoneInfo->fill([
             'model' => $data->model,
             'prefix' => preg_replace('~\..+~','',$data->prefix),
             'phoneDN' => $data->phonedn,
