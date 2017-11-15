@@ -35,9 +35,9 @@ class Module extends Model
 
     protected function validateTitle($val)
     {
-        if (empty(trim($val))) {
-            throw new Exception('Пустое название модуля');
-        }
+//        if (empty(trim($val))) {
+//            throw new Exception('Пустое название модуля');
+//        }
 
         return true;
     }
@@ -68,13 +68,24 @@ class Module extends Model
     /**
      * @param Vendor $vendor
      * @param $title
-     * @return Module|bool
+     * @return self|bool
      */
     public static function findByVendorTitle(Vendor $vendor, $title) {
-        return $vendor->modules->filter(
-            function ($module) use ($title) {
-                return $title == $module->title;
+        $modules = self::findAllByColumn('title', $title);
+        $module = $modules->filter(
+            function ($module) use ($vendor) {
+                return $module->vendor->title == $vendor->title;
             }
         )->first();
+        if (is_null($module)) {
+            return false;
+        } else {
+            return $module;
+        }
+    }
+
+    public static function getEmpty()
+    {
+        return self::findByColumn('type','');
     }
 }
