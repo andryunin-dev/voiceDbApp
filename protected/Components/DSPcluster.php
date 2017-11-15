@@ -2,6 +2,7 @@
 namespace App\Components;
 
 use App\Models\Cluster;
+use T4\Core\Exception;
 use T4\Core\MultiException;
 use T4\Core\Std;
 
@@ -31,6 +32,9 @@ class DSPcluster extends Std
                 if (1 != $n) {
                     $applianceData->ip = null;
                 } else {
+                    if (empty($applianceData->ip)) {
+                        throw new Exception('CLUSTER UPDATE: [message]=Fist appliance does not have the management ip; [cluster]=' . $cluster->title . '; [errorData]=' . json_encode($applianceData) . '; [data]=' . json_encode($data));
+                    }
                     $n++;
                 }
                 $applianceData->cluster = $cluster;

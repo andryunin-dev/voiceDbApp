@@ -3,6 +3,7 @@ namespace App\Components;
 
 use App\Models\Appliance;
 use App\Models\ApplianceType;
+use App\Models\Cluster;
 use App\Models\DataPort;
 use App\Models\DPortType;
 use App\Models\Module;
@@ -136,7 +137,7 @@ class DSPappliance extends Std
                 'platform' => $platformItem,
                 'software' => $softwareItem,
                 'location' => $location,
-                'cluster' => $data->cluster,
+                'cluster' => ($data->cluster instanceof Cluster) ? $data->cluster : null,
                 'details' => [
                     'hostname' => $data->hostname,
                 ],
@@ -169,23 +170,28 @@ class DSPappliance extends Std
             }
 
             // create MANAGEMENT DATA PORT for Appliance
-            $managementDataPortIp = (new IpTools($data->ip))->address;
-            $managementDataPortType = DPortType::getEmpty();
-            $managementDataPortVrf = Vrf::instanceGlobalVrf();
-            $existDataPort = DataPort::findByIpVrf($managementDataPortIp, $managementDataPortVrf);
-            if (false !== $existDataPort) {
-                $existDataPort->delete();
+            if (is_null($appliance->cluster) && is_null($data->ip)) {
+                throw new Exception('APPLIANCE CREATE: [message]=Appliance does not have the management ip; [data]=' . json_encode($data));
             }
-            $managementDataPort = (new DataPort())->fill([
-                'appliance' => $appliance,
-                'portType' => $managementDataPortType,
-                'macAddress' => $data->macAddress,
-                'ipAddress' => $managementDataPortIp,
-                'vrf' => $managementDataPortVrf,
-                'isManagement' => true,
-                'lastUpdate'=> (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P'),
-            ]);
-            $managementDataPort->save();
+            if ((is_null($appliance->cluster) && !is_null($data->ip)) || (!is_null($appliance->cluster) && !is_null($data->ip))) {
+                $managementDataPortIp = (new IpTools($data->ip))->address;
+                $managementDataPortType = DPortType::getEmpty();
+                $managementDataPortVrf = Vrf::instanceGlobalVrf();
+                $existDataPort = DataPort::findByIpVrf($managementDataPortIp, $managementDataPortVrf);
+                if (false !== $existDataPort) {
+                    $existDataPort->delete();
+                }
+                $managementDataPort = (new DataPort())->fill([
+                    'appliance' => $appliance,
+                    'portType' => $managementDataPortType,
+                    'macAddress' => $data->macAddress,
+                    'ipAddress' => $managementDataPortIp,
+                    'vrf' => $managementDataPortVrf,
+                    'isManagement' => true,
+                    'lastUpdate'=> (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P'),
+                ]);
+                $managementDataPort->save();
+            }
 
             // End transaction
             Appliance::getDbConnection()->commitTransaction();
@@ -256,7 +262,8 @@ class DSPappliance extends Std
             }
 
             // Update CLUSTER
-            if ($data->cluster->title != $appliance->cluster->title) {
+            //($data->cluster instanceof Cluster) ? $data->cluster : null
+            if (($data->cluster instanceof Cluster) && ($data->cluster->title != $appliance->cluster->title)) {
                 $appliance->fill([
                     'cluster' => $data->cluster,
                 ]);
@@ -321,35 +328,40 @@ class DSPappliance extends Std
             }
 
             // Update MANAGEMENT DATA PORT
-            $managementDataPortIp = (new IpTools($data->ip))->address;
-            $managementDataPortVrf = Vrf::instanceGlobalVrf();
-            $foundDataPort = DataPort::findByIpVrf($managementDataPortIp, $managementDataPortVrf);
-            if (false !== $foundDataPort && $foundDataPort->appliance->getPk() == $appliance->getPk()) {
-                $managementDataPort = $foundDataPort;
-            } else {
-                if (false !== $foundDataPort) {
-                    $foundDataPort->delete();
-                }
-                $managementDataPort = new DataPort();
+            if (is_null($appliance->cluster) && is_null($data->ip)) {
+                throw new Exception('APPLIANCE UPDATE: [message]=Appliance does not have the management ip; [data]=' . json_encode($data));
             }
-            $managementDataPortType = DPortType::getEmpty();
-            $managementDataPort->fill([
-                'appliance' => $appliance,
-                'portType' => $managementDataPortType,
-                'macAddress' => $data->macAddress,
-                'ipAddress' => $managementDataPortIp,
-                'vrf' => $managementDataPortVrf,
-                'isManagement' => true,
-                'lastUpdate'=> (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P'),
-            ]);
-            $managementDataPort->save();
-            if (1 < $appliance->dataPorts->count()) {
-                foreach ($appliance->dataPorts as $dataPort) {
-                    if ($dataPort->getPk() != $managementDataPort->getPk() && true === $dataPort->isManagement) {
-                        $dataPort->fill([
-                            'isManagement' => false,
-                        ]);
-                        $dataPort->save();
+            if ((is_null($appliance->cluster) && !is_null($data->ip)) || (!is_null($appliance->cluster) && !is_null($data->ip))) {
+                $managementDataPortIp = (new IpTools($data->ip))->address;
+                $managementDataPortVrf = Vrf::instanceGlobalVrf();
+                $foundDataPort = DataPort::findByIpVrf($managementDataPortIp, $managementDataPortVrf);
+                if (false !== $foundDataPort && $foundDataPort->appliance->getPk() == $appliance->getPk()) {
+                    $managementDataPort = $foundDataPort;
+                } else {
+                    if (false !== $foundDataPort) {
+                        $foundDataPort->delete();
+                    }
+                    $managementDataPort = new DataPort();
+                }
+                $managementDataPortType = DPortType::getEmpty();
+                $managementDataPort->fill([
+                    'appliance' => $appliance,
+                    'portType' => $managementDataPortType,
+                    'macAddress' => $data->macAddress,
+                    'ipAddress' => $managementDataPortIp,
+                    'vrf' => $managementDataPortVrf,
+                    'isManagement' => true,
+                    'lastUpdate'=> (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P'),
+                ]);
+                $managementDataPort->save();
+                if (1 < $appliance->dataPorts->count()) {
+                    foreach ($appliance->dataPorts as $dataPort) {
+                        if ($dataPort->getPk() != $managementDataPort->getPk() && true === $dataPort->isManagement) {
+                            $dataPort->fill([
+                                'isManagement' => false,
+                            ]);
+                            $dataPort->save();
+                        }
                     }
                 }
             }
