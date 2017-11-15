@@ -14,8 +14,8 @@ interface TableInterface
     public function columnsNames() :array;
     public function columnsTitles() :array;
 
-    public function records(int $limit, int $offset);
-    public function recordsByPage(int $pageNumber);
+    public function getRecords(int $limit = null, int $offset = null);
+    public function getRecordsByPage(int $pageNumber);
 
     /**
      * @param int|null $pageNumber

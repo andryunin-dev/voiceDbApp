@@ -14,7 +14,7 @@ use T4\Orm\Model;
  * @property string $filterStatement
  * @property array $filterParams
  */
-class SqlFilter extends Std
+class SqlFilter extends Std implements SqlFilterInterface
 {
     protected static $operatorsToSings = [
         'eq' => '=',
@@ -122,7 +122,7 @@ class SqlFilter extends Std
         } else {
             $this->$column->$operator = (true === $overwrite) ?
                 new self($values) :
-                new self(array_merge($this->filter->$column->$operator->toArray(), array_diff($values, $this->filter->$column->$operator->toArray())));
+                new self(array_merge($this->$column->$operator->toArray(), array_diff($values, $this->$column->$operator->toArray())));
         }
         return $this;
     }
@@ -140,9 +140,9 @@ class SqlFilter extends Std
     {
         $this->validateColumnName($column);
         $this->validateOperatorName($operator);
-        unset($this->filter->$column->$operator);
-        if (0 == $this->filter->$column->count()) {
-            unset($this->filter->$column);
+        unset($this->$column->$operator);
+        if (0 == $this->$column->count()) {
+            unset($this->$column);
         }
         return $this;
     }
@@ -153,7 +153,7 @@ class SqlFilter extends Std
     protected function getFilterStatement()
     {
         $statementsByColumns = [];
-        foreach ($this->filter as $col =>$ops) {
+        foreach ($this as $col =>$ops) {
             foreach ($ops as $op => $vals) {
                 $opStatement = [];
                 foreach ($vals as $index => $val) {
@@ -213,20 +213,15 @@ class SqlFilter extends Std
         $filter = $filter->toArray();
         foreach ($filter as $col => $ops) {
             foreach ($ops as $op => $val) {
-                if (! isset($this->filter->$col->$op)) {
+                if (! isset($this->$col->$op)) {
                     $this->addFilter($col, $op, $val, true);
-                } elseif (isset($this->filter->$col->$op) && (true === $ignore)) {
+                } elseif (isset($this->$col->$op) && (true === $ignore)) {
                     continue;
                 } else {
                     $this->addFilter($col, $op, $val, $overwrite);
                 }
             }
         }
-    }
-
-    public function toArray(): array
-    {
-        return parent::toArray();
     }
 
     public function setFilterFromArray($data)
@@ -241,7 +236,7 @@ class SqlFilter extends Std
                 $this->setFilter($col, $op, $vals);
             }
         }
-        return $this->filter;
+        return $this;
     }
     public function addFilterFromArray($data, $overwrite = false)
     {
@@ -255,6 +250,6 @@ class SqlFilter extends Std
                 $this->addFilter($col, $op, $vals, $overwrite);
             }
         }
-        return $this->filter;
+        return $this;
     }
 }

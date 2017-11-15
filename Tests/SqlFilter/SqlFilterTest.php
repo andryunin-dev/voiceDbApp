@@ -71,22 +71,17 @@ class SqlFilterTest extends \PHPUnit\Framework\TestCase
      */
     public function testAddNewFilter($col, $op, $val, $expected)
     {
-        /*$refClass = new ReflectionClass(\App\Components\Sql\SqlFilter::class);
-        $prop = $refClass->getProperty('filter');
-        $prop->setAccessible(true);*/
-
         $filter = new SqlFilter(ModelClass_1::class);
         //set new filter
         $res = $filter->addFilter($col, $op, $val);
-//        $prop = $prop->getValue($filter);
-//        $expected = ['columnOne' => ['eq' => ['val_1']]];
+
         $this->assertEquals($expected, $res->toArray());
         return $filter;
     }
 
     public function testToArray()
     {
-        $f = new \App\Components\Sql\SqlFilter(\UnitTest\UnitTestClasses\ModelClass_1::class);
+        $f = new SqlFilter(ModelClass_1::class);
         $f->addFilter('columnOne', 'eq', ['val_1']);
         $f->addFilter('columnTwo', 'eq', ['val_1', 'val_2']);
         $f->addFilter('columnOne', 'lt', ['val_1']);
@@ -101,9 +96,9 @@ class SqlFilterTest extends \PHPUnit\Framework\TestCase
         ];
         $this->assertEquals($expected, $f->toArray());
     }
-    public function testSetFromArray()
+    public function testSetFilterFromArray()
     {
-        $f = new \App\Components\Sql\SqlFilter(\UnitTest\UnitTestClasses\ModelClass_1::class);
+        $f = new SqlFilter(ModelClass_1::class);
         $inputArray = [
             'columnOne' => [
                 'eq' => ['val_1'],
@@ -130,16 +125,15 @@ class SqlFilterTest extends \PHPUnit\Framework\TestCase
     /**
      * @param SqlFilter $f
      * @return mixed
-     * @depends testSetFromArray
+     * @depends testSetFilterFromArray
      */
-    public function testAddFromArray($f)
+    public function testAddFilterFromArray($f)
     {
         $inputArray = [
             'columnOne' => [
                 'eq' => ['val_2'],
             ],
         ];
-        $f->addFilterFromArray($inputArray, false);
         $expected = [
             'columnOne' => [
                 'eq' => ['val_1', 'val_2'],
@@ -149,29 +143,29 @@ class SqlFilterTest extends \PHPUnit\Framework\TestCase
                 'eq' => ['val_1', 'val_2']
             ],
         ];
-        $this->assertEquals($expected, $f->toArray());
+        $this->assertEquals($expected, $f->addFilterFromArray($inputArray, false)->toArray());
         return $f;
     }
 
     /**
-     * @depends testAddNewFilter
-     * @param \App\Components\Sql\SqlFilter $filter
-     * @return \App\Components\Sql\SqlFilter
+     * @return SqlFilter
      */
-    public function testRewriteValue(\App\Components\Sql\SqlFilter $filter)
+    public function testAddFilter_RewriteValue()
     {
-        $filter->addFilter('columnOne', 'eq', ['val_2', 'val_3'], true);
+        $f = new SqlFilter(ModelClass_1::class);
+        $f->addFilter('columnOne', 'eq', ['val_1'], true);
+        $res = $f->addFilter('columnOne', 'eq', ['val_2', 'val_3'], true);
         $expected = ['columnOne' => ['eq' => ['val_2', 'val_3']]];
-        $this->assertEquals($expected, $filter->toArray());
-        return $filter;
+        $this->assertEquals($expected, $res->toArray());
+        return $f;
     }
 
     /**
-     * @depends testRewriteValue
-     * @param \App\Components\Sql\SqlFilter $filter
-     * @return \App\Components\Sql\SqlFilter
+     * @depends testAddFilter_RewriteValue
+     * @param SqlFilter $filter
+     * @return SqlFilter
      */
-    public function testAppendValue(\App\Components\Sql\SqlFilter $filter)
+    public function testAddFilter_AppendValue(SqlFilter $filter)
     {
         $filter->addFilter('columnOne', 'eq', ['val_1', 'val_3']);
         $expected = ['columnOne' => ['eq' => ['val_2', 'val_3', 'val_1']]];
@@ -179,11 +173,11 @@ class SqlFilterTest extends \PHPUnit\Framework\TestCase
         return $filter;
     }
     /**
-     * @depends testAppendValue
-     * @param \App\Components\Sql\SqlFilter $filter
-     * @return \App\Components\Sql\SqlFilter
+     * @depends testAddFilter_AppendValue
+     * @param SqlFilter $filter
+     * @return SqlFilter
      */
-    public function testSetFilter(\App\Components\Sql\SqlFilter $filter)
+    public function testSetFilter(SqlFilter $filter)
     {
         $filter->setFilter('columnOne', 'eq', ['val_4']);
         $expected = ['columnOne' => ['eq' => ['val_4']]];
@@ -192,10 +186,10 @@ class SqlFilterTest extends \PHPUnit\Framework\TestCase
     }
     /**
      * @depends testSetFilter
-     * @param \App\Components\Sql\SqlFilter $filter
-     * @return \App\Components\Sql\SqlFilter
+     * @param SqlFilter $filter
+     * @return SqlFilter
      */
-    public function testAddSecondColumn(\App\Components\Sql\SqlFilter $filter)
+    public function testAddSecondColumn(SqlFilter $filter)
     {
         $filter->setFilter('columnTwo', 'eq', ['val_1']);
         $expected = [
@@ -208,10 +202,10 @@ class SqlFilterTest extends \PHPUnit\Framework\TestCase
 
     /**
      * @depends testAddSecondColumn
-     * @param \App\Components\Sql\SqlFilter $filter
-     * @return \App\Components\Sql\SqlFilter
+     * @param SqlFilter $filter
+     * @return SqlFilter
      */
-    public function testRemoveFilter(\App\Components\Sql\SqlFilter $filter)
+    public function testRemoveFilter(SqlFilter $filter)
     {
         $filter->removeFilter('columnOne', 'eq');
         $expected = ['columnTwo' => ['eq' => ['val_1']]];
@@ -222,7 +216,7 @@ class SqlFilterTest extends \PHPUnit\Framework\TestCase
     public function testBuildEmptyFilterStatement()
     {
         //create new Sql filter
-        $filter = new \App\Components\Sql\SqlFilter(\UnitTest\UnitTestClasses\ModelClass_1::class);
+        $filter = new SqlFilter(ModelClass_1::class);
         $expectedStatement = '';
         $expectedParams = [];
         $this->assertEquals($expectedStatement, $filter->filterStatement);
@@ -327,8 +321,8 @@ class SqlFilterTest extends \PHPUnit\Framework\TestCase
      */
     public function testMergingFilters_ReplaceMode($fs1, $fs2, $mode, $expected)
     {
-        $f1 = new \App\Components\Sql\SqlFilter(\UnitTest\UnitTestClasses\ModelClass_1::class);
-        $f2 = new \App\Components\Sql\SqlFilter(\UnitTest\UnitTestClasses\ModelClass_1::class);
+        $f1 = new SqlFilter(ModelClass_1::class);
+        $f2 = new SqlFilter(ModelClass_1::class);
         $f1->setFilter($fs1['col'], $fs1['op'], $fs1['val']);
         $f2->setFilter($fs2['col'], $fs2['op'], $fs2['val']);
         $f1->mergeWith($f2, $mode);

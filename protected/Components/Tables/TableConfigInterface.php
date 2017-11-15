@@ -3,6 +3,7 @@
 namespace App\Components\Tables;
 
 use App\Components\Sql\SqlFilter;
+use T4\Core\Config;
 use T4\Core\Std;
 
 interface TableConfigInterface
@@ -34,7 +35,7 @@ interface TableConfigInterface
      * @return mixed
      * return columns config
      */
-    public function allColumnsConfig() : Std;
+    public function allColumnsConfig() : Config;
 
     /**
      * @param string $column
@@ -47,7 +48,7 @@ interface TableConfigInterface
 
     public function sortOrderSets(array $sortSets = null);
     public function sortBy(string $sortTemplate, string $direction = '');
-    public function tablePreFilter(Std $preFilter);
+    public function tablePreFilter(SqlFilter $preFilter);
 
     public function isColumnSet($column) :bool ;
 }
