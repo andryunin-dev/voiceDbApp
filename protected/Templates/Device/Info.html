@@ -1,7 +1,6 @@
 {% extends 'IndexDev.html' %}
 
 {% block main %}
-    {{ dump() }}
     <div class="row">
         <div class="col-xs-12">
             <table id="dev_tab">
@@ -37,9 +36,6 @@
                     {% if not user.readOnly %}
                     action: {id: 'action', name: 'Действия', width: '105px'}
                     {% endif %}
-                },
-                filters: {
-                    url: '/ajax/default.json'
                 }
             },
             pager: {

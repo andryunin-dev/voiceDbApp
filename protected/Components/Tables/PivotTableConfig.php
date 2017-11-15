@@ -17,7 +17,6 @@ use T4\Orm\Model;
 class PivotTableConfig extends TableConfig
     implements PivotTableConfigInterface
 {
-    use TableConfigTrait;
 
     const BASE_CONF_PATH = ROOT_PATH . DS . 'Configs' . DS;
 

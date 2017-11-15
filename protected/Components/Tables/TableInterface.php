@@ -9,6 +9,10 @@ interface TableInterface
 {
     public function __construct(TableConfigInterface $tableConfig);
 
+    /**
+     * @return Std
+     * return entire table config
+     */
     public function tableConfig() :Std;
     public function columnsConfig() :Std;
     public function columnsNames() :array;
