@@ -5,6 +5,8 @@ use App\Models\Appliance;
 use App\Models\ApplianceType;
 use App\Models\DataPort;
 use App\Models\DPortType;
+use App\Models\Module;
+use App\Models\ModuleItem;
 use App\Models\Office;
 use App\Models\Platform;
 use App\Models\PlatformItem;
@@ -30,29 +32,27 @@ class DSPappliance extends Std
      */
     public function process(Std $data)
     {
-        // Find the Appliance by the serial number
-        $appliance = PlatformItem::findByColumn('serialNumber',$data->platformSerial)->appliance;
-        if (is_null($appliance) && !is_null($data->ip)) {
-            // Find the Appliance by the management IP
-            $dataPortIp = (new IpTools($data->ip))->address;
-            $dataPortVrf = Vrf::instanceGlobalVrf();
-            $foundDataPort = DataPort::findByIpVrf($dataPortIp, $dataPortVrf);
-            if (false !== $foundDataPort && true === $foundDataPort->isManagement && empty($foundDataPort->appliance->platform->serialNumber)) {
-                $appliance = $foundDataPort->appliance;
+        $vendor = Vendor::findByColumn('title', $data->platformVendor);
+        if (false !== $vendor) {
+            // Find the Appliance by the serial number
+            $appliance = PlatformItem::findByVendorSerial($vendor, $data->platformSerial)->appliance;
+            if (!is_null($appliance)) {
+                return $this->updateAppliance($appliance, $data);
+            } else {
+                // Find the Appliance by the management IP
+                $dataPortIp = (new IpTools($data->ip))->address;
+                $dataPortVrf = Vrf::instanceGlobalVrf();
+                $foundDataPort = DataPort::findByIpVrf($dataPortIp, $dataPortVrf);
+                if (false !== $foundDataPort && true === $foundDataPort->isManagement && empty($foundDataPort->appliance->platform->serialNumber)) {
+                    $appliance = $foundDataPort->appliance;
+                    return $this->updateAppliance($appliance, $data);
+                } else {
+                    return $this->createAppliance($data);
+                }
             }
-        }
-
-        // Create or update the Appliance
-        if (is_null($appliance)) {
-            if (!$this->createAppliance($data)) {
-                return false;
-            };
         } else {
-            if (!$this->updateAppliance($appliance, $data)) {
-                return false;
-            };
+            return $this->createAppliance($data);
         }
-        return true;
     }
 
     /**
@@ -62,8 +62,6 @@ class DSPappliance extends Std
      */
     protected function createAppliance(Std $data)
     {
-        echo '';
-
         // create Appliance - define LOCATION
         $location = Office::findByColumn('lotusId', $data->LotusId);
         if (false === $location) {
@@ -147,30 +145,51 @@ class DSPappliance extends Std
             ]);
             $appliance->save();
 
-            // create MANAGEMENT DATA PORT for Appliance
-            if (!is_null($data->ip)) {
-                $managementDataPortIp = (new IpTools($data->ip))->address;
-                $managementDataPortType = DPortType::getEmpty();
-                $managementDataPortVrf = Vrf::instanceGlobalVrf();
-                $existDataPort = DataPort::findByIpVrf($managementDataPortIp, $managementDataPortVrf);
-                if (false !== $existDataPort) {
-                    $existDataPort->delete();
+            // create appliance's MODULES
+            foreach ($data->applianceModules as $moduleData) {
+                $module = Module::findByVendorTitle($vendor, $moduleData->product_number);
+                if (false === $module) {
+                    $module = (new Module())->fill([
+                        'vendor' => $vendor,
+                        'title' => $moduleData->product_number,
+                        'description' => $moduleData->description,
+                    ]);
+                    $module->save();
                 }
-                $managementDataPort = (new DataPort())->fill([
+                $moduleItem = (new ModuleItem())->fill([
                     'appliance' => $appliance,
-                    'portType' => $managementDataPortType,
-                    'macAddress' => $data->macAddress,
-                    'ipAddress' => $managementDataPortIp,
-                    'vrf' => $managementDataPortVrf,
-                    'isManagement' => true,
+                    'location' => $location,
+                    'module' => $module,
+                    'serialNumber' => $moduleData->serial,
+                    'inUse' => true,
+                    'notFound' => false,
                     'lastUpdate'=> (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P'),
                 ]);
-                $managementDataPort->save();
+                $moduleItem->save();
             }
+
+            // create MANAGEMENT DATA PORT for Appliance
+            $managementDataPortIp = (new IpTools($data->ip))->address;
+            $managementDataPortType = DPortType::getEmpty();
+            $managementDataPortVrf = Vrf::instanceGlobalVrf();
+            $existDataPort = DataPort::findByIpVrf($managementDataPortIp, $managementDataPortVrf);
+            if (false !== $existDataPort) {
+                $existDataPort->delete();
+            }
+            $managementDataPort = (new DataPort())->fill([
+                'appliance' => $appliance,
+                'portType' => $managementDataPortType,
+                'macAddress' => $data->macAddress,
+                'ipAddress' => $managementDataPortIp,
+                'vrf' => $managementDataPortVrf,
+                'isManagement' => true,
+                'lastUpdate'=> (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P'),
+            ]);
+            $managementDataPort->save();
 
             // End transaction
             Appliance::getDbConnection()->commitTransaction();
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             Appliance::getDbConnection()->rollbackTransaction();
             $this->dbUnLock();
             throw new Exception($e->getMessage());
@@ -187,8 +206,6 @@ class DSPappliance extends Std
      */
     protected function updateAppliance(Appliance $appliance, Std $data)
     {
-        echo '';
-
         // Update LOCATION
         if ($data->LotusId != $appliance->location->lotusId) {
             $location = Office::findByColumn('lotusId', $data->LotusId);
@@ -198,6 +215,8 @@ class DSPappliance extends Std
             $appliance->fill([
                 'location' => $location,
             ]);
+        } else {
+            $location = $appliance->location;
         }
 
         // Block the dbLock file before start of the transaction
@@ -209,17 +228,13 @@ class DSPappliance extends Std
             // Start transaction
             Appliance::getDbConnection()->beginTransaction();
 
+            // Update VENDOR
+            $vendor = $appliance->vendor;
+
             // Update SOFTWARE
             if ($data->applianceSoft != $appliance->software->software->title) {
                 $software = Software::findByColumn('title', $data->applianceSoft);
                 if (false === $software) {
-                    $vendor = Vendor::findByColumn('title', $data->platformVendor);
-                    if (false === $vendor) {
-                        $vendor = (new Vendor())->fill([
-                            'title' => $data->platformVendor,
-                        ]);
-                        $vendor->save();
-                    }
                     $software = (new Software())->fill([
                         'vendor' => $vendor,
                         'title' => $data->applianceSoft,
@@ -257,39 +272,84 @@ class DSPappliance extends Std
             ]);
             $appliance->save();
 
-            // Update MANAGEMENT DATA PORT
-            if (!is_null($data->ip)) {
-                $managementDataPortIp = (new IpTools($data->ip))->address;
-                $managementDataPortVrf = Vrf::instanceGlobalVrf();
-                $foundDataPort = DataPort::findByIpVrf($managementDataPortIp, $managementDataPortVrf);
-                if (false !== $foundDataPort && $foundDataPort->appliance->getPk() == $appliance->getPk()) {
-                    $managementDataPort = $foundDataPort;
+            // Update appliance's MODULES (in use)
+            $inUseModules = [];
+            foreach ($data->applianceModules as $moduleData) {
+                $foundModuleItem = ModuleItem::findByVendorSerial($vendor, $moduleData->serial);
+                if (false !== $foundModuleItem && $foundModuleItem->appliance->getPk() == $appliance->getPk()) {
+                    $moduleItem = $foundModuleItem;
+                    $moduleItem->fill([
+                        'notFound' => false,
+                        'lastUpdate'=> (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P'),
+                    ]);
+                    $moduleItem->save();
+                    $inUseModules[] = $moduleItem->getPk();
                 } else {
-                    if (false !== $foundDataPort) {
-                        $foundDataPort->delete();
+                    if (false !== $foundModuleItem) {
+                        $foundModuleItem->delete();
                     }
-                    $managementDataPort = new DataPort();
+                    // create appliance's MODULE
+                    $module = Module::findByVendorTitle($vendor, $moduleData->product_number);
+                    if (false === $module) {
+                        $module = (new Module())->fill([
+                            'vendor' => $vendor,
+                            'title' => $moduleData->product_number,
+                            'description' => $moduleData->description,
+                        ]);
+                        $module->save();
+                    }
+                    $moduleItem = (new ModuleItem())->fill([
+                        'appliance' => $appliance,
+                        'location' => $location,
+                        'module' => $module,
+                        'serialNumber' => $moduleData->serial,
+                        'inUse' => true,
+                        'notFound' => false,
+                        'lastUpdate'=> (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P'),
+                    ]);
+                    $moduleItem->save();
+                    $inUseModules[] = $moduleItem->getPk();
                 }
-                $managementDataPortType = DPortType::getEmpty();
-                $managementDataPort->fill([
-                    'appliance' => $appliance,
-                    'portType' => $managementDataPortType,
-                    'macAddress' => $data->macAddress,
-                    'ipAddress' => $managementDataPortIp,
-                    'vrf' => $managementDataPortVrf,
-                    'isManagement' => true,
-                    'lastUpdate'=> (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P'),
-                ]);
-                $managementDataPort->save();
+            }
+            foreach ($appliance->modules as $module) {
+                if (!in_array($module->getPk(),$inUseModules)) {
+                    $module->fill([
+                        'notFound' => true,
+                    ]);
+                    $module->save();
+                }
+            }
 
-                if (1 < $appliance->dataPorts->count()) {
-                    foreach ($appliance->dataPorts as $dataPort) {
-                        if ($dataPort->getPk() != $managementDataPort->getPk() && true === $dataPort->isManagement) {
-                            $dataPort->fill([
-                                'isManagement' => false,
-                            ]);
-                            $dataPort->save();
-                        }
+            // Update MANAGEMENT DATA PORT
+            $managementDataPortIp = (new IpTools($data->ip))->address;
+            $managementDataPortVrf = Vrf::instanceGlobalVrf();
+            $foundDataPort = DataPort::findByIpVrf($managementDataPortIp, $managementDataPortVrf);
+            if (false !== $foundDataPort && $foundDataPort->appliance->getPk() == $appliance->getPk()) {
+                $managementDataPort = $foundDataPort;
+            } else {
+                if (false !== $foundDataPort) {
+                    $foundDataPort->delete();
+                }
+                $managementDataPort = new DataPort();
+            }
+            $managementDataPortType = DPortType::getEmpty();
+            $managementDataPort->fill([
+                'appliance' => $appliance,
+                'portType' => $managementDataPortType,
+                'macAddress' => $data->macAddress,
+                'ipAddress' => $managementDataPortIp,
+                'vrf' => $managementDataPortVrf,
+                'isManagement' => true,
+                'lastUpdate'=> (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P'),
+            ]);
+            $managementDataPort->save();
+            if (1 < $appliance->dataPorts->count()) {
+                foreach ($appliance->dataPorts as $dataPort) {
+                    if ($dataPort->getPk() != $managementDataPort->getPk() && true === $dataPort->isManagement) {
+                        $dataPort->fill([
+                            'isManagement' => false,
+                        ]);
+                        $dataPort->save();
                     }
                 }
             }

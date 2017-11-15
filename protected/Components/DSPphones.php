@@ -394,11 +394,13 @@ class DSPphones extends Std
      */
     protected function createAppliance(Std $data)
     {
+        // Block the dbLock file before start of the transaction
+        if (false === $this->dbLock()) {
+            throw new Exception('PHONE CREATE: Can not get the lock file');
+        }
+
         try {
             // Start transaction
-            if (false === $this->dbLock()) {
-                throw new DblockException('PHONE CREATE: Can not get the lock file');
-            }
             Appliance::getDbConnection()->beginTransaction();
 
             // create Appliance - define VENDOR
@@ -497,14 +499,12 @@ class DSPphones extends Std
 
             // End transaction
             Appliance::getDbConnection()->commitTransaction();
-            $this->dbUnLock();
         } catch (Exception $e) {
             Appliance::getDbConnection()->rollbackTransaction();
             $this->dbUnLock();
             throw new Exception($e->getMessage());
-        } catch (DblockException $e) {
-            throw new Exception($e->getMessage());
         }
+        $this->dbUnLock();
         return $appliance;
     }
 
@@ -516,11 +516,13 @@ class DSPphones extends Std
      */
     protected function updateAppliance(Appliance $appliance, Std $data)
     {
+        // Block the dbLock file before start of the transaction
+        if (false === $this->dbLock()) {
+            throw new Exception('PHONE CREATE: Can not get the lock file');
+        }
+
         try {
             // Start transaction
-            if (false === $this->dbLock()) {
-                throw new DblockException('PHONE CREATE: Can not get the lock file');
-            }
             Appliance::getDbConnection()->beginTransaction();
 
             // UPDATE LOCATION
@@ -624,14 +626,12 @@ class DSPphones extends Std
 
             // End transaction
             Appliance::getDbConnection()->commitTransaction();
-            $this->dbUnLock();
         } catch (Exception $e) {
             Appliance::getDbConnection()->rollbackTransaction();
             $this->dbUnLock();
             throw new Exception($e->getMessage());
-        } catch (DblockException $e) {
-            throw new Exception($e->getMessage());
         }
+        $this->dbUnLock();
         return $appliance;
     }
 

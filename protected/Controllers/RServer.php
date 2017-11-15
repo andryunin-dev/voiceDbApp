@@ -61,7 +61,7 @@ class RServer extends Controller
                 $err['errors'][] = $e->getMessage();
                 $logger->error('[host]=' . ($inputDataset->hostname ?? '""') . ' [manageIP]=' . ($inputDataset->ip ?? '""') . ' [message]=' . ($e->getMessage() ?? '""') . ' [dataset]=' . $rawInput);
             }
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             $err['errors'][] = $e->getMessage();
             $logger->error('[host]=' . ($inputDataset->hostname ?? '""') . ' [manageIP]=' . ($inputDataset->ip ?? '""') . ' [message]=' . ($e->getMessage() ?? '""') . ' [dataset]=' . $rawInput);
         }
