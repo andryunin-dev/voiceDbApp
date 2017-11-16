@@ -62,26 +62,6 @@ class SqlFilter extends Std implements SqlFilterInterface
         $this->class = $className;
         $this->driver = $className::getDbDriver();
     }
-/*    public function __construct($data = null)
-    {
-        if (is_array($data) || is_null($data)) {
-            parent::__construct($data);
-        } elseif (is_string($data)) {
-            if (empty($data)) {
-                throw new Exception('Class name can\'t be empty');
-            }
-            if (! class_exists($data)) {
-                throw new Exception('Class ' . $data . ' is not exists');
-            }
-            if (get_parent_class($data) != Model::class) {
-                throw new Exception('Class for SqlFilter must extends Model class');
-            }
-            $this->class = $data;
-            $this->driver = $data::getDbDriver();
-        } else {
-            throw new Exception('Unknown argument for SqlFilter construct');
-        }
-    }*/
 
     protected function isFilterExists($operator, $column)
     {
