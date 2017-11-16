@@ -14,17 +14,34 @@ use T4\Core\Config;
 
 class TableConfigTest extends \PHPUnit\Framework\TestCase
 {
+    protected static $fileName;
+
+    public static function tearDownAfterClass()
+    {
+        if (file_exists(TableConfig::BASE_CONF_PATH . self::$fileName)) {
+            unlink(TableConfig::BASE_CONF_PATH . self::$fileName);
+        }
+    }
+
     public function testCreateConfig()
     {
         do {
-            $fileName = '__unitTest_testTableConfig_' . rand() . 'php';
-        } while (file_exists(TableConfig::BASE_CONF_PATH . $fileName));
+            self::$fileName = '__unitTest_testTableConfig_' . rand() . 'php';
+        } while (file_exists(TableConfig::BASE_CONF_PATH . self::$fileName));
 
-        $conf = (new TableConfig($fileName, ModelClass_1::class))->save();
+        $conf = (new TableConfig(self::$fileName, ModelClass_1::class))->save();
         $this->assertFileIsWritable($conf->getPath());
         $this->assertInstanceOf(TableConfig::class, $conf);
         $conf->delete();
         $this->assertFileNotExists($conf->getPath());
+        $conf->save();
+    }
+
+    public function testReadConfig()
+    {
+        $conf = new TableConfig(self::$fileName);
+        $this->assertInstanceOf(TableConfig::class, $conf);
+        $conf->delete();
     }
 
     /**

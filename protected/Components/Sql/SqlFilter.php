@@ -42,7 +42,27 @@ class SqlFilter extends Std implements SqlFilterInterface
     protected $statementString = '';
     protected $params = [];
 
-    public function __construct($data = null)
+    /**
+     * SqlFilter constructor.
+     * @param string $className Class name for which will be created filter
+     * @throws Exception
+     */
+    public function __construct(string $className)
+    {
+        parent::__construct();
+        if (empty($className)) {
+            throw new Exception('Class name can\'t be empty');
+        }
+        if (! class_exists($className)) {
+            throw new Exception('Class ' . $className . ' is not exists');
+        }
+        if (get_parent_class($className) != Model::class) {
+            throw new Exception('Class for SqlFilter must extends Model class');
+        }
+        $this->class = $className;
+        $this->driver = $className::getDbDriver();
+    }
+/*    public function __construct($data = null)
     {
         if (is_array($data) || is_null($data)) {
             parent::__construct($data);
@@ -61,7 +81,7 @@ class SqlFilter extends Std implements SqlFilterInterface
         } else {
             throw new Exception('Unknown argument for SqlFilter construct');
         }
-    }
+    }*/
 
     protected function isFilterExists($operator, $column)
     {
@@ -110,19 +130,18 @@ class SqlFilter extends Std implements SqlFilterInterface
         $this->validateOperatorName($operator);
 
         $operator = strtolower($operator);
-        //todo make check for unary operator
         if (! $this->isOperatorUnary($operator) && empty($values)) {
             return $this;
         }
         $values = $this->isOperatorUnary($operator) ? [] : $values;
         if (! isset($this->$column)) {
-            $this->$column = new self([$operator => $values]);
+            $this->$column = new Std([$operator => $values]);
         } elseif (! isset($this->$column->$operator)) {
-            $this->$column->$operator = new self($values);
+            $this->$column->$operator = new Std($values);
         } else {
             $this->$column->$operator = (true === $overwrite) ?
-                new self($values) :
-                new self(array_merge($this->$column->$operator->toArray(), array_diff($values, $this->$column->$operator->toArray())));
+                new Std($values) :
+                new Std(array_merge($this->$column->$operator->toArray(), array_diff($values, $this->$column->$operator->toArray())));
         }
         return $this;
     }

@@ -15,11 +15,7 @@ class SqlFilterTest extends \PHPUnit\Framework\TestCase
     {
         $this->assertInstanceOf(SqlFilter::class, new SqlFilter(ModelClass_1::class));
     }
-    public function testCreateEmptyFilter()
-    {
-        $this->assertInstanceOf(SqlFilter::class, new SqlFilter());
-        $this->assertEquals([], (new SqlFilter())->toArray());
-    }
+
     /**
      * @expectedException \T4\Core\Exception
      */

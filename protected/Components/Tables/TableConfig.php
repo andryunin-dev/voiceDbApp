@@ -44,7 +44,12 @@ class TableConfig extends Config implements TableConfigInterface
         $path = self::BASE_CONF_PATH . $tableName;
         /* if class is not set try to load existing config */
         if (empty($class)) {
-            $this->load($path);
+            $conf = (new Config($path));
+            $this->setPath($conf->getPath());
+            $conf = $conf->toArray();
+            foreach ($conf as $prop => $val) {
+                $this->$prop = (is_array($val)) ? new Std($val) : $val;
+            }
         } elseif (! class_exists($class)) {
             throw new Exception('Class ' . $class . ' is not exists');
         } elseif (get_parent_class($class) != Model::class) {
@@ -52,7 +57,7 @@ class TableConfig extends Config implements TableConfigInterface
         } else {
             $this->setPath($path);
             foreach ($this->tablePropertiesTemplate as $prop => $value) {
-                $value = (is_array($value)) ? new Config($value) : $value;
+                $value = (is_array($value)) ? new Std($value) : $value;
                 $this->$prop = $value;
             }
             $this->className = $class;

@@ -17,25 +17,31 @@ class TableTest extends \PHPUnit\Framework\TestCase
     /**
      * @var TableConfig $tableConf
      */
-    protected $tableConf;
-    protected function setUp()
+    protected static $tableConf;
+    protected static $tableName;
+    public static function setUpBeforeClass()
     {
         /**
-         * @var \T4\Tests\Orm\Models\Model $class
+         * @var \T4\Tests\Orm\Models\Model $className
          */
         $className = ModelClass_1::class;
-        $sortOrder = [
+        do {
+            self::$tableName = rand() . '__unitTest_testTableConfig.php';
+        } while (file_exists(self::$tableName));
+        $preFilterData = [
+            'columnOne' => ['eq' => ['val_1']]
+        ];
+        $sortOrders = [
             'columnOne' => ['columnOne' => '', 'columnThree' => '']
         ];
         $sortBy = 'columnOne';
         $sortDirect = 'asc';
-        $classColumns = $className::getColumns();
         $tableColumns = [
             'columnOne',
             'columnTwo',
             'columnThree'
         ];
-        $columnConfig = [
+        $columnsConfig = [
             'columnOne' => [
                 'id' => '',
                 'title' => 'title columnOne',
@@ -58,18 +64,29 @@ class TableTest extends \PHPUnit\Framework\TestCase
                 'filterable' => true
             ],
         ];
-        $this->tableConf = new TableConfig('test', $className);
-        $this->tableConf->columns($tableColumns);
+        self::$tableConf = new TableConfig(self::$tableName, $className);
+        self::$tableConf->columns($tableColumns);
+        foreach ($columnsConfig as $col => $conf) {
+            self::$tableConf->columnConfig($col, new Std($conf));
+        }
+
         $preFilter = new SqlFilter($className);
-        $preFilter->setFilterFromArray([
-            'columnOne' => ['eq' => ['val_1']]
-        ]);
-        $this->tableConf->tablePreFilter($preFilter);
-        $this->tableConf->sortBy($sortBy, $sortDirect);
+        $preFilter->setFilterFromArray($preFilterData);
+        self::$tableConf->tablePreFilter($preFilter);
+
+        self::$tableConf->sortOrderSets($sortOrders);
+        self::$tableConf->sortBy($sortBy, $sortDirect);
+        self::$tableConf->save();
     }
+    public static function tearDownAfterClass()
+    {
+        self::$tableConf->delete();
+    }
+
     public function testReadTableConfig()
     {
-
-        $this->assertInstanceOf(TableConfig::class, $this->tableConf);
+        $conf = new TableConfig(self::$tableName);
+        $this->assertInstanceOf(TableConfig::class, $conf);
+        $this->assertNotEmpty($conf->toArray());
     }
 }

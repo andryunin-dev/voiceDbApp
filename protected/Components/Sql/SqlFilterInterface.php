@@ -11,7 +11,7 @@ namespace App\Components\Sql;
 
 interface SqlFilterInterface
 {
-    public function __construct($data = null);
+    public function __construct(string $className);
     public function addFilter(string $column, string $operator, array $values, $overwrite = false);
     public function addFilterFromArray($data, $overwrite = false);
     public function setFilter(string $column, string $operator, array $values);
