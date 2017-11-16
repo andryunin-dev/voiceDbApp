@@ -14,6 +14,7 @@ class ModelClass_1 extends Model
             'columnOne' => ['type' => 'text'],
             'columnTwo' => ['type' => 'text'],
             'columnThree' => ['type' => 'text'],
+            'columnFour' => ['type' => 'text'],
         ]
     ];
 

@@ -146,6 +146,14 @@ class SqlFilter extends Std implements SqlFilterInterface
         }
         return $this;
     }
+    public function filterStatement()
+    {
+        return $this->getFilterStatement();
+    }
+    public function filterParams()
+    {
+        return $this->getFilterParams();
+    }
 
     /**
      * return all conditions as string for using in SQL query (like WHERE clause ie.)
@@ -168,6 +176,10 @@ class SqlFilter extends Std implements SqlFilterInterface
         }
         $this->statementString = implode(' AND ', $statementsByColumns);
         return $this->statementString;
+    }
+    protected function setFilterStatement($val)
+    {
+        return;
     }
 
     protected function sqlTranslator ($column, $operator, $index, $value)
@@ -194,6 +206,10 @@ class SqlFilter extends Std implements SqlFilterInterface
         $params = $this->params;
         $this->params = [];
         return $params;
+    }
+    protected function setFilterParams($val)
+    {
+        return;
     }
 
     /**

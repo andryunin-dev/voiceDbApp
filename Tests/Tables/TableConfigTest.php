@@ -372,7 +372,7 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
                     'template_1' => ['columnThree' => '', 'columnTwo' => ''],
                     'template_2' => ['columnTwo' => 'desc', 'columnOne' => '']
                 ],
-                'columnFour',
+                'columnUndefined',
                 'asc'
             ],
         ];
