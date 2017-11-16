@@ -17,12 +17,13 @@ interface PivotTableConfigInterface extends TableConfigInterface
     /**
      * @param string $column
      * @return Std
+     * this method only define what column will be pivot.
      * return config params for pivot column $column
      * set pivot column/get params pivot column
      * columns have to be set with method 'columns' before using this method
      * pivot column has to be one of columns defined with 'columns' method
      *
-     * params for pivot column^
+     * params for pivot column:
      * 'preFilter' - preFilter for pivot column values
      * 'sortBy' - sort columns and directions for pivot column ['column_1' => 'asc|desc', 'column_N' => 'asc|desc']
      * 'width' - width for each column from pivot columns set.
@@ -55,6 +56,12 @@ interface PivotTableConfigInterface extends TableConfigInterface
      * @return string|integer width each item of columns based on pivot column
      */
     public function widthPivotItems(string $pivotColumn, $width);
+
+    /**
+     * @param $column
+     * @return bool
+     * if $column was defined as pivot, will return true.
+     */
     public function isPivot($column) :bool ;
 
 }

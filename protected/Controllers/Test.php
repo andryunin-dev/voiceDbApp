@@ -19,14 +19,14 @@ class Test extends Controller
     {
         $rep = new PivotReport('test', GeoDev_View::class);
 
-//        $rep->delete();
-//        $rep = new PivotReport('test2', GeoDev_View::class);
-//        var_dump($rep);
-//        var_dump($rep->setReportColumns(['region', 'office', 'platformTitle', 'officeAddress']));
-//        var_dump($rep->setPivotColumn('platformTitle', [], 'asc'));
-//        var_dump($rep->setPivotFilter(['appType' => 'phone']));
-//        var_dump($rep->setReportColumnsFilter([], false));
-//        $rep->save();
+        $rep->delete();
+        $rep = new PivotReport('test2', GeoDev_View::class);
+        var_dump($rep);
+        var_dump($rep->setReportColumns(['region', 'office', 'platformTitle', 'officeAddress']));
+        var_dump($rep->setPivotColumn('platformTitle', [], 'asc'));
+        var_dump($rep->setPivotFilter(['appType' => 'phone']));
+        var_dump($rep->setReportColumnsFilter([], false));
+        $rep->save();
 
         var_dump($rep->className);
         var_dump($rep->tableName);
@@ -36,7 +36,8 @@ class Test extends Controller
         var_dump($rep->reportColumns);
         var_dump($rep->pivotColumn);
         var_dump($rep->pivotColumnValues);
-//        var_dump($rep->buildSelectQuery());
+        $sql = $rep->buildSelectQuery();
+        var_dump($sql);
 //        var_dump($rep->reportConfig);
 //        var_dump($rep->reportColumns);
 //        var_dump($rep->pivotColumn);
