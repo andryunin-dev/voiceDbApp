@@ -55,7 +55,7 @@ class Test extends Controller
     public function actionTest()
     {
 
-        var_dump(is_numeric('50'));
+        $obj = new Std();
 
     }
 }

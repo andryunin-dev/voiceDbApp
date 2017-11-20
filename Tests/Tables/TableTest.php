@@ -31,7 +31,7 @@ class TableTest extends \PHPUnit\Framework\TestCase
         $preFilterData = [
             'columnOne' => ['eq' => ['val_1']]
         ];
-        $sortOrders = [
+        $sortTemplates = [
             'columnOne' => ['columnOne' => '', 'columnThree' => '']
         ];
         $sortBy = 'columnOne';
@@ -64,6 +64,7 @@ class TableTest extends \PHPUnit\Framework\TestCase
                 'filterable' => true
             ],
         ];
+        $rowsPerPageList = [10, 20, 30];
         self::$tableConf = new TableConfig(self::$tableName, $className);
         self::$tableConf->columns($tableColumns);
         foreach ($columnsConfig as $col => $conf) {
@@ -74,8 +75,9 @@ class TableTest extends \PHPUnit\Framework\TestCase
         $preFilter->setFilterFromArray($preFilterData);
         self::$tableConf->tablePreFilter($preFilter);
 
-        self::$tableConf->sortOrderSets($sortOrders);
+        self::$tableConf->sortOrderSets($sortTemplates);
         self::$tableConf->sortBy($sortBy, $sortDirect);
+        self::$tableConf->rowsPerPageList($rowsPerPageList);
         self::$tableConf->save();
     }
     public static function tearDownAfterClass()

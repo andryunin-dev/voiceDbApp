@@ -4,6 +4,7 @@ namespace App\Components\Tables;
 
 use App\Components\Sql\SqlFilter;
 use T4\Core\Config;
+use T4\Core\Exception;
 use T4\Core\Std;
 
 interface TableConfigInterface
@@ -47,8 +48,39 @@ interface TableConfigInterface
     public function columnConfig(string $column, Std $config = null);
 
     public function sortOrderSets(array $sortSets = null);
+
+    /**
+     * @param string $sortTemplate
+     * @param string $direction
+     *
+     * This method define default sort order for table. This order will be saved with save() method
+     * if $sortTemplate exists as set in sortOrderSets - apply this set
+     * if not - tread $sortTemplate as column.
+     * @return Config
+     * @throws Exception
+     */
     public function sortBy(string $sortTemplate, string $direction = '');
-    public function tablePreFilter(SqlFilter $preFilter);
+
+    /**
+     * @return mixed
+     * return sort order with directions
+     */
+    public function getSortOrder();
+    /**
+     * @param SqlFilter $preFilter
+     * @return SqlFilter
+     * return table preFilter
+     * preFilter can't overwrite any operational filters
+     */
+    public function tablePreFilter(SqlFilter $preFilter = null);
 
     public function isColumnSet($column) :bool ;
+
+    public function rowsPerPageList(array $variantsList = null);
+
+    /**
+     * @return string
+     * return class name for table
+     */
+    public function className();
 }

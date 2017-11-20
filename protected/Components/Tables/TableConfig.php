@@ -16,7 +16,8 @@ class TableConfig extends Config implements TableConfigInterface
         'className' => '',
         'sortOrderSets' => [],
         'sortBy' => [],
-        'preFilter' => []
+        'preFilter' => [],
+        'pagination' => ['rowsPerPageList' => []]
     ];
     protected $columnPropertiesTemplate = [
         'id' => '',
@@ -63,6 +64,12 @@ class TableConfig extends Config implements TableConfigInterface
             $this->className = $class;
         }
     }
+
+    public function className()
+    {
+        return $this->className;
+    }
+
     /**
      * @param array $columns only columns names
      * All columns names have to belong a class that specified in construct method
@@ -75,16 +82,15 @@ class TableConfig extends Config implements TableConfigInterface
      */
     public function columns(array $columns = null)
     {
-        if (is_null($columns)) {
-            return $this->columns;
+        if (! is_null($columns)) {
+            $classColumns = array_keys($this->className::getColumns());
+            $diff = array_diff($columns, $classColumns);
+            if (count($diff) > 0) {
+                throw new Exception('columns have to belong ' . $this->className::getTableName() . ' table!');
+            }
+            $columns = array_fill_keys($classColumns, $this->columnPropertiesTemplate);
+            $this->columns = new Config($columns);
         }
-        $classColumns = array_keys($this->className::getColumns());
-        $diff = array_diff($columns, $classColumns);
-        if (count($diff) > 0) {
-            throw new Exception('columns have to belong ' . $this->className::getTableName() . ' table!');
-        }
-        $columns = array_fill_keys($classColumns, $this->columnPropertiesTemplate);
-        $this->columns = new Config($columns);
         return $this->columns;
     }
 
@@ -160,7 +166,7 @@ class TableConfig extends Config implements TableConfigInterface
      * This method define default sort order for table. This order will be saved with save() method
      * if $sortTemplate exists as set in sortOrderSets - apply this set
      * if not - tread $sortTemplate as column.
-     * @return null|Config
+     * @return Config
      * @throws Exception
      */
     public function sortBy(string $sortTemplate, string $direction = '')
@@ -179,24 +185,41 @@ class TableConfig extends Config implements TableConfigInterface
         return $this->sortBy;
     }
 
+    public function getSortOrder()
+    {
+        return $this->sortBy;
+    }
+
     /**
      * @param SqlFilter $preFilter
      * get/set table preFilter
      * if preFilter already exists, it'll be overwritten
      * preFilter can not be overwritten any operations filter
-     * @return null
+     * @return SqlFilter
      */
     public function tablePreFilter(SqlFilter $preFilter = null)
     {
         if (! is_null($preFilter)) {
             $this->preFilter = new Config($preFilter->toArray());
         }
-        return $this->preFilter;
+        return (new SqlFilter($this->className()))->setFilterFromArray($this->preFilter->toArray());
     }
 
     public function isColumnSet($column) :bool
     {
         return isset($this->columns->$column);
+    }
+
+    /**
+     * @param array|null $variantsList
+     * @return Std
+     */
+    public function rowsPerPageList(array $variantsList = null)
+    {
+        if (! is_null($variantsList)) {
+            $this->pagination->rowsPerPageList = new Std($variantsList);
+        }
+        return $this->pagination->rowsPerPageList;
     }
     /*====================================
         PROTECTED METHODS

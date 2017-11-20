@@ -32,6 +32,17 @@ interface SqlFilterInterface
      */
     public function setFilterFromArray($data);
     public function removeFilter(string $column, string $operator);
+    /**
+     * merge current filter with filter passed as argument.
+     * variable $merge mode define behavior merge process
+     * mode 'replace' - if operator and column match with corresponding current filter fields,  new values replace current
+     * mode 'append' - if operator and column match with corresponding current filter fields, new values append to currents
+     * mode 'ignore' - if operator and column match with corresponding current filter fields, new values will be ignored
+     *
+     * @param SqlFilter $filter
+     * @param string $mergeMode
+     */
+    public function mergeWith(SqlFilter $filter, string $mergeMode = 'replace');
     public function toArray();
 
     /**

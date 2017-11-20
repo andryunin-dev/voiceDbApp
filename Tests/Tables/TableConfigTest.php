@@ -435,7 +435,7 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
      * @param $preFilter
      * @dataProvider providerTablePreFilterSetter
      */
-    public function testTablePreFilterSetter($preFilter)
+    public function testTablePreFilter_SetterGetter($preFilter)
     {
         $pf = (new SqlFilter(ModelClass_1::class))->setFilterFromArray($preFilter);
 
@@ -446,7 +446,30 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
          */
         $conf = (new TableConfig($fileName, ModelClass_1::class));
         $conf->columns($columnsArray);
+        //test setter and its returned value
         $res = $conf->tablePreFilter($pf);
+        $this->assertInstanceOf(SqlFilter::class, $res);
         $this->assertEquals($res->toArray(), $preFilter);
+        //test getter and its returned value
+        $res = $conf->tablePreFilter();
+        $this->assertInstanceOf(SqlFilter::class, $res);
+        $this->assertEquals($res->toArray(), $preFilter);
+    }
+
+    public function testRowsPerPageList()
+    {
+        $list = [10, 20, 30, 'все'];
+        $fileName = '__unitTest_testTableConfig.php';
+        /**
+         * @var TableConfig $conf
+         */
+        $conf = (new TableConfig($fileName, ModelClass_1::class));
+        $res = $conf->rowsPerPageList($list);
+        $this->assertInstanceOf(Std::class, $res);
+        $this->assertEquals($list, $res->toArray());
+
+        $res = $conf->rowsPerPageList();
+        $this->assertInstanceOf(Std::class, $res);
+        $this->assertEquals($list, $res->toArray());
     }
 }

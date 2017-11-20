@@ -10,14 +10,25 @@ interface TableInterface
     public function __construct(TableConfigInterface $tableConfig);
 
     /**
-     * @return Std
+     * @return TableConfigInterface
      * return entire table config
      */
-    public function tableConfig() :Std;
+    public function tableConfig() :TableConfigInterface;
+
+    /**
+     * @return Std
+     */
     public function columnsConfig() :Std;
     public function columnsNames() :array;
     public function columnsTitles() :array;
 
+    /**
+     * @param int|null $limit
+     * @param int|null $offset
+     * @return mixed
+     *
+     * return set of records (like array or Collection?)
+     */
     public function getRecords(int $limit = null, int $offset = null);
     public function getRecordsByPage(int $pageNumber);
 
@@ -45,7 +56,7 @@ interface TableInterface
      * @param SqlFilter $filter
      * @param $appendMode - 'replace', 'append' or 'ignore'
      * @return mixed
-     * add operation filter. It doesn't  save in config.
+     * add operation filter. It doesn't  save in config. and can't rewrite table's preFilter
      *
      */
     public function addFilter(SqlFilter $filter, string $appendMode);
