@@ -30,7 +30,7 @@ class CucmsPhones extends Command
     {
         $logFile = ROOT_PATH . DS . 'Logs' . DS . 'phones_' . preg_replace('~\.~', '_', $publisherIp) . '.log';
         file_put_contents($logFile, '');
-        $logger = RLogger::getInstance('CUCM', $logFile);
+        $logger = RLogger::getInstance('CUCM-' . $publisherIp, $logFile);
         try {
             $registeredPhonesData = Phone::findAllRegisteredIntoCucm($publisherIp);
             foreach ($registeredPhonesData as $phoneData) {
@@ -38,16 +38,16 @@ class CucmsPhones extends Command
                     $data = (new Std())->fromArray($phoneData->getData());
                     (new DSPphones())->process($data);
                 } catch (\Throwable $e) {
-                    $logger->error('UPDATE PHONE: [publisher]=' . $publisherIp . '; [message]=' . ($e->getMessage() ?? '""') . '; [data]=' . json_encode($phoneData->getData()));
+                    $logger->error('UPDATE PHONE: [message]=' . ($e->getMessage() ?? '""') . '; [data]=' . json_encode($phoneData->getData()));
                 }
             }
             $this->writeLn('[publisher]=' . $publisherIp . '; Get phones - OK');
         } catch (MultiException $errs) {
             foreach ($errs as $e) {
-                $logger->error('UPDATE PHONE: [publisher]=' . $publisherIp . '; [message]=' . ($e->getMessage() ?? '""'));
+                $logger->error('UPDATE PHONE: [message]=' . ($e->getMessage() ?? '""'));
             }
         } catch (\Throwable $e) {
-            $logger->error('UPDATE PHONE: [publisher]=' . $publisherIp . '; [message]=' . ($e->getMessage() ?? '""'));
+            $logger->error('UPDATE PHONE: [message]=' . ($e->getMessage() ?? '""'));
         }
     }
 }
