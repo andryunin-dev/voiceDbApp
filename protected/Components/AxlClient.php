@@ -64,9 +64,8 @@ class AxlClient
             }
 
         } else {
-            // Если не удалось получить cucm's scheme,то вернуть false
-            $this->client = false;
-            $this->schema = false;
+            // Если не удалось получить cucm's scheme
+            $this->client = null;
         }
     }
 
@@ -77,6 +76,10 @@ class AxlClient
             self::$uniqueInstance[$cucmIp] = new self($cucmIp);
         }
 
-        return self::$uniqueInstance[$cucmIp];
+        if (!is_null(self::$uniqueInstance[$cucmIp]->client)) {
+            return self::$uniqueInstance[$cucmIp];
+        } else {
+            return null;
+        }
     }
 }
