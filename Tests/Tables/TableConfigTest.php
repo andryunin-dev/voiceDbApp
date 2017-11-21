@@ -361,9 +361,47 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
          */
         $conf = (new TableConfig($fileName, ModelClass_1::class));
         $conf->columns($columnsArray);
+        foreach ($columnsArray as $col) {
+            $conf->columnConfig($col, new Std(['sortable' => true]));
+        }
         $conf->sortOrderSets($orderSets);
         $res = $conf->sortBy($template, $direction);
         $this->assertEquals($expected, $res->toArray());
+    }
+    public function providerSortOrderToQuotedString()
+    {
+        return [
+            '_1' => [
+                [
+                    'template_1' => ['columnThree' => '', 'columnTwo' => ''],
+                ],
+                'template_1',
+                'asc',
+                '"columnThree" ASC, "columnTwo" ASC'
+            ],
+        ];
+    }
+
+    /**
+     * @param $orderSets
+     * @param $template
+     * @param $direction
+     * @param $expected
+     * @dataProvider providerSortOrderToQuotedString
+     */
+    public function testGetSortOrderAsQuotedString($orderSets, $template, $direction, $expected)
+    {
+        $fileName = '__unitTest_testTableConfig.php';
+        $columnsArray = array_keys(ModelClass_1::getColumns());
+        /**
+         * @var TableConfig $conf
+         */
+        $conf = (new TableConfig($fileName, ModelClass_1::class));
+        $conf->columns($columnsArray);
+        $conf->sortOrderSets($orderSets);
+        $conf->sortBy($template, $direction);
+        $res = $conf->getSortOrderAsQuotedString();
+        $this->assertEquals($expected, $res);
     }
 
     public function providerSortBy_Exceptions()

@@ -66,6 +66,12 @@ interface TableConfigInterface
      * return sort order with directions
      */
     public function getSortOrder();
+
+    /**
+     * @return string
+     * return sort order
+     */
+    public function getSortOrderAsQuotedString();
     /**
      * @param SqlFilter $preFilter
      * @return SqlFilter

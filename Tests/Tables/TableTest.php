@@ -7,6 +7,7 @@ require_once __DIR__ . '/../../protected/boot.php';
 
 use App\Components\Tables\PivotTableConfig;
 use App\Components\Tables\TableConfig;
+use App\Components\Tables\Table;
 use UnitTest\UnitTestClasses\ModelClass_1;
 use App\Components\Sql\SqlFilter;
 use T4\Core\Std;
@@ -90,5 +91,18 @@ class TableTest extends \PHPUnit\Framework\TestCase
         $conf = new TableConfig(self::$tableName);
         $this->assertInstanceOf(TableConfig::class, $conf);
         $this->assertNotEmpty($conf->toArray());
+        return new Table($conf);
+    }
+
+    /**
+     * @depends testReadTableConfig
+     * @param Table $table
+     */
+    public function testSelectStatement($table)
+    {
+        $expected = 'SELECT "columnOne", "columnTwo", "columnThree", "columnFour" FROM "testNameSpace"."testTable" WHERE "columnOne" = :columnOne_eq_0 ORDER BY "columnOne" ASC, "columnThree" ASC ';
+        $select = $table->selectStatement();
+        $select = str_replace("\n", ' ', $select);
+        $this->assertEquals($expected, $select);
     }
 }

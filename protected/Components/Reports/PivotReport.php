@@ -290,19 +290,19 @@ class PivotReport extends Config
             if (! in_array($col, $pivotColumn)) {
                 $selectList[] = $col ;
             } else {
-                $pivotSql = '(SELECT jsonb_object_agg(t3.' . $pivotColumnStr . ',' . ' t3.numbers)' . "\n\t";
-                $pivotSql .= 'FROM (' . "\n\t\t";
-                $pivotSql .= 'SELECT' . "\n\t\t\t";
-                $pivotSql .= $pivotColumnStr . ',' . "\n\t\t\t";
-                $pivotSql .= 'count(' . $pivotColumnStr . ') AS numbers' . "\n\t\t";
-                $pivotSql .= 'FROM ' . $tableName . '  AS t2' . "\n\t\t";
-                $pivotSql .= 'WHERE ' . implode(' AND ', $pivotWhereCond) . "\n\t\t";
-                $pivotSql .= 'GROUP BY ' . 't2' . '.' . $pivotColumnStr . "\n\t\t";
+                $pivotSql = '(SELECT jsonb_object_agg(t3.' . $pivotColumnStr . ',' . ' t3.numbers)' . "\n";
+                $pivotSql .= 'FROM (' . "\n";
+                $pivotSql .= 'SELECT' . "\n";
+                $pivotSql .= $pivotColumnStr . ',' . "\n";
+                $pivotSql .= 'count(' . $pivotColumnStr . ') AS numbers' . "\n";
+                $pivotSql .= 'FROM ' . $tableName . '  AS t2' . "\n";
+                $pivotSql .= 'WHERE ' . implode(' AND ', $pivotWhereCond) . "\n";
+                $pivotSql .= 'GROUP BY ' . 't2' . '.' . $pivotColumnStr . "\n";
                 $order = [];
                 foreach ($pivotSortOrder as $col => $direct) {
                     $order[] = empty($direct) ? 't2' . '.' . $col : 't2' . '.' . $col . ' ' . $direct;
                 }
-                $pivotSql .= 'ORDER BY ' . implode(', ', $order) . "\n\t";
+                $pivotSql .= 'ORDER BY ' . implode(', ', $order) . "\n";
                 $pivotSql .= ') AS t3' . "\n";
                 $pivotSql .= ') AS ' . $pivotColumnStr . "\n";
 

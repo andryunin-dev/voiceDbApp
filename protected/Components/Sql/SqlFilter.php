@@ -63,9 +63,9 @@ class SqlFilter extends Std implements SqlFilterInterface
         $this->driver = $className::getDbDriver();
     }
 
-    protected function isFilterExists($operator, $column)
+    protected function isFilterExists($column, $operator)
     {
-        return isset($this->$operator->$column);
+        return isset($this->$column->$operator);
     }
     protected function isOperatorUnary($operator)
     {
@@ -145,6 +145,16 @@ class SqlFilter extends Std implements SqlFilterInterface
         }
         return $this;
     }
+
+    public function subtractFilter(SqlFilter $filter)
+    {
+        foreach ($filter as $column => $operator) {
+            unset($this->$column->$operator);
+            if (0 == $this->$column->count()) {
+                unset($this->$column);
+            }
+        }
+    }
     public function filterStatement()
     {
         return $this->getFilterStatement();
@@ -220,6 +230,7 @@ class SqlFilter extends Std implements SqlFilterInterface
      *
      * @param SqlFilter $filter
      * @param string $mergeMode
+     * @return $this
      */
     public function mergeWith(SqlFilter $filter, string $mergeMode = 'replace')
     {
@@ -237,6 +248,7 @@ class SqlFilter extends Std implements SqlFilterInterface
                 }
             }
         }
+        return $this;
     }
 
     public function setFilterFromArray($data)

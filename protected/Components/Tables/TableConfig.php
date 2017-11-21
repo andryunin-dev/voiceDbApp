@@ -6,6 +6,7 @@ use App\Components\Sql\SqlFilter;
 use T4\Core\Config;
 use T4\Core\Exception;
 use T4\Core\Std;
+use T4\Dbal\IDriver;
 use T4\Orm\Model;
 
 class TableConfig extends Config implements TableConfigInterface
@@ -177,10 +178,10 @@ class TableConfig extends Config implements TableConfigInterface
             foreach ($this->sortBy as $col => $dir) {
                 $this->sortBy->$col = empty($dir) ? $direction : $dir;
             }
-        } elseif ($this->isColumnSet($sortTemplate)) {
+        } elseif ($this->isColumnSortable($sortTemplate)) {
             $this->sortBy->$sortTemplate = empty($this->sortBy->$sortTemplate) ? $direction : $this->sortBy->$sortTemplate;
         } else {
-            throw new Exception('Column ' . $sortTemplate . ' can\' be used as sort column because it\'s not defined for this table');
+            throw new Exception('Column ' . $sortTemplate . ' can\' be used as sort column because it\'s not defined for this table or not set as sortable');
         }
         return $this->sortBy;
     }
@@ -188,6 +189,20 @@ class TableConfig extends Config implements TableConfigInterface
     public function getSortOrder()
     {
         return $this->sortBy;
+    }
+
+    public function getSortOrderAsQuotedString()
+    {
+        /**
+         * @var IDriver $drv
+         */
+        $drv = $this->className::getDbDriver();
+        $res = [];
+        foreach ($this->sortBy as $col => $dir) {
+            $dir = empty($dir) ? '' : ' ' . strtoupper($dir);
+            $res[] =  $drv->quoteName($col) . $dir;
+        }
+        return implode(', ', $res);
     }
 
     /**
@@ -208,6 +223,11 @@ class TableConfig extends Config implements TableConfigInterface
     public function isColumnSet($column) :bool
     {
         return isset($this->columns->$column);
+    }
+
+    public function isColumnSortable($column) :bool
+    {
+        return isset($this->columns->$column) && (true === $this->columns->$column->sortable);
     }
 
     /**
