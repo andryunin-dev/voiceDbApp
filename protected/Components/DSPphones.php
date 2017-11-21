@@ -74,7 +74,7 @@ class DSPphones extends Std
      */
     protected function createPhone(Std $data)
     {
-        $logger = RLogger::getInstance('PHONE', realpath(ROOT_PATH . '/Logs/phones.log'));
+        $logger = RLogger::getInstance('PHONE', ROOT_PATH . DS . 'Logs' . DS . 'phones_' . preg_replace('~\.~', '_', $data->publisherIp) . '.log');
 
         //// CREATE APPLIANCE
         $masklen = (new IpTools($data->ipAddress, $data->subNetMask))->masklen;
@@ -169,7 +169,7 @@ class DSPphones extends Std
      */
     protected function updatePhone(PhoneInfo $phoneInfo, Std $data)
     {
-        $logger = RLogger::getInstance('PHONE', realpath(ROOT_PATH . '/Logs/phones.log'));
+        $logger = RLogger::getInstance('PHONE', ROOT_PATH . DS . 'Logs' . DS . 'phones_' . preg_replace('~\.~', '_', $data->publisherIp) . '.log');
 
         //// UPDATE APPLIANCE
         $masklen = (new IpTools($data->ipAddress, $data->subNetMask))->masklen;

@@ -110,8 +110,8 @@ class Appliance extends Model
             }
         )->first();
 
-        if ($dataPort instanceof DataPort) {
-            return preg_replace('~/.+~', '', $dataPort->ipAddress);
+        if (!is_null($dataPort)) {
+            return $dataPort->ipAddress;
         }
 
         return false;
@@ -133,7 +133,7 @@ class Appliance extends Model
             }
         )->first();
 
-        if ($dataPort instanceof DataPort) {
+        if (!is_null($dataPort)) {
             return $dataPort;
         }
 
