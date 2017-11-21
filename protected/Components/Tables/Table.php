@@ -123,7 +123,7 @@ class Table extends Std
     public function numberOfPages($calculateNow = false)
     {
         if (true === $calculateNow) {
-            //Todo calculate number of pages
+            //Todo calculate number of pages.
         }
         return $this->paginationSettings->numberOfPages;
     }
