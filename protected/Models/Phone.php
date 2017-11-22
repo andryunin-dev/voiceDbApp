@@ -129,7 +129,7 @@ class Phone extends Appliance
      */
     public static function findAllRegisteredIntoCucm(string $cucmIp)
     {
-        $logger = RLogger::getInstance('PHONE', ROOT_PATH . DS . 'Logs' . DS . 'phones_' . preg_replace('~\.~', '_', $cucmIp) . '.log');
+        $logger = RLogger::getInstance('CUCM-' . $cucmIp, ROOT_PATH . DS . 'Logs' . DS . 'phones_' . preg_replace('~\.~', '_', $cucmIp) . '.log');
 
         // Получить все телефоны из AXL
         $axlPhones = self::findAllIntoCucmAxl($cucmIp);
