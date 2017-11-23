@@ -36,18 +36,17 @@ interface TableConfigInterface
      * @return mixed
      * return columns config
      */
-    public function allColumnsConfig() : Config;
+    public function getAllColumnsConfig() : Std;
 
     /**
      * @param string $column
      * @param Std|null $config
-     * @return mixed
-     * if $config is null - return current config $column column
-     * if $config is array - set config for $column column
+     * @return self
      */
-    public function columnConfig(string $column, Std $config = null);
+    public function columnConfig(string $column, Std $config);
+    public function getColumnConfig($column);
 
-    public function sortOrderSets(array $sortSets = null);
+    public function sortOrderSets(array $sortSets);
 
     /**
      * @param string $sortTemplate
@@ -82,7 +81,17 @@ interface TableConfigInterface
 
     public function isColumnSet($column) :bool ;
 
-    public function rowsPerPageList(array $variantsList = null);
+    /**
+     * @param array|null $variantsList
+     * @return self
+     */
+    public function rowsOnPageList(array $variantsList = null);
+
+    /**
+     * @return Std
+     * return set of rowsOnPage as Std obj
+     */
+    public function getRowsOnPageList();
 
     /**
      * @return string

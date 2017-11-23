@@ -45,11 +45,26 @@ class Test extends Controller
         die;
 
     }
-    public function actionTable()
+    public function actionConfigTable()
     {
-        $tab = new TableConfig('test');
-        $tab->width = 100;
-        $tab->save();
+        $tab = new TableConfig('table_1', GeoDev_View::class);
+        $tab->columns(['region', 'city', 'office']);
+        $sortTemplates = [
+            'region' => ['region' => '', 'city' => ''],
+            'city' => ['city' => '', 'office' => ''],
+        ];
+        $tab->sortOrderSets($sortTemplates);
+        $tab->sortBy('city');
+        $confColumns = [
+            'region' => ['width' => 10, 'sortable' => true],
+            'city' => ['width' => 20, 'sortable' => true],
+            'office' => ['width' => 30, 'sortable' => true],
+        ];
+        foreach ($confColumns as $col => $conf)
+        {
+            $tab->columnConfig($col, $conf);
+        }
+
     }
 
     public function actionTest()

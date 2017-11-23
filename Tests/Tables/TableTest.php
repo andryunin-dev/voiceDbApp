@@ -19,16 +19,53 @@ class TableTest extends \PHPUnit\Framework\TestCase
      * @var TableConfig $tableConf
      */
     protected static $tableConf;
+    /**
+     * @var string $tableName name of table
+     */
     protected static $tableName;
+
+    protected static $sqlDropTemporaryTable = 'DROP TABLE IF EXISTS "ModelClass_1"';
+    protected static $sqlCreateTempTable = <<<'TAG'
+        CREATE TABLE "ModelClass_1"
+          AS
+            WITH t (id, "columnOne", "columnTwo", "columnThree", "columnFour") AS (
+              VALUES
+                (0::INT, 'c-1-v-0', 'c-2-v-0', 'c-3-v-0', 'c-4-v-0'),
+                (0::INT, 'c-1-v-0', 'c-2-v-0', 'c-3-v-1', 'c-4-v-1'),
+                (0::INT, 'c-1-v-0', 'c-2-v-1', 'c-3-v-2', 'c-4-v-2'),
+                (0::INT, 'c-1-v-0', 'c-2-v-1', 'c-3-v-3', 'c-4-v-3'),
+                (0::INT, 'c-1-v-1', 'c-2-v-2', 'c-3-v-4', 'c-4-v-4'),
+                (0::INT, 'c-1-v-1', 'c-2-v-2', 'c-3-v-5', 'c-4-v-5'),
+                (0::INT, 'c-1-v-1', 'c-2-v-3', 'c-3-v-6', 'c-4-v-6'),
+                (0::INT, 'c-1-v-1', 'c-2-v-3', 'c-3-v-7', 'c-4-v-7'),
+                (0::INT, 'c-1-v-2', 'c-2-v-4', 'c-3-v-8', 'c-4-v-8'),
+                (0::INT, 'c-1-v-2', 'c-2-v-4', 'c-3-v-9', 'c-4-v-9'),
+                (0::INT, 'c-1-v-2', 'c-2-v-5', 'c-3-v-10', 'c-4-v-10'),
+                (0::INT, 'c-1-v-2', 'c-2-v-5', 'c-3-v-11', 'c-4-v-11')
+            )
+        
+          SELECT * FROM t    
+TAG;
+
+
     public static function setUpBeforeClass()
     {
-        /**
-         * @var \T4\Tests\Orm\Models\Model $className
+        /*
+         * create table for class ModelClass_1
+         */
+        $conn = ModelClass_1::getDbConnection();
+        $conn->execute(self::$sqlDropTemporaryTable);
+        $conn->execute(self::$sqlCreateTempTable);
+        /*
+         * create unique class name for tests
          */
         $className = ModelClass_1::class;
         do {
             self::$tableName = rand() . '__unitTest_testTableConfig.php';
         } while (file_exists(self::$tableName));
+        /*
+         * Create config for test table and save one
+         */
         $preFilterData = [
             'columnOne' => ['eq' => ['val_1']]
         ];
@@ -78,12 +115,22 @@ class TableTest extends \PHPUnit\Framework\TestCase
 
         self::$tableConf->sortOrderSets($sortTemplates);
         self::$tableConf->sortBy($sortBy, $sortDirect);
-        self::$tableConf->rowsPerPageList($rowsPerPageList);
+        self::$tableConf->rowsOnPageList($rowsPerPageList);
         self::$tableConf->save();
     }
     public static function tearDownAfterClass()
     {
         self::$tableConf->delete();
+        $conn = ModelClass_1::getDbConnection();
+        $conn->execute(self::$sqlDropTemporaryTable);
+
+    }
+
+    public function testCreateTempTable()
+    {
+
+        $res = ModelClass_1::findAll();
+        $this->assertEquals(12, $res->count());
     }
 
     public function testReadTableConfig()
@@ -91,7 +138,15 @@ class TableTest extends \PHPUnit\Framework\TestCase
         $conf = new TableConfig(self::$tableName);
         $this->assertInstanceOf(TableConfig::class, $conf);
         $this->assertNotEmpty($conf->toArray());
-        return new Table($conf);
+
+        $table = new Table($conf);
+        $this->assertInstanceOf(Table::class, $table);
+        $this->assertInstanceOf(TableConfig::class, $table->config);
+        $this->assertInstanceOf(SqlFilter::class, $table->filter);
+        $this->assertInstanceOf(\T4\Dbal\IDriver::class, $table->driver);
+        $this->assertInstanceOf(Std::class, $table->pagination);
+
+        return $table;
     }
 
     /**
@@ -100,9 +155,20 @@ class TableTest extends \PHPUnit\Framework\TestCase
      */
     public function testSelectStatement($table)
     {
-        $expected = 'SELECT "columnOne", "columnTwo", "columnThree", "columnFour" FROM "testNameSpace"."testTable" WHERE "columnOne" = :columnOne_eq_0 ORDER BY "columnOne" ASC, "columnThree" ASC ';
+        $expected = 'SELECT "columnOne", "columnTwo", "columnThree", "columnFour" FROM "ModelClass_1" WHERE "columnOne" = :columnOne_eq_0 ORDER BY "columnOne" ASC, "columnThree" ASC ';
         $select = $table->selectStatement();
         $select = str_replace("\n", ' ', $select);
         $this->assertEquals($expected, $select);
+    }
+    /**
+     * @depends testReadTableConfig
+     * @param Table $table
+     */
+    public function testCountStatement($table)
+    {
+        $expected = 'SELECT count(*) FROM "ModelClass_1" WHERE "columnOne" = :columnOne_eq_0';
+        $count = $table->countStatement();
+        $count = str_replace("\n", ' ', $count);
+        $this->assertEquals($expected, $count);
     }
 }

@@ -78,11 +78,12 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
 
         $conf = new TableConfig($fileName, ModelClass_1::class);
         $res = $conf->columns($columnsArray);
-        $this->assertInstanceOf(Config::class, $conf->columns);
+
+        $this->assertInstanceOf(Std::class, $res);
+        $this->assertInstanceOf(Std::class, $conf->columns);
 
         //check result
-        $this->assertInstanceOf(Config::class, $res);
-        $this->assertEquals($columnsArray, array_keys($res->toArray()));
+        $this->assertEquals($columnsArray, array_keys($conf->columns->toArray()));
         return $conf;
     }
 
@@ -134,13 +135,16 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
          * @var TableConfig $conf
          */
         $conf = (new TableConfig($fileName, ModelClass_1::class));
+
         $conf ->columns($columnsArray);
-        $colConfig = (new Std([$param => $value]));
+        $colConfig = new Std([$param => $value]);
         $column = 'columnOne';
-        $res = $conf->columnConfig($column,$colConfig);
-        $this->assertEquals($expected, $res->$param);
+        $res = $conf->columnConfig($column, $colConfig);
+
+        $this->assertInstanceOf(TableConfig::class, $res);
+        $this->assertEquals($expected, $res->columns->$column->$param);
         //test get
-        $res = $conf->columnConfig($column);
+        $res = $conf->getColumnConfig($column);
         $this->assertEquals($expected, $res->$param);
     }
 
@@ -175,12 +179,9 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
         $colConfig = (new Std($params));
         $column = 'columnOne';
 
-        $res = $conf->columnConfig($column,$colConfig);
-        $res = $res->toArray();
-        $diff = array_diff_assoc($expected, $res);
-        $this->assertCount(0, $diff);
-        //test get
-        $res = $conf->columnConfig($column)->toArray();
+        $conf->columnConfig($column,$colConfig);
+
+        $res = $conf->getColumnConfig($column)->toArray();
         $diff = array_diff_assoc($expected, $res);
         $this->assertCount(0, $diff);
     }
@@ -276,8 +277,9 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
          */
         $conf = (new TableConfig($fileName, ModelClass_1::class));
         $conf->columns($columnsArray);
-        $res = $conf->sortOrderSets($template);
-        $this->assertEquals($template, $res->toArray());
+        $conf->sortOrderSets($template);
+        $this->assertInstanceOf(Std::class, $conf->sortOrderSets);
+        $this->assertEquals($template, $conf->sortOrderSets->toArray());
     }
 
     public function providerSortOrderSets_Exceptions()
@@ -494,7 +496,7 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($res->toArray(), $preFilter);
     }
 
-    public function testRowsPerPageList()
+    public function testRowsOnPageList()
     {
         $list = [10, 20, 30, 'все'];
         $fileName = '__unitTest_testTableConfig.php';
@@ -502,12 +504,14 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
          * @var TableConfig $conf
          */
         $conf = (new TableConfig($fileName, ModelClass_1::class));
-        $res = $conf->rowsPerPageList($list);
+        $res = $conf->rowsOnPageList($list);
         $this->assertInstanceOf(Std::class, $res);
-        $this->assertEquals($list, $res->toArray());
+        $this->assertEquals($list, $res->pagination->rowsOnPageList->toArray());
 
-        $res = $conf->rowsPerPageList();
-        $this->assertInstanceOf(Std::class, $res);
-        $this->assertEquals($list, $res->toArray());
+        $res = $conf->rowsOnPageList();
+        $this->assertInstanceOf(Config::class, $res);
+        $this->assertEquals($list, $res->pagination->rowsOnPageList->toArray());
+        //test get method
+        $this->assertEquals($list, $res->getRowsOnPageList()->toArray());
     }
 }

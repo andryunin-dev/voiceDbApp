@@ -9,16 +9,24 @@ use T4\Core\Std;
 use T4\Dbal\IDriver;
 use T4\Orm\Model;
 
+/**
+ * Class TableConfig
+ * @package App\Components\Tables
+ *
+ * @property Std $columns set of columns with properties
+ * @property Std $sortOrderSets
+ */
 class TableConfig extends Config implements TableConfigInterface
 {
     const BASE_CONF_PATH = ROOT_PATH . DS . 'Configs' . DS;
 
     protected $tablePropertiesTemplate = [
         'className' => '',
+        'columns' => [],
         'sortOrderSets' => [],
         'sortBy' => [],
         'preFilter' => [],
-        'pagination' => ['rowsPerPageList' => []]
+        'pagination' => ['rowsOnPageList' => []]
     ];
     protected $columnPropertiesTemplate = [
         'id' => '',
@@ -74,7 +82,7 @@ class TableConfig extends Config implements TableConfigInterface
     /**
      * @param array $columns only columns names
      * All columns names have to belong a class that specified in construct method
-     * @return Config  return columns Config object
+     * @return Std  return columns Config object
      *
      * if $columns is null - just return columns Config object for current table
      * if $columns is array - set columns from this array for current table
@@ -90,16 +98,17 @@ class TableConfig extends Config implements TableConfigInterface
                 throw new Exception('columns have to belong ' . $this->className::getTableName() . ' table!');
             }
             $columns = array_fill_keys($classColumns, $this->columnPropertiesTemplate);
-            $this->columns = new Config($columns);
+            $this->columns = new Std($columns);
         }
+        // todo All methods that set config parameters have to return $this
         return $this->columns;
     }
 
     /**
-     * @return Config
+     * @return Std
      * return columns config
      */
-    public function allColumnsConfig() :Config
+    public function getAllColumnsConfig() :Std
     {
         return $this->columns;
     }
@@ -108,16 +117,11 @@ class TableConfig extends Config implements TableConfigInterface
      * @param string $column
      * @param Std|null $config
      * @return Config if $config is null - return current config $column column
-     * if $config is null - return current config $column column
-     * if $config is Std - set config for $column column
      * @throws Exception
      */
-    public function columnConfig(string $column, Std $config = null)
+    public function columnConfig(string $column, Std $config)
     {
         $this->isColumnSet($column);
-        if (is_null($config)) {
-            return $this->columns->$column;
-        }
         $diff = array_diff(array_keys($config->toArray()), array_keys($this->columnPropertiesTemplate));
         if (count($diff) > 0) {
             throw new Exception('Some config parameters are not correct');
@@ -129,6 +133,16 @@ class TableConfig extends Config implements TableConfigInterface
         foreach ($config as $param => $value) {
             $this->columns->$column->$param = $value;
         }
+        return $this;
+    }
+
+    /**
+     * @param $column
+     * @return Std
+     */
+    public function getColumnConfig($column)
+    {
+        $this->isColumnSet($column);
         return $this->columns->$column;
     }
     /**
@@ -143,10 +157,10 @@ class TableConfig extends Config implements TableConfigInterface
      * if template already exists, it'll be overwritten
      * if direction is set, it can't be overwritten with sortBy method
      *
-     * @param array|null $template
-     * @return Config
+     * @param array $template
+     * @return self
      */
-    public function sortOrderSets(array $template = null)
+    public function sortOrderSets(array $template)
     {
         foreach ($template as $name => $columns) {
             foreach ($columns as $col => $dir) {
@@ -155,10 +169,11 @@ class TableConfig extends Config implements TableConfigInterface
             }
         }
         foreach ($template as $templName => $columns) {
-            $this->sortOrderSets->$templName = new Config($columns);
+            $this->sortOrderSets->$templName = new Std($columns);
         }
-        return $this->sortOrderSets;
+        return $this;
     }
+
 
     /**
      * @param string $sortTemplate
@@ -232,14 +247,22 @@ class TableConfig extends Config implements TableConfigInterface
 
     /**
      * @param array|null $variantsList
-     * @return Std
+     * @return self
      */
-    public function rowsPerPageList(array $variantsList = null)
+    public function rowsOnPageList(array $variantsList = null)
     {
         if (! is_null($variantsList)) {
-            $this->pagination->rowsPerPageList = new Std($variantsList);
+            $this->pagination->rowsOnPageList = new Std($variantsList);
         }
-        return $this->pagination->rowsPerPageList;
+        return $this;
+    }
+
+    /**
+     * @return Std
+     */
+    public function getRowsOnPageList()
+    {
+        return $this->pagination->rowsOnPageList;
     }
     /*====================================
         PROTECTED METHODS

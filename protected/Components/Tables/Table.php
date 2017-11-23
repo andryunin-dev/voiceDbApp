@@ -5,35 +5,30 @@ namespace App\Components\Tables;
 use App\Components\Sql\SqlFilter;
 use T4\Core\Exception;
 use T4\Core\Std;
+use T4\Dbal\Connection;
 use T4\Dbal\IDriver;
 
 
+/**
+ * Class Table
+ * @package App\Components\Tables
+ *
+ * @property TableConfig $config
+ * @property SqlFilter $filter
+ * @property SqlFilter $mergedFilter
+ * @property Std $pagination
+ * @property IDriver $driver
+ */
 class Table extends Std
     implements TableInterface
 {
-    /**
-     * @var TableConfigInterface $config
-     */
-    protected $config;
-    /**
-     * @var SqlFilter $filter - operational filter that can be set by user
-     */
-    protected $filter;
-    /**
-     * @var SqlFilter $mergedFilter - calculated filter after merge preFilter and operational filter
-     */
-    protected $mergedFilter;
+    public $pagination;
 
-    protected $paginationSettings = [
+    protected $paginationTemplate = [
         'currentPage' => 1,
         'rowsOnPage' => -1,
         'numberOfPages' => 0,
-
     ];
-    /**
-     * @var IDriver $driver
-     */
-    protected $driver;
 
     public function __construct(TableConfigInterface $tableConfig)
     {
@@ -45,7 +40,7 @@ class Table extends Std
         $this->config = $tableConfig;
         $this->filter = new SqlFilter($this->config->className());
         $this->driver = $this->config->className()::getDbDriver();
-        $this->paginationSettings = new Std($this->paginationSettings);
+        $this->pagination = new Std($this->paginationTemplate);
     }
 
     /**
@@ -59,8 +54,7 @@ class Table extends Std
 
     public function columnsConfig(): Std
     {
-        $colConf = $this->config->allColumnsConfig()->toArray();
-        return new Std($colConf);
+        return $this->config->getAllColumnsConfig();
     }
 
     public function columnsNames(): array
@@ -101,10 +95,10 @@ class Table extends Std
     public function currentPageNumber(int $pageNumber = null)
     {
         if (! is_null($pageNumber) && $pageNumber > 0) {
-            $this->paginationSettings->currentPage = ($pageNumber > $this->paginationSettings->numberOfPages) ?
-                $this->paginationSettings->numberOfPages : $pageNumber;
+            $this->pagination->currentPage = ($pageNumber > $this->pagination->numberOfPages) ?
+                $this->pagination->numberOfPages : $pageNumber;
         }
-        return $this->paginationSettings->currentPage;
+        return $this->pagination->currentPage;
     }
 
     /**
@@ -120,12 +114,20 @@ class Table extends Std
         return $this->paginationSettings->rowsOnPage;
     }
 
-    public function numberOfPages($calculateNow = false)
+    public function numberOfPages($updateNow = true)
     {
-        if (true === $calculateNow) {
+        if (true === $updateNow) {
             //Todo calculate number of pages.
         }
         return $this->paginationSettings->numberOfPages;
+    }
+
+    public function getPagination($updateNow = true)
+    {
+        if (true === $updateNow) {
+            //Todo calculate pagination
+        }
+        return $this->pagination;
     }
 
     /**
@@ -185,14 +187,37 @@ class Table extends Std
             $columns[$key] = $this->driver->quoteName($col);
         }
         $this->mergedFilter = $this->config->tablePreFilter()->mergeWith($this->filter, 'ignore');
-        $filterStatement = $this->mergedFilter->filterStatement;
-        $sql = 'SELECT ' . implode(', ', $columns) . "\n";
+
+        $columns = implode(', ', $columns);
+        $whereStatement = $this->mergedFilter->filterStatement;
+        $orderBy = $this->config->getSortOrderAsQuotedString();
+
+        $sql = 'SELECT ' . $columns . "\n";
         $sql .= 'FROM ' . $table . "\n";
-        $sql .= (empty($filterStatement)) ? '' : 'WHERE ' . $filterStatement . "\n";
-        $sql .= 'ORDER BY ' . $this->config->getSortOrderAsQuotedString() . "\n";
+        $sql .= (empty($whereStatement)) ? '' : 'WHERE ' . $whereStatement . "\n";
+        $sql .= 'ORDER BY ' . $orderBy . "\n";
         $sql .= is_numeric($offset) ? 'OFFSET ' . $offset : '';
         $sql .= is_numeric($limit) ? 'LIMIT ' . $limit : '';
         return $sql;
+    }
+
+    public function countStatement()
+    {
+        $table = $this->driver->quoteName($this->config->className()::getTableName());
+
+        $this->mergedFilter = $this->config->tablePreFilter()->mergeWith($this->filter, 'ignore');
+
+        $whereStatement = $this->mergedFilter->filterStatement;
+
+        $sql = 'SELECT count(*)' . "\n";
+        $sql .= 'FROM ' . $table . "\n";
+        $sql .= (empty($whereStatement)) ? '' : 'WHERE ' . $whereStatement;
+        return $sql;
+    }
+
+    public function countParams()
+    {
+        return $this->mergedFilter->filterParams;
     }
 
     public function selectParams()
@@ -200,8 +225,20 @@ class Table extends Std
         return $this->mergedFilter->filterParams;
     }
 
-
-
-
-
+    protected function selectAllByQuery($sql, $param)
+    {
+        /**
+         * @var Connection $conn
+         */
+        $conn = $this->config->className::getDbConnection();
+        $res = $conn->query($sql, $param)->fetchAllObjects(Std::class);
+    }
+    protected function countByQuery($sql, $param)
+    {
+        /**
+         * @var Connection $conn
+         */
+        $conn = $this->config->className::getDbConnection();
+        $res = $conn->query($sql, $param)->fetchScalar();
+    }
 }
