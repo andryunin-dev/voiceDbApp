@@ -98,4 +98,42 @@ interface TableConfigInterface
      * return class name for table
      */
     public function className();
+
+    /*CSS Style methods*/
+    /**
+     * @param string|array $cssClass
+     * @return self
+     * add css class for header table
+     */
+    public function cssAddHeaderTableClasses($cssClass);
+    /**
+     * @param string|array $cssClass
+     * @return self
+     * add css class for header table
+     */
+    public function cssAddBodyTableClasses($cssClass);
+    /**
+     * @param string|array $cssClass
+     * @return self
+     * add css class for header table
+     */
+    public function cssAddFooterTableClasses($cssClass);
+    /**
+     * @param string|array $cssClass
+     * @return self
+     * add css class for header table
+     */
+    public function cssSetHeaderTableClasses($cssClass);
+    /**
+     * @param string|array $cssClass
+     * @return self
+     * add css class for header table
+     */
+    public function cssSetBodyTableClasses($cssClass);
+    /**
+     * @param string|array $cssClass
+     * @return self
+     * add css class for header table
+     */
+    public function cssSetFooterTableClasses($cssClass);
 }

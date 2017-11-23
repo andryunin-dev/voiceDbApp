@@ -44,6 +44,18 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
         $conf->delete();
     }
 
+    public function testCreateBaseConfig()
+    {
+        $fileName = '__unitTest_testTableConfig.php';
+        $columnsArray = array_keys(ModelClass_1::getColumns());
+
+        $conf = new TableConfig($fileName, ModelClass_1::class);
+        $conf->columns($columnsArray);
+        $this->assertInstanceOf(TableConfig::class, $conf);
+        return $conf;
+    }
+
+
     /**
      * @expectedException \T4\Core\Exception
      */
@@ -514,4 +526,128 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
         //test get method
         $this->assertEquals($list, $res->getRowsOnPageList()->toArray());
     }
+    /*TEST methods that set css classes for the table*/
+    /**
+     * @depends testCreateBaseConfig
+     * @param TableConfig $conf
+     */
+    public function testEmptyCssClasses($conf)
+    {
+        $this->assertInstanceOf(Std::class, $conf->cssStyles);
+    }
+
+    public function providerSetCssClasses()
+    {
+        return [
+            '_1' => ['cssClass_1', ['cssClass_1']],
+            '_2' => [['cssClass_1', 'cssClass_2'], ['cssClass_1', 'cssClass_2']],
+        ];
+    }
+
+    /**
+     * @depends testCreateBaseConfig
+     * @dataProvider providerSetCssClasses
+     *
+     * @param string|array $cssClasses
+     * @param $expected
+     * @param TableConfig $conf
+     */
+    public function testCssSetHeaderTableClass($cssClasses, $expected, $conf)
+    {
+        $conf->cssSetHeaderTableClasses($cssClasses);
+        $this->assertInstanceOf(Std::class, $conf->headerCssClasses);
+        $this->assertEquals($expected, $conf->headerCssClasses->table->toArray());
+    }
+
+    /**
+     * @depends testCreateBaseConfig
+     * @dataProvider providerSetCssClasses
+     *
+     * @param string|array $cssClasses
+     * @param $expected
+     * @param TableConfig $conf
+     */
+    public function testCssSetBodyTableClass($cssClasses, $expected, $conf)
+    {
+        $conf->cssSetBodyTableClasses($cssClasses);
+        $this->assertInstanceOf(Std::class, $conf->bodyCssClasses);
+        $this->assertEquals($expected, $conf->bodyCssClasses->table->toArray());
+    }
+
+    /**
+     * @depends testCreateBaseConfig
+     * @dataProvider providerSetCssClasses
+     *
+     * @param string|array $cssClasses
+     * @param $expected
+     * @param TableConfig $conf
+     */
+    public function testCssSetFooterTableClass($cssClasses, $expected, $conf)
+    {
+        $conf->cssSetFooterTableClasses($cssClasses);
+        $this->assertInstanceOf(Std::class, $conf->footerCssClasses);
+        $this->assertEquals($expected, $conf->footerCssClasses->table->toArray());
+    }
+
+    public function providerAddCssClasses()
+    {
+        return [
+            '_1' => ['cssClass_1', 'cssClass_1', ['cssClass_1']],
+            '_2' => ['cssClass_1', 'cssClass_2', ['cssClass_1', 'cssClass_2']],
+            '_3' => [['cssClass_1', 'cssClass_2'], 'cssClass_1', ['cssClass_1', 'cssClass_2']],
+            '_4' => [['cssClass_1', 'cssClass_2'], 'cssClass_3', ['cssClass_1', 'cssClass_2', 'cssClass_3']],
+        ];
+    }
+
+    /**
+     * @depends testCreateBaseConfig
+     * @dataProvider providerAddCssClasses
+     *
+     * @param string|array $cssClasses_1
+     * @param string|array $cssClasses_2
+     * @param $expected
+     * @param TableConfig $conf
+     */
+    public function testCssAddHeaderTableClass($cssClasses_1, $cssClasses_2, $expected, $conf)
+    {
+        $conf->cssSetHeaderTableClasses($cssClasses_1);
+        $conf->cssAddHeaderTableClasses($cssClasses_2);
+        $this->assertInstanceOf(Std::class, $conf->headerCssClasses);
+        $this->assertEquals($expected, $conf->headerCssClasses->table->toArray());
+    }
+
+    /**
+     * @depends testCreateBaseConfig
+     * @dataProvider providerAddCssClasses
+     *
+     * @param string|array $cssClasses_1
+     * @param string|array $cssClasses_2
+     * @param $expected
+     * @param TableConfig $conf
+     */
+    public function testCssAddBodyTableClass($cssClasses_1, $cssClasses_2, $expected, $conf)
+    {
+        $conf->cssSetBodyTableClasses($cssClasses_1);
+        $conf->cssAddBodyTableClasses($cssClasses_2);
+        $this->assertInstanceOf(Std::class, $conf->bodyCssClasses);
+        $this->assertEquals($expected, $conf->bodyCssClasses->table->toArray());
+    }
+
+    /**
+     * @depends testCreateBaseConfig
+     * @dataProvider providerAddCssClasses
+     *
+     * @param string|array $cssClasses_1
+     * @param string|array $cssClasses_2
+     * @param $expected
+     * @param TableConfig $conf
+     */
+    public function testCssAddFooterTableClass($cssClasses_1, $cssClasses_2, $expected, $conf)
+    {
+        $conf->cssSetFooterTableClasses($cssClasses_1);
+        $conf->cssAddFooterTableClasses($cssClasses_2);
+        $this->assertInstanceOf(Std::class, $conf->footerCssClasses);
+        $this->assertEquals($expected, $conf->footerCssClasses->table->toArray());
+    }
+
 }

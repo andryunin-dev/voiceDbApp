@@ -8,6 +8,8 @@ namespace App\Controllers;
 use App\Components\Reports\PivotReport;
 use App\Components\Sql\SqlFilter;
 use App\Components\Tables\TableConfig;
+use App\Models\Appliance;
+use App\Models\DPortType;
 use App\ViewModels\GeoDev_View;
 use T4\Core\Config;
 use T4\Core\Std;
@@ -70,7 +72,11 @@ class Test extends Controller
     public function actionTest()
     {
 
-        $obj = new Std();
+        $app = Appliance::findAll()->first();
+        $app->details->someThing = new Std(['prop2' => 'test']);
+        var_dump($app);
+        $app->save();
+        var_dump($app);
 
     }
 }

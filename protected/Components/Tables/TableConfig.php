@@ -13,8 +13,16 @@ use T4\Orm\Model;
  * Class TableConfig
  * @package App\Components\Tables
  *
+ * @property string $className
  * @property Std $columns set of columns with properties
  * @property Std $sortOrderSets
+ * @property Std $sortBy
+ * @property Std $preFilter
+ * @property Std $pagination
+ * @property Std $cssStyles
+ * @property Std $headerCssClasses
+ * @property Std $bodyCssClasses
+ * @property Std $footerCssClasses
  */
 class TableConfig extends Config implements TableConfigInterface
 {
@@ -26,14 +34,19 @@ class TableConfig extends Config implements TableConfigInterface
         'sortOrderSets' => [],
         'sortBy' => [],
         'preFilter' => [],
-        'pagination' => ['rowsOnPageList' => []]
+        'pagination' => ['rowsOnPageList' => []],
+        'cssStyles' => [
+            'header' => ['table' => []],
+            'body' => ['table' => []],
+            'footer' => ['table' => []],
+        ]
     ];
     protected $columnPropertiesTemplate = [
         'id' => '',
         'title' => '',
         'width' => 0,
         'sortable' => false,
-        'filterable' => false
+        'filterable' => false,
     ];
 
     /**
@@ -142,7 +155,7 @@ class TableConfig extends Config implements TableConfigInterface
      */
     public function getColumnConfig($column)
     {
-        $this->isColumnSet($column);
+        $this->validateColumnIsSet($column);
         return $this->columns->$column;
     }
     /**
@@ -256,6 +269,55 @@ class TableConfig extends Config implements TableConfigInterface
         }
         return $this;
     }
+    public function cssAddHeaderTableClasses($cssClass)
+    {
+        return $this->innerAddCssClass('header', 'table', $cssClass);
+    }
+    /**
+     * @param string|array $cssClass
+     * @return self
+     * add css class for header table
+     */
+    public function cssAddBodyTableClasses($cssClass)
+    {
+        return $this->innerAddCssClass('body', 'table', $cssClass);
+    }
+    /**
+     * @param string|array $cssClass
+     * @return self
+     * add css class for header table
+     */
+    public function cssAddFooterTableClasses($cssClass)
+    {
+        return $this->innerAddCssClass('footer', 'table', $cssClass);
+    }
+    /**
+     * @param string|array $cssClass
+     * @return self
+     * add css class for header table
+     */
+    public function cssSetHeaderTableClasses($cssClass)
+    {
+        return $this->innerSetCssClass('header', 'table', $cssClass);
+    }
+    /**
+     * @param string|array $cssClass
+     * @return self
+     * add css class for header table
+     */
+    public function cssSetBodyTableClasses($cssClass)
+    {
+        return $this->innerSetCssClass('body', 'table', $cssClass);
+    }
+    /**
+     * @param string|array $cssClass
+     * @return self
+     * add css class for header table
+     */
+    public function cssSetFooterTableClasses($cssClass)
+    {
+        return $this->innerSetCssClass('footer', 'table', $cssClass);
+    }
 
     /**
      * @return Std
@@ -267,6 +329,40 @@ class TableConfig extends Config implements TableConfigInterface
     /*====================================
         PROTECTED METHODS
     ======================================*/
+    protected function innerSetCssClass($tablePart, $tag, $classes)
+    {
+        if (is_string($classes)) {
+            $classes = [$classes];
+        } elseif (! is_array($classes)) {
+            throw new Exception('cssAddHeaderTableClass: Invalid type of argument');
+        }
+
+        if (! isset($this->cssStyles->$tablePart->$tag))
+        {
+            throw new Exception('Incorrect target for CSS classes');
+        }
+
+        $this->cssStyles->$tablePart->$tag = new Std($classes);
+        return $this;
+    }
+    protected function innerAddCssClass($tablePart, $tag, $classes)
+    {
+        if (is_string($classes)) {
+            $classes = [$classes];
+        } elseif (! is_array($classes)) {
+            throw new Exception('cssAddHeaderTableClass: Invalid type of argument');
+        }
+
+        if (! isset($this->cssStyles->$tablePart->$tag))
+        {
+            throw new Exception('Incorrect target for CSS classes');
+        }
+        $tar = $this->cssStyles->$tablePart->$tag->toArray();
+        $diff = array_diff($classes, $tar);
+        $tar = array_merge($tar, $diff);
+        $this->cssStyles->$tablePart->$tag = new Std($tar);
+        return $this;
+    }
     protected function isAllColumnsSet(array $columns)
     {
         $classColumns = array_keys($this->className::getColumns());
@@ -283,6 +379,14 @@ class TableConfig extends Config implements TableConfigInterface
             throw new Exception('columns have to belong ' . $this->className::getTableName() . ' table!');
         }
         return true;
+    }
+    protected function validateColumnIsSet($column)
+    {
+        if ($this->isColumnSet($column)) {
+            return true;
+        } else {
+            throw new Exception('Column ' . $column . ' isn\'t set as table column');
+        }
     }
 
     protected function validateSortDirection($direct)
@@ -364,5 +468,18 @@ class TableConfig extends Config implements TableConfigInterface
             default:
                 return $val;
         }
+    }
+    /* ============= GETTERS =================*/
+    protected function getHeaderCssClasses()
+    {
+        return $this->cssStyles->header;
+    }
+    protected function getBodyCssClasses()
+    {
+        return $this->cssStyles->body;
+    }
+    protected function getFooterCssClasses()
+    {
+        return $this->cssStyles->footer;
     }
 }
