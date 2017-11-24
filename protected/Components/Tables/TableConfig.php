@@ -14,11 +14,13 @@ use T4\Orm\Model;
  * @package App\Components\Tables
  *
  * @property string $className
+ * @property Std $sizes has property 'width' and 'height'
  * @property Std $columns set of columns with properties
  * @property Std $sortOrderSets
  * @property Std $sortBy
  * @property Std $preFilter
  * @property Std $pagination
+ * @property Std $rowsOnPageList
  * @property Std $cssStyles
  * @property Std $headerCssClasses
  * @property Std $bodyCssClasses
@@ -29,6 +31,7 @@ class TableConfig extends Config implements TableConfigInterface
     const BASE_CONF_PATH = ROOT_PATH . DS . 'Configs' . DS;
 
     protected $tablePropertiesTemplate = [
+        'dataUrl' => '',
         'className' => '',
         'columns' => [],
         'sortOrderSets' => [],
@@ -39,6 +42,10 @@ class TableConfig extends Config implements TableConfigInterface
             'header' => ['table' => []],
             'body' => ['table' => []],
             'footer' => ['table' => []],
+        ],
+        'sizes' => [
+            'width' => '',
+            'height' => ''
         ]
     ];
     protected $columnPropertiesTemplate = [
@@ -64,7 +71,7 @@ class TableConfig extends Config implements TableConfigInterface
         if (empty($tableName)) {
             throw new Exception('Table name can not be empty');
         }
-        $path = self::BASE_CONF_PATH . $tableName;
+        $path = self::BASE_CONF_PATH . $tableName . '.php';
         /* if class is not set try to load existing config */
         if (empty($class)) {
             $conf = (new Config($path));
@@ -92,29 +99,69 @@ class TableConfig extends Config implements TableConfigInterface
         return $this->className;
     }
 
+    public function dataUrl($url = null)
+    {
+        //Todo validate URL without http
+        if (is_null($url)) {
+            return $this->dataUrl;
+        }
+        //$url = filter_var($url, FILTER_VALIDATE_URL);
+        if (false === $url) {
+            throw new Exception('Invalid URL');
+        }
+        $this->dataUrl = $url;
+        return $this;
+    }
+
+    public function tableWidth($width = null)
+    {
+        if (is_null($width)) {
+            return $this->sizes->width;
+        }
+        $this->validateConfigParam('width', $width);
+        $this->sizes->width = $this->sanitizeConfigParam('width', $width);
+        return $this;
+    }
+    public function tableHeight($height = null)
+    {
+        if (is_null($height)) {
+            return $this->sizes->width;
+        }
+        $this->validateConfigParam('height', $height);
+        $this->sizes->width = $this->sanitizeConfigParam('height', $height);
+        return $this;
+    }
+
     /**
      * @param array $columns only columns names
      * All columns names have to belong a class that specified in construct method
-     * @return Std  return columns Config object
+     * @return self|Std  return columns Config object
      *
-     * if $columns is null - just return columns Config object for current table
+     * if $columns is null - return only list of columns as Std object (without config params)
      * if $columns is array - set columns from this array for current table
      * this method should be called first
      * @throws Exception
      */
     public function columns(array $columns = null)
     {
-        if (! is_null($columns)) {
-            $classColumns = array_keys($this->className::getColumns());
-            $diff = array_diff($columns, $classColumns);
-            if (count($diff) > 0) {
-                throw new Exception('columns have to belong ' . $this->className::getTableName() . ' table!');
-            }
-            $columns = array_fill_keys($classColumns, $this->columnPropertiesTemplate);
-            $this->columns = new Std($columns);
+        /*if arg is null - return list of columns as Std*/
+        if (is_null($columns)) {
+            $res = array_keys($this->getAllColumnsConfig()->toArray());
+            return new Std($res);
         }
-        // todo All methods that set config parameters have to return $this
-        return $this->columns;
+        $classColumns = array_keys($this->className::getColumns());
+        $diff = array_diff($columns, $classColumns);
+        if (count($diff) > 0) {
+            throw new Exception('columns have to belong ' . $this->className::getTableName() . ' table!');
+        }
+        $columns = array_fill_keys($columns, $this->columnPropertiesTemplate);
+        $this->columns = new Std($columns);
+        return $this;
+    }
+
+    public function getColumnsList()
+    {
+        return $this->columns();
     }
 
     /**
@@ -129,12 +176,15 @@ class TableConfig extends Config implements TableConfigInterface
     /**
      * @param string $column
      * @param Std|null $config
-     * @return Config if $config is null - return current config $column column
+     * @return self|Std if $config is null - return current config $column column
      * @throws Exception
      */
-    public function columnConfig(string $column, Std $config)
+    public function columnConfig(string $column, Std $config = null)
     {
-        $this->isColumnSet($column);
+        $this->validateColumnIsSet($column);
+        if (is_null($config)) {
+            return $this->columns->$column;
+        }
         $diff = array_diff(array_keys($config->toArray()), array_keys($this->columnPropertiesTemplate));
         if (count($diff) > 0) {
             throw new Exception('Some config parameters are not correct');
@@ -155,8 +205,7 @@ class TableConfig extends Config implements TableConfigInterface
      */
     public function getColumnConfig($column)
     {
-        $this->validateColumnIsSet($column);
-        return $this->columns->$column;
+        return $this->columnConfig($column);
     }
     /**
      * define sets of columns to sort table
@@ -195,7 +244,7 @@ class TableConfig extends Config implements TableConfigInterface
      * This method define default sort order for table. This order will be saved with save() method
      * if $sortTemplate exists as set in sortOrderSets - apply this set
      * if not - tread $sortTemplate as column.
-     * @return Config
+     * @return self
      * @throws Exception
      */
     public function sortBy(string $sortTemplate, string $direction = '')
@@ -211,7 +260,7 @@ class TableConfig extends Config implements TableConfigInterface
         } else {
             throw new Exception('Column ' . $sortTemplate . ' can\' be used as sort column because it\'s not defined for this table or not set as sortable');
         }
-        return $this->sortBy;
+        return $this;
     }
 
     public function getSortOrder()
@@ -238,14 +287,16 @@ class TableConfig extends Config implements TableConfigInterface
      * get/set table preFilter
      * if preFilter already exists, it'll be overwritten
      * preFilter can not be overwritten any operations filter
-     * @return SqlFilter
+     * @return self|SqlFilter
      */
     public function tablePreFilter(SqlFilter $preFilter = null)
     {
-        if (! is_null($preFilter)) {
-            $this->preFilter = new Config($preFilter->toArray());
+        if (is_null($preFilter)) {
+            return (new SqlFilter($this->className()))
+                ->setFilterFromArray($this->preFilter->toArray());
         }
-        return (new SqlFilter($this->className()))->setFilterFromArray($this->preFilter->toArray());
+        $this->preFilter = new Std($preFilter->toArray());
+        return $this;
     }
 
     public function isColumnSet($column) :bool
@@ -264,9 +315,10 @@ class TableConfig extends Config implements TableConfigInterface
      */
     public function rowsOnPageList(array $variantsList = null)
     {
-        if (! is_null($variantsList)) {
-            $this->pagination->rowsOnPageList = new Std($variantsList);
+        if (is_null($variantsList)) {
+            return $this->pagination->rowsOnPageList;
         }
+        $this->pagination->rowsOnPageList = new Std($variantsList);
         return $this;
     }
     public function cssAddHeaderTableClasses($cssClass)
@@ -329,6 +381,10 @@ class TableConfig extends Config implements TableConfigInterface
     /*====================================
         PROTECTED METHODS
     ======================================*/
+    protected function innerGetCssClass($tablePart, $tag)
+    {
+        return isset($this->cssStyles->$tablePart->$tag) ? $this->cssStyles->$tablePart->$tag : false;
+    }
     protected function innerSetCssClass($tablePart, $tag, $classes)
     {
         if (is_string($classes)) {
@@ -413,6 +469,7 @@ class TableConfig extends Config implements TableConfigInterface
                 }
                 break;
             case 'width':
+            case 'height':
                 if(is_numeric($val)) {
                     //width set in percents
                     return true;
@@ -450,6 +507,7 @@ class TableConfig extends Config implements TableConfigInterface
                 return $val;
                 break;
             case 'width':
+            case 'height':
                 if(is_numeric($val)) {
                     //width set in percents
                     return intval($val);
@@ -472,14 +530,14 @@ class TableConfig extends Config implements TableConfigInterface
     /* ============= GETTERS =================*/
     protected function getHeaderCssClasses()
     {
-        return $this->cssStyles->header;
+        return isset($this->cssStyles->header) ? $this->cssStyles->header : false;
     }
     protected function getBodyCssClasses()
     {
-        return $this->cssStyles->body;
+        return isset($this->cssStyles->body) ? $this->cssStyles->body : false;
     }
     protected function getFooterCssClasses()
     {
-        return $this->cssStyles->footer;
+        return isset($this->cssStyles->footer) ? $this->cssStyles->footer : false;
     }
 }

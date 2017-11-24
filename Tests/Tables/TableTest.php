@@ -153,9 +153,21 @@ TAG;
      * @depends testReadTableConfig
      * @param Table $table
      */
+    public function testRowsOnPage($table)
+    {
+        $res = $table->rowsOnPage(42);
+        $this->assertInstanceOf(Table::class, $res);
+
+        $this->assertEquals(42, $table->rowsOnPage());
+    }
+
+    /**
+     * @depends testReadTableConfig
+     * @param Table $table
+     */
     public function testSelectStatement($table)
     {
-        $expected = 'SELECT "columnOne", "columnTwo", "columnThree", "columnFour" FROM "ModelClass_1" WHERE "columnOne" = :columnOne_eq_0 ORDER BY "columnOne" ASC, "columnThree" ASC ';
+        $expected = 'SELECT "columnOne", "columnTwo", "columnThree" FROM "ModelClass_1" WHERE "columnOne" = :columnOne_eq_0 ORDER BY "columnOne" ASC, "columnThree" ASC ';
         $select = $table->selectStatement();
         $select = str_replace("\n", ' ', $select);
         $this->assertEquals($expected, $select);

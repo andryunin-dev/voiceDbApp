@@ -83,25 +83,29 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
         new TableConfig($fileName, StdClass_1::class);
     }
 
-    public function testColumnsSetGet()
+    public function testColumns_Setter_and_getter()
     {
         $fileName = '__unitTest_testTableConfig.php';
         $columnsArray = array_keys(ModelClass_1::getColumns());
+        $count = count($columnsArray);
+        unset($columnsArray[$count - 1]);
 
         $conf = new TableConfig($fileName, ModelClass_1::class);
         $res = $conf->columns($columnsArray);
 
-        $this->assertInstanceOf(Std::class, $res);
-        $this->assertInstanceOf(Std::class, $conf->columns);
+        $this->assertInstanceOf(TableConfig::class, $res);
+        /*test getters*/
+        $this->assertInstanceOf(Std::class, $conf->columns());
+        $this->assertEquals($columnsArray, $conf->columns()->toArray());
+        $this->assertEquals($columnsArray, $conf->getColumnsList()->toArray());
 
         //check result
-        $this->assertEquals($columnsArray, array_keys($conf->columns->toArray()));
         return $conf;
     }
 
     /**
      * @param TableConfig $conf
-     * @depends testColumnsSetGet
+     * @depends testColumns_Setter_and_getter
      */
     public function testIsColumnSet($conf)
     {
@@ -198,6 +202,40 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
         $this->assertCount(0, $diff);
     }
 
+    public function providerColumnConfig_getter()
+    {
+        return [
+            '_1' => [
+                [
+                    'columnOne' => ['id' => 'test_id', 'title' => 'test', 'width' => 50, 'sortable' => true, 'filterable' => true]
+                ]
+            ]
+        ];
+    }
+
+    /**
+     * @dataProvider providerColumnConfig_getter
+     * @param $params
+     */
+    public function testColumnConfig_getter($params)
+    {
+        $fileName = '__unitTest_testTableConfig.php';
+        $columnsArray = array_keys(ModelClass_1::getColumns());
+        /**
+         * @var TableConfig $conf
+         */
+        $conf = (new TableConfig($fileName, ModelClass_1::class));
+        $conf->columns($columnsArray);
+        foreach ($params as $col => $colParams) {
+            $res = $conf->columnConfig($col, new Std($colParams));
+            $this->assertInstanceOf(TableConfig::class, $res);
+            /*test getter for column*/
+            $colConfig = $conf->columnConfig($col);
+            $this->assertInstanceOf(Std::class, $colConfig);
+            $this->assertEquals($colParams, $colConfig->toArray());
+        }
+    }
+
     public function providerColumnConfig_Exceptions()
     {
         return [
@@ -259,6 +297,38 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
         $colConfig = new Std($params);
         $column = 'columnOne';
         $conf->columnConfig($column,$colConfig);
+    }
+
+    public function providerGetColumnsList()
+    {
+        return [
+            '_1' => [
+                [
+                    'columnOne' => ['id' => 'colOne', 'title' => 'test', 'width' => '50'],
+                    'columnTwo' => ['id' => 'colTwo', 'title' => 'test', 'width' => '50'],
+                ]
+            ]
+        ];
+    }
+
+    /**
+     * @dataProvider providerGetColumnsList
+     * @param $params
+     */
+    public function testGetColumnsList($params)
+    {
+        $fileName = '__unitTest_testTableConfig.php';
+        $columnsArray = array_keys(ModelClass_1::getColumns());
+        /**
+         * @var TableConfig $conf
+         */
+        $conf = (new TableConfig($fileName, ModelClass_1::class));
+        $conf->columns($columnsArray);
+        foreach ($params as $col => $colParams) {
+            $conf->columnConfig($col, new Std($colParams));
+            $this->assertTrue(true);
+        }
+
     }
 
     public function providerSortOrderSets()
@@ -380,7 +450,7 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
         }
         $conf->sortOrderSets($orderSets);
         $res = $conf->sortBy($template, $direction);
-        $this->assertEquals($expected, $res->toArray());
+        $this->assertEquals($expected, $res->sortBy->toArray());
     }
     public function providerSortOrderToQuotedString()
     {
@@ -500,8 +570,7 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
         $conf->columns($columnsArray);
         //test setter and its returned value
         $res = $conf->tablePreFilter($pf);
-        $this->assertInstanceOf(SqlFilter::class, $res);
-        $this->assertEquals($res->toArray(), $preFilter);
+        $this->assertInstanceOf(TableConfig::class, $res);
         //test getter and its returned value
         $res = $conf->tablePreFilter();
         $this->assertInstanceOf(SqlFilter::class, $res);
@@ -517,15 +586,74 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
          */
         $conf = (new TableConfig($fileName, ModelClass_1::class));
         $res = $conf->rowsOnPageList($list);
-        $this->assertInstanceOf(Std::class, $res);
-        $this->assertEquals($list, $res->pagination->rowsOnPageList->toArray());
+        $this->assertInstanceOf(TableConfig::class, $res);
+        //test getter method
+        $this->assertEquals($list, $res->getRowsOnPageList()->toArray());
+        $this->assertEquals($list, $res->rowsOnPageList->toArray());
 
         $res = $conf->rowsOnPageList();
-        $this->assertInstanceOf(Config::class, $res);
-        $this->assertEquals($list, $res->pagination->rowsOnPageList->toArray());
-        //test get method
-        $this->assertEquals($list, $res->getRowsOnPageList()->toArray());
+        $this->assertInstanceOf(Std::class, $res);
+        $this->assertEquals($list, $res->toArray());
     }
+
+    public function providerDataUrl()
+    {
+        return [
+            '_1' => ['/test.ru/test.html'],
+            '_2' => ['http://test.ru/test.html'],
+        ];
+    }
+
+    /**
+     * @param string $url
+     * @param TableConfig $conf
+     * @dataProvider providerDataUrl
+     * @depends testCreateBaseConfig
+     */
+    public function testDataUrl($url, $conf)
+    {
+        $res = $conf->dataUrl($url);
+        $this->assertInstanceOf(TableConfig::class, $res);
+    }
+
+    public function providerTableSizes()
+    {
+        return [
+            '_1' => ['10', 10],
+            '_2' => [10, 10],
+            '_3' => ['10px', '10px'],
+        ];
+    }
+
+    /**
+     * @dataProvider providerTableSizes
+     * @depends testCreateBaseConfig
+     *
+     * @param $size
+     * @param $expected
+     * @param TableConfig $conf
+     */
+    public function testTableWidth($size, $expected, $conf)
+    {
+        $res = $conf->tableWidth($size);
+        $this->assertInstanceOf(TableConfig::class, $res);
+        $this->assertEquals($expected, $conf->tableWidth());
+    }
+    /**
+     * @dataProvider providerTableSizes
+     * @depends testCreateBaseConfig
+     *
+     * @param $size
+     * @param $expected
+     * @param TableConfig $conf
+     */
+    public function testTableHeight($size, $expected, $conf)
+    {
+        $res = $conf->tableHeight($size);
+        $this->assertInstanceOf(TableConfig::class, $res);
+        $this->assertEquals($expected, $conf->tableHeight());
+    }
+
     /*TEST methods that set css classes for the table*/
     /**
      * @depends testCreateBaseConfig

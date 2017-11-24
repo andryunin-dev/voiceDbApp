@@ -22,8 +22,6 @@ use T4\Dbal\IDriver;
 class Table extends Std
     implements TableInterface
 {
-    public $pagination;
-
     protected $paginationTemplate = [
         'currentPage' => 1,
         'rowsOnPage' => -1,
@@ -53,12 +51,46 @@ class Table extends Std
     }
 
     /**
-     * @return mixed
+     * @return Std
      * return json config for jqTable script
      */
-    public function jsonTableConfig()
+    public function buildTableConfig()
     {
+        $jsConf = new Std();
+        $jsConf->dataUrl = $this->config->dataUrl();
+        $jsConf->width = $this->config->tableWidth();
+        $jsConf->header = new Std();
+        $jsConf->header->tableClasses = implode(', ', $this->config->headerCssClasses->toArray());
+        $jsConf->header->columns = $this->config->getAllColumnsConfig();
+        $jsConf->pager = new Std(
+            [
+                'rowsOnPage' => $this->rowsOnPage(),
+                'rowList' => $this->config->rowsOnPageList->toArray()
+            ]
+        );
+        $jsConf->styles = new Std(
+            [
+                'header' => [
+                    'table' => [
+                        'classes' => [],
+                    ]
+                ],
+                'body' => [
+                    'table' => [
+                        'classes' => [],
+                    ]
+                ],
+            ]
+        );
+        $jsConf->styles->header->table->classes = $this->config->headerCssClasses->table;
+        $jsConf->styles->body->table->classes = $this->config->bodyCssClasses->table;
 
+        return $jsConf;
+    }
+
+    public function buildJsonTableConfig()
+    {
+        return json_encode($this->buildTableConfig()->toArray(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
     }
 
     public function columnsConfig(): Std
@@ -98,45 +130,51 @@ class Table extends Std
 
     /**
      * @param int|null $pageNumber
-     * @return mixed
+     * @return int|self
      * get/set current page number
      */
     public function currentPageNumber(int $pageNumber = null)
     {
-        if (! is_null($pageNumber) && $pageNumber > 0) {
-            $this->pagination->currentPage = ($pageNumber > $this->pagination->numberOfPages) ?
+        if (is_null($pageNumber)) {
+            return $this->pagination->currentPage;
+        }
+        if ($pageNumber > 0) {
+            $this->pagination->currentPage =
+                ($pageNumber > $this->pagination->numberOfPages) ?
                 $this->pagination->numberOfPages : $pageNumber;
         }
-        return $this->pagination->currentPage;
+        return $this;
     }
 
     /**
      * @param int|null $rows
-     * @return mixed
+     * @return int|self
      * get/set rows per page
      */
     public function rowsOnPage(int $rows = null)
     {
-        if (! is_null($rows) && $rows > 0) {
-            $this->paginationSettings->rowsOnPage = $rows;
+        if (is_null($rows)) {
+            return $this->pagination->rowsOnPage;
         }
-        return $this->paginationSettings->rowsOnPage;
+        if ($rows > 0) {
+            $this->pagination->rowsOnPage = $rows;
+            $this->updatePagination();
+        }
+        return $this;
     }
 
     public function numberOfPages($updateNow = true)
     {
         if (true === $updateNow) {
-            //Todo calculate number of pages.
+            $this->updatePagination();
         }
         return $this->paginationSettings->numberOfPages;
     }
 
-    public function getPagination($updateNow = true)
+    public function updatePagination()
     {
-        if (true === $updateNow) {
-            //Todo calculate pagination
-        }
-        return $this->pagination;
+        //Todo calculate pagination
+        return $this;
     }
 
     /**
@@ -191,7 +229,7 @@ class Table extends Std
     public function selectStatement($offset = null, $limit = null)
     {
         $table = $this->driver->quoteName($this->config->className()::getTableName());
-        $columns = array_keys($this->config->columns()->toArray());
+        $columns = $this->config->columns()->toArray();
         foreach ($columns as $key => $col) {
             $columns[$key] = $this->driver->quoteName($col);
         }
@@ -249,5 +287,6 @@ class Table extends Std
          */
         $conn = $this->config->className::getDbConnection();
         $res = $conn->query($sql, $param)->fetchScalar();
+        return $res;
     }
 }

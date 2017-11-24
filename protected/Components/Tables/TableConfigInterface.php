@@ -21,16 +21,22 @@ interface TableConfigInterface
     public function save();
     public function delete();
 
+    public function dataUrl($url = null);
+    public function tableWidth($width = null);
+    public function tableHeight($height = null);
+
     /**
      * @param array $columns like [$column_name_1 => title, $column_name_2 => title, ]
      * All column_names have to belong a class that specified in construct method
-     * @return mixed
+     * @return self
      *
      * if $columns is null - return columns array for current table
      * if $columns is array - set columns set for current table
      * this method should be called first
      */
     public function columns(array $columns = null);
+
+    public function getColumnsList();
 
     /**
      * @return mixed
@@ -41,9 +47,9 @@ interface TableConfigInterface
     /**
      * @param string $column
      * @param Std|null $config
-     * @return self
+     * @return self|Std
      */
-    public function columnConfig(string $column, Std $config);
+    public function columnConfig(string $column, Std $config = null);
     public function getColumnConfig($column);
 
     public function sortOrderSets(array $sortSets);

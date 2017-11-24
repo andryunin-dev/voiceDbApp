@@ -16,10 +16,15 @@ interface TableInterface
     public function tableConfig() :TableConfigInterface;
 
     /**
-     * @return mixed
-     * return json config for jqTable script
+     * @return Std
+     * return Std config for jqTable script
      */
-    public function jsonTableConfig();
+    public function buildTableConfig();
+
+    /**
+     * @return mixed
+     */
+    public function buildJsonTableConfig();
 
     /**
      * @return Std
@@ -51,6 +56,13 @@ interface TableInterface
      * get/set rows per page
      */
     public function rowsOnPage(int $rows = null);
+
+    /**
+     * @return self
+     *
+     * recalculate pagination according current pagination settings
+     */
+    public function updatePagination();
 
     /**
      * @return array return current sort order

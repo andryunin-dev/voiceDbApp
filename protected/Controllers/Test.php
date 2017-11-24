@@ -7,6 +7,7 @@ namespace App\Controllers;
 
 use App\Components\Reports\PivotReport;
 use App\Components\Sql\SqlFilter;
+use App\Components\Tables\Table;
 use App\Components\Tables\TableConfig;
 use App\Models\Appliance;
 use App\Models\DPortType;
@@ -50,34 +51,53 @@ class Test extends Controller
     }
     public function actionConfigTable()
     {
-        $tab = new TableConfig('deviceInfo', DevModulePortGeo::class);
-        $tab->columns(['region', 'city', 'office']);
-        $sortTemplates = [
-            'region' => ['region' => '', 'city' => ''],
-            'city' => ['city' => '', 'office' => ''],
-        ];
-        $tab->sortOrderSets($sortTemplates);
-        $tab->sortBy('city');
+        $columns = ['region', 'city', 'office', 'hostname_dn', 'appType', 'platformTitle'];
         $confColumns = [
-            'region' => ['width' => 10, 'sortable' => true],
-            'city' => ['width' => 20, 'sortable' => true],
-            'office' => ['width' => 30, 'sortable' => true],
+            'region' => ['title' => 'Регион', 'width' => 10, 'sortable' => true],
+            'city' => ['title' => 'Город', 'width' => 10, 'sortable' => true],
+            'office' => ['title' => 'Оффисе', 'width' => 20, 'sortable' => true],
+            'hostname_dn' => ['title' => 'hostname', 'width' => 20],
+            'appType' => ['title' => 'Тип', 'width' => '70px'],
+            'platformTitle' => ['title' => 'Оборудование', 'width' => 20],
         ];
+        $sortTemplates = [
+            'region' => ['region' => '', 'city' => '', 'appSortOrder' => 'desc'],
+            'city' => ['city' => '', 'office' => '', 'appSortOrder' => 'desc'],
+        ];
+        $preFilter = (new SqlFilter(DevModulePortGeo::class))
+            ->setFilter('appType', 'eq', ['phone']);
+        //ToDO ability to add extra columns that haven't in class
+        $tab = (new TableConfig('deviceInfo', DevModulePortGeo::class))
+            ->dataUrl('voice.rs.ru/dataUrl')
+            ->tableWidth(100)
+            ->columns($columns)
+            ->sortOrderSets($sortTemplates)
+            ->sortBy('region');
         foreach ($confColumns as $col => $conf)
         {
-            $tab->columnConfig($col, $conf);
+            $tab->columnConfig($col, new Std($conf));
         }
+        $tab->cssSetHeaderTableClasses(['bg-primary', 'table-bordered'])
+            ->cssSetBodyTableClasses(["table", "cell-bordered", "cust-table-striped"]);
+        $tab->rowsOnPageList([10,50,100,200,'все'])
+            ->tablePreFilter($preFilter)
+            ->save();
 
+        var_dump($tab);
+    }
+
+    public function actionBuildTable()
+    {
+
+
+        $tb = new Table(new TableConfig('deviceInfo'));
+        $tb->rowsOnPage(40);
+        $res = $tb->buildTableConfig();
+        $this->data = $res;
     }
 
     public function actionTest()
     {
-
-        $app = Appliance::findAll()->first();
-        $app->details->someThing = new Std(['prop2' => 'test']);
-        var_dump($app);
-        $app->save();
-        var_dump($app);
 
     }
 }
