@@ -52,6 +52,15 @@ class Table extends Std
         return $this->config;
     }
 
+    /**
+     * @return mixed
+     * return json config for jqTable script
+     */
+    public function jsonTableConfig()
+    {
+
+    }
+
     public function columnsConfig(): Std
     {
         return $this->config->getAllColumnsConfig();

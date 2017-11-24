@@ -16,6 +16,12 @@ interface TableInterface
     public function tableConfig() :TableConfigInterface;
 
     /**
+     * @return mixed
+     * return json config for jqTable script
+     */
+    public function jsonTableConfig();
+
+    /**
      * @return Std
      */
     public function columnsConfig() :Std;

@@ -10,6 +10,7 @@ use App\Components\Sql\SqlFilter;
 use App\Components\Tables\TableConfig;
 use App\Models\Appliance;
 use App\Models\DPortType;
+use App\ViewModels\DevModulePortGeo;
 use App\ViewModels\GeoDev_View;
 use T4\Core\Config;
 use T4\Core\Std;
@@ -49,7 +50,7 @@ class Test extends Controller
     }
     public function actionConfigTable()
     {
-        $tab = new TableConfig('table_1', GeoDev_View::class);
+        $tab = new TableConfig('deviceInfo', DevModulePortGeo::class);
         $tab->columns(['region', 'city', 'office']);
         $sortTemplates = [
             'region' => ['region' => '', 'city' => ''],
