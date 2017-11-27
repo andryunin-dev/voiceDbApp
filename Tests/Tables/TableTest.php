@@ -79,32 +79,40 @@ TAG;
             'columnTwo',
             'columnThree'
         ];
+        $extraColumns = [
+            'extra_1'
+        ];
         $columnsConfig = [
             'columnOne' => [
                 'id' => '',
-                'title' => 'title columnOne',
+                'name' => 'title columnOne',
                 'width' => 10,
                 'sortable' => true,
                 'filterable' => true
             ],
             'columnTwo' => [
                 'id' => '',
-                'title' => 'title columnTwo',
+                'name' => 'title columnTwo',
                 'width' => '10px',
                 'sortable' => true,
                 'filterable' => true
             ],
             'columnThree' => [
                 'id' => '',
-                'title' => 'title columnThree',
+                'name' => 'title columnThree',
                 'width' => 20,
                 'sortable' => true,
                 'filterable' => true
             ],
+            'extra_1' => [
+                'id' => '',
+                'name' => 'title extraColumn_1',
+                'width' => '100px',
+            ],
         ];
         $rowsPerPageList = [10, 20, 30];
         self::$tableConf = new TableConfig(self::$tableName, $className);
-        self::$tableConf->columns($tableColumns);
+        self::$tableConf->columns(array_merge($tableColumns, $extraColumns), $extraColumns);
         foreach ($columnsConfig as $col => $conf) {
             self::$tableConf->columnConfig($col, new Std($conf));
         }

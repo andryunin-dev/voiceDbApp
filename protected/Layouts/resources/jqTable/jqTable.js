@@ -911,7 +911,7 @@ jqTable.workSetTmpl = {
             },
             columnsIdUpdate: function (ws) {
                 $.each(ws.header.columns, function (key,value) {
-                    if (typeof value.id === 'undefined') {
+                    if (typeof value.id === 'undefined' ) {
                         value.id = key;
                     }
                     value.th_id = ws.mainSelector + '_th_' + value.id;

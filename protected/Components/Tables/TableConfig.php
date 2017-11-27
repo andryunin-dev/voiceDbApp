@@ -34,6 +34,8 @@ class TableConfig extends Config implements TableConfigInterface
         'dataUrl' => '',
         'className' => '',
         'columns' => [],
+        'aliases' => [],
+        'extraColumns' => [],
         'sortOrderSets' => [],
         'sortBy' => [],
         'preFilter' => [],
@@ -50,10 +52,16 @@ class TableConfig extends Config implements TableConfigInterface
     ];
     protected $columnPropertiesTemplate = [
         'id' => '',
-        'title' => '',
+        'name' => '',
         'width' => 0,
         'sortable' => false,
         'filterable' => false,
+    ];
+
+    protected static $sqlOperators = ['eq', 'ne', 'lt', 'le', 'gt', 'ge', 'isnull', 'notnull'];
+    protected static $unarySqlOperators = [
+        'isnull',
+        'notnull'
     ];
 
     /**
@@ -134,6 +142,7 @@ class TableConfig extends Config implements TableConfigInterface
 
     /**
      * @param array $columns only columns names
+     * @param array $extraColumns only columns names
      * All columns names have to belong a class that specified in construct method
      * @return self|Std  return columns Config object
      *
@@ -142,18 +151,21 @@ class TableConfig extends Config implements TableConfigInterface
      * this method should be called first
      * @throws Exception
      */
-    public function columns(array $columns = null)
+    public function columns(array $columns = null, array $extraColumns = null)
     {
         /*if arg is null - return list of columns as Std*/
         if (is_null($columns)) {
             $res = array_keys($this->getAllColumnsConfig()->toArray());
             return new Std($res);
         }
+        $extraColumns = is_null($extraColumns) ? [] : $extraColumns;
         $classColumns = array_keys($this->className::getColumns());
-        $diff = array_diff($columns, $classColumns);
+        $unionColumns = array_merge($classColumns, $extraColumns);
+        $diff = array_diff($columns, $unionColumns);
         if (count($diff) > 0) {
-            throw new Exception('columns have to belong ' . $this->className::getTableName() . ' table!');
+            throw new Exception('columns have to belong ' . $this->className::getTableName() . ' table or is defined as extraColumns!');
         }
+        $this->extraColumns = new Std($extraColumns);
         $columns = array_fill_keys($columns, $this->columnPropertiesTemplate);
         $this->columns = new Std($columns);
         return $this;
@@ -206,6 +218,29 @@ class TableConfig extends Config implements TableConfigInterface
     public function getColumnConfig($column)
     {
         return $this->columnConfig($column);
+    }
+
+    /**
+     * @param $column
+     * @param $alias
+     * @param string $operator
+     * set alias for a column and sql operator
+     * @return $this
+     */
+    public function appendColumnAlias(string $column, string $alias, string $operator = '')
+    {
+        $this->validateColumnIsSet($column);
+        if (! empty($operator)) {
+            $this->validateSqlOperator($operator);
+        }
+        $this->aliases->$alias = new Std(['column' => $column, 'operator' => $operator]);
+        return $this;
+    }
+    public function removeColumnAlias(string $alias)
+    {
+        if (isset($this->aliases->$alias)) {
+            unset($this->aliases->$alias);
+        }
     }
     /**
      * define sets of columns to sort table
@@ -419,20 +454,24 @@ class TableConfig extends Config implements TableConfigInterface
         $this->cssStyles->$tablePart->$tag = new Std($tar);
         return $this;
     }
-    protected function isAllColumnsSet(array $columns)
+    protected function isAllColumnsSet(array $columns, $checkInExtraColumns = false)
     {
         $classColumns = array_keys($this->className::getColumns());
-        $diff = array_diff($columns, $classColumns);
+        $extraColumns = true === $checkInExtraColumns ? $this->extraColumns->toArray() : [];
+        $unionColumns = array_merge($classColumns, $extraColumns);
+        $diff = array_diff($columns, $unionColumns);
         if (count($diff) > 0) {
             throw new Exception('columns have to belong ' . $this->className::getTableName() . ' table!');
         }
         return true;
     }
-    protected function validateColumnName(string $columns)
+    protected function validateColumnName(string $columns, $checkInExtraColumns = false)
     {
         $classColumns = array_keys($this->className::getColumns());
-        if (! in_array($columns, $classColumns)) {
-            throw new Exception('columns have to belong ' . $this->className::getTableName() . ' table!');
+        $extraColumns = true === $checkInExtraColumns ? $this->extraColumns->toArray() : [];
+        $unionColumns = array_merge($classColumns, $extraColumns);
+        if (! in_array($columns, $unionColumns)) {
+            throw new Exception('columns have to belong ' . $this->className::getTableName() . ' table or have been defined as ExtraColumns!');
         }
         return true;
     }
@@ -441,7 +480,7 @@ class TableConfig extends Config implements TableConfigInterface
         if ($this->isColumnSet($column)) {
             return true;
         } else {
-            throw new Exception('Column ' . $column . ' isn\'t set as table column');
+            throw new Exception('Column ' . $column . ' doesn\'t set as table column');
         }
     }
 
@@ -463,7 +502,7 @@ class TableConfig extends Config implements TableConfigInterface
                     throw new Exception('Not valid id');
                 }
                 break;
-            case 'title':
+            case 'name':
                 if (! is_string($val)) {
                     throw new Exception('Not valid title');
                 }
@@ -493,6 +532,18 @@ class TableConfig extends Config implements TableConfigInterface
                 break;
             default:
                 throw new Exception('Unknown parameter \'' . $param . '\'');
+        }
+        return true;
+    }
+
+    protected function isSqlOperatorValid($op)
+    {
+        return in_array($op, self::$sqlOperators);
+    }
+    protected function validateSqlOperator($op)
+    {
+        if (! $this->isSqlOperatorValid($op)) {
+            throw new Exception($op . ' doesn\'t valid sql operator');
         }
         return true;
     }

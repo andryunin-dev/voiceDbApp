@@ -52,6 +52,9 @@ interface TableConfigInterface
     public function columnConfig(string $column, Std $config = null);
     public function getColumnConfig($column);
 
+    public function appendColumnAlias(string $column, string $alias, string $operator = '');
+    public function removeColumnAlias(string $alias);
+
     public function sortOrderSets(array $sortSets);
 
     /**

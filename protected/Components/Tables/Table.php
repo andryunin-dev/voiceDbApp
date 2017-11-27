@@ -230,6 +230,7 @@ class Table extends Std
     {
         $table = $this->driver->quoteName($this->config->className()::getTableName());
         $columns = $this->config->columns()->toArray();
+        $columns = array_diff($columns, $this->config->extraColumns->toArray());
         foreach ($columns as $key => $col) {
             $columns[$key] = $this->driver->quoteName($col);
         }

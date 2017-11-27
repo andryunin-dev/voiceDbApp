@@ -103,6 +103,25 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
         return $conf;
     }
 
+    public function testColumns_with_ExtraColumns()
+    {
+        $extraCols = ['extra_1', 'extra_2'];
+        $fileName = '__unitTest_testTableConfig.php';
+        $columnsArray = array_keys(ModelClass_1::getColumns());
+        $count = count($columnsArray);
+        unset($columnsArray[$count - 1]);
+
+        $conf = new TableConfig($fileName, ModelClass_1::class);
+        $columnsSet = array_merge($columnsArray, $extraCols);
+        $res = $conf->columns($columnsSet, $extraCols);
+        $this->assertInstanceOf(TableConfig::class, $res);
+        /*test getters*/
+        $this->assertInstanceOf(Std::class, $conf->columns());
+        $this->assertEquals($columnsSet, $conf->columns()->toArray());
+        $this->assertEquals($columnsSet, $conf->getColumnsList()->toArray());
+        return $conf;
+    }
+
     /**
      * @param TableConfig $conf
      * @depends testColumns_Setter_and_getter
@@ -110,6 +129,15 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
     public function testIsColumnSet($conf)
     {
         $this->assertTrue($conf->isColumnSet('columnTwo'));
+    }
+
+    /**
+     * @param TableConfig $conf
+     * @depends testColumns_with_ExtraColumns
+     */
+    public function testIsColumnSet_Extra($conf)
+    {
+        $this->assertTrue($conf->isColumnSet('extra_1'));
     }
 
     /**
@@ -127,7 +155,7 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
     {
         return [
             'id' => ['id', 'test_id', 'test_id'],
-            'title' => ['title', 'test_title', 'test_title'],
+            'title' => ['name', 'test_title', 'test_title'],
             'width_percent' => ['width', '50', 50],
             'width_percent2' => ['width', 50, 50],
             'width_px' => ['width', '50px', '50px'],
@@ -168,12 +196,12 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
     {
         return [
             '_1' => [
-                ['id' => 'test_id', 'title' => 'test', 'width' => '50'],
-                ['id' => 'test_id', 'title' => 'test', 'width' => 50],
+                ['id' => 'test_id', 'name' => 'test', 'width' => '50'],
+                ['id' => 'test_id', 'name' => 'test', 'width' => 50],
             ],
             '_2' => [
-                ['id' => 'test_id', 'title' => 'test', 'width' => '50PX', 'filterable' => true],
-                ['id' => 'test_id', 'title' => 'test', 'width' => '50px', 'filterable' => true],
+                ['id' => 'test_id', 'name' => 'test', 'width' => '50PX', 'filterable' => true],
+                ['id' => 'test_id', 'name' => 'test', 'width' => '50px', 'filterable' => true],
             ],
         ];
     }
@@ -207,7 +235,7 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
         return [
             '_1' => [
                 [
-                    'columnOne' => ['id' => 'test_id', 'title' => 'test', 'width' => 50, 'sortable' => true, 'filterable' => true]
+                    'columnOne' => ['id' => 'test_id', 'name' => 'test', 'width' => 50, 'sortable' => true, 'filterable' => true]
                 ]
             ]
         ];
@@ -304,8 +332,8 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
         return [
             '_1' => [
                 [
-                    'columnOne' => ['id' => 'colOne', 'title' => 'test', 'width' => '50'],
-                    'columnTwo' => ['id' => 'colTwo', 'title' => 'test', 'width' => '50'],
+                    'columnOne' => ['id' => 'colOne', 'name' => 'test', 'width' => '50'],
+                    'columnTwo' => ['id' => 'colTwo', 'name' => 'test', 'width' => '50'],
                 ]
             ]
         ];
@@ -329,6 +357,46 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
             $this->assertTrue(true);
         }
 
+    }
+
+    public function providerAppendColumnAlias()
+    {
+        return [
+            '_1' => [
+                'columnOne',
+                ['alias_1' => 'eq'],
+                ['alias_1' => ['column' => 'columnOne', 'operator' => 'eq']]
+            ],
+            '_2' => [
+                'columnTwo',
+                ['alias_1' => 'eq', 'alias_2' => ''],
+                [
+                    'alias_1' => ['column' => 'columnTwo', 'operator' => 'eq'],
+                    'alias_2' => ['column' => 'columnTwo', 'operator' => ''],
+                ]
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider providerAppendColumnAlias
+     * @param $column
+     * @param $aliases
+     * @param $expected
+     */
+    public function testAppendColumnAlias($column, $aliases, $expected)
+    {
+        $fileName = '__unitTest_testTableConfig.php';
+        $columnsArray = array_keys(ModelClass_1::getColumns());
+        /**
+         * @var TableConfig $conf
+         */
+        $conf = (new TableConfig($fileName, ModelClass_1::class));
+        $conf->columns($columnsArray);
+        foreach ($aliases as $alias => $op) {
+            $conf->appendColumnAlias($column, $alias, $op);
+        }
+        $this->assertEquals($expected, $conf->aliases->toArray());
     }
 
     public function providerSortOrderSets()
