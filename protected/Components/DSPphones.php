@@ -564,11 +564,12 @@ class DSPphones extends Std
             }
 
             // UPDATE APPLIANCE
-            $updateDetails = [
-                'hostname' => $data->hostname,
-            ];
+            if (is_null($appliance->details) || !$appliance->details instanceof Std) {
+                $appliance->details = new Std(['hostname' => $data->hostname]);
+            } else {
+                $appliance->details->hostname = $data->hostname;
+            }
             $appliance->fill([
-                'details' => array_merge($updateDetails, $appliance->details->toArray()),
                 'lastUpdate'=> (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P'),
             ]);
             $appliance->save();

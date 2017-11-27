@@ -19,11 +19,30 @@ class CucmsPhones extends Command
         foreach ($publishers as $publisher) {
             $publisherIp = $publisher->managementIp;
             if (false !== $publisherIp) {
-                $this->actionGetFrom($publisherIp);
+                $logFile = ROOT_PATH . DS . 'Logs' . DS . 'phones_' . preg_replace('~\.~', '_', $publisherIp) . '.log';
+                file_put_contents($logFile, '');
+                $logger = RLogger::getInstance('CUCM-' . $publisherIp, $logFile);
+                try {
+                    $registeredPhonesData = Phone::findAllRegisteredIntoCucm($publisherIp);
+                    foreach ($registeredPhonesData as $phoneData) {
+                        try {
+                            $data = (new Std())->fromArray($phoneData->getData());
+                            (new DSPphones())->process($data);
+                        } catch (\Throwable $e) {
+                            $logger->error('UPDATE PHONE: [message]=' . ($e->getMessage() ?? '""') . '; [data]=' . json_encode($phoneData->getData()));
+                        }
+                    }
+                    $this->writeLn('[publisher]=' . $publisherIp . '; Get phones - OK');
+                } catch (MultiException $errs) {
+                    foreach ($errs as $e) {
+                        $logger->error('UPDATE PHONE: [message]=' . ($e->getMessage() ?? '""'));
+                    }
+                } catch (\Throwable $e) {
+                    $logger->error('UPDATE PHONE: [message]=' . ($e->getMessage() ?? '""'));
+                }
             }
         }
         $this->writeLn('Get phones from all cucms - OK');
-        die;
     }
 
     public function actionGetFrom($publisherIp)
