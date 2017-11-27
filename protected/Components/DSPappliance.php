@@ -270,11 +270,12 @@ class DSPappliance extends Std
             }
 
             // Update APPLIANCE
-            $updateDetails = [
-                'hostname' => $data->hostname,
-            ];
+            if (is_null($appliance->details) || !$appliance->details instanceof Std) {
+                $appliance->details = new Std(['hostname' => $data->hostname]);
+            } else {
+                $appliance->details->hostname = $data->hostname;
+            }
             $appliance->fill([
-                'details' => array_merge($appliance->details->toArray(), $updateDetails),
                 'lastUpdate'=> (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P'),
             ]);
             $appliance->save();
