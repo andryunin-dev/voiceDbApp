@@ -585,10 +585,7 @@ class DSPphones extends Std
                     if (false !== $foundDataPort) {
                         $foundDataPort->delete();
                     }
-                    $phoneDataPort = $appliance->dataPorts->first();
-                    if (is_null($phoneDataPort)) {
-                        $phoneDataPort = new DataPort();
-                    }
+                    $phoneDataPort = new DataPort();
                 }
                 $portType = DPortType::findByColumn('type', $data->portType);
                 if (false === $portType) {
@@ -608,6 +605,7 @@ class DSPphones extends Std
                     'lastUpdate'=> (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P'),
                 ]);
                 $phoneDataPort->save();
+                $appliance->refresh();
                 if (1 < $appliance->dataPorts->count()) {
                     foreach ($appliance->dataPorts as $dataPort) {
                         if ($dataPort->getPk() != $phoneDataPort->getPk()) {
