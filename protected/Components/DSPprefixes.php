@@ -77,12 +77,19 @@ class DSPprefixes extends Std
                     'vrf' => $dataPortVrf,
                     'masklen' => $dataPortMasklen,
                     'isManagement' => ($dataPortIp == $managementDataPortIp) ? true : false,
-                    'details' => [
-                        'portName' => $dataPortData->interface,
-                        'description' => $dataPortData->description,
-                    ],
                     'lastUpdate'=> (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P'),
                 ]);
+                if (is_null($dataPort->details) || !$dataPort->details instanceof Std) {
+                    $dataPort->fill([
+                        'details' => [
+                            'portName' => $dataPortData->interface,
+                            'description' => $dataPortData->description,
+                        ],
+                    ]);
+                } else {
+                    $dataPort->details->portName = $dataPortData->interface;
+                    $dataPort->details->description = $dataPortData->description;
+                }
                 $dataPort->save();
 
                 // End transaction
