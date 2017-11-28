@@ -20,6 +20,9 @@ class PivotTableConfig extends TableConfig
 
     const BASE_CONF_PATH = ROOT_PATH . DS . 'Configs' . DS;
 
+    protected $pivotTablePropertyTemplate = [
+        'pivot' => []
+    ];
     /**
      * @var array
      *
@@ -39,7 +42,13 @@ class PivotTableConfig extends TableConfig
     public function __construct(string $tableName, string $class = null)
     {
         parent::__construct($tableName, $class);
-        $this->pivot = new Config();
+
+        if(!empty($class)) {
+            foreach ($this->pivotTablePropertyTemplate as $prop => $value) {
+                $value = (is_array($value)) ? new Std($value) : $value;
+                $this->$prop = $value;
+            }
+        }
     }
 
     public function columns(array $columns = null, array $extraColumns = null)
@@ -93,9 +102,10 @@ class PivotTableConfig extends TableConfig
     {
         $this->validatePivotColumn($pivColumnAlias);
         if (is_null($preFilter)) {
-            return $this->pivot->$pivColumnAlias->preFilter;
+            return (new SqlFilter($this->className()))
+                ->setFilterFromArray($this->pivot->$pivColumnAlias->preFilter->toArray());
         }
-        $this->pivot->$pivColumnAlias->preFilter = new Config($preFilter->toArray());
+        $this->pivot->$pivColumnAlias->preFilter = new Std($preFilter->toArray());
         return $this;
     }
 
@@ -122,10 +132,10 @@ class PivotTableConfig extends TableConfig
     /**
      * @param string $pivColumnAlias
      * @param string|integer $width
-     * @return int|string width each item of columns based on pivot column
+     * @return self|int|string width each item of columns based on pivot column
      * @throws Exception
      */
-    public function widthPivotItems(string $pivColumnAlias, $width = null)
+    public function pivotWidthItems(string $pivColumnAlias, $width = null)
     {
         $this->validatePivotColumn($pivColumnAlias);
         if (is_null($width)) {
@@ -137,10 +147,10 @@ class PivotTableConfig extends TableConfig
         if(is_numeric($width)) {
             //width set in percents
             $this->pivot->$pivColumnAlias->itemWidth = intval($width);
-            return $this->pivot->$pivColumnAlias->itemWidth;
+            return $this;
         } elseif(is_string($width) && substr(trim(strtolower($width)), -2) == 'px') {
             $this->pivot->$pivColumnAlias->itemWidth = trim(strtolower($width));
-            return $this->pivot->$pivColumnAlias->itemWidth;
+            return $this;
         } else {
             //Incorrect value of width
             throw new Exception('Width has to be int like 10 or string like 10px');
@@ -188,4 +198,5 @@ class PivotTableConfig extends TableConfig
         $this->validatePivotColumn($alias);
         return $this->pivot->$alias;
     }
+
 }

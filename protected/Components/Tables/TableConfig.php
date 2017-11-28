@@ -79,7 +79,7 @@ class TableConfig extends Config implements TableConfigInterface
         if (empty($tableName)) {
             throw new Exception('Table name can not be empty');
         }
-        $path = self::BASE_CONF_PATH . $tableName . '.php';
+        $path = static::BASE_CONF_PATH . $tableName . '.php';
         /* if class is not set try to load existing config */
         if (empty($class)) {
             $conf = (new Config($path));
@@ -322,7 +322,7 @@ class TableConfig extends Config implements TableConfigInterface
      * get/set table preFilter
      * if preFilter already exists, it'll be overwritten
      * preFilter can not be overwritten any operations filter
-     * @return self|SqlFilter
+     * @return static|SqlFilter
      */
     public function tablePreFilter(SqlFilter $preFilter = null)
     {

@@ -56,7 +56,7 @@ interface PivotTableConfigInterface extends TableConfigInterface
      * @param $pivotColumn
      * @return string|integer width each item of columns based on pivot column
      */
-    public function widthPivotItems(string $pivotColumn, $width);
+    public function pivotWidthItems(string $pivotColumn, $width);
 
     /**
      * @param $column

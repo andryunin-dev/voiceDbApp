@@ -10,6 +10,7 @@ use App\Components\Paginator;
 use App\Components\Reports\PivotReport;
 use App\Components\Sorter;
 use App\Components\Sql\SqlFilter;
+use App\Components\Tables\PivotTable;
 use App\Components\Tables\PivotTableConfig;
 use App\Components\Tables\Table;
 use App\Components\Tables\TableConfig;
@@ -24,6 +25,7 @@ use T4\Core\Std;
 use T4\Core\Url;
 use T4\Http\Request;
 use T4\Mvc\Controller;
+use T4\Orm\Model;
 
 class Test extends Controller
 {
@@ -96,8 +98,18 @@ class Test extends Controller
 
         var_dump($tab);
     }
+
+    public function actionBuildTable()
+    {
+        $tb = new Table(new TableConfig('deviceInfo'));
+        $tb->rowsOnPage(40);
+        $res = $tb->buildTableConfig();
+        $this->data = $res;
+    }
+
     public function actionConfigPivotTable()
     {
+        $tableName = 'deviceInfoPivot';
         $pivots = ['plTitle' => 'platformTitle'];
         $columns = ['region', 'city', 'office', 'plTitle', 'action'];
         $confColumns = [
@@ -113,9 +125,8 @@ class Test extends Controller
         ];
         $preFilter = (new SqlFilter(DevModulePortGeo::class))
             ->setFilter('appType', 'eq', ['phone']);
-        $tab = (new PivotTableConfig('deviceInfoPivot', DevModulePortGeo::class))
-            ->dataUrl('/test/devicesTable.json')
-            ->tableWidth(100);
+
+        $tab = (new PivotTableConfig($tableName, DevModulePortGeo::class));
         foreach ($pivots as $alias => $col) {
             $tab->definePivotColumn($col, $alias);
         }
@@ -127,8 +138,11 @@ class Test extends Controller
             $tab->columnConfig($col, new Std($conf));
         }
         $tab
+            ->dataUrl('/test/devicesTable.json')
+            ->tableWidth(100)
             ->pivotPreFilter('plTitle', $preFilter)
             ->pivotSortBy('plTitle', ['platformTitle'])
+            ->pivotWidthItems('plTitle', '50px')
             ->cssSetHeaderTableClasses(['bg-primary', 'table-bordered'])
             ->cssSetBodyTableClasses(["table", "cell-bordered", "cust-table-striped"])
             ->rowsOnPageList([10,50,100,200,'все'])
@@ -138,18 +152,17 @@ class Test extends Controller
         var_dump($tab);
     }
 
-    public function actionBuildTable()
+    public function actionBuildPivotTable()
     {
-
-
-        $tb = new Table(new TableConfig('deviceInfo'));
+        $tableName = 'deviceInfoPivot';
+        $tb = new PivotTable(new PivotTableConfig($tableName));
         $tb->rowsOnPage(40);
-        $res = $tb->buildTableConfig();
-        $this->data = $res;
     }
+
 
     public function actionTest()
     {
+        $conn = Model::getDbConnection();
 
     }
 

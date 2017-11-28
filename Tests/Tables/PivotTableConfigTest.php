@@ -204,14 +204,25 @@ class PivotTableConfigTest extends \PHPUnit\Framework\TestCase
          $conf->pivotSortBy($pivotAlias, $sortBy);
     }
 
+    public function providerWidthPivotItems()
+    {
+        return [
+            '_1' => [10, 10],
+            '_2' => ['10px', '10px']
+        ];
+    }
+
     /**
-     * @depends testCreateBasePivotConfig
+     * @depends      testCreateBasePivotConfig
+     * @dataProvider providerWidthPivotItems
+     * @param $width
+     * @param $expected
      * @param PivotTableConfig $conf
      */
-    public function testWidthPivotItems($conf)
+    public function testWidthPivotItems($width, $expected, $conf)
     {
-        $this->assertEquals(10, $conf->widthPivotItems('columnTwo', 10));
-        $this->assertEquals('10px', $conf->widthPivotItems('columnTwo', ' 10PX '));
+        $this->assertInstanceOf(PivotTableConfig::class, $conf->pivotWidthItems('columnTwo', $width));
+        $this->assertEquals($expected, $conf->pivotWidthItems('columnTwo'));
     }
     /**
      * @depends testCreateBasePivotConfig
@@ -220,7 +231,7 @@ class PivotTableConfigTest extends \PHPUnit\Framework\TestCase
      */
     public function testWidthPivotItems_NotValidType($conf)
     {
-        $conf->widthPivotItems('columnTwo', [10]);
+        $conf->pivotWidthItems('columnTwo', [10]);
     }
     /**
      * @depends testCreateBasePivotConfig
@@ -229,6 +240,6 @@ class PivotTableConfigTest extends \PHPUnit\Framework\TestCase
      */
     public function testWidthPivotItems_NotValidValue($conf)
     {
-        $conf->widthPivotItems('columnTwo', '10pix');
+        $conf->pivotWidthItems('columnTwo', '10pix');
     }
 }

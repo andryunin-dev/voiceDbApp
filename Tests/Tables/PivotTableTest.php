@@ -8,15 +8,16 @@ require_once __DIR__ . '/../../protected/boot.php';
 use App\Components\Tables\PivotTableConfig;
 use App\Components\Tables\TableConfig;
 use App\Components\Tables\Table;
+use App\Components\Tables\PivotTable;
 use UnitTest\UnitTestClasses\ModelClass_1;
 use App\Components\Sql\SqlFilter;
 use T4\Core\Std;
 use T4\Core\Config;
 
-class TableTest extends \PHPUnit\Framework\TestCase
+class PivotTableTest extends \PHPUnit\Framework\TestCase
 {
     /**
-     * @var TableConfig $tableConf
+     * @var PivotTableConfig $tableConf
      */
     protected static $tableConf;
     /**
@@ -53,7 +54,6 @@ TAG;
         \T4\Console\Application::instance()->setConfig(
             new \T4\Core\Config(ROOT_PATH . '/Tests/dbTestsConfig.php')
         );
-
         /*
          * create table for class ModelClass_1
          */
@@ -65,14 +65,12 @@ TAG;
          */
         $className = ModelClass_1::class;
         do {
-            self::$tableName = rand() . '__unitTest_testTableConfig.php';
+            self::$tableName = rand() . '__unitTest_testPivotTableConfig.php';
         } while (file_exists(self::$tableName));
         /*
          * Create config for test table and save one
          */
-        $preFilterData = [
-            'columnOne' => ['eq' => ['val_1']]
-        ];
+        $preFilterData = [];
         $sortTemplates = [
             'columnOne' => ['columnOne' => '', 'columnThree' => '']
         ];
@@ -80,11 +78,14 @@ TAG;
         $sortDirect = 'asc';
         $tableColumns = [
             'columnOne',
-            'columnTwo',
+            'columnTwoPivot',
             'columnThree'
         ];
         $extraColumns = [
             'extra_1'
+        ];
+        $pivotColumns = [
+            'columnTwoPivot' => 'columnTwo'
         ];
         $columnsConfig = [
             'columnOne' => [
@@ -94,12 +95,9 @@ TAG;
                 'sortable' => true,
                 'filterable' => true
             ],
-            'columnTwo' => [
-                'id' => '',
-                'name' => 'title columnTwo',
-                'width' => '10px',
-                'sortable' => true,
-                'filterable' => true
+            'columnTwoPivot' => [
+                'id' => 'columnTwoPivot',
+                'width' => 60
             ],
             'columnThree' => [
                 'id' => '',
@@ -114,21 +112,36 @@ TAG;
                 'width' => '100px',
             ],
         ];
+        $pivotPreFilterData = [
+            'columnOne' => ['eq' => ['c-1-v-0']]
+        ];
+        $pivotSortBy = ['columnTwo', 'columnThree'];
         $rowsPerPageList = [10, 20, 30];
-        self::$tableConf = new TableConfig(self::$tableName, $className);
+        self::$tableConf = new PivotTableConfig(self::$tableName, $className);
+        foreach ($pivotColumns as $alias => $col) {
+            self::$tableConf->definePivotColumn($col, $alias);
+        }
         self::$tableConf->columns(array_merge($tableColumns, $extraColumns), $extraColumns);
         foreach ($columnsConfig as $col => $conf) {
             self::$tableConf->columnConfig($col, new Std($conf));
         }
 
-        $preFilter = new SqlFilter($className);
-        $preFilter->setFilterFromArray($preFilterData);
-        self::$tableConf->tablePreFilter($preFilter);
+        $preFilter = (new SqlFilter($className))
+            ->setFilterFromArray($preFilterData);
 
-        self::$tableConf->sortOrderSets($sortTemplates);
-        self::$tableConf->sortBy($sortBy, $sortDirect);
-        self::$tableConf->rowsOnPageList($rowsPerPageList);
-        self::$tableConf->save();
+        $pivotPreFilter = (new SqlFilter($className))
+            ->setFilterFromArray($pivotPreFilterData);
+
+
+        self::$tableConf
+            ->tablePreFilter($preFilter)
+            ->pivotPreFilter('columnTwoPivot', $pivotPreFilter)
+            ->pivotSortBy('columnTwoPivot', $pivotSortBy)
+            ->pivotWidthItems('columnTwoPivot', '50px')
+            ->sortOrderSets($sortTemplates)
+            ->sortBy($sortBy, $sortDirect)
+            ->rowsOnPageList($rowsPerPageList)
+            ->save();
     }
     public static function tearDownAfterClass()
     {
@@ -147,13 +160,13 @@ TAG;
 
     public function testReadTableConfig()
     {
-        $conf = new TableConfig(self::$tableName);
-        $this->assertInstanceOf(TableConfig::class, $conf);
+        $conf = new PivotTableConfig(self::$tableName);
+        $this->assertInstanceOf(PivotTableConfig::class, $conf);
         $this->assertNotEmpty($conf->toArray());
 
-        $table = new Table($conf);
-        $this->assertInstanceOf(Table::class, $table);
-        $this->assertInstanceOf(TableConfig::class, $table->config);
+        $table = new PivotTable($conf);
+        $this->assertInstanceOf(PivotTable::class, $table);
+        $this->assertInstanceOf(PivotTableConfig::class, $table->config);
         $this->assertInstanceOf(SqlFilter::class, $table->filter);
         $this->assertInstanceOf(\T4\Dbal\IDriver::class, $table->driver);
         $this->assertInstanceOf(Std::class, $table->pagination);
@@ -161,38 +174,4 @@ TAG;
         return $table;
     }
 
-    /**
-     * @depends testReadTableConfig
-     * @param Table $table
-     */
-    public function testRowsOnPage($table)
-    {
-        $res = $table->rowsOnPage(42);
-        $this->assertInstanceOf(Table::class, $res);
-
-        $this->assertEquals(42, $table->rowsOnPage());
-    }
-
-    /**
-     * @depends testReadTableConfig
-     * @param Table $table
-     */
-    public function testSelectStatement($table)
-    {
-        $expected = 'SELECT "columnOne", "columnTwo", "columnThree" FROM "ModelClass_1" WHERE "columnOne" = :columnOne_eq_0 ORDER BY "columnOne" ASC, "columnThree" ASC ';
-        $select = $table->selectStatement();
-        $select = str_replace("\n", ' ', $select);
-        $this->assertEquals($expected, $select);
-    }
-    /**
-     * @depends testReadTableConfig
-     * @param Table $table
-     */
-    public function testCountStatement($table)
-    {
-        $expected = 'SELECT count(*) FROM "ModelClass_1" WHERE "columnOne" = :columnOne_eq_0';
-        $count = $table->countStatement();
-        $count = str_replace("\n", ' ', $count);
-        $this->assertEquals($expected, $count);
-    }
 }
