@@ -30,7 +30,7 @@ class PivotTableConfigTest extends \PHPUnit\Framework\TestCase
      * @return PivotTableConfig
      * @internal param $expected
      */
-    public function testSetPivotColumn($column, $alias, $expectedAlias, $expectedValue)
+    public function testDefinePivotColumn($column, $alias, $expectedAlias, $expectedValue)
     {
         $fileName = '__unitTest_testTableConfig.php';
         $columnsArray = array_keys(ModelClass_1::getColumns());
@@ -38,10 +38,96 @@ class PivotTableConfigTest extends \PHPUnit\Framework\TestCase
         $conf = new PivotTableConfig($fileName, ModelClass_1::class);
         $conf->columns($columnsArray);
 
-        $res = $conf->setPivotColumn($column, $alias);
-        $this->assertInstanceOf(Config::class, $res);
-        $this->assertEquals($res->$expectedAlias->column, $expectedValue);
+        $res = $conf->definePivotColumn($column, $alias);
+        $this->assertInstanceOf(PivotTableConfig::class, $res);
+        $this->assertTrue(isset($res->pivot->$expectedAlias));
+        $this->assertEquals($res->pivot->$expectedAlias->column, $expectedValue);
         return $conf;
+    }
+
+    public function providerSetPivotColumn_Exception()
+    {
+        return [
+            '_1' => ['unknownColumn', null],
+            '_2' => ['extra_1', null],
+        ];
+    }
+
+    /**
+     * @dataProvider providerSetPivotColumn_Exception
+     * @expectedException \T4\Core\Exception
+     * @param $column
+     * @param $alias
+     * @return PivotTableConfig
+     */
+    public function testDefinePivotColumn_Exception($column, $alias)
+    {
+        $fileName = '__unitTest_testTableConfig.php';
+        $columnsArray = array_keys(ModelClass_1::getColumns());
+
+        $conf = new PivotTableConfig($fileName, ModelClass_1::class);
+        $conf->columns($columnsArray, ['extra_1']);
+
+        $conf->definePivotColumn($column, $alias);
+    }
+
+    public function providerColumns()
+    {
+        return [
+            '_1' => [['columnOne', 'columnTwo', 'pivotAlias', 'extra_1'], ['extra_1'], ['pivotAlias' => 'columnThree']]
+        ];
+    }
+
+    /**
+     * @dataProvider providerColumns
+     * @param $columns
+     * @param $extra
+     * @param $pivots
+     */
+    public function testColumns($columns, $extra, $pivots)
+    {
+        $fileName = '__unitTest_testTableConfig.php';
+        $conf = new PivotTableConfig($fileName, ModelClass_1::class);
+        foreach ($pivots as $alias => $col) {
+            $conf->definePivotColumn($col, $alias);
+
+            $pivots = $conf->pivots;
+            $this->assertInstanceOf(Std::class, $pivots);
+            $this->assertTrue(isset($pivots->$alias));
+            $this->assertEquals($col, $pivots->$alias->column);
+        }
+        $res = $conf->columns($columns, $extra);
+        $this->assertInstanceOf(PivotTableConfig::class, $res);
+        $resColumns = $conf->columns();
+        $this->assertInstanceOf(Std::class, $resColumns);
+        $this->assertEquals($columns, $resColumns->toArray());
+    }
+
+    public function providerColumns_Exception()
+    {
+        return [
+            '_Unknown column' => [['unknown', 'columnTwo', 'pivotAlias', 'extra_1'], ['extra_1'], ['pivotAlias' => 'columnThree']],
+            '_not correct alias' => [['unknown', 'columnTwo', 'pivotAlias_err', 'extra_1'], ['extra_1'], ['pivotAlias' => 'columnThree']],
+            '_not_correct_extra' => [['unknown', 'columnTwo', 'pivotAlias_err', 'extra_2'], ['extra_1'], ['pivotAlias' => 'columnThree']],
+            '_not_correct_pivot_column' => [['unknown', 'columnTwo', 'pivotAlias_err', 'extra_2'], ['extra_1'], ['pivotAlias' => 'columnN']],
+        ];
+    }
+
+    /**
+     * @dataProvider providerColumns_Exception
+     * @expectedException \T4\Core\Exception
+     * @param $columns
+     * @param $extra
+     * @param $pivots
+     */
+    public function testColumns_Exception($columns, $extra, $pivots)
+    {
+        $fileName = '__unitTest_testTableConfig.php';
+        $conf = new PivotTableConfig($fileName, ModelClass_1::class);
+        foreach ($pivots as $alias => $col) {
+            $conf->definePivotColumn($col, $alias);
+        }
+        $conf->columns($columns, $extra);
     }
 
     /**
@@ -51,9 +137,11 @@ class PivotTableConfigTest extends \PHPUnit\Framework\TestCase
     {
         $fileName = '__unitTest_testTableConfig.php';
         $columnsArray = array_keys(ModelClass_1::getColumns());
+        $extraCols = ['extra_1', 'extra_2'];
+        unset($columnsArray[$count - 1]);
         $conf = new PivotTableConfig($fileName, ModelClass_1::class);
-        $conf->columns($columnsArray);
-        $conf->setPivotColumn('columnTwo');
+        $conf->columns($columnsArray, $extraCols);
+        $conf->definePivotColumn('columnTwo');
         $this->assertInstanceOf(PivotTableConfig::class, $conf);
         $this->assertEquals('columnTwo', $conf->pivots->columnTwo->column);
         return $conf;
@@ -71,7 +159,7 @@ class PivotTableConfigTest extends \PHPUnit\Framework\TestCase
         $preFilter->addFilter('columnOne', 'eq', ['test']);
         $res = $conf->pivotPreFilter('columnTwo',$preFilter);
         $expected = $preFilter->toArray();
-        $this->assertEquals($expected, $res->toArray());
+        $this->assertInstanceOf(PivotTableConfig::class, $res);
         //test getter
         $this->assertEquals($expected, $conf->pivotPreFilter('columnTwo')->toArray());
     }
@@ -86,9 +174,12 @@ class PivotTableConfigTest extends \PHPUnit\Framework\TestCase
         $sortBy = ['columnOne', 'columnTwo'];
         $expected = array_fill_keys($sortBy, '');
         $res = $conf->pivotSortBy('columnTwo', $sortBy);
-        $this->assertEquals($expected, $res->toArray());
+        $this->assertInstanceOf(PivotTableConfig::class, $res);
+        $this->assertEquals($expected, $conf->pivotSortBy('columnTwo')->toArray());
+
         $expected = array_fill_keys($sortBy, 'asc');
-        $this->assertEquals($expected, $conf->pivotSortBy('columnTwo', $sortBy, 'asc')->toArray());
+        $conf->pivotSortBy('columnTwo', $sortBy, 'asc');
+        $this->assertEquals($expected, $conf->pivotSortBy('columnTwo')->toArray());
     }
 
     public function providerPivotSortBy_exceptions()

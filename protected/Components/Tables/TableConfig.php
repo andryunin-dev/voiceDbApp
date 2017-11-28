@@ -193,7 +193,7 @@ class TableConfig extends Config implements TableConfigInterface
      */
     public function columnConfig(string $column, Std $config = null)
     {
-        $this->validateColumnIsSet($column);
+        $this->validateColumnIsDefined($column);
         if (is_null($config)) {
             return $this->columns->$column;
         }
@@ -229,7 +229,7 @@ class TableConfig extends Config implements TableConfigInterface
      */
     public function appendColumnAlias(string $column, string $alias, string $operator = '')
     {
-        $this->validateColumnIsSet($column);
+        $this->validateColumnIsDefined($column);
         if (! empty($operator)) {
             $this->validateSqlOperator($operator);
         }
@@ -334,9 +334,13 @@ class TableConfig extends Config implements TableConfigInterface
         return $this;
     }
 
-    public function isColumnSet($column) :bool
+    public function isColumnDefined($column) :bool
     {
         return isset($this->columns->$column);
+    }
+    public function isColumnDefinedInClass(string $column)
+    {
+        return in_array($column, array_keys($this->className::getColumns()));
     }
 
     public function isColumnSortable($column) :bool
@@ -454,7 +458,7 @@ class TableConfig extends Config implements TableConfigInterface
         $this->cssStyles->$tablePart->$tag = new Std($tar);
         return $this;
     }
-    protected function isAllColumnsSet(array $columns, $checkInExtraColumns = false)
+    protected function areAllColumnsDefined(array $columns, $checkInExtraColumns = false)
     {
         $classColumns = array_keys($this->className::getColumns());
         $extraColumns = true === $checkInExtraColumns ? $this->extraColumns->toArray() : [];
@@ -465,6 +469,7 @@ class TableConfig extends Config implements TableConfigInterface
         }
         return true;
     }
+
     protected function validateColumnName(string $columns, $checkInExtraColumns = false)
     {
         $classColumns = array_keys($this->className::getColumns());
@@ -475,9 +480,9 @@ class TableConfig extends Config implements TableConfigInterface
         }
         return true;
     }
-    protected function validateColumnIsSet($column)
+    protected function validateColumnIsDefined($column)
     {
-        if ($this->isColumnSet($column)) {
+        if ($this->isColumnDefined($column)) {
             return true;
         } else {
             throw new Exception('Column ' . $column . ' doesn\'t set as table column');

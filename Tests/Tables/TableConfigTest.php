@@ -55,7 +55,6 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
         return $conf;
     }
 
-
     /**
      * @expectedException \T4\Core\Exception
      */
@@ -122,13 +121,55 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
         return $conf;
     }
 
+    public function providerIsColumnDefined()
+    {
+        return [
+            ['columnOne', true],
+            ['extra_1', true],
+            ['unknownColumn', false]
+        ];
+    }
+
+    /**
+     * @dataProvider providerIsColumnDefined
+     * @depends      testColumns_with_ExtraColumns
+     * @param $column
+     * @param $expected
+     * @param TableConfig $conf
+     */
+    public function testIsColumnDefined($column, $expected, $conf)
+    {
+        $this->assertEquals($expected, $conf->isColumnDefined($column));
+    }
+
+    public function providerIsColumnDefinedInClass()
+    {
+        return [
+            ['columnOne', true],
+            ['extra_1', false],
+            ['unknownColumn', false]
+        ];
+    }
+    /**
+     * @dataProvider providerIsColumnDefinedInClass
+     * @depends      testColumns_with_ExtraColumns
+     * @param $column
+     * @param $expected
+     * @param TableConfig $conf
+     */
+    public function testIsColumnDefinedInClass($column, $expected, $conf)
+    {
+        $this->assertEquals($expected, $conf->isColumnDefinedInClass($column));
+    }
+
+
     /**
      * @param TableConfig $conf
      * @depends testColumns_Setter_and_getter
      */
     public function testIsColumnSet($conf)
     {
-        $this->assertTrue($conf->isColumnSet('columnTwo'));
+        $this->assertTrue($conf->isColumnDefined('columnTwo'));
     }
 
     /**
@@ -137,7 +178,7 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
      */
     public function testIsColumnSet_Extra($conf)
     {
-        $this->assertTrue($conf->isColumnSet('extra_1'));
+        $this->assertTrue($conf->isColumnDefined('extra_1'));
     }
 
     /**

@@ -10,6 +10,7 @@ namespace App\Components\Tables;
 
 
 use App\Components\Sql\SqlFilter;
+use T4\Core\Exception;
 use T4\Core\Std;
 
 interface PivotTableConfigInterface extends TableConfigInterface
@@ -31,7 +32,7 @@ interface PivotTableConfigInterface extends TableConfigInterface
      *      If set in percents (ie 20), width for each column will be calculated by width from columns properties
      *
      */
-    public function setPivotColumn(string $column);
+    public function definePivotColumn(string $column);
 
     /**
      * @param string $pivotColumn
@@ -42,13 +43,13 @@ interface PivotTableConfigInterface extends TableConfigInterface
     public function pivotPreFilter(string $pivotColumn, SqlFilter $condition = null);
 
     /**
-     * @param string $pivotColumn
+     * @param string $pivotColumnAlias
      * @param array $sortColumns
      * @param string $direction
      * @return Std sort columns as property, direction as values
      * set/get sort columns and direction
      */
-    public function pivotSortBy(string $pivotColumn, array $sortColumns = null, string $direction = '');
+    public function pivotSortBy(string $pivotColumnAlias, array $sortColumns = null, string $direction = '');
 
     /**
      * @param $width
@@ -64,4 +65,12 @@ interface PivotTableConfigInterface extends TableConfigInterface
      */
     public function isPivot($column) :bool ;
 
+    public function getPivots();
+
+    /**
+     * @param string $alias
+     * @return Std
+     * @throws Exception
+     */
+    public function getPivotColumnByAlias(string $alias);
 }

@@ -88,7 +88,7 @@ interface TableConfigInterface
      */
     public function tablePreFilter(SqlFilter $preFilter = null);
 
-    public function isColumnSet($column) :bool ;
+    public function isColumnDefined($column) :bool ;
 
     /**
      * @param array|null $variantsList

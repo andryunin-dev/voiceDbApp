@@ -7,8 +7,6 @@ use T4\Core\Std;
 
 interface TableInterface
 {
-    public function __construct(TableConfigInterface $tableConfig);
-
     /**
      * @return TableConfigInterface
      * return entire table config

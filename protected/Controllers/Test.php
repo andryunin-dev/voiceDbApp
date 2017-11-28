@@ -10,6 +10,7 @@ use App\Components\Paginator;
 use App\Components\Reports\PivotReport;
 use App\Components\Sorter;
 use App\Components\Sql\SqlFilter;
+use App\Components\Tables\PivotTableConfig;
 use App\Components\Tables\Table;
 use App\Components\Tables\TableConfig;
 use App\Models\Appliance;
@@ -61,7 +62,7 @@ class Test extends Controller
         $columns = ['region', 'city', 'office', 'hostname_dn', 'appType', 'platformTitle', 'softwareAndVersion', 'moduleInfo', 'portInfo', 'action'];
         $confColumns = [
             'region' => ['id' => 'region','name' => 'Регион', 'width' => 10, 'sortable' => true, 'filterable' => true],
-            'office' => ['id' => 'office','name' => 'Оффисе', 'width' =>150, 'sortable' => true, 'filterable' => true],
+            'office' => ['id' => 'office','name' => 'Оффисе', 'width' =>15, 'sortable' => true, 'filterable' => true],
             'hostname_dn' => ['id' => 'hostname_dn','name' => 'hostname', 'width' => 15, 'sortable' => true, 'filterable' => true],
             'appType' => ['id' => 'app-type','name' => 'Тип', 'width' => '70px', 'sortable' => true, 'filterable' => true],
             'platformTitle' => ['id' => 'appliance','name' => 'Оборудование', 'width' => 20, 'sortable' => true, 'filterable' => true],
@@ -90,6 +91,47 @@ class Test extends Controller
         $tab->cssSetHeaderTableClasses(['bg-primary', 'table-bordered'])
             ->cssSetBodyTableClasses(["table", "cell-bordered", "cust-table-striped"]);
         $tab->rowsOnPageList([10,50,100,200,'все'])
+            ->tablePreFilter($preFilter)
+            ->save();
+
+        var_dump($tab);
+    }
+    public function actionConfigPivotTable()
+    {
+        $pivots = ['plTitle' => 'platformTitle'];
+        $columns = ['region', 'city', 'office', 'plTitle', 'action'];
+        $confColumns = [
+            'region' => ['id' => 'region','name' => 'Регион', 'width' => 10, 'sortable' => true, 'filterable' => true],
+            'city' => ['id' => 'city','name' => 'Город', 'width' => 10, 'sortable' => true, 'filterable' => true],
+            'office' => ['id' => 'office','name' => 'Оффисе', 'width' =>15, 'sortable' => true, 'filterable' => true],
+            'plTitle' => ['id' => 'pl','name' => 'Оборудование', 'width' => 65],
+            'action' => ['id' => 'action','name' => 'Действия', 'width' => '105px'],
+        ];
+        $sortTemplates = [
+            'region' => ['region' => '', 'city' => ''],
+            'city' => ['city' => '', 'office' => ''],
+        ];
+        $preFilter = (new SqlFilter(DevModulePortGeo::class))
+            ->setFilter('appType', 'eq', ['phone']);
+        $tab = (new PivotTableConfig('deviceInfoPivot', DevModulePortGeo::class))
+            ->dataUrl('/test/devicesTable.json')
+            ->tableWidth(100);
+        foreach ($pivots as $alias => $col) {
+            $tab->definePivotColumn($col, $alias);
+        }
+        $tab->columns($columns, ['action'])
+            ->sortOrderSets($sortTemplates)
+            ->sortBy('region');
+        foreach ($confColumns as $col => $conf)
+        {
+            $tab->columnConfig($col, new Std($conf));
+        }
+        $tab
+            ->pivotPreFilter('plTitle', $preFilter)
+            ->pivotSortBy('plTitle', ['platformTitle'])
+            ->cssSetHeaderTableClasses(['bg-primary', 'table-bordered'])
+            ->cssSetBodyTableClasses(["table", "cell-bordered", "cust-table-striped"])
+            ->rowsOnPageList([10,50,100,200,'все'])
             ->tablePreFilter($preFilter)
             ->save();
 

@@ -12,7 +12,7 @@ use T4\Orm\Model;
  * Class PivotTableConfig
  * @package App\Components\Tables
  *
- * @property Config $pivots
+ * @property Std $pivots
  */
 class PivotTableConfig extends TableConfig
     implements PivotTableConfigInterface
@@ -33,13 +33,34 @@ class PivotTableConfig extends TableConfig
         'column' => '',
         'preFilter' => [], //preFilter for pivot column values
         'sortBy' => [], //sort columns and directions for pivot column ['column_1' => 'asc|desc', 'column_N' => 'asc|desc']
-        'width' => 0, //width for each column from pivot values.
+        'itemWidth' => 0, //width for each column from pivot values.
     ];
 
     public function __construct(string $tableName, string $class = null)
     {
         parent::__construct($tableName, $class);
         $this->pivot = new Config();
+    }
+
+    public function columns(array $columns = null, array $extraColumns = null)
+    {
+        /*if arg is null - return list of columns as Std*/
+        if (is_null($columns)) {
+            $res = array_keys($this->getAllColumnsConfig()->toArray());
+            return new Std($res);
+        }
+        $extraColumns = is_null($extraColumns) ? [] : $extraColumns;
+        $classColumns = array_keys($this->className::getColumns());
+        $pivotAliases = array_keys($this->pivot->toArray());
+        $unionColumns = array_merge($classColumns, $extraColumns, $pivotAliases);
+        $diff = array_diff($columns, $unionColumns);
+        if (count($diff) > 0) {
+            throw new Exception('columns have to belong ' . $this->className::getTableName() . ' table or is defined as extraColumns or is defined as pivot column!');
+        }
+        $this->extraColumns = new Std($extraColumns);
+        $columns = array_fill_keys($columns, $this->columnPropertiesTemplate);
+        $this->columns = new Std($columns);
+        return $this;
     }
 
     /**
@@ -51,23 +72,22 @@ class PivotTableConfig extends TableConfig
      * if $alias is null, one will set = $column
      * $alias has to be unique in pivot part of config
      */
-    public function setPivotColumn(string $column, string $alias = null)
+    public function definePivotColumn(string $column, string $alias = null)
     {
-        if (! $this->isColumnSet($column)) {
-            throw new Exception('Before set column as pivot define it as table column');
+        if (! $this->isColumnDefinedInClass($column)) {
+            throw new Exception('Pivot column has to be one of class columns(properties)');
         }
         $alias = is_null($alias) ? $column : $alias;
-        $this->pivot->$alias = new Config($this->pivotColumnPropertiesTemplate);
+        $this->pivot->$alias = new Std($this->pivotColumnPropertiesTemplate);
         $this->pivot->$alias->column = $column;
-        return $this->pivot;
+        return $this;
     }
 
     /**
      * @param string $pivColumnAlias
      * @param SqlFilter|null $preFilter
-     * @return Std return summary prefilter for column
-     * set/get prefilter for decided pivot column
-     * @internal param string $pivotColumn
+     * @return self|Std return summary prefilter for column
+     * set/get preFilter for decided pivot column
      */
     public function pivotPreFilter(string $pivColumnAlias, SqlFilter $preFilter = null) :Std
     {
@@ -76,27 +96,27 @@ class PivotTableConfig extends TableConfig
             return $this->pivot->$pivColumnAlias->preFilter;
         }
         $this->pivot->$pivColumnAlias->preFilter = new Config($preFilter->toArray());
-        return $this->pivot->$pivColumnAlias->preFilter;
+        return $this;
     }
 
     /**
      * @param string $pivColumnAlias
      * @param array $sortColumns
      * @param string $direction
-     * @return Config sort columns as property, direction as values
+     * @return Std|PivotTableConfig sort columns as property, direction as values
      * set/get sort columns and direction
      * @throws Exception
      */
-    public function pivotSortBy(string $pivColumnAlias, array $sortColumns = null, string $direction = '') :Config
+    public function pivotSortBy(string $pivColumnAlias, array $sortColumns = null, string $direction = '')
     {
         $this->validatePivotColumn($pivColumnAlias);
         if (is_null($sortColumns)) {
             return $this->pivot->$pivColumnAlias->sortBy;
         }
         $this->validateSortDirection($direction);
-        $this->isAllColumnsSet($sortColumns);
-        $this->pivot->$pivColumnAlias->sortBy = new Config(array_fill_keys($sortColumns, strtolower($direction)));
-        return $this->pivot->$pivColumnAlias->sortBy;
+        $this->areAllColumnsDefined($sortColumns);
+        $this->pivot->$pivColumnAlias->sortBy = new Std(array_fill_keys($sortColumns, strtolower($direction)));
+        return $this;
     }
 
     /**
@@ -109,18 +129,18 @@ class PivotTableConfig extends TableConfig
     {
         $this->validatePivotColumn($pivColumnAlias);
         if (is_null($width)) {
-            return $this->pivot->$pivColumnAlias->width;
+            return $this->pivot->$pivColumnAlias->itemWidth;
         }
         if(!is_string($width) && !is_int($width)) {
             throw new Exception('Width has to be int like 10 or string like 10px');
         }
         if(is_numeric($width)) {
             //width set in percents
-            $this->pivot->$pivColumnAlias->width = intval($width);
-            return $this->pivot->$pivColumnAlias->width;
+            $this->pivot->$pivColumnAlias->itemWidth = intval($width);
+            return $this->pivot->$pivColumnAlias->itemWidth;
         } elseif(is_string($width) && substr(trim(strtolower($width)), -2) == 'px') {
-            $this->pivot->$pivColumnAlias->width = trim(strtolower($width));
-            return $this->pivot->$pivColumnAlias->width;
+            $this->pivot->$pivColumnAlias->itemWidth = trim(strtolower($width));
+            return $this->pivot->$pivColumnAlias->itemWidth;
         } else {
             //Incorrect value of width
             throw new Exception('Width has to be int like 10 or string like 10px');
@@ -153,8 +173,19 @@ class PivotTableConfig extends TableConfig
         return true;
     }
 
-    protected function getPivots()
+    public function getPivots()
     {
         return $this->pivot;
+    }
+
+    /**
+     * @param string $alias
+     * @return Std
+     * @throws Exception
+     */
+    public function getPivotColumnByAlias(string $alias)
+    {
+        $this->validatePivotColumn($alias);
+        return $this->pivot->$alias;
     }
 }

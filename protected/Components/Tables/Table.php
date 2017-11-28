@@ -28,7 +28,7 @@ class Table extends Std
         'numberOfPages' => 0,
     ];
 
-    public function __construct(TableConfigInterface $tableConfig)
+    public function __construct(TableConfig $tableConfig)
     {
         parent::__construct();
 
