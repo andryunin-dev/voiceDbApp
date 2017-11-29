@@ -69,17 +69,12 @@ interface TableConfigInterface
      */
     public function sortBy(string $sortTemplate, string $direction = '');
 
-    /**
-     * @return mixed
-     * return sort order with directions
-     */
-    public function getSortOrder();
 
     /**
-     * @return string
+     * @return string return sort order
      * return sort order
      */
-    public function getSortOrderAsQuotedString();
+    public function sortByQuotedString();
     /**
      * @param SqlFilter $preFilter
      * @return SqlFilter

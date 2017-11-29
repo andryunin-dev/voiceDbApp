@@ -37,7 +37,7 @@ interface PivotTableConfigInterface extends TableConfigInterface
     /**
      * @param string $pivotColumn
      * @param SqlFilter|null $condition
-     * @return SqlFilter return summary prefilter for column
+     * @return self|SqlFilter return summary prefilter for column
      * set/get prefilter for decided pivot column
      */
     public function pivotPreFilter(string $pivotColumn, SqlFilter $condition = null);
@@ -50,6 +50,12 @@ interface PivotTableConfigInterface extends TableConfigInterface
      * set/get sort columns and direction
      */
     public function pivotSortBy(string $pivotColumnAlias, array $sortColumns = null, string $direction = '');
+
+    /**
+     * @param string $pivColumnAlias
+     * @return string
+     */
+    public function pivotSortByQuotedString(string $pivColumnAlias);
 
     /**
      * @param $width
@@ -72,5 +78,12 @@ interface PivotTableConfigInterface extends TableConfigInterface
      * @return Std
      * @throws Exception
      */
-    public function getPivotColumnByAlias(string $alias);
+//    public function getPivotColumnByAlias(string $alias);
+
+    /**
+     * @param string $alias
+     * @return Std
+     * return all items for pivot column
+     */
+//    public function findPivotItems(string $alias);
 }

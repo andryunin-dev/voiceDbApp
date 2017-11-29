@@ -13,6 +13,7 @@ use T4\Orm\Model;
  * @package App\Components\Tables
  *
  * @property Std $pivots
+ * @property Std $columnPropertiesTemplate
  */
 class PivotTableConfig extends TableConfig
     implements PivotTableConfigInterface
@@ -72,6 +73,24 @@ class PivotTableConfig extends TableConfig
         return $this;
     }
 
+//    public function getAllColumnsConfig(): Std
+//    {
+//        $res = new Std();
+//        foreach ($this->columns as $col => $colConf) {
+//            if (! isset($this->pivots->$col)) {
+//                $res->$col = $colConf;
+//                continue;
+//            }
+//            $pivotItems = $this->findPivotItems($col);
+//            foreach ($pivotItems as $idx => $item) {
+//                $res->$item = new Std($this->columnPropertiesTemplate);
+//                $res->$item->id = $idx . '_' . $item;
+//                $res->$item->width = $this->pivotWidthItems($col);
+//            }
+//        }
+//        return $res;
+//    }
+
     /**
      * @param string $column
      * @param string|null $alias
@@ -95,10 +114,10 @@ class PivotTableConfig extends TableConfig
     /**
      * @param string $pivColumnAlias
      * @param SqlFilter|null $preFilter
-     * @return self|Std return summary prefilter for column
+     * @return self|SqlFilter return summary prefilter for column
      * set/get preFilter for decided pivot column
      */
-    public function pivotPreFilter(string $pivColumnAlias, SqlFilter $preFilter = null) :Std
+    public function pivotPreFilter(string $pivColumnAlias, SqlFilter $preFilter = null)
     {
         $this->validatePivotColumn($pivColumnAlias);
         if (is_null($preFilter)) {
@@ -127,6 +146,11 @@ class PivotTableConfig extends TableConfig
         $this->areAllColumnsDefined($sortColumns);
         $this->pivot->$pivColumnAlias->sortBy = new Std(array_fill_keys($sortColumns, strtolower($direction)));
         return $this;
+    }
+
+    public function pivotSortByQuotedString(string $pivColumnAlias)
+    {
+        return $this->sortByToQuotedString($this->pivotSortBy($pivColumnAlias));
     }
 
     /**
@@ -198,5 +222,36 @@ class PivotTableConfig extends TableConfig
         $this->validatePivotColumn($alias);
         return $this->pivot->$alias;
     }
+
+    protected function getColumnPropertiesTemplate()
+    {
+        return new Std($this->columnPropertiesTemplate);
+    }
+
+//    public function findPivotItems(string $alias)
+//    {
+//        if (false === $this->config->isPivot($alias)) {
+//            return false;
+//        }
+//        $filter = $this->config->pivotPreFilter($alias)->mergeWith($this->filter, 'ignore');
+//        $pivColumn = $this->config->getPivotColumnByAlias($alias);
+//        $filterStatement = $filter->filterStatement;
+//        $filterParams = $filter->filterParams;
+//        $sortBy = $this->config->pivotSortByQuotedString($alias);
+//        $query = (new Query())
+//            ->select($pivColumn->column)
+//            ->distinct()
+//            ->from($this->config->className()::getTableName());
+//        if (!empty($filterStatement)) {
+//            $query
+//                ->where($filterStatement);
+//        }
+//        if (!empty($sortBy)) {
+//            $query->order($sortBy);
+//        }
+//        $query = $this->driver->makeQueryString($query);
+//        $queryRes = $this->config->className::getDbConnection()->query($query, $filterParams)->fetchAll(\PDO::FETCH_COLUMN, 0);
+//        return new Std($queryRes);
+//    }
 
 }

@@ -164,22 +164,49 @@ class PivotTableConfigTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($expected, $conf->pivotPreFilter('columnTwo')->toArray());
     }
 
+    public function providerPivotSortBy()
+    {
+        return [
+            '_1' => ['columnTwo', ['columnOne', 'columnTwo'], '', ['columnOne' => '', 'columnTwo' => '']],
+            '_2' => ['columnTwo', ['columnOne', 'columnTwo'], 'asc', ['columnOne' => 'asc', 'columnTwo' => 'asc']],
+        ];
+    }
+
     /**
+     * @dataProvider providerPivotSortBy
      * @depends testCreateBasePivotConfig
+     * @param $pivotAlias
+     * @param $columnSortBy
+     * @param $direction
+     * @param $expected
      * @param PivotTableConfig $conf
      */
-    public function testPivotSortBy($conf)
+    public function testPivotSortBy($pivotAlias, $columnSortBy, $direction, $expected, $conf)
     {
-        $this->assertEquals([], $conf->pivotSortBy('columnTwo')->toArray());
-        $sortBy = ['columnOne', 'columnTwo'];
-        $expected = array_fill_keys($sortBy, '');
-        $res = $conf->pivotSortBy('columnTwo', $sortBy);
-        $this->assertInstanceOf(PivotTableConfig::class, $res);
-        $this->assertEquals($expected, $conf->pivotSortBy('columnTwo')->toArray());
+        $conf->pivotSortBy($pivotAlias, $columnSortBy, $direction);
+        $this->assertEquals($expected, $conf->pivotSortBy($pivotAlias)->toArray());
+    }
 
-        $expected = array_fill_keys($sortBy, 'asc');
-        $conf->pivotSortBy('columnTwo', $sortBy, 'asc');
-        $this->assertEquals($expected, $conf->pivotSortBy('columnTwo')->toArray());
+    public function providerPivotSortByQuotedString()
+    {
+        return [
+            '_1' => ['columnTwo', ['columnOne', 'columnTwo'], '', '"columnOne", "columnTwo"'],
+            '_2' => ['columnTwo', ['columnOne', 'columnTwo'], 'asc', '"columnOne" ASC, "columnTwo" ASC'],
+        ];
+    }
+    /**
+     * @dataProvider providerPivotSortByQuotedString
+     * @depends testCreateBasePivotConfig
+     * @param $pivotAlias
+     * @param $columnSortBy
+     * @param $direction
+     * @param $expected
+     * @param PivotTableConfig $conf
+     */
+    public function testPivotSortByQuotedString($pivotAlias, $columnSortBy, $direction, $expected, $conf)
+    {
+        $conf->pivotSortBy($pivotAlias, $columnSortBy, $direction);
+        $this->assertEquals($expected, $conf->pivotSortByQuotedString($pivotAlias));
     }
 
     public function providerPivotSortBy_exceptions()

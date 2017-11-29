@@ -180,9 +180,9 @@ class Table extends Std
     /**
      * @return array return current sort order
      */
-    public function currentSortOrder(): array
+    public function currentSortOrder()
     {
-        return $this->config->getSortOrder();
+        return $this->config->sortBy();
     }
 
     public function setSortOrder(string $columnName, $direction)
@@ -238,7 +238,7 @@ class Table extends Std
 
         $columns = implode(', ', $columns);
         $whereStatement = $this->mergedFilter->filterStatement;
-        $orderBy = $this->config->getSortOrderAsQuotedString();
+        $orderBy = $this->config->sortByQuotedString();
 
         $sql = 'SELECT ' . $columns . "\n";
         $sql .= 'FROM ' . $table . "\n";

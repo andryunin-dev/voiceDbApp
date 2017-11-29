@@ -141,7 +141,7 @@ class Test extends Controller
             ->dataUrl('/test/devicesTable.json')
             ->tableWidth(100)
             ->pivotPreFilter('plTitle', $preFilter)
-            ->pivotSortBy('plTitle', ['platformTitle'])
+            ->pivotSortBy('plTitle', ['platformTitle'], 'desc')
             ->pivotWidthItems('plTitle', '50px')
             ->cssSetHeaderTableClasses(['bg-primary', 'table-bordered'])
             ->cssSetBodyTableClasses(["table", "cell-bordered", "cust-table-striped"])
@@ -157,6 +157,9 @@ class Test extends Controller
         $tableName = 'deviceInfoPivot';
         $tb = new PivotTable(new PivotTableConfig($tableName));
         $tb->rowsOnPage(40);
+        $res = $tb->findPivotItems('plTitle');
+        $res = $tb->getAllColumnsConfig();
+        var_dump($res);die;
     }
 
 

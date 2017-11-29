@@ -559,7 +559,8 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
         }
         $conf->sortOrderSets($orderSets);
         $res = $conf->sortBy($template, $direction);
-        $this->assertEquals($expected, $res->sortBy->toArray());
+        $this->assertInstanceOf(TableConfig::class, $res);
+        $this->assertEquals($expected, $res->sortBy()->toArray());
     }
     public function providerSortOrderToQuotedString()
     {
@@ -593,7 +594,7 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
         $conf->columns($columnsArray);
         $conf->sortOrderSets($orderSets);
         $conf->sortBy($template, $direction);
-        $res = $conf->getSortOrderAsQuotedString();
+        $res = $conf->sortByQuotedString();
         $this->assertEquals($expected, $res);
     }
 

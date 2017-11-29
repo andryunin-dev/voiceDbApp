@@ -65,7 +65,7 @@ interface TableInterface
     /**
      * @return array return current sort order
      */
-    public function currentSortOrder() :array ;
+    public function currentSortOrder();
     public function setSortOrder(string $columnName, $direction);
 
     /**

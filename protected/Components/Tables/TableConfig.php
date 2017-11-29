@@ -279,11 +279,14 @@ class TableConfig extends Config implements TableConfigInterface
      * This method define default sort order for table. This order will be saved with save() method
      * if $sortTemplate exists as set in sortOrderSets - apply this set
      * if not - tread $sortTemplate as column.
-     * @return self
+     * @return self|Std
      * @throws Exception
      */
-    public function sortBy(string $sortTemplate, string $direction = '')
+    public function sortBy(string $sortTemplate = null, string $direction = '')
     {
+        if (is_null($sortTemplate)) {
+            return $this->sortBy;
+        }
         $this->validateSortDirection($direction);
         if (isset($this->sortOrderSets->$sortTemplate)) {
             $this->sortBy = new Config($this->sortOrderSets->$sortTemplate->toArray());
@@ -298,19 +301,19 @@ class TableConfig extends Config implements TableConfigInterface
         return $this;
     }
 
-    public function getSortOrder()
+    public function sortByQuotedString()
     {
-        return $this->sortBy;
+        return $this->sortByToQuotedString($this->sortBy());
     }
 
-    public function getSortOrderAsQuotedString()
+    protected function sortByToQuotedString(Std $sortOrder)
     {
         /**
          * @var IDriver $drv
          */
         $drv = $this->className::getDbDriver();
         $res = [];
-        foreach ($this->sortBy as $col => $dir) {
+        foreach ($sortOrder as $col => $dir) {
             $dir = empty($dir) ? '' : ' ' . strtoupper($dir);
             $res[] =  $drv->quoteName($col) . $dir;
         }
