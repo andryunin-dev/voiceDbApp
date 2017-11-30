@@ -17,22 +17,21 @@ interface PivotTableConfigInterface extends TableConfigInterface
 {
     /**
      * @param string $column
-     * @return Std
+     * @param string|null $alias
+     * @param bool $display
+     * @return self this method only define what column will be pivot.
      * this method only define what column will be pivot.
-     * return config params for pivot column $column
-     * set pivot column/get params pivot column
-     * columns have to be set with method 'columns' before using this method
-     * pivot column has to be one of columns defined with 'columns' method
+     * use this method before define columns in table
+     * pivot column has to be one of class column
      *
      * params for pivot column:
      * 'preFilter' - preFilter for pivot column values
      * 'sortBy' - sort columns and directions for pivot column ['column_1' => 'asc|desc', 'column_N' => 'asc|desc']
      * 'width' - width for each column from pivot columns set.
-     *      If set in 'px' (ie '20px'), pivot column's width from columns properties will be ignored.
-     *      If set in percents (ie 20), width for each column will be calculated by width from columns properties
-     *
+     * If set in 'px' (ie '20px'), pivot column's width from columns properties will be ignored.
+     * If set in percents (ie 20), width for each column will be calculated by width from columns properties
      */
-    public function definePivotColumn(string $column);
+    public function definePivotColumn(string $column, string $alias = null, bool $display = true);
 
     /**
      * @param string $pivotColumn
@@ -71,19 +70,17 @@ interface PivotTableConfigInterface extends TableConfigInterface
      */
     public function isPivot($column) :bool ;
 
-    public function getPivots();
+    /**
+     * @return Std
+     * return this->pivot branch
+     */
+    public function pivots();
 
     /**
      * @param string $alias
      * @return Std
      * @throws Exception
      */
-//    public function getPivotColumnByAlias(string $alias);
+    public function pivotColumnByAlias(string $alias);
 
-    /**
-     * @param string $alias
-     * @return Std
-     * return all items for pivot column
-     */
-//    public function findPivotItems(string $alias);
 }

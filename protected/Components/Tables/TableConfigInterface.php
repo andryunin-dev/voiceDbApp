@@ -36,13 +36,13 @@ interface TableConfigInterface
      */
     public function columns(array $columns = null);
 
-    public function getColumnsList();
+    public function columnList();
 
     /**
      * @return mixed
      * return columns config
      */
-    public function getAllColumnsConfig() : Std;
+//    public function getAllColumnsConfig() : Std;
 
     /**
      * @param string $column
@@ -50,7 +50,6 @@ interface TableConfigInterface
      * @return self|Std
      */
     public function columnConfig(string $column, Std $config = null);
-    public function getColumnConfig($column);
 
     public function appendColumnAlias(string $column, string $alias, string $operator = '');
     public function removeColumnAlias(string $alias);
@@ -90,12 +89,6 @@ interface TableConfigInterface
      * @return self
      */
     public function rowsOnPageList(array $variantsList = null);
-
-    /**
-     * @return Std
-     * return set of rowsOnPage as Std obj
-     */
-    public function getRowsOnPageList();
 
     /**
      * @return string

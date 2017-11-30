@@ -35,6 +35,7 @@ class PivotTableConfig extends TableConfig
      */
     protected $pivotColumnPropertiesTemplate = [
         'column' => '',
+        'display' => true, // use or not in table header building
         'preFilter' => [], //preFilter for pivot column values
         'sortBy' => [], //sort columns and directions for pivot column ['column_1' => 'asc|desc', 'column_N' => 'asc|desc']
         'itemWidth' => 0, //width for each column from pivot values.
@@ -56,7 +57,7 @@ class PivotTableConfig extends TableConfig
     {
         /*if arg is null - return list of columns as Std*/
         if (is_null($columns)) {
-            $res = array_keys($this->getAllColumnsConfig()->toArray());
+            $res = array_keys($this->columns->toArray());
             return new Std($res);
         }
         $extraColumns = is_null($extraColumns) ? [] : $extraColumns;
@@ -73,34 +74,17 @@ class PivotTableConfig extends TableConfig
         return $this;
     }
 
-//    public function getAllColumnsConfig(): Std
-//    {
-//        $res = new Std();
-//        foreach ($this->columns as $col => $colConf) {
-//            if (! isset($this->pivots->$col)) {
-//                $res->$col = $colConf;
-//                continue;
-//            }
-//            $pivotItems = $this->findPivotItems($col);
-//            foreach ($pivotItems as $idx => $item) {
-//                $res->$item = new Std($this->columnPropertiesTemplate);
-//                $res->$item->id = $idx . '_' . $item;
-//                $res->$item->width = $this->pivotWidthItems($col);
-//            }
-//        }
-//        return $res;
-//    }
 
     /**
      * @param string $column
      * @param string|null $alias
-     * @return Config set column as pivot / get params this column
-     * @throws Exception
-     * set column as pivot / get params this column
+     * @param bool $display
+     * @return self set column as pivot / get params this column
+     * @throws Exception set column as pivot / get params this column
      * if $alias is null, one will set = $column
      * $alias has to be unique in pivot part of config
      */
-    public function definePivotColumn(string $column, string $alias = null)
+    public function definePivotColumn(string $column, string $alias = null, bool $display = true)
     {
         if (! $this->isColumnDefinedInClass($column)) {
             throw new Exception('Pivot column has to be one of class columns(properties)');
@@ -192,6 +176,30 @@ class PivotTableConfig extends TableConfig
         return isset($this->pivot->$columnAlias);
     }
 
+    public function pivots()
+    {
+        return $this->pivot;
+    }
+
+    /**
+     * @param string $alias
+     * @return Std
+     * @throws Exception
+     */
+    public function pivotColumnByAlias(string $alias)
+    {
+        $this->validatePivotColumn($alias);
+        return $this->pivot->$alias;
+    }
+    /*====================================
+        PROTECTED METHODS
+    ======================================*/
+
+    protected function getColumnPropertiesTemplate()
+    {
+        return new Std($this->columnPropertiesTemplate);
+    }
+
     /**
      * @param $columnAlias
      * @return bool
@@ -207,51 +215,5 @@ class PivotTableConfig extends TableConfig
         return true;
     }
 
-    public function getPivots()
-    {
-        return $this->pivot;
-    }
-
-    /**
-     * @param string $alias
-     * @return Std
-     * @throws Exception
-     */
-    public function getPivotColumnByAlias(string $alias)
-    {
-        $this->validatePivotColumn($alias);
-        return $this->pivot->$alias;
-    }
-
-    protected function getColumnPropertiesTemplate()
-    {
-        return new Std($this->columnPropertiesTemplate);
-    }
-
-//    public function findPivotItems(string $alias)
-//    {
-//        if (false === $this->config->isPivot($alias)) {
-//            return false;
-//        }
-//        $filter = $this->config->pivotPreFilter($alias)->mergeWith($this->filter, 'ignore');
-//        $pivColumn = $this->config->getPivotColumnByAlias($alias);
-//        $filterStatement = $filter->filterStatement;
-//        $filterParams = $filter->filterParams;
-//        $sortBy = $this->config->pivotSortByQuotedString($alias);
-//        $query = (new Query())
-//            ->select($pivColumn->column)
-//            ->distinct()
-//            ->from($this->config->className()::getTableName());
-//        if (!empty($filterStatement)) {
-//            $query
-//                ->where($filterStatement);
-//        }
-//        if (!empty($sortBy)) {
-//            $query->order($sortBy);
-//        }
-//        $query = $this->driver->makeQueryString($query);
-//        $queryRes = $this->config->className::getDbConnection()->query($query, $filterParams)->fetchAll(\PDO::FETCH_COLUMN, 0);
-//        return new Std($queryRes);
-//    }
 
 }

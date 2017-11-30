@@ -91,7 +91,7 @@ class PivotTableConfigTest extends \PHPUnit\Framework\TestCase
         foreach ($pivots as $alias => $col) {
             $conf->definePivotColumn($col, $alias);
 
-            $pivots = $conf->pivots;
+            $pivots = $conf->pivots();
             $this->assertInstanceOf(Std::class, $pivots);
             $this->assertTrue(isset($pivots->$alias));
             $this->assertEquals($col, $pivots->$alias->column);
@@ -143,7 +143,7 @@ class PivotTableConfigTest extends \PHPUnit\Framework\TestCase
         $conf->columns($columnsArray, $extraCols);
         $conf->definePivotColumn('columnTwo');
         $this->assertInstanceOf(PivotTableConfig::class, $conf);
-        $this->assertEquals('columnTwo', $conf->pivots->columnTwo->column);
+        $this->assertEquals('columnTwo', $conf->pivots()->columnTwo->column);
         return $conf;
     }
 

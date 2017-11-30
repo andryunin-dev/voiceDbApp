@@ -157,8 +157,9 @@ class Test extends Controller
         $tableName = 'deviceInfoPivot';
         $tb = new PivotTable(new PivotTableConfig($tableName));
         $tb->rowsOnPage(40);
-        $res = $tb->findPivotItems('plTitle');
-        $res = $tb->getAllColumnsConfig();
+//        $res = $tb->findPivotItems('plTitle');
+        $res = $tb->buildTableConfig();
+//        $res = $tb->buildJsonTableConfig();
         var_dump($res);die;
     }
 

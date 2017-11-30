@@ -155,7 +155,7 @@ class TableConfig extends Config implements TableConfigInterface
     {
         /*if arg is null - return list of columns as Std*/
         if (is_null($columns)) {
-            $res = array_keys($this->getAllColumnsConfig()->toArray());
+            $res = array_keys($this->columns->toArray());
             return new Std($res);
         }
         $extraColumns = is_null($extraColumns) ? [] : $extraColumns;
@@ -171,18 +171,9 @@ class TableConfig extends Config implements TableConfigInterface
         return $this;
     }
 
-    public function getColumnsList()
+    public function columnList()
     {
         return $this->columns();
-    }
-
-    /**
-     * @return Std
-     * return columns config
-     */
-    public function getAllColumnsConfig() :Std
-    {
-        return $this->columns;
     }
 
     /**
@@ -209,15 +200,6 @@ class TableConfig extends Config implements TableConfigInterface
             $this->columns->$column->$param = $value;
         }
         return $this;
-    }
-
-    /**
-     * @param $column
-     * @return Std
-     */
-    public function getColumnConfig($column)
-    {
-        return $this->columnConfig($column);
     }
 
     /**
@@ -363,7 +345,7 @@ class TableConfig extends Config implements TableConfigInterface
         $this->pagination->rowsOnPageList = new Std($variantsList);
         return $this;
     }
-    public function cssAddHeaderTableClasses($cssClass)
+    public function cssAddHeaderTableClasses($cssClass = null)
     {
         return $this->innerAddCssClass('header', 'table', $cssClass);
     }
@@ -413,13 +395,6 @@ class TableConfig extends Config implements TableConfigInterface
         return $this->innerSetCssClass('footer', 'table', $cssClass);
     }
 
-    /**
-     * @return Std
-     */
-    public function getRowsOnPageList()
-    {
-        return $this->pagination->rowsOnPageList;
-    }
     /*====================================
         PROTECTED METHODS
     ======================================*/

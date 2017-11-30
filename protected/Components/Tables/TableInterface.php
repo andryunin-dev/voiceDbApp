@@ -8,12 +8,6 @@ use T4\Core\Std;
 interface TableInterface
 {
     /**
-     * @return TableConfigInterface
-     * return entire table config
-     */
-    public function tableConfig() :TableConfigInterface;
-
-    /**
      * @return Std
      * return Std config for jqTable script
      */

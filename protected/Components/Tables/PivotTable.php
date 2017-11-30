@@ -11,8 +11,13 @@ use T4\Dbal\Query;
  *
  * @property PivotTableConfig $config
  */
-class PivotTable extends Table
+class PivotTable extends Table implements PivotTableInterface
 {
+    protected $pivotItemProperties = [
+        'isPivot' => true,
+        'pivotColumnAlias' => ''
+    ];
+
     public function __construct(PivotTableConfig $tableConfig)
     {
         parent::__construct($tableConfig);
@@ -24,7 +29,7 @@ class PivotTable extends Table
             return false;
         }
         $filter = $this->config->pivotPreFilter($pivotAlias)->mergeWith($this->filter, 'ignore');
-        $pivColumn = $this->config->getPivotColumnByAlias($pivotAlias);
+        $pivColumn = $this->config->pivotColumnByAlias($pivotAlias);
         $filterStatement = $filter->filterStatement;
         $filterParams = $filter->filterParams;
         $sortBy = $this->config->pivotSortByQuotedString($pivotAlias);
@@ -44,7 +49,7 @@ class PivotTable extends Table
         return new Std($queryRes);
     }
 
-    public function getAllColumnsConfig(): Std
+    public function buildTableConfig(): Std
     {
         $res = new Std();
         foreach ($this->config->columns as $col => $colConf) {
@@ -53,14 +58,21 @@ class PivotTable extends Table
                 continue;
             }
             $pivotItems = $this->findPivotItems($col);
+            $propsTemplate = $this->config->columnPropertiesTemplate->merge(new Std($this->pivotItemProperties));
             foreach ($pivotItems as $idx => $item) {
-                $res->$item = $this->config->columnPropertiesTemplate;
+                $res->$item = $propsTemplate;
+                $res->$item->pivotColumnAlias = $col;
                 $res->$item->id = $col . '_' . $idx;
                 $res->$item->name = $item;
                 $res->$item->width = $this->config->pivotWidthItems($col);
             }
         }
         return $res;
+    }
+
+    public function selectStatement($offset = null, $limit = null)
+    {
+
     }
 
 }

@@ -42,33 +42,24 @@ class Table extends Std
     }
 
     /**
-     * @return TableConfigInterface return entire table config
-     * return entire table config
-     */
-    public function tableConfig(): TableConfigInterface
-    {
-        return $this->config;
-    }
-
-    /**
      * @return Std
      * return json config for jqTable script
      */
     public function buildTableConfig()
     {
-        $jsConf = new Std();
-        $jsConf->dataUrl = $this->config->dataUrl();
-        $jsConf->width = $this->config->tableWidth();
-        $jsConf->header = new Std();
-        $jsConf->header->tableClasses = implode(', ', $this->config->headerCssClasses->toArray());
-        $jsConf->header->columns = $this->config->getAllColumnsConfig();
-        $jsConf->pager = new Std(
+        $tbConf = new Std();
+        $tbConf->dataUrl = $this->config->dataUrl();
+        $tbConf->width = $this->config->tableWidth();
+        $tbConf->header = new Std();
+        $tbConf->header->tableClasses = implode(', ', $this->config->headerCssClasses->toArray());
+        $tbConf->header->columns = $this->config->columns();
+        $tbConf->pager = new Std(
             [
                 'rowsOnPage' => $this->rowsOnPage(),
-                'rowList' => $this->config->rowsOnPageList->toArray()
+                'rowList' => $this->config->rowsOnPageList()->toArray()
             ]
         );
-        $jsConf->styles = new Std(
+        $tbConf->styles = new Std(
             [
                 'header' => [
                     'table' => [
@@ -82,10 +73,10 @@ class Table extends Std
                 ],
             ]
         );
-        $jsConf->styles->header->table->classes = $this->config->headerCssClasses->table;
-        $jsConf->styles->body->table->classes = $this->config->bodyCssClasses->table;
+        $tbConf->styles->header->table->classes = $this->config->headerCssClasses->table;
+        $tbConf->styles->body->table->classes = $this->config->bodyCssClasses->table;
 
-        return $jsConf;
+        return $tbConf;
     }
 
     public function buildJsonTableConfig()
@@ -95,7 +86,7 @@ class Table extends Std
 
     public function columnsConfig(): Std
     {
-        return $this->config->getAllColumnsConfig();
+        return $this->config->columns();
     }
 
     public function columnsNames(): array
@@ -178,7 +169,7 @@ class Table extends Std
     }
 
     /**
-     * @return array return current sort order
+     * @return Std return current sort order
      */
     public function currentSortOrder()
     {

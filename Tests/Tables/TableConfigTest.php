@@ -96,7 +96,7 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
         /*test getters*/
         $this->assertInstanceOf(Std::class, $conf->columns());
         $this->assertEquals($columnsArray, $conf->columns()->toArray());
-        $this->assertEquals($columnsArray, $conf->getColumnsList()->toArray());
+        $this->assertEquals($columnsArray, $conf->columnList()->toArray());
 
         //check result
         return $conf;
@@ -117,7 +117,7 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
         /*test getters*/
         $this->assertInstanceOf(Std::class, $conf->columns());
         $this->assertEquals($columnsSet, $conf->columns()->toArray());
-        $this->assertEquals($columnsSet, $conf->getColumnsList()->toArray());
+        $this->assertEquals($columnsSet, $conf->columnList()->toArray());
         return $conf;
     }
 
@@ -229,7 +229,7 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
         $this->assertInstanceOf(TableConfig::class, $res);
         $this->assertEquals($expected, $res->columns->$column->$param);
         //test get
-        $res = $conf->getColumnConfig($column);
+        $res = $conf->columnConfig($column);
         $this->assertEquals($expected, $res->$param);
     }
 
@@ -266,7 +266,7 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
 
         $conf->columnConfig($column,$colConfig);
 
-        $res = $conf->getColumnConfig($column)->toArray();
+        $res = $conf->columnConfig($column)->toArray();
         $diff = array_diff_assoc($expected, $res);
         $this->assertCount(0, $diff);
     }
@@ -698,8 +698,8 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
         $res = $conf->rowsOnPageList($list);
         $this->assertInstanceOf(TableConfig::class, $res);
         //test getter method
-        $this->assertEquals($list, $res->getRowsOnPageList()->toArray());
-        $this->assertEquals($list, $res->rowsOnPageList->toArray());
+        $this->assertEquals($list, $res->rowsOnPageList()->toArray());
+        $this->assertEquals($list, $res->rowsOnPageList()->toArray());
 
         $res = $conf->rowsOnPageList();
         $this->assertInstanceOf(Std::class, $res);
