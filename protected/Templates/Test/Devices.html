@@ -21,7 +21,7 @@
     <script>
 
         jQuery(function ($) {
-            var tableName = "deviceInfo";
+            var tableName = "deviceInfoPivot";
             $.ajax({
                 url: '/test/tableSettings.json',
                 dataType: "json",
@@ -33,7 +33,8 @@
                     console.log(data.config);
                     var tableSettings = data.config;
                     var devTable = $("#dev_tab");
-                    devTable.jqTable(tableSettings).jqTable('updateBodyContent', {}, window.location.href);
+                    devTable.jqTable(tableSettings);
+                    devTable.jqTable('updateBodyContent', {}, window.location.href);
                 });
 
 /*

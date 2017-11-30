@@ -41,6 +41,7 @@ jqTable.defaultModel = {
     header: {
         fixed: true, //фиксировать или нет заголовок таблицы
         buildOnServer: true, //если true - заголовок собирается на стороне сервера, false - локально
+        pivotColumnsWidth: 0, //суммарная ширина pivot колонок. Используется только при начальном расчете колонок. реальная ширина pivot items формируется путем сложения всех pivot Items
         columns: {}, // модель хедера (см. описание структуры)
         selectors: {
             table: '_hd',
@@ -558,6 +559,8 @@ jqTable.workSetTmpl = {
                 var tableWidth = ws.table.width - ws.scrolls.Y_scrollWidth - ws.scrolls.scrollMargin;
                 var headerPx = {columns: {}};
                 var acc = 0;
+                var pivotItemsWidth = 0;
+                ws.header.isPivot = false;
                 var maxWidth = {val: 0, key: ''};
                 $.each(md.header.columns, function (key, colModel) {
                     var cell = headerPx.columns[key] = $.extend(true, {}, colModel);
@@ -567,17 +570,24 @@ jqTable.workSetTmpl = {
                     if (String(cell.width).indexOf("px") >= 0) {
                         cell.fixed = true;
                         cell.width = parseInt(cell.width);
-                        acc += parseInt(cell.width);
-                        if (maxWidth.val < cell.width) {
-                            maxWidth.val = cell.width;
-                            maxWidth.key = key;
+                        if (!cell.isPivot) {
+                            acc += parseInt(cell.width);
+                            if (maxWidth.val < cell.width) {
+                                maxWidth.val = cell.width;
+                                maxWidth.key = key;
+                            }
+                        } else {
+                            ws.header.isPivot = true;
+                            pivotItemsWidth += cell.width;
                         }
+
                     } else {
                         cell.fixed = false;
                         cell.width = parseInt(cell.width); //пока ширину оставим в процентах, переведем в px позже
                     }
                 });
                 ws.header.fixedColWidth = acc; //запоминаем фиксированную часть ширины, чтобы каждый раз не пересчитывать
+                ws.header.fixedPivColWidth = pivotItemsWidth;
                 var freeWidth = tableWidth - acc;
                 //ищем колонки с шириной в % и пересчитываем в px
                 $.each(headerPx.columns, function (key, colModel) {
@@ -591,16 +601,24 @@ jqTable.workSetTmpl = {
                     }
                 });
                 /**
+                 * если это не pivot таблица
                  * корректируем расхождение суммарной ширины ячеек и ширины контейнера
                  * путем вычитания разности из ширины самой широкой ячейки
                  */
-                headerPx.columns[maxWidth.key].width -= acc - tableWidth;
+                if (!ws.header.isPivot) {
+                    headerPx.columns[maxWidth.key].width -= acc - tableWidth;
+                } else {
+                    ws.table.width += ws.header.fixedPivColWidth;
+                }
                 // workSet.header = headerPx; //запоминаем получившийся массив колонок в workSet.header.columns
                 ws.header = $.extend(true, ws.header, headerPx); //запоминаем получившийся массив колонок в workSet.header.columns
             },
             updateColSizesInPx: function (ws) {
                 var md = ws.model;
                 var tableWidth = ws.table.width - ws.scrolls.Y_scrollWidth - ws.scrolls.scrollMargin;
+                if (ws.header.isPivot) {
+                    tableWidth -= ws.header.fixedPivColWidth;
+                }
                 var freeWidth = tableWidth - ws.header.fixedColWidth;
 
                 var acc = 0;
@@ -615,6 +633,9 @@ jqTable.workSetTmpl = {
                             maxWidth.key = name;
                         }
                     } else {
+                        if (ws.header.isPivot) {
+                            return true;
+                        }
                         if (maxWidth.val < column.width) {
                             maxWidth.val = column.width;
                             maxWidth.key = name;
@@ -934,7 +955,8 @@ jqTable.workSetTmpl = {
                     };
                     $.ajax({
                         url: ws.model.dataUrl,
-                        data: dataRequest
+                        data: dataRequest,
+                        method: 'post'
                     })
                         .done(function (data, textStatus, jqXHR) {
                             inner.debug(ws, 'buildHeader: ' + textStatus);

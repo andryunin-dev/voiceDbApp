@@ -51,24 +51,64 @@ class PivotTable extends Table implements PivotTableInterface
 
     public function buildTableConfig(): Std
     {
-        $res = new Std();
+        /*build columns config*/
+        $pivots = $this->config->pivots();
+        $columnsConf = new Std();
+        $pivotWidth = 0;
         foreach ($this->config->columns as $col => $colConf) {
             if (! $this->config->isPivot($col)) {
-                $res->$col = $colConf;
+                $columnsConf->$col = $colConf;
                 continue;
             }
+            if (! $pivots->$col->display) {
+                continue;
+            }
+            $pivotWidth += $this->config->columnConfig($col)->width;
             $pivotItems = $this->findPivotItems($col);
             $propsTemplate = $this->config->columnPropertiesTemplate->merge(new Std($this->pivotItemProperties));
             foreach ($pivotItems as $idx => $item) {
-                $res->$item = $propsTemplate;
-                $res->$item->pivotColumnAlias = $col;
-                $res->$item->id = $col . '_' . $idx;
-                $res->$item->name = $item;
-                $res->$item->width = $this->config->pivotWidthItems($col);
+                $columnsConf->$item = $propsTemplate;
+                $columnsConf->$item->pivotColumn = $col;
+                $columnsConf->$item->id = $col . '_' . $idx;
+                $columnsConf->$item->name = $item;
+                $columnsConf->$item->width = $this->config->pivotWidthItems($col);
             }
         }
-        return $res;
+        /*build table config*/
+        $tbConf = new Std();
+        $tbConf->dataUrl = $this->config->dataUrl();
+        $tbConf->width = $this->config->tableWidth();
+        $tbConf->header = new Std();
+        $tbConf->header->tableClasses = implode(', ', $this->config->headerCssClasses->toArray());
+        $tbConf->header->pivotColumnsWidth = $pivotWidth;
+        $tbConf->header->columns = $columnsConf;
+        $tbConf->pager = new Std(
+            [
+                'rowsOnPage' => $this->rowsOnPage(),
+                'rowList' => $this->config->rowsOnPageList()->toArray()
+            ]
+        );
+        $tbConf->styles = new Std(
+            [
+                'header' => [
+                    'table' => [
+                        'classes' => [],
+                    ]
+                ],
+                'body' => [
+                    'table' => [
+                        'classes' => [],
+                    ]
+                ],
+            ]
+        );
+        $tbConf->styles->header->table->classes = $this->config->headerCssClasses->table;
+        $tbConf->styles->body->table->classes = $this->config->bodyCssClasses->table;
+
+        return $tbConf;
+
     }
+
 
     public function selectStatement($offset = null, $limit = null)
     {
