@@ -67,7 +67,7 @@ class PivotTable extends Table implements PivotTableInterface
             $pivotItems = $this->findPivotItems($col);
             $propsTemplate = $this->config->columnPropertiesTemplate->merge(new Std($this->pivotItemProperties));
             foreach ($pivotItems as $idx => $item) {
-                $columnsConf->$item = $propsTemplate;
+                $columnsConf->$item = new Std($propsTemplate->toArray());
                 $columnsConf->$item->pivotColumn = $col;
                 $columnsConf->$item->id = $col . '_' . $idx;
                 $columnsConf->$item->name = $item;

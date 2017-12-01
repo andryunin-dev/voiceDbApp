@@ -29,7 +29,12 @@ class Device extends Controller
     {
         $maxAge = 73;
         $url = new Url('/device/info');
-        $request = (new Request())->get;
+        $request = (new Request());
+        if (0 == $request->get->count()) {
+            $request = $request->post;
+        } else {
+            $request = $request->get;
+        }
         foreach ($request as $key => $value ) {
             switch ($key) {
                 case 'header':

@@ -115,7 +115,7 @@ class Test extends Controller
         $confColumns = [
             'region' => ['id' => 'region','name' => 'Регион', 'width' => 10, 'sortable' => true, 'filterable' => true],
             'city' => ['id' => 'city','name' => 'Город', 'width' => 10, 'sortable' => true, 'filterable' => true],
-            'office' => ['id' => 'office','name' => 'Оффисе', 'width' =>15, 'sortable' => true, 'filterable' => true],
+            'office' => ['id' => 'office','name' => 'Офис', 'width' =>15, 'sortable' => true, 'filterable' => true],
             'plTitle' => ['id' => 'pl','name' => 'Оборудование', 'width' => 65],
             'action' => ['id' => 'action','name' => 'Действия', 'width' => '105px'],
         ];
@@ -143,7 +143,7 @@ class Test extends Controller
             ->pivotPreFilter('plTitle', $preFilter)
             ->pivotSortBy('plTitle', ['platformTitle'], 'desc')
             ->pivotWidthItems('plTitle', '50px')
-            ->cssSetHeaderTableClasses(['bg-primary', 'table-bordered'])
+            ->cssSetHeaderTableClasses(['bg-primary', 'table-bordered', 'table-header-rotated'])
             ->cssSetBodyTableClasses(["table", "cell-bordered", "cust-table-striped"])
             ->rowsOnPageList([10,50,100,200,'все'])
             ->tablePreFilter($preFilter)
@@ -294,6 +294,8 @@ class Test extends Controller
         $request = (new Request());
         if (0 == $request->get->count()) {
             $request = $request->post;
+        } else {
+            $request = $request->get;
         }
         foreach ($request as $key => $value ) {
             switch ($key) {
@@ -385,5 +387,4 @@ class Test extends Controller
             }
         }
     }
-
 }
