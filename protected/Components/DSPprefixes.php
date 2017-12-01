@@ -45,7 +45,7 @@ class DSPprefixes extends Std
                 if (!empty($dataPortData->vrf_rd)) {
                     $dataPortVrf = Vrf::findByColumn('rd', $dataPortData->vrf_rd);
                 } else {
-                    $dataPortVrf = Vrf::findByColumn('name', $dataPortData->vrf_name);
+                    $dataPortVrf = Vrf::instanceGlobalVrf();
                 }
                 $foundDataPort = DataPort::findByIpVrf($dataPortIp, $dataPortVrf);
                 $foundDataPortMac = mb_strtolower(preg_replace('~[:|\-|.]~','',$foundDataPort->macAddress));
@@ -69,16 +69,6 @@ class DSPprefixes extends Std
                     // Create dataport
                     $dataPort = new DataPort();
                 }
-                $dataPort->fill([
-                    'appliance' => $appliance,
-                    'portType' => DPortType::getEmpty(),
-                    'macAddress' => implode(':', str_split($dataPortDataMac, 2)),
-                    'ipAddress' => $dataPortIp,
-                    'vrf' => $dataPortVrf,
-                    'masklen' => $dataPortMasklen,
-                    'isManagement' => ($dataPortIp == $managementDataPortIp) ? true : false,
-                    'lastUpdate'=> (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P'),
-                ]);
                 if (is_null($dataPort->details) || !$dataPort->details instanceof Std) {
                     $dataPort->fill([
                         'details' => [
@@ -90,6 +80,16 @@ class DSPprefixes extends Std
                     $dataPort->details->portName = $dataPortData->interface;
                     $dataPort->details->description = $dataPortData->description;
                 }
+                $dataPort->fill([
+                    'appliance' => $appliance,
+                    'portType' => DPortType::getEmpty(),
+                    'macAddress' => implode(':', str_split($dataPortDataMac, 2)),
+                    'ipAddress' => $dataPortIp,
+                    'vrf' => $dataPortVrf,
+                    'masklen' => $dataPortMasklen,
+                    'isManagement' => ($dataPortIp == $managementDataPortIp) ? true : false,
+                    'lastUpdate'=> (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P'),
+                ]);
                 $dataPort->save();
 
                 // End transaction
