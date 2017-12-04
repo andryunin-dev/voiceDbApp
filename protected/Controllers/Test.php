@@ -142,7 +142,7 @@ class Test extends Controller
             ->tableWidth(100)
             ->pivotPreFilter('plTitle', $preFilter)
             ->pivotSortBy('plTitle', ['platformTitle'], 'desc')
-            ->pivotWidthItems('plTitle', '50px')
+            ->pivotWidthItems('plTitle', '40px')
             ->cssSetHeaderTableClasses(['bg-primary', 'table-bordered', 'table-header-rotated'])
             ->cssSetBodyTableClasses(["table", "cell-bordered", "cust-table-striped"])
             ->rowsOnPageList([10,50,100,200,'все'])

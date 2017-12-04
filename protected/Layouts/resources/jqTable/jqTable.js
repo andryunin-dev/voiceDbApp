@@ -40,8 +40,9 @@ jqTable.defaultModel = {
     dataUrl: "", //URL для запроса данных
     header: {
         fixed: true, //фиксировать или нет заголовок таблицы
+        fixedPivColWidth: 0,
+        fixedColWidth: 0,
         buildOnServer: true, //если true - заголовок собирается на стороне сервера, false - локально
-        pivotColumnsWidth: 0, //суммарная ширина pivot колонок. Используется только при начальном расчете колонок. реальная ширина pivot items формируется путем сложения всех pivot Items
         columns: {}, // модель хедера (см. описание структуры)
         selectors: {
             table: '_hd',
@@ -310,7 +311,8 @@ jqTable.workSetTmpl = {
         X_Scroll_enable: false,
         Y_Scroll_enable: true,
 
-        isBuilt: false
+        isBuilt: false,
+        isPivot: false
     },
 
     header: {
@@ -560,7 +562,6 @@ jqTable.workSetTmpl = {
                 var headerPx = {columns: {}};
                 var acc = 0;
                 var pivotItemsWidth = 0;
-                ws.header.isPivot = false;
                 var maxWidth = {val: 0, key: ''};
                 $.each(md.header.columns, function (key, colModel) {
                     var cell = headerPx.columns[key] = $.extend(true, {}, colModel);
@@ -577,7 +578,7 @@ jqTable.workSetTmpl = {
                                 maxWidth.key = key;
                             }
                         } else {
-                            ws.header.isPivot = true;
+                            ws.table.isPivot = true;
                             pivotItemsWidth += cell.width;
                         }
 
@@ -605,10 +606,11 @@ jqTable.workSetTmpl = {
                  * корректируем расхождение суммарной ширины ячеек и ширины контейнера
                  * путем вычитания разности из ширины самой широкой ячейки
                  */
-                if (!ws.header.isPivot) {
+                if (!ws.table.isPivot) {
                     headerPx.columns[maxWidth.key].width -= acc - tableWidth;
                 } else {
-                    ws.table.width += ws.header.fixedPivColWidth;
+                    /*если pivot table то считаем новую ширину как сумму всех колонок + скролл + scroll margin*/
+                    ws.table.width = acc + ws.header.fixedPivColWidth + ws.scrolls.Y_scrollWidth + ws.scrolls.scrollMargin;
                 }
                 // workSet.header = headerPx; //запоминаем получившийся массив колонок в workSet.header.columns
                 ws.header = $.extend(true, ws.header, headerPx); //запоминаем получившийся массив колонок в workSet.header.columns
@@ -616,13 +618,10 @@ jqTable.workSetTmpl = {
             updateColSizesInPx: function (ws) {
                 var md = ws.model;
                 var tableWidth = ws.table.width - ws.scrolls.Y_scrollWidth - ws.scrolls.scrollMargin;
-                if (ws.header.isPivot) {
-                    tableWidth -= ws.header.fixedPivColWidth;
-                }
                 var freeWidth = tableWidth - ws.header.fixedColWidth;
 
                 var acc = 0;
-                var maxWidth = {val: 0, key: ''}; //воременный объект для хранения самой широкой колонки
+                var maxWidth = {val: 0, key: ''}; //временный объект для хранения самой широкой колонки
                 $.each(ws.header.columns, function (name, column) {
                     if (column.fixed === false) {
                         column.width = Math.round(freeWidth *  md.header.columns[name].width / 100);
@@ -642,11 +641,19 @@ jqTable.workSetTmpl = {
                         }
                     }
                 });
+
                 /**
+                 * если это не pivot таблица
                  * корректируем расхождение суммарной ширины ячеек и ширины контейнера
                  * путем вычитания разности из ширины самой широкой ячейки
                  */
-                ws.header.columns[maxWidth.key].width -= (acc + ws.header.fixedColWidth) - tableWidth;
+                if (!ws.table.isPivot) {
+                    ws.header.columns[maxWidth.key].width -= (acc + ws.header.fixedColWidth) - tableWidth;
+                } else {
+                    /*если pivot table то считаем новую ширину как сумму всех колонок + скролл + scroll margin*/
+                    ws.table.width = acc + ws.header.fixedColWidth + ws.header.fixedPivColWidth + ws.scrolls.Y_scrollWidth + ws.scrolls.scrollMargin;
+                }
+
             },
             pagerWidthToPx: function (ws) {
                 ws.pager.width = parseInt(ws.model.pager.width)
@@ -1024,7 +1031,12 @@ jqTable.workSetTmpl = {
                  * если ширина таблицы посчитана и она больше ширины родительского элемента главного контейнера
                  * то ширину containerObj ограничиваем шириной его родителя (позже включим у containerObj скрол по горизонтале)
                  */
-                ws.obj.$tableBox.width(ws.table.tableBoxParentWidth);
+                /*если table.width < table.tableBoxParentWidth, то ширину $tableBox делаем = table.width */
+                if (ws.table.width < ws.table.tableBoxParentWidth) {
+                    ws.obj.$tableBox.width(ws.table.width);
+                } else {
+                    ws.obj.$tableBox.width(ws.table.tableBoxParentWidth);
+                }
                 ws.table.X_Scroll_enable = ws.table.width > 0 && ws.table.width > ws.table.tableBoxParentWidth;
                 //ширина заголовка
                 ws.obj.$header.outerWidth(ws.table.width);
