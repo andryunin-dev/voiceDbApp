@@ -53,7 +53,10 @@ class SqlFilterTest extends \PHPUnit\Framework\TestCase
         return [
             '_1' => [
                 'columnOne', 'eq', ['val_1'], ['columnOne' => ['eq' => ['val_1']]]
-            ]
+            ],
+            '_2' => [
+                'columnOne', 'isnull', ['val_1'], ['columnOne' => ['isnull' => []]]
+            ],
         ];
     }
 
@@ -209,7 +212,7 @@ class SqlFilterTest extends \PHPUnit\Framework\TestCase
         return $filter;
     }
 
-    public function testBuildEmptyFilterStatement()
+    public function testBuildEmptyFilter()
     {
         //create new Sql filter
         $filter = new SqlFilter(ModelClass_1::class);
@@ -221,7 +224,7 @@ class SqlFilterTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @depends testBuildEmptyFilterStatement
+     * @depends testBuildEmptyFilter
      * @param SqlFilter $filter
      * @return SqlFilter
      */
@@ -323,5 +326,27 @@ class SqlFilterTest extends \PHPUnit\Framework\TestCase
         $f2->setFilter($fs2['col'], $fs2['op'], $fs2['val']);
         $f1->mergeWith($f2, $mode);
         $this->assertEquals($expected, $f1->toArray());
+    }
+
+    public function providerAddUnaryFilter()
+    {
+        return [
+            '_1' => ['columnOne', 'isnull', ['val_1'], 'columnOne ISNULL']
+        ];
+    }
+
+    /**
+     * @param $col
+     * @param $op
+     * @param $val
+     * @param $expected
+     * @dataProvider providerAddUnaryFilter
+     */
+    public function testAddUnaryFilter($col, $op, $val, $expected)
+    {
+        //create new Sql filter
+        $filter = new SqlFilter(ModelClass_1::class);
+        $filter->setFilter($col, $op, $val);
+        $this->assertEquals($expected, $filter->filterStatement);
     }
 }
