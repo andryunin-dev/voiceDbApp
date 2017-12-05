@@ -69,6 +69,9 @@ class Logs extends Controller
             'ip' => '\[ip\]=',
             'publisher' => '\[publisher\]=',
             'number' => '\[number\]=',
+            'office' => '\[office\]=',
+            'city' => '\[city\]=',
+            'address' => '\[address\]=',
         ];
 
         $displayedLogs = [];
