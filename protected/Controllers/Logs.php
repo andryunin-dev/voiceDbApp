@@ -17,6 +17,13 @@ class Logs extends Controller
             $logAsArray[$key] = preg_split('~\[host\]=|\[manageIP\]=|\[message\]=|\[dataset\]=~', $value);
             $logAsArray[$key][0] = preg_replace('~(\[.+\])~','$0<br>', $logAsArray[$key][0]);
         }
+
+        foreach ($logAsArray as $k1 => $items) {
+            foreach ($items as $k2 => $item) {
+                $logAsArray[$k1][$k2] = trim(preg_replace('~\[\]~', '',$item));
+            }
+        }
+
         $this->data->records = $logAsArray;
         $this->data->eraseLogUrl = '/logs/erase';
     }
@@ -89,6 +96,10 @@ class Logs extends Controller
                 }
             }
             $splitLog = preg_split('~' . $logTemplate . '~', $log);
+            foreach ($splitLog as $k => $item) {
+                $splitLog[$k] = trim(preg_replace('~\[\]~', '',$item));
+            }
+
             if (false !== $splitLog) {
                 $log = array_combine($logKeys, $splitLog);
                 $log['title'] = preg_replace('~(\[.+\])~','$0<br>', $log['title']);
