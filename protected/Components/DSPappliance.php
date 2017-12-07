@@ -148,6 +148,10 @@ class DSPappliance extends Std
 
             // create appliance's MODULES
             foreach ($data->applianceModules as $moduleData) {
+                $existModuleItem = ModuleItem::findByVendorSerial($vendor, $moduleData->serial);
+                if (false !== $existModuleItem) {
+                    $existModuleItem->delete();
+                }
                 $module = Module::findByVendorTitle($vendor, $moduleData->product_number);
                 if (false === $module) {
                     $module = (new Module())->fill([
