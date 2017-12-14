@@ -161,6 +161,9 @@ class DSPappliance extends Std
                 $moduleItem = ModuleItem::findByVendorSerial($vendor, $moduleData->serial);
                 if (false === $moduleItem) {
                     $moduleItem = new ModuleItem();
+                    $moduleItem->fill([
+                        'inUse' => true,
+                    ]);
                 }
                 $module = Module::findByVendorTitle($vendor, $moduleData->product_number);
                 if (false === $module) {
@@ -176,7 +179,6 @@ class DSPappliance extends Std
                     'location' => $location,
                     'module' => $module,
                     'serialNumber' => $moduleData->serial,
-                    'inUse' => true,
                     'notFound' => false,
                     'lastUpdate'=> (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P'),
                 ]);
