@@ -64,12 +64,19 @@ class Platform extends Model
      * @return Platform|bool
      */
     public static function findByVendorTitle(Vendor $vendor, $title) {
-        return $vendor->platforms->filter(
+        $platform = $vendor->platforms->filter(
             function ($platform) use ($title) {
                 return $title == $platform->title;
             }
         )->first();
+
+        if (is_null($platform)) {
+            return false;
+        } else {
+            return $platform;
+        }
     }
+
     public static function getEmpty()
     {
         return self::findByColumn('title', '');
