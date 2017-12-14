@@ -57,29 +57,17 @@ class DSPprefixes extends Std
                 }
                 DataPort::getDbConnection()->beginTransaction();
 
-                if (false !== $foundDataPort && $foundDataPortMac == $dataPortDataMac) {
-                    // Update found dataport
-                    $dataPort = $foundDataPort;
-                } else {
-                    // At the moment, we do not support the uniqueness of VRF within only one device,
-                    // so we'll delete the found dataport
-                    if (false !== $foundDataPort) {
+                if (false != $foundDataPort) {
+                    if ($foundDataPortMac == $dataPortDataMac) {
+                        $dataPort = $foundDataPort;
+                    } else {
                         $foundDataPort->delete();
+                        $dataPort = new DataPort();
                     }
-                    // Create dataport
+                } else {
                     $dataPort = new DataPort();
                 }
-                if (is_null($dataPort->details) || !$dataPort->details instanceof Std) {
-                    $dataPort->fill([
-                        'details' => [
-                            'portName' => $dataPortData->interface,
-                            'description' => $dataPortData->description,
-                        ],
-                    ]);
-                } else {
-                    $dataPort->details->portName = $dataPortData->interface;
-                    $dataPort->details->description = $dataPortData->description;
-                }
+
                 $dataPort->fill([
                     'appliance' => $appliance,
                     'portType' => DPortType::getEmpty(),
@@ -90,6 +78,16 @@ class DSPprefixes extends Std
                     'isManagement' => ($dataPortIp == $managementDataPortIp) ? true : false,
                     'lastUpdate'=> (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P'),
                 ]);
+                //todo - изменить afterSave() фреймворка (json -> Std) и удалить проверку !($dataPort->details instanceof Std)
+                if (is_null($dataPort->details) || !($dataPort->details instanceof Std)) {
+                    $dataPort->details = new Std([
+                        'portName' => $dataPortData->interface,
+                        'description' => $dataPortData->description,
+                    ]);
+                } else {
+                    $dataPort->details->portName = $dataPortData->interface;
+                    $dataPort->details->description = $dataPortData->description;
+                }
                 $dataPort->save();
 
                 // End transaction
