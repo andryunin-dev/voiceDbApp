@@ -27,5 +27,9 @@ return [
     'axl' => [
         'username' => '',
         'password' => '',
+    ],
+    'ssh' => [
+        'login' => '',
+        'password' => '',
     ]
 ];
