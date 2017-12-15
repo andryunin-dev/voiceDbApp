@@ -78,9 +78,16 @@ class DSPphones extends Std
 
         //// CREATE APPLIANCE
         $masklen = (new IpTools($data->ipAddress, $data->subNetMask))->masklen;
+        $masklen = (false === $masklen) ? null : $masklen;
 
-        $macAddress = ($data->macAddress) ?? substr($data->name, -12);
-        $macAddress = implode(':', str_split(mb_strtolower(preg_replace('~[:|\-|.]~','',$macAddress)), 2));
+        if (is_null($data->macAddress)) {
+            $macAddress = (1 == preg_match('~SEP~', mb_strtoupper($data->name))) ? substr($data->name, -12) : null;
+        } else {
+            $macAddress = $data->macAddress;
+        }
+        if (!is_null($macAddress)) {
+            $macAddress = implode(':', str_split(mb_strtolower(preg_replace('~[:|\-|.]~','',$macAddress)), 2));
+        }
 
         $modelPhone = mb_strtolower(preg_replace('~ ~','',$data->model));
         $phoneType = (self::VIP30 == $modelPhone) ? self::VIP30 : self::PHONE;
@@ -110,7 +117,7 @@ class DSPphones extends Std
             'version' => (1 == preg_match('~6921~', $data->model)) ? (($data->appLoadID) ?? '') : (($data->versionID) ?? ''),
             'platformTitle' => ($data->modelNumber) ?? $data->model,
             'serialNumber' => ($data->serialNumber) ?? $data->name,
-            'masklen' => (false === $masklen) ? null : $masklen,
+            'masklen' => $masklen,
             'macAddress' => $macAddress,
             'software' => self::PHONE_SOFT,
             'applianceType' => self::PHONE,
@@ -173,7 +180,16 @@ class DSPphones extends Std
 
         //// UPDATE APPLIANCE
         $masklen = (new IpTools($data->ipAddress, $data->subNetMask))->masklen;
-        $macAddress = ($data->macAddress) ?? substr($data->name, -12);
+        $masklen = (false === $masklen) ? null : $masklen;
+
+        if (is_null($data->macAddress)) {
+            $macAddress = (1 == preg_match('~SEP~', mb_strtoupper($data->name))) ? substr($data->name, -12) : null;
+        } else {
+            $macAddress = $data->macAddress;
+        }
+        if (!is_null($macAddress)) {
+            $macAddress = implode(':', str_split(mb_strtolower(preg_replace('~[:|\-|.]~','',$macAddress)), 2));
+        }
 
         $modelPhone = mb_strtolower(preg_replace('~ ~','',$data->model));
         $phoneType = (self::VIP30 == $modelPhone) ? self::VIP30 : self::PHONE;
@@ -204,7 +220,7 @@ class DSPphones extends Std
             'macAddress' => $macAddress,
             'vrf' => Vrf::instanceGlobalVrf(),
             'ipAddress' => $data->ipAddress,
-            'masklen' => (false === $masklen) ? null : $masklen,
+            'masklen' => $masklen,
             'location' => $location,
             'hostname' => $data->name,
             'phoneType' => $phoneType,
