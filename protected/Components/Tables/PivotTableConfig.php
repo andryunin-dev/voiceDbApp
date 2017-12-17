@@ -37,7 +37,7 @@ class PivotTableConfig extends TableConfig
         'column' => '',
         'display' => true, // use or not in table header building
         'preFilter' => [], //preFilter for pivot column values
-        'sortBy' => [], //sort columns and directions for pivot column ['column_1' => 'asc|desc', 'column_N' => 'asc|desc']
+        'sortBy' => [], //sort columns and direction for pivot column
         'itemWidth' => 0, //width for each column from pivot values.
     ];
 
@@ -76,10 +76,14 @@ class PivotTableConfig extends TableConfig
 
 
     /**
+     * this method only define what column will be pivot.
+     * use this method before define columns in table
+     * pivot column has to be one of class column
+
      * @param string $column
      * @param string|null $alias
      * @param bool $display
-     * @return self set column as pivot / get params this column
+     * @return self set column as pivot
      * @throws Exception set column as pivot / get params this column
      * if $alias is null, one will set = $column
      * $alias has to be unique in pivot part of config
@@ -98,7 +102,7 @@ class PivotTableConfig extends TableConfig
     /**
      * @param string $pivColumnAlias
      * @param SqlFilter|null $preFilter
-     * @return self|SqlFilter return summary prefilter for column
+     * @return self|SqlFilter return summary preFilter for column
      * set/get preFilter for decided pivot column
      */
     public function pivotPreFilter(string $pivColumnAlias, SqlFilter $preFilter = null)

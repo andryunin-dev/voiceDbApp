@@ -8,6 +8,12 @@ use T4\Dbal\IDriver;
 use T4\Orm\Model;
 
 /**
+ * Structure of SqlFilter:
+ * 'column_1 -> operator_1 -> {values as Std object}
+ *           -> operator_N -> {values as Std object}
+ * 'column_N -> operator_1 -> {values as Std object}
+ *           -> operator_N -> {values as Std object}
+ *
  * Class SqlFilter
  * @package App\Components\Sql
  *
@@ -173,10 +179,15 @@ class SqlFilter extends Std implements SqlFilterInterface
         foreach ($this as $col =>$ops) {
             foreach ($ops as $op => $vals) {
                 $opStatement = [];
-                foreach ($vals as $index => $val) {
-                    $transRes = $this->sqlTranslator($col, $op, $index, $val);
+                if ($this->isOperatorUnary($op)) {
+                    $transRes = $this->sqlTranslator($col, $op, 0, '');
                     $opStatement[] = $transRes['string'];
-                    $this->params = array_merge($this->params, $transRes['param']);
+                } else {
+                    foreach ($vals as $index => $val) {
+                        $transRes = $this->sqlTranslator($col, $op, $index, $val);
+                        $opStatement[] = $transRes['string'];
+                        $this->params = array_merge($this->params, $transRes['param']);
+                    }
                 }
                 $statementsByColumns[] = (count($opStatement) > 1) ?
                     '(' . implode(' OR ', $opStatement) . ')' :

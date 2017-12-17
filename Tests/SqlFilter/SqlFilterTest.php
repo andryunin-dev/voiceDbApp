@@ -331,7 +331,7 @@ class SqlFilterTest extends \PHPUnit\Framework\TestCase
     public function providerAddUnaryFilter()
     {
         return [
-            '_1' => ['columnOne', 'isnull', ['val_1'], 'columnOne ISNULL']
+            '_1' => ['columnOne', 'isnull', ['val_1'], '"columnOne" ISNULL']
         ];
     }
 

@@ -133,10 +133,10 @@ class TableConfig extends Config implements TableConfigInterface
     public function tableHeight($height = null)
     {
         if (is_null($height)) {
-            return $this->sizes->width;
+            return $this->sizes->height;
         }
         $this->validateConfigParam('height', $height);
-        $this->sizes->width = $this->sanitizeConfigParam('height', $height);
+        $this->sizes->height = $this->sanitizeConfigParam('height', $height);
         return $this;
     }
 
@@ -229,8 +229,8 @@ class TableConfig extends Config implements TableConfigInterface
      * ['template_name/column_name' => ['column_1 => 'direction', 'column_N' => 'direction']]
      * You can pass several templates in one array like this:
      * [
-     *      'column_1 => 'direction', 'column_N' => 'direction'],
-     *      'column_N => 'direction', 'column_N' => 'direction'],
+     *      'template_name/column_name' => ['column_1 => 'direction', 'column_N' => 'direction'],
+     *      'template_name/column_name' => ['column_N => 'direction', 'column_N' => 'direction'],
      * ]
      * To set template as current sort order use method 'sortBy'
      * if template already exists, it'll be overwritten
@@ -271,7 +271,7 @@ class TableConfig extends Config implements TableConfigInterface
         }
         $this->validateSortDirection($direction);
         if (isset($this->sortOrderSets->$sortTemplate)) {
-            $this->sortBy = new Config($this->sortOrderSets->$sortTemplate->toArray());
+            $this->sortBy = new Std($this->sortOrderSets->$sortTemplate->toArray());
             foreach ($this->sortBy as $col => $dir) {
                 $this->sortBy->$col = empty($dir) ? $direction : $dir;
             }
@@ -334,15 +334,15 @@ class TableConfig extends Config implements TableConfigInterface
     }
 
     /**
-     * @param array|null $variantsList
+     * @param array|null $variantList
      * @return self
      */
-    public function rowsOnPageList(array $variantsList = null)
+    public function rowsOnPageList(array $variantList = null)
     {
-        if (is_null($variantsList)) {
+        if (is_null($variantList)) {
             return $this->pagination->rowsOnPageList;
         }
-        $this->pagination->rowsOnPageList = new Std($variantsList);
+        $this->pagination->rowsOnPageList = new Std($variantList);
         return $this;
     }
     public function cssAddHeaderTableClasses($cssClass = null)
@@ -407,7 +407,7 @@ class TableConfig extends Config implements TableConfigInterface
         if (is_string($classes)) {
             $classes = [$classes];
         } elseif (! is_array($classes)) {
-            throw new Exception('cssAddHeaderTableClass: Invalid type of argument');
+            throw new Exception('cssAddTableClass: Invalid type of argument');
         }
 
         if (! isset($this->cssStyles->$tablePart->$tag))
@@ -423,7 +423,7 @@ class TableConfig extends Config implements TableConfigInterface
         if (is_string($classes)) {
             $classes = [$classes];
         } elseif (! is_array($classes)) {
-            throw new Exception('cssAddHeaderTableClass: Invalid type of argument');
+            throw new Exception('cssAddTableClass: Invalid type of argument');
         }
 
         if (! isset($this->cssStyles->$tablePart->$tag))
@@ -473,7 +473,7 @@ class TableConfig extends Config implements TableConfigInterface
         if ('asc' == $direct || 'desc' == $direct || '' == $direct) {
             return true;
         } else {
-            throw new Exception('Allowed sort direction is: \'asc\' or \'desc\'');
+            throw new Exception('Allowed sort direction is: \'asc\', \'desc\' or empty');
         }
     }
 
@@ -552,8 +552,6 @@ class TableConfig extends Config implements TableConfigInterface
                 }
                 break;
             case 'sortable':
-                return $val;
-                break;
             case 'filterable':
                 return $val;
                 break;

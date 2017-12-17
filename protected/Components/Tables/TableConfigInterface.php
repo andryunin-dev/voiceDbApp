@@ -25,30 +25,8 @@ interface TableConfigInterface
     public function tableWidth($width = null);
     public function tableHeight($height = null);
 
-    /**
-     * @param array $columns like [$column_name_1 => title, $column_name_2 => title, ]
-     * All column_names have to belong a class that specified in construct method
-     * @return self
-     *
-     * if $columns is null - return columns array for current table
-     * if $columns is array - set columns set for current table
-     * this method should be called first
-     */
-    public function columns(array $columns = null);
-
+    public function columns(array $columns = null,  array $extraColumns = null);
     public function columnList();
-
-    /**
-     * @return mixed
-     * return columns config
-     */
-//    public function getAllColumnsConfig() : Std;
-
-    /**
-     * @param string $column
-     * @param Std|null $config
-     * @return self|Std
-     */
     public function columnConfig(string $column, Std $config = null);
 
     public function appendColumnAlias(string $column, string $alias, string $operator = '');
@@ -85,10 +63,10 @@ interface TableConfigInterface
     public function isColumnDefined($column) :bool ;
 
     /**
-     * @param array|null $variantsList
+     * @param array|null $variantList
      * @return self
      */
-    public function rowsOnPageList(array $variantsList = null);
+    public function rowsOnPageList(array $variantList = null);
 
     /**
      * @return string

@@ -20,16 +20,6 @@ interface PivotTableConfigInterface extends TableConfigInterface
      * @param string|null $alias
      * @param bool $display
      * @return self this method only define what column will be pivot.
-     * this method only define what column will be pivot.
-     * use this method before define columns in table
-     * pivot column has to be one of class column
-     *
-     * params for pivot column:
-     * 'preFilter' - preFilter for pivot column values
-     * 'sortBy' - sort columns and directions for pivot column ['column_1' => 'asc|desc', 'column_N' => 'asc|desc']
-     * 'width' - width for each column from pivot columns set.
-     * If set in 'px' (ie '20px'), pivot column's width from columns properties will be ignored.
-     * If set in percents (ie 20), width for each column will be calculated by width from columns properties
      */
     public function definePivotColumn(string $column, string $alias = null, bool $display = true);
 
