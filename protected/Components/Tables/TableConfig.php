@@ -283,21 +283,22 @@ class TableConfig extends Config implements TableConfigInterface
         return $this;
     }
 
-    public function sortByQuotedString()
+    public function sortByQuotedString($table = null)
     {
-        return $this->sortByToQuotedString($this->sortBy());
+        return $this->sortByToQuotedString($this->sortBy(), $table);
     }
 
-    protected function sortByToQuotedString(Std $sortOrder)
+    protected function sortByToQuotedString(Std $sortOrder, string $table = null)
     {
         /**
          * @var IDriver $drv
          */
         $drv = $this->className::getDbDriver();
+        $table = is_null($table) ? '' : $drv->quoteName($table) . '.';
         $res = [];
         foreach ($sortOrder as $col => $dir) {
             $dir = empty($dir) ? '' : ' ' . strtoupper($dir);
-            $res[] =  $drv->quoteName($col) . $dir;
+            $res[] =  $table . $drv->quoteName($col) . $dir;
         }
         return implode(', ', $res);
     }

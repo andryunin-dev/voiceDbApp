@@ -2,6 +2,7 @@
 
 namespace App\Components\Tables;
 
+use App\Components\Sql\SqlFilter;
 use T4\Core\Std;
 use T4\Dbal\Query;
 
@@ -109,10 +110,64 @@ class PivotTable extends Table implements PivotTableInterface
 
     }
 
-
     public function selectStatement($offset = null, $limit = null)
     {
+        $table = $this->driver->quoteName($this->config->className()::getTableName());
+        $columns = $this->config->columns()->toArray();
+        $columns = array_diff($columns, $this->config->extraColumns->toArray());
+        $this->mergedFilter = $this->config->tablePreFilter()->mergeWith($this->filter, 'ignore');
+        $this->pivPrefilters = [];
+        $pivotAliases = $this->config->pivots();
+        $groupColumns = array_diff($columns, array_keys($pivotAliases->toArray()));
 
+        $sql = 'SELECT' . "\n";
+        $selectList = [];
+        foreach ($columns as $column) {
+            if (! isset($pivotAliases->$column)) {
+                $selectList[] = $column;
+            } else {
+                $pivCol = $pivotAliases->$column->column;
+                $pivCol = $this->driver->quoteName($pivCol);
+                $pivPreFilter = $this->config->pivotPreFilter($column);
+                $this->pivPrefilters[] = $pivPreFilter;
+
+                $order = $this->config->pivotSortByQuotedString($column);
+
+                $pivotSql = '(SELECT jsonb_object_agg(t2.' . $pivCol . ',' . ' t2.numbers)' . "\n";
+                $pivotSql .= 'FROM (' . "\n";
+                $pivotSql .= 'SELECT' . "\n";
+                $pivotSql .= $pivCol . ',' . "\n";
+                $pivotSql .= 'count(' . $pivCol . ') AS numbers' . "\n";
+                $pivotSql .= 'FROM ' . $table . '  AS t3' . "\n";
+                $innerClause_1 = array_map(function($item) {
+                    return 't3.' . $item . ' = ' . 't1.' . $item;
+                }, $groupColumns);
+                $innerClause_1 = empty($innerClause_1) ? '' : ' AND ' . implode(' AND ', $innerClause_1);
+                $innerFilterStatement = $pivPreFilter->filterStatement();
+                if (! empty($innerClause_1) || !empty($innerFilterStatement)) {
+                    $pivotSql .= 'WHERE ' . $innerFilterStatement . $innerClause_1 . "\n";
+                }
+                $pivotSql .= 'GROUP BY ' . $pivCol . "\n";
+                if (! empty($order)) {
+                    $pivotSql .= 'ORDER BY ' . $order . "\n";
+                }
+                $pivotSql .= ') AS t2' . "\n";
+                $pivotSql .= ') AS ' . $this->driver->quoteName($column) . "\n";
+
+                $selectList[] = $pivotSql;
+            }
+        }
+        $sql .= implode(",\n\t", $selectList) . "\n";
+        $sql .= 'FROM ' . $table . ' AS t1' . "\n";
+        $whereClause = $this->config->tablePreFilter()->filterStatement();
+        if (! empty($whereClause)) {
+            $sql .= 'WHERE ' . $whereClause . "\n";
+        }
+        if (! empty($groupColumns)) {
+            $sql .= 'GROUP BY ' . implode(', ', $groupColumns) . "\n";
+        }
+        $sql .= 'ORDER BY ' . $this->config->sortByQuotedString();
+        return $sql;
     }
 
 }

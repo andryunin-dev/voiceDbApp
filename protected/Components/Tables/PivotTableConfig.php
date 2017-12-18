@@ -136,9 +136,9 @@ class PivotTableConfig extends TableConfig
         return $this;
     }
 
-    public function pivotSortByQuotedString(string $pivColumnAlias)
+    public function pivotSortByQuotedString(string $pivColumnAlias, $table = null)
     {
-        return $this->sortByToQuotedString($this->pivotSortBy($pivColumnAlias));
+        return $this->sortByToQuotedString($this->pivotSortBy($pivColumnAlias), $table);
     }
 
     /**

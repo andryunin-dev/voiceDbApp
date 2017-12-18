@@ -29,6 +29,7 @@ class SqlFilter extends Std implements SqlFilterInterface
         'le' => '<=',
         'gt' => '>',
         'ge' => '>=',
+        'like' => 'like',
         'isnull' => 'isnull',
         'notnull' => 'notnull'
 

@@ -34,6 +34,7 @@ var jqTable = {};
  */
 
 jqTable.defaultModel = {
+    tableName: '',
     width: 100, //относительно контейнера таблицы
     height: 100, //От верха заголовка, включая заголовок и футер(если он есть).
     marginBottom: '10px',
@@ -1220,6 +1221,7 @@ jqTable.workSetTmpl = {
                 ws.hrefFilter.href = requestedURL || '';
                 return {
                     body: {
+                        tableName: ws.model.tableName,
                         tableFilter: ws.tableFilter,
                         hrefFilter: ws.hrefFilter,
                         globalFilter: ws.globalFilter,
@@ -1621,7 +1623,8 @@ jqTable.workSetTmpl = {
                 ws.obj.$pgPreloader.show();
                 $.ajax({
                     url: ws.model.dataUrl,
-                    data: requestParams
+                    data: requestParams,
+                    method: 'post'
                     })
                     .done(function (data, textStatus, jqXHR) {
                         ws.obj.$body.children('tbody').html(data.body.html);
