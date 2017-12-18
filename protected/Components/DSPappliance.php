@@ -75,11 +75,11 @@ class DSPappliance extends Std
             }
 
             // Platform
-            $platform = Platform::findByVendorTitle($vendor, $data->platformTitle);
+            $platform = Platform::findByVendorTitle($vendor, $data->chassis);
             if (false === $platform) {
                 $platform = (new Platform())->fill([
                     'vendor' => $vendor,
-                    'title' => $data->platformTitle,
+                    'title' => $data->chassis,
                 ]);
                 $platform->save();
             }
@@ -89,7 +89,7 @@ class DSPappliance extends Std
             if (
                 $appliance->isNew() ||
                 $data->platformSerial != $appliance->platform->serialNumber ||
-                $data->platformTitle != $appliance->platform->platform->title ||
+                $data->chassis != $appliance->platform->platform->title ||
                 $data->platformVendor != $appliance->vendor->title
             ) {
                 $platformItem->fill([
@@ -147,7 +147,6 @@ class DSPappliance extends Std
                 'inUse' => true,
                 'lastUpdate'=> (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P'),
             ]);
-            //todo - изменить afterSave() фреймворка (json -> Std) и удалить проверку !($appliance->details instanceof Std)
             if (is_null($appliance->details) || !($appliance->details instanceof Std)) {
                 $appliance->details = new Std(['hostname' => $data->hostname]);
             } else {
