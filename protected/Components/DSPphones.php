@@ -1,7 +1,6 @@
 <?php
 namespace App\Components;
 
-use App\Exceptions\DblockException;
 use App\Models\Appliance;
 use App\Models\ApplianceType;
 use App\Models\Cluster;
