@@ -116,12 +116,12 @@ class PivotTable extends Table implements PivotTableInterface
         $columns = $this->config->columns()->toArray();
         $columns = array_diff($columns, $this->config->extraColumns->toArray());
         $this->mergedFilter = $this->config->tablePreFilter()->mergeWith($this->filter, 'ignore');
-        $this->pivPrefilters = [];
         $pivotAliases = $this->config->pivots();
         $groupColumns = array_diff($columns, array_keys($pivotAliases->toArray()));
 
         $sql = 'SELECT' . "\n";
         $selectList = [];
+        $pivPrefilters = [];
         foreach ($columns as $column) {
             if (! isset($pivotAliases->$column)) {
                 $selectList[] = $column;
@@ -129,7 +129,7 @@ class PivotTable extends Table implements PivotTableInterface
                 $pivCol = $pivotAliases->$column->column;
                 $pivCol = $this->driver->quoteName($pivCol);
                 $pivPreFilter = $this->config->pivotPreFilter($column);
-                $this->pivPrefilters[] = $pivPreFilter;
+                $pivPrefilters[] = $pivPreFilter;
 
                 $order = $this->config->pivotSortByQuotedString($column);
 
@@ -157,9 +157,10 @@ class PivotTable extends Table implements PivotTableInterface
                 $selectList[] = $pivotSql;
             }
         }
+        $this->pivPrefilters = $pivPrefilters;
         $sql .= implode(",\n\t", $selectList) . "\n";
         $sql .= 'FROM ' . $table . ' AS t1' . "\n";
-        $whereClause = $this->config->tablePreFilter()->filterStatement();
+        $whereClause = $this->mergedFilter->filterStatement();
         if (! empty($whereClause)) {
             $sql .= 'WHERE ' . $whereClause . "\n";
         }
@@ -170,4 +171,38 @@ class PivotTable extends Table implements PivotTableInterface
         return $sql;
     }
 
+    public function selectParams()
+    {
+        $params = [];
+        $params = array_merge($params, $this->mergedFilter->filterParams);
+        foreach ($this->pivPrefilters as $preFilter) {
+            $params = array_merge($params, $preFilter->filterParams);
+        }
+        return $params;
+    }
+
+    /**
+     * @param int|null $limit
+     * @param int|null $offset
+     * @return mixed
+     *
+     * return set of records (like array or Collection?)
+     */
+    public function getRecords(int $limit = null, int $offset = null)
+    {
+        $pivotAliases = array_keys($this->config->pivots()->toArray());
+
+        $sql = $this->selectStatement($offset, $limit);
+        $params = $this->selectParams();
+        $queryRes = $this->config->className()::getDbConnection()->query($sql, $params)->fetchAll(\PDO::FETCH_ASSOC);
+        foreach ($queryRes as $key => $val) {
+            foreach ($pivotAliases as $pivCol) {
+                if (array_key_exists($pivCol, $val)) {
+                    $queryRes[$key][$pivCol] = json_decode($val[$pivCol], true, 512);
+                }
+            }
+            $queryRes[$key] = new RecordItem($queryRes[$key]);
+        }
+        return$queryRes;
+    }
 }

@@ -31,6 +31,11 @@ class Test extends Controller
 {
     public function actionDefault()
     {
+        $str = '{"CP-7911G": 1, "CP-7912G-A": 10}';
+        $res = json_decode($str, true, 512);
+        var_dump($res); die;
+
+
         $rep = new PivotReport('test', GeoDev_View::class);
 
         $rep->delete();
@@ -235,7 +240,7 @@ class Test extends Controller
             'city' => ['id' => 'city','name' => 'Город', 'width' => 10, 'sortable' => true, 'filterable' => true],
             'office' => ['id' => 'office','name' => 'Офис', 'width' =>15, 'sortable' => true, 'filterable' => true],
             'plTitle' => ['id' => 'pl','name' => 'Оборудование', 'width' => 65],
-            'action' => ['id' => 'action','name' => 'Действия', 'width' => '105px'],
+/*            'action' => ['id' => 'action','name' => 'Действия', 'width' => '105px'],*/
         ];
         $sortTemplates = [
             'region' => ['region' => '', 'city' => ''],
@@ -296,23 +301,28 @@ class Test extends Controller
 
     public function actionDevicesPivotTable()
     {
-        $maxAge = 73;
-        $url = new Url('/device/info');
-        $request = (new Request());
-        $request = (0 == $request->get->count()) ? $request = $request->post : $request->get;
-        foreach ($request as $key => $value ) {
-            switch ($key) {
-                case 'header':
-                    $data['columns'] = $value->columns->toArrayRecursive();
-                    $data['user'] = $this->data->user;
-                    $this->data->header->html = $this->view->render('DevicesPivotTableHeader.html', $data);
-                    break;
-                case 'body':
-                    $request = $request->body;
-                    $tb = new PivotTable(new PivotTableConfig($request->tableName));
-                    $sqlStatement = $tb->selectStatement();
-                    $tableFilter = isset($value->tableFilter);
+        try {
+            $maxAge = 73;
+            $url = new Url('/device/info');
+            $request = (new Request());
+            $request = (0 == $request->get->count()) ? $request = $request->post : $request->get;
+            foreach ($request as $key => $value ) {
+                switch ($key) {
+                    case 'header':
+                        $data['columns'] = $value->columns->toArrayRecursive();
+                        $data['user'] = $this->data->user;
+                        $this->data->header->html = $this->view->render('DevicesPivotTableHeader.html', $data);
+                        break;
+                    case 'body':
+                        $request = $request->body;
+                        $tb = new PivotTable(new PivotTableConfig($request->tableName));
+                        $data['data'] = $tb->getRecords();
+                        $data['columns'] = $request->columns;
+                        $this->data->body->html = $this->view->render('DevicesPivotTableBody.html', $data);
+                }
             }
+        } catch (\Exception $e) {
+            $this->data->exception = $e->getMessage();
         }
     }
 }

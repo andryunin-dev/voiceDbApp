@@ -314,7 +314,7 @@ custom striped table
 .cust-table-striped > tbody > tr:nth-child(even),
 .cust-table-striped > tbody > tr:nth-child(even) table.inner
  {
-    background: #f4f4f4 !important;
+    background: #f4f4f4;
 }
 
 .cust-table-striped-theme-2 > tbody > tr:nth-child(odd),
@@ -325,7 +325,7 @@ custom striped table
 .cust-table-striped-theme-2 > tbody > tr:nth-child(even),
 .cust-table-striped-theme-2 > tbody > tr:nth-child(even) table.inner
  {
-    background: #f4f4f4 !important;
+    background: #f4f4f4;
 }
 
 /*.cust-table-striped > tbody >  tr:hover {*/
@@ -334,6 +334,16 @@ custom striped table
 /*.cust-table-striped tr:hover td[rowspan], tr:hover td {*/
     /*background: #c1c1c1;*/
 /*}*/
+/*===================
+select by click
+=====================*/
+.ui-state-highlight,
+.ui-widget-content .ui-state-highlight,
+.ui-widget-header .ui-state-highlight {
+    border: 1px solid #dad55e !important;
+    background: #fffa90 !important;
+    color: #777620 !important;
+}
 /*===================
 custom styles for cells
 =====================*/

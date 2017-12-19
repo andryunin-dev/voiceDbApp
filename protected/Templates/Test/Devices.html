@@ -22,6 +22,13 @@
 
         jQuery(function ($) {
             var tableName = "deviceInfoPivot";
+            var highlightRow = function (e) {
+                var ws = e.data;
+                ws.obj.$body.find(".js-table-row").removeClass("ui-state-highlight");
+                $(e.target).closest(".js-table-row").addClass("ui-state-highlight");
+
+                console.log('click on row')
+            };
             $.ajax({
                 url: '/test/tableSettings.json',
                 dataType: "json",
@@ -35,6 +42,7 @@
                     var devTable = $("#dev_tab");
                     devTable.jqTable(tableSettings);
                     devTable.jqTable('updateBodyContent', {}, window.location.href);
+                    devTable.jqTable('addBodyEventHandler', 'click', "", highlightRow);
                 });
 
 /*

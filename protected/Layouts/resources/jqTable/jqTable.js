@@ -967,6 +967,10 @@ jqTable.workSetTmpl = {
                         method: 'post'
                     })
                         .done(function (data, textStatus, jqXHR) {
+                            if (data.exception) {
+                                console.log(data.exception);
+                                return
+                            }
                             inner.debug(ws, 'buildHeader: ' + textStatus);
                             ws.obj.$header.html(data.header.html);
                             inner.setStyles(ws, 'header');
@@ -1627,6 +1631,10 @@ jqTable.workSetTmpl = {
                     method: 'post'
                     })
                     .done(function (data, textStatus, jqXHR) {
+                        if (data.exception) {
+                            console.log(data.exception);
+                            return
+                        }
                         ws.obj.$body.children('tbody').html(data.body.html);
                         if (data.body.info) {
                             inner.updateFooterInfo(ws, data.body.info);

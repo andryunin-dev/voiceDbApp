@@ -39,9 +39,9 @@ return [
     ],
     'action' =>
     [
-      'id' => 'action',
-      'name' => 'Действия',
-      'width' => '105px',
+      'id' => '',
+      'name' => '',
+      'width' => 0,
       'sortable' => false,
       'filterable' => false,
     ],
