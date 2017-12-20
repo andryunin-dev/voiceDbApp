@@ -19,6 +19,7 @@ use App\Models\DPortType;
 use App\Models\LotusLocation;
 use App\ViewModels\DevModulePortGeo;
 use App\ViewModels\GeoDev_View;
+use App\ViewModels\GeoDevStat;
 use T4\Core\Config;
 use T4\Core\Exception;
 use T4\Core\Std;
@@ -233,6 +234,49 @@ class Test extends Controller
     public function actionConfigPivotTable()
     {
         $tableName = 'deviceInfoPivot';
+        $pivots = ['plTitle' => 'platformTitle'];
+        $columns = ['region', 'city', 'office', 'plTitle', 'action'];
+        $confColumns = [
+            'region' => ['id' => 'region','name' => 'Регион', 'width' => 10, 'sortable' => true, 'filterable' => true],
+            'city' => ['id' => 'city','name' => 'Город', 'width' => 10, 'sortable' => true, 'filterable' => true],
+            'office' => ['id' => 'office','name' => 'Офис', 'width' =>15, 'sortable' => true, 'filterable' => true],
+            'plTitle' => ['id' => 'pl','name' => 'Оборудование', 'width' => 65],
+/*            'action' => ['id' => 'action','name' => 'Действия', 'width' => '105px'],*/
+        ];
+        $sortTemplates = [
+            'region' => ['region' => '', 'city' => ''],
+            'city' => ['city' => '', 'office' => ''],
+        ];
+        $preFilter = (new SqlFilter(DevModulePortGeo::class))
+            ->setFilter('appType', 'eq', ['phone']);
+        $tab = (new PivotTableConfig($tableName, DevModulePortGeo::class));
+        foreach ($pivots as $alias => $col) {
+            $tab->definePivotColumn($col, $alias);
+        }
+        $tab->columns($columns, ['action'])
+            ->sortOrderSets($sortTemplates)
+            ->sortBy('region');
+        foreach ($confColumns as $col => $conf)
+        {
+            $tab->columnConfig($col, new Std($conf));
+        }
+        $tab
+            ->dataUrl('/test/devicesPivotTable.json')
+            ->tableWidth(100)
+            ->pivotPreFilter('plTitle', $preFilter)
+            ->pivotSortBy('plTitle', ['platformTitle'], 'desc')
+            ->pivotWidthItems('plTitle', '40px')
+            ->cssSetHeaderTableClasses(['bg-primary', 'table-bordered', 'table-header-rotated'])
+            ->cssSetBodyTableClasses(["table", "cell-bordered", "cust-table-striped"])
+            ->rowsOnPageList([10,50,100,200,'все'])
+            ->tablePreFilter($preFilter)
+            ->save();
+
+        var_dump($tab);
+    }
+    public function actionConfigPivotPhoneStatTable()
+    {
+        $tableName = 'pivotPhoneStat';
         $pivots = ['plTitle' => 'platformTitle'];
         $columns = ['region', 'city', 'office', 'plTitle', 'action'];
         $confColumns = [
