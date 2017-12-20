@@ -72,4 +72,48 @@ SELECT
 FROM "view"."geo_dev" AS t1
 GROUP BY "region", "office", "officeAddress", "appType"
 HAVING "appType" = :appType_0
-ORDER BY "region", "office", "officeAddress";
+ORDER BY "region", "office", "officeAddress"
+OFFSET 0 LIMIT 20;
+
+
+SELECT count(*) FROM (
+SELECT
+  "region",
+  "office",
+  "officeAddress"
+FROM "view"."geo_dev"
+GROUP BY "region", "office", "officeAddress", "appType"
+HAVING "appType" = :appType_0) as t1;
+
+SELECT count(*) FROM (
+                       SELECT
+                         region,
+                         city,
+                         office
+                       FROM "view"."dev_module_port_geo"
+                       WHERE "appType" = :appType_eq_0
+                       GROUP BY region, city, office
+                     ) as t1;
+
+
+SELECT
+  region,
+  city,
+  office,
+  (SELECT jsonb_object_agg(t2."platformTitle", t2.numbers)
+   FROM (
+          SELECT
+            "platformTitle",
+            count("platformTitle") AS numbers
+          FROM "view"."dev_module_port_geo"  AS t3
+          WHERE "appType" = :appType_eq_0 AND t3.region = t1.region AND t3.city = t1.city AND t3.office = t1.office
+          GROUP BY "platformTitle"
+          ORDER BY "platformTitle" DESC
+        ) AS t2
+  ) AS "plTitle"
+
+FROM "view"."dev_module_port_geo" AS t1
+WHERE "appType" = :appType_eq_0
+GROUP BY region, city, office
+ORDER BY "region", "city"
+LIMIT 50

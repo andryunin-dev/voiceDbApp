@@ -31,17 +31,17 @@ class TableTest extends \PHPUnit\Framework\TestCase
             WITH t (id, "columnOne", "columnTwo", "columnThree", "columnFour") AS (
               VALUES
                 (0::INT, 'c-1-v-0', 'c-2-v-0', 'c-3-v-0', 'c-4-v-0'),
-                (0::INT, 'c-1-v-0', 'c-2-v-0', 'c-3-v-1', 'c-4-v-1'),
-                (0::INT, 'c-1-v-0', 'c-2-v-1', 'c-3-v-2', 'c-4-v-2'),
-                (0::INT, 'c-1-v-0', 'c-2-v-1', 'c-3-v-3', 'c-4-v-3'),
-                (0::INT, 'c-1-v-1', 'c-2-v-2', 'c-3-v-4', 'c-4-v-4'),
-                (0::INT, 'c-1-v-1', 'c-2-v-2', 'c-3-v-5', 'c-4-v-5'),
-                (0::INT, 'c-1-v-1', 'c-2-v-3', 'c-3-v-6', 'c-4-v-6'),
-                (0::INT, 'c-1-v-1', 'c-2-v-3', 'c-3-v-7', 'c-4-v-7'),
-                (0::INT, 'c-1-v-2', 'c-2-v-4', 'c-3-v-8', 'c-4-v-8'),
-                (0::INT, 'c-1-v-2', 'c-2-v-4', 'c-3-v-9', 'c-4-v-9'),
-                (0::INT, 'c-1-v-2', 'c-2-v-5', 'c-3-v-10', 'c-4-v-10'),
-                (0::INT, 'c-1-v-2', 'c-2-v-5', 'c-3-v-11', 'c-4-v-11')
+                (1::INT, 'c-1-v-0', 'c-2-v-0', 'c-3-v-1', 'c-4-v-1'),
+                (2::INT, 'c-1-v-0', 'c-2-v-1', 'c-3-v-2', 'c-4-v-2'),
+                (3::INT, 'c-1-v-0', 'c-2-v-1', 'c-3-v-3', 'c-4-v-3'),
+                (4::INT, 'c-1-v-1', 'c-2-v-2', 'c-3-v-4', 'c-4-v-4'),
+                (5::INT, 'c-1-v-1', 'c-2-v-2', 'c-3-v-5', 'c-4-v-5'),
+                (6::INT, 'c-1-v-1', 'c-2-v-3', 'c-3-v-6', 'c-4-v-6'),
+                (7::INT, 'c-1-v-1', 'c-2-v-3', 'c-3-v-7', 'c-4-v-7'),
+                (8::INT, 'c-1-v-2', 'c-2-v-4', 'c-3-v-8', 'c-4-v-8'),
+                (9::INT, 'c-1-v-2', 'c-2-v-4', 'c-3-v-9', 'c-4-v-9'),
+                (10::INT, 'c-1-v-2', 'c-2-v-5', 'c-3-v-10', 'c-4-v-10'),
+                (11::INT, 'c-1-v-2', 'c-2-v-5', 'c-3-v-11', 'c-4-v-11')
             )
         
           SELECT * FROM t    
@@ -71,7 +71,7 @@ TAG;
          * Create config for test table and save one
          */
         $preFilterData = [
-            'columnOne' => ['eq' => ['val_1']]
+            'columnOne' => ['eq' => ['c-1-v-0', 'c-1-v-1']]
         ];
         $sortTemplates = [
             'columnOne' => ['columnOne' => '', 'columnThree' => '']
@@ -123,7 +123,7 @@ TAG;
 
         $preFilter = new SqlFilter($className);
         $preFilter->setFilterFromArray($preFilterData);
-        self::$tableConf->tablePreFilter($preFilter);
+        //self::$tableConf->tablePreFilter($preFilter);
 
         self::$tableConf->sortOrderSets($sortTemplates);
         self::$tableConf->sortBy($sortBy, $sortDirect);
@@ -173,26 +173,171 @@ TAG;
         $this->assertEquals(42, $table->rowsOnPage());
     }
 
+    public function providerSelectStatement()
+    {
+        return [
+            'withoutPreFilter' => [
+                [],
+                'SELECT "columnOne", "columnTwo", "columnThree" FROM "ModelClass_1" ORDER BY "columnOne" ASC, "columnThree" ASC '
+            ],
+            'columnOne 1 val' => [
+                ['columnOne' => ['eq' => ['c-1-v-0', 'c-1-v-1']]],
+                'SELECT "columnOne", "columnTwo", "columnThree" FROM "ModelClass_1" WHERE ("columnOne" = :columnOne_eq_0 OR "columnOne" = :columnOne_eq_1) ORDER BY "columnOne" ASC, "columnThree" ASC '
+            ],
+            'columnOne 2 val' => [
+                ['columnOne' => ['eq' => ['c-1-v-0']]],
+                'SELECT "columnOne", "columnTwo", "columnThree" FROM "ModelClass_1" WHERE "columnOne" = :columnOne_eq_0 ORDER BY "columnOne" ASC, "columnThree" ASC '
+            ],
+        ];
+    }
+
     /**
+     * @dataProvider providerSelectStatement
      * @depends testReadTableConfig
+     * @param $preFilterSet
+     * @param $expectedQuery
      * @param Table $table
      */
-    public function testSelectStatement($table)
+    public function testSelectStatement($preFilterSet, $expectedQuery, $table)
     {
-        $expected = 'SELECT "columnOne", "columnTwo", "columnThree" FROM "ModelClass_1" WHERE "columnOne" = :columnOne_eq_0 ORDER BY "columnOne" ASC, "columnThree" ASC ';
+        $preFilter = (new SqlFilter(ModelClass_1::class))->setFilterFromArray($preFilterSet);
+        $table->config->tablePreFilter($preFilter);
         $select = $table->selectStatement();
         $select = str_replace("\n", ' ', $select);
-        $this->assertEquals($expected, $select);
+        $this->assertEquals($expectedQuery, $select);
     }
+
+    public function providerCountStatement()
+    {
+        return [
+            'withoutPreFilter' => [
+                [],
+                'SELECT count(*) FROM "ModelClass_1"'
+            ],
+            'columnOne 1 val' => [
+                ['columnOne' => ['eq' => ['c-1-v-0']]],
+                'SELECT count(*) FROM "ModelClass_1" WHERE "columnOne" = :columnOne_eq_0'
+            ],
+            'columnOne 2 val' => [
+                ['columnOne' => ['eq' => ['c-1-v-0', 'c-1-v-1']]],
+                'SELECT count(*) FROM "ModelClass_1" WHERE ("columnOne" = :columnOne_eq_0 OR "columnOne" = :columnOne_eq_1)'
+            ],
+        ];
+    }
+
+
     /**
+     * @dataProvider providerCountStatement
      * @depends testReadTableConfig
+     * @param $preFilterSet
+     * @param $expectedQuery
      * @param Table $table
      */
-    public function testCountStatement($table)
+    public function testCountStatement($preFilterSet, $expectedQuery, $table)
     {
-        $expected = 'SELECT count(*) FROM "ModelClass_1" WHERE "columnOne" = :columnOne_eq_0';
+        $preFilter = (new SqlFilter(ModelClass_1::class))->setFilterFromArray($preFilterSet);
+        $table->config->tablePreFilter($preFilter);
         $count = $table->countStatement();
         $count = str_replace("\n", ' ', $count);
-        $this->assertEquals($expected, $count);
+        $this->assertEquals($expectedQuery, $count);
+    }
+    public function providerCountParams()
+    {
+        return [
+            'withoutPreFilter' => [
+                [],
+                []
+            ],
+            'columnOne 1 val' => [
+                ['columnOne' => ['eq' => ['c-1-v-0']]],
+                [':columnOne_eq_0' => 'c-1-v-0']
+            ],
+            'columnOne 2 val' => [
+                ['columnOne' => ['eq' => ['c-1-v-0', 'c-1-v-1']]],
+                [':columnOne_eq_0' => 'c-1-v-0', ':columnOne_eq_1' => 'c-1-v-1']
+            ],
+        ];
+    }
+
+
+    /**
+     * @dataProvider providerCountParams
+     * @depends testReadTableConfig
+     * @param $preFilterSet
+     * @param $expectedParams
+     * @param Table $table
+     */
+    public function testCountParams($preFilterSet, $expectedParams, $table)
+    {
+        $preFilter = (new SqlFilter(ModelClass_1::class))->setFilterFromArray($preFilterSet);
+        $table->config->tablePreFilter($preFilter);
+        $countStatement = $table->countStatement();
+        $countParams = $table->countParams();
+        $this->assertEquals($expectedParams, $countParams);
+    }
+
+    public function providerCountAll()
+    {
+        return [
+            'withoutPreFilter' => [
+                [],
+                12
+            ],
+            'columnOne 1 val' => [
+                ['columnOne' => ['eq' => ['c-1-v-0']]],
+                4
+            ],
+            'columnOne 2 val' => [
+                ['columnOne' => ['eq' => ['c-1-v-0', 'c-1-v-1']]],
+                8
+            ],
+        ];
+
+    }
+
+    /**
+     * @dataProvider providerCountAll
+     * @depends testReadTableConfig
+     * @param $preFilterSet
+     * @param $expectedCount
+     * @param Table $table
+     * @internal param $expected
+     */
+    public function testCountAll($preFilterSet, $expectedCount, $table)
+    {
+        $preFilter = (new SqlFilter(ModelClass_1::class))->setFilterFromArray($preFilterSet);
+        $table->config->tablePreFilter($preFilter);
+        $this->assertEquals($expectedCount, $table->countAll());
+    }
+
+    public function providerPaginationUpdate()
+    {
+        return [
+            '_1' => [[], ['curPage' => 1, 'rowsOnPage' => 'все'], ['curPage' => 1, 'rowsOnPage' => -1, 'numOfPages' => 1, 'numOfRecords' => 12]],
+            '_2' => [[], ['curPage' => 12, 'rowsOnPage' => 'все'], ['curPage' => 1, 'rowsOnPage' => -1, 'numOfPages' => 1, 'numOfRecords' => 12]],
+            '_3' => [[], ['curPage' => 1, 'rowsOnPage' => 1], ['curPage' => 1, 'rowsOnPage' => 1, 'numOfPages' => 12, 'numOfRecords' => 12]],
+            '_4' => [[], ['curPage' => 12, 'rowsOnPage' => 1], ['curPage' => 12, 'rowsOnPage' => 1, 'numOfPages' => 12, 'numOfRecords' => 12]],
+            '_5' => [[], ['curPage' => 13, 'rowsOnPage' => 1], ['curPage' => 1, 'rowsOnPage' => 1, 'numOfPages' => 12, 'numOfRecords' => 12]],
+        ];
+    }
+
+    /**
+     * @dataProvider providerPaginationUpdate
+     * @depends testReadTableConfig
+     * @param $preFilterSet
+     * @param $input
+     * @param $expected
+     * @param Table $tb
+     */
+    public function testPaginationUpdate($preFilterSet, $input, $expected,  $tb)
+    {
+        $preFilter = (new SqlFilter(ModelClass_1::class))->setFilterFromArray($preFilterSet);
+        $tb->config->tablePreFilter($preFilter);
+        $tb->paginationUpdate($input['curPage'], $input['rowsOnPage']);
+
+        $this->assertEquals($expected['curPage'], $tb->currentPage());
+        $this->assertEquals($expected['rowsOnPage'], $tb->rowsOnPage());
+        $this->assertEquals($expected['numOfPages'], $tb->numberOfPages());
+        $this->assertEquals($expected['numOfRecords'], $tb->numberOfRecords());
     }
 }

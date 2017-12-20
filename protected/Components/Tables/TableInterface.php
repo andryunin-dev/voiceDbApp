@@ -34,13 +34,14 @@ interface TableInterface
      */
     public function getRecords(int $limit = null, int $offset = null);
     public function getRecordsByPage(int $pageNumber);
+    public function selectStatement(int $offset = null, int $limit = null);
 
     /**
      * @param int|null $pageNumber
      * @return mixed
      * get/set current page number
      */
-    public function currentPageNumber(int $pageNumber = null);
+    public function currentPage(int $pageNumber = null);
 
     /**
      * @param int|null $rows
@@ -49,12 +50,16 @@ interface TableInterface
      */
     public function rowsOnPage(int $rows = null);
 
+    public function numberOfPages();
+
     /**
-     * @return self
+     * @param $currentPage
+     * @param $rowsOnPage
+     * @return TableInterface
      *
-     * recalculate pagination according current pagination settings
+     * set pagination parameters and recalculate
      */
-    public function updatePagination();
+    public function paginationUpdate($currentPage = null, $rowsOnPage = null);
 
     /**
      * @return array return current sort order
@@ -81,4 +86,11 @@ interface TableInterface
      * calculate by column using $method. Useful for gather stat info per column
      */
     public function calculateByColumn(string $column, string $method);
+
+    public function countStatement();
+
+    /**
+     * @return int return number of records in table with current settings of filters
+     */
+    public function countAll();
 }

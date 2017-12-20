@@ -33,7 +33,7 @@ class Test extends Controller
     {
         $str = '{"CP-7911G": 1, "CP-7912G-A": 10}';
         $res = json_decode($str, true, 512);
-        var_dump($res); die;
+        var_dump(ceil(4.3)); die;
 
 
         $rep = new PivotReport('test', GeoDev_View::class);
@@ -316,9 +316,17 @@ class Test extends Controller
                     case 'body':
                         $request = $request->body;
                         $tb = new PivotTable(new PivotTableConfig($request->tableName));
-                        $data['data'] = $tb->getRecords();
+                        $tb->paginationUpdate($request->pager->page, $request->pager->rowsOnPage);
+                        $data['data'] = $tb->getRecordsByPage();
                         $data['columns'] = $request->columns;
                         $this->data->body->html = $this->view->render('DevicesPivotTableBody.html', $data);
+
+                        $this->data->body->pager = $request->pager;
+                        $this->data->body->pager->page = $tb->currentPage();
+                        $this->data->body->pager->pages = $tb->numberOfPages();
+                        $this->data->body->pager->records = $tb->numberOfRecords();
+                        $info[] = 'Записей: ' . $tb->numberOfRecords();
+                        $this->data->body->info = $info;
                 }
             }
         } catch (\Exception $e) {

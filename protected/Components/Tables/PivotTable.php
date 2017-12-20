@@ -110,7 +110,7 @@ class PivotTable extends Table implements PivotTableInterface
 
     }
 
-    public function selectStatement($offset = null, $limit = null)
+    public function selectStatement(int $offset = null, int $limit = null)
     {
         $table = $this->driver->quoteName($this->config->className()::getTableName());
         $columns = $this->config->columns()->toArray();
@@ -168,6 +168,14 @@ class PivotTable extends Table implements PivotTableInterface
             $sql .= 'GROUP BY ' . implode(', ', $groupColumns) . "\n";
         }
         $sql .= 'ORDER BY ' . $this->config->sortByQuotedString();
+        if (! is_null($offset) && $offset > 0) {
+            $sql .= "\n";
+            $sql .= 'OFFSET ' . $offset;
+        }
+        if (! is_null($limit) && $limit > 0) {
+            $sql .= "\n";
+            $sql .= 'LIMIT ' . $limit;
+        }
         return $sql;
     }
 
@@ -204,5 +212,35 @@ class PivotTable extends Table implements PivotTableInterface
             $queryRes[$key] = new RecordItem($queryRes[$key]);
         }
         return$queryRes;
+    }
+
+    public function countStatement()
+    {
+        $table = $this->driver->quoteName($this->config->className()::getTableName());
+        $columns = $this->config->columns()->toArray();
+        $columns = array_diff($columns, $this->config->extraColumns->toArray());
+        $this->mergedFilter = $this->config->tablePreFilter()->mergeWith($this->filter, 'ignore');
+        $pivotAliases = $this->config->pivots();
+        $groupColumns = array_diff($columns, array_keys($pivotAliases->toArray()));
+
+        $sql = 'SELECT' . "\n";
+        $selectList = [];
+        $this->pivPrefilters = [];
+        foreach ($columns as $column) {
+            if (! isset($pivotAliases->$column)) {
+                $selectList[] = $column;
+            }
+        }
+        $sql .= implode(",\n", $selectList) . "\n";
+        $sql .= 'FROM ' . $table . "\n";
+        $whereClause = $this->mergedFilter->filterStatement();
+        if (! empty($whereClause)) {
+            $sql .= 'WHERE ' . $whereClause . "\n";
+        }
+        if (! empty($groupColumns)) {
+            $sql .= 'GROUP BY ' . implode(', ', $groupColumns) . "\n";
+        }
+        $sql = 'SELECT count(*) FROM (' . "\n" . $sql . ') as t1';
+        return $sql;
     }
 }

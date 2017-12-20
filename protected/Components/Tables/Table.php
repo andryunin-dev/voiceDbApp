@@ -26,6 +26,7 @@ class Table extends Std
         'currentPage' => 1,
         'rowsOnPage' => -1,
         'numberOfPages' => 0,
+        'totalRecords' => 0
     ];
 
     public function __construct(TableConfig $tableConfig)
@@ -114,9 +115,10 @@ class Table extends Std
         return$queryRes;
     }
 
-    public function getRecordsByPage(int $pageNumber)
+    public function getRecordsByPage(int $pageNumber = null)
     {
-        // TODO: Implement getRecordsByPage() method.
+        $pageNumber = is_null($pageNumber) ? $this->currentPage() : $this->currentPageSanitize($pageNumber);
+        return $this->getRecords($this->rowsOnPage(), ($pageNumber-1) * $this->rowsOnPage());
     }
 
     /**
@@ -124,7 +126,7 @@ class Table extends Std
      * @return int|self
      * get/set current page number
      */
-    public function currentPageNumber(int $pageNumber = null)
+    public function currentPage(int $pageNumber = null)
     {
         if (is_null($pageNumber)) {
             return $this->pagination->currentPage;
@@ -147,24 +149,38 @@ class Table extends Std
         if (is_null($rows)) {
             return $this->pagination->rowsOnPage;
         }
-        if ($rows > 0) {
-            $this->pagination->rowsOnPage = $rows;
-            $this->updatePagination();
-        }
+        $this->pagination->rowsOnPage = $this->rowsOnPageSanitize($rows);
         return $this;
     }
 
-    public function numberOfPages($updateNow = true)
+    /**
+     * @return int number of pages that were calculated with paginationUpdate()
+     */
+    public function numberOfPages()
     {
-        if (true === $updateNow) {
-            $this->updatePagination();
-        }
-        return $this->paginationSettings->numberOfPages;
+        return $this->pagination->numberOfPages;
     }
 
-    public function updatePagination()
+    public function numberOfRecords()
     {
-        //Todo calculate pagination
+        return $this->pagination->totalRecords;
+    }
+
+    /**
+     * @param null $currentPage
+     * @param null $rowsOnPage
+     * @return $this
+     */
+    public function paginationUpdate($currentPage = null, $rowsOnPage = null)
+    {
+
+        $pagination = $this->pagination;
+        $pagination->totalRecords = $this->countAll();
+        $pagination->rowsOnPage = is_null($rowsOnPage) ? $pagination->rowsOnPage : $this->rowsOnPageSanitize($rowsOnPage);
+        $pagination->numberOfPages = $pagination->rowsOnPage < 0 ? 1 : (int)ceil($pagination->totalRecords / $pagination->rowsOnPage);
+
+        $pagination->currentPage = is_null($currentPage) ? $pagination->currentPage : $this->currentPageSanitize($currentPage);
+        $pagination->currentPage = $pagination->currentPage > $pagination->numberOfPages ? 1 : $pagination->currentPage;
         return $this;
     }
 
@@ -217,7 +233,7 @@ class Table extends Std
     }
 
 
-    public function selectStatement($offset = null, $limit = null)
+    public function selectStatement(int $offset = null, int $limit = null)
     {
         $table = $this->driver->quoteName($this->config->className()::getTableName());
         $columns = $this->config->columns()->toArray();
@@ -240,6 +256,14 @@ class Table extends Std
         return $sql;
     }
 
+    public function countAll()
+    {
+        $query = $this->countStatement();
+        $params = $this->countParams();
+        $res = $this->countByQuery($query, $params);
+        return $res;
+    }
+
     public function countStatement()
     {
         $table = $this->driver->quoteName($this->config->className()::getTableName());
@@ -249,8 +273,8 @@ class Table extends Std
         $whereStatement = $this->mergedFilter->filterStatement;
 
         $sql = 'SELECT count(*)' . "\n";
-        $sql .= 'FROM ' . $table . "\n";
-        $sql .= (empty($whereStatement)) ? '' : 'WHERE ' . $whereStatement;
+        $sql .= 'FROM ' . $table;
+        $sql .= (empty($whereStatement)) ? '' : "\n" . 'WHERE ' . $whereStatement;
         return $sql;
     }
 
@@ -280,5 +304,28 @@ class Table extends Std
         $conn = $this->config->className::getDbConnection();
         $res = $conn->query($sql, $param)->fetchScalar();
         return $res;
+    }
+    protected function rowsOnPageSanitize($val)
+    {
+        if (is_int($val) && $val > 0) {
+            return $val;
+        } elseif (is_numeric($val) && (int)$val > 0) {
+            return (int)$val;
+        }  elseif (is_numeric($val) && (int)$val == -1) {
+            return (int)$val;
+        } elseif (mb_strtolower($val) == 'все') {
+            return -1;
+        }
+        throw new Exception('Exception in rowsOnPageSanitize: Incorrect value of RowsOnPage variable');
+    }
+    protected function currentPageSanitize($val)
+    {
+        if (is_int($val) && $val > 0) {
+            return $val;
+        } elseif (is_numeric($val) && (int)$val > 0) {
+            return (int)$val;
+        } else {
+            return 1;
+        }
     }
 }
