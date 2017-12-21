@@ -124,7 +124,7 @@ class PivotTable extends Table implements PivotTableInterface
         $pivPrefilters = [];
         foreach ($columns as $column) {
             if (! isset($pivotAliases->$column)) {
-                $selectList[] = $column;
+                $selectList[] = $this->driver->quoteName($column);
             } else {
                 $pivCol = $pivotAliases->$column->column;
                 $pivCol = $this->driver->quoteName($pivCol);
@@ -140,7 +140,7 @@ class PivotTable extends Table implements PivotTableInterface
                 $pivotSql .= 'count(' . $pivCol . ') AS numbers' . "\n";
                 $pivotSql .= 'FROM ' . $table . '  AS t3' . "\n";
                 $innerClause_1 = array_map(function($item) {
-                    return 't3.' . $item . ' = ' . 't1.' . $item;
+                    return $this->driver->quoteName('t3.' . $item) . ' = ' . $this->driver->quoteName('t1.' . $item);
                 }, $groupColumns);
                 $innerClause_1 = empty($innerClause_1) ? '' : ' AND ' . implode(' AND ', $innerClause_1);
                 $innerFilterStatement = $pivPreFilter->filterStatement();
@@ -152,19 +152,22 @@ class PivotTable extends Table implements PivotTableInterface
                     $pivotSql .= 'ORDER BY ' . $order . "\n";
                 }
                 $pivotSql .= ') AS t2' . "\n";
-                $pivotSql .= ') AS ' . $this->driver->quoteName($column) . "\n";
+                $pivotSql .= ') AS ' . $this->driver->quoteName($column);
 
                 $selectList[] = $pivotSql;
             }
         }
         $this->pivPrefilters = $pivPrefilters;
-        $sql .= implode(",\n\t", $selectList) . "\n";
+        $sql .= implode(",\n", $selectList) . "\n";
         $sql .= 'FROM ' . $table . ' AS t1' . "\n";
         $whereClause = $this->mergedFilter->filterStatement();
         if (! empty($whereClause)) {
             $sql .= 'WHERE ' . $whereClause . "\n";
         }
         if (! empty($groupColumns)) {
+            $groupColumns = array_map(function($item) {
+                return $this->driver->quoteName($item);
+            }, $groupColumns);
             $sql .= 'GROUP BY ' . implode(', ', $groupColumns) . "\n";
         }
         $sql .= 'ORDER BY ' . $this->config->sortByQuotedString();
@@ -228,7 +231,7 @@ class PivotTable extends Table implements PivotTableInterface
         $this->pivPrefilters = [];
         foreach ($columns as $column) {
             if (! isset($pivotAliases->$column)) {
-                $selectList[] = $column;
+                $selectList[] = $this->driver->quoteName($column);
             }
         }
         $sql .= implode(",\n", $selectList) . "\n";
@@ -238,6 +241,9 @@ class PivotTable extends Table implements PivotTableInterface
             $sql .= 'WHERE ' . $whereClause . "\n";
         }
         if (! empty($groupColumns)) {
+            $groupColumns = array_map(function($item) {
+                return $this->driver->quoteName($item);
+            }, $groupColumns);
             $sql .= 'GROUP BY ' . implode(', ', $groupColumns) . "\n";
         }
         $sql = 'SELECT count(*) FROM (' . "\n" . $sql . ') as t1';

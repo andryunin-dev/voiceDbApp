@@ -17,6 +17,7 @@ use App\Components\Tables\TableConfig;
 use App\Models\Appliance;
 use App\Models\DPortType;
 use App\Models\LotusLocation;
+use App\ViewModels\DevGeoPeople_1;
 use App\ViewModels\DevModulePortGeo;
 use App\ViewModels\GeoDev_View;
 use T4\Core\Config;
@@ -274,9 +275,64 @@ class Test extends Controller
         var_dump($tab);
     }
 
+    /**
+     * create config based on devGeoPeople_1 view
+     */
+    public function actionConfigPivotTable2()
+    {
+        $tableName = 'devGeoPeoplePivot';
+        $columns = ['regCenter', 'region', 'city', 'office', 'people', 'plTitle'];
+        $pivots = ['plTitle' => 'platformTitle'];
+        $extraColumns = [];
+        $confColumns = [
+            'regCenter' => ['id' => 'regcent','name' => 'Рег.центр', 'width' => 12, 'sortable' => true, 'filterable' => true],
+            'region' => ['id' => 'region','name' => 'Регион', 'width' => 10, 'sortable' => true, 'filterable' => true],
+            'city' => ['id' => 'city','name' => 'Город', 'width' => 10, 'sortable' => true, 'filterable' => true],
+            'office' => ['id' => 'office','name' => 'Офис', 'width' =>15, 'sortable' => true, 'filterable' => true],
+            'people' => ['id' => 'people','name' => 'Сотр.', 'width' => '60px'],
+            'plTitle' => ['id' => 'pl','name' => 'Оборудование', 'width' => 65],
+        ];
+        $sortTemplates = [
+            'regCenter' => ['regCenter' => '', 'region' => '', 'city' => '', 'office' => ''],
+            'region' => ['region' => '', 'city' => '', 'office' => ''],
+            'city' => ['city' => '', 'office' => ''],
+        ];
+        $preFilter = (new SqlFilter(DevGeoPeople_1::class))
+            ->setFilter('appType', 'eq', ['phone']);
+        $tab = (new PivotTableConfig($tableName, DevGeoPeople_1::class));
+        foreach ($pivots as $alias => $col) {
+            $tab->definePivotColumn($col, $alias);
+        }
+        $tab->columns($columns, $extraColumns)
+            ->sortOrderSets($sortTemplates)
+            ->sortBy('regCenter');
+        foreach ($confColumns as $col => $conf)
+        {
+            $tab->columnConfig($col, new Std($conf));
+        }
+        $tab
+            ->dataUrl('/test/devicesPivotTable.json')
+            ->tableWidth(100)
+            ->pivotPreFilter('plTitle', $preFilter)
+            ->pivotSortBy('plTitle', ['platformTitle'], 'desc')
+            ->pivotWidthItems('plTitle', '40px')
+            ->cssSetHeaderTableClasses(['bg-primary', 'table-bordered', 'table-header-rotated'])
+            ->cssSetBodyTableClasses(["table", "cell-bordered", "cust-table-striped"])
+            ->rowsOnPageList([10,50,100,200,'все'])
+            ->tablePreFilter($preFilter)
+            ->save();
+
+        var_dump($tab);
+    }
+
 
 
     public function actionDevices()
+    {
+
+    }
+
+    public function actionDevices2()
     {
 
     }
