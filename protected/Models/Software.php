@@ -64,11 +64,17 @@ class Software extends Model
      * @return Software|bool
      */
     public static function findByVendorTitle(Vendor $vendor, $title) {
-        return $vendor->software->filter(
+        $software = $vendor->software->filter(
             function ($software) use ($title) {
                 return $title == $software->title;
             }
         )->first();
+
+        if (is_null($software)) {
+            return false;
+        } else {
+            return $software;
+        }
     }
 
     public static function getEmpty()

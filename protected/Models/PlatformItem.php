@@ -65,20 +65,6 @@ class PlatformItem extends Model
     }
 
     /**
-     * @param Platform $platform
-     * @param $serialNumber
-     * @return PlatformItem|bool
-     */
-    public static function findByPlatformSerial(Platform $platform, $serialNumber)
-    {
-        return $platform->platformItems->filter(
-            function ($platformItem) use ($serialNumber) {
-                return $serialNumber == $platformItem->serialNumber;
-            }
-        )->first();
-    }
-
-    /**
      * @param Vendor $vendor
      * @param $serialNumber
      * @return self|bool
