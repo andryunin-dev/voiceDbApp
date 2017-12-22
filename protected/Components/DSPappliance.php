@@ -51,13 +51,17 @@ class DSPappliance extends Std
                 if (!is_null($foundAppliance)) {
                     $appliance = $foundAppliance;
                 } else {
-                    // Find the Appliance by the management IP
-                    $dataPortIp = (new IpTools($data->ip))->address;
-                    $dataPortVrf = Vrf::instanceGlobalVrf();
+                    if (!is_null($data->ip)) {
+                        // Find the Appliance by the management IP
+                        $dataPortIp = (new IpTools($data->ip))->address;
+                        $dataPortVrf = Vrf::instanceGlobalVrf();
 
-                    $foundDataPort = DataPort::findByIpVrf($dataPortIp, $dataPortVrf);
-                    if (false !== $foundDataPort && true === $foundDataPort->isManagement && empty($foundDataPort->appliance->platform->serialNumber)) {
-                        $appliance = $foundDataPort->appliance;
+                        $foundDataPort = DataPort::findByIpVrf($dataPortIp, $dataPortVrf);
+                        if (false !== $foundDataPort && true === $foundDataPort->isManagement && empty($foundDataPort->appliance->platform->serialNumber)) {
+                            $appliance = $foundDataPort->appliance;
+                        } else {
+                            $appliance = new Appliance();
+                        }
                     } else {
                         $appliance = new Appliance();
                     }
