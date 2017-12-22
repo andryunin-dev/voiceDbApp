@@ -96,9 +96,24 @@ class PivotTableConfig extends TableConfig
         $alias = is_null($alias) ? $column : $alias;
         $this->pivot->$alias = new Std($this->pivotColumnPropertiesTemplate);
         $this->pivot->$alias->column = $column;
+        $this->pivot->$alias->display = $display;
         return $this;
     }
 
+    /**
+     * define column that will be calculated as value for pivot items
+     * allowed methods: count, sum
+     *
+     * @param string $pivotAlias
+     * @param string $calColumn
+     * @param string $method
+     * @return self
+     */
+    public function pivotValueCalculatedColumn(string $pivotAlias, string $calColumn = '', string $method = 'count')
+    {
+        //TODO implementation
+        return $this;
+    }
     /**
      * @param string $pivColumnAlias
      * @param SqlFilter|null $preFilter

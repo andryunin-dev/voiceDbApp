@@ -103,22 +103,32 @@ class Table extends Std
     /**
      * @param int|null $limit
      * @param int|null $offset
-     * @return mixed
+     * @param string|null $class
+     * @return mixed return set of records (like array or Collection?)
+     * @throws Exception
      *
      * return set of records (like array or Collection?)
      */
-    public function getRecords(int $limit = null, int $offset = null)
+    public function getRecords(int $limit = null, int $offset = null,  string $class = null)
     {
+        if (! is_null($class) && ! class_exists($class)) {
+            throw new Exception('getRecords: class name isn\'t valid');
+        }
         $sql = $this->selectStatement($offset, $limit);
         $params = $this->selectParams();
         $queryRes = $this->config->className()::getDbConnection()->query($sql, $params)->fetchAll(\PDO::FETCH_COLUMN, 0);
-        return$queryRes;
+        if (! is_null($class)) {
+            foreach ($queryRes as $key => $val) {
+                $queryRes[$key] = new $class($queryRes[$key]);
+            }
+        }
+        return $queryRes;
     }
 
-    public function getRecordsByPage(int $pageNumber = null)
+    public function getRecordsByPage(int $pageNumber = null, string $class = null)
     {
         $pageNumber = is_null($pageNumber) ? $this->currentPage() : $this->currentPageSanitize($pageNumber);
-        return $this->getRecords($this->rowsOnPage(), ($pageNumber-1) * $this->rowsOnPage());
+        return $this->getRecords($this->rowsOnPage(), ($pageNumber-1) * $this->rowsOnPage(), $class);
     }
 
     /**

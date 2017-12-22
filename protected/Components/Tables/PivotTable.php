@@ -3,6 +3,7 @@
 namespace App\Components\Tables;
 
 use App\Components\Sql\SqlFilter;
+use T4\Core\Exception;
 use T4\Core\Std;
 use T4\Dbal\Query;
 
@@ -195,12 +196,15 @@ class PivotTable extends Table implements PivotTableInterface
     /**
      * @param int|null $limit
      * @param int|null $offset
-     * @return mixed
-     *
-     * return set of records (like array or Collection?)
+     * @param string|null $class
+     * @return mixed return set of records
+     * @throws Exception
      */
-    public function getRecords(int $limit = null, int $offset = null)
+    public function getRecords(int $limit = null, int $offset = null, string $class = null)
     {
+        if (! is_null($class) && ! class_exists($class)) {
+            throw new Exception('getRecords: class name isn\'t valid');
+        }
         $pivotAliases = array_keys($this->config->pivots()->toArray());
 
         $sql = $this->selectStatement($offset, $limit);
@@ -212,7 +216,9 @@ class PivotTable extends Table implements PivotTableInterface
                     $queryRes[$key][$pivCol] = json_decode($val[$pivCol], true, 512);
                 }
             }
-            $queryRes[$key] = new RecordItem($queryRes[$key]);
+            if (! is_null($class)) {
+                $queryRes[$key] = new $class($queryRes[$key]);
+            }
         }
         return$queryRes;
     }

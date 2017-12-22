@@ -12,6 +12,7 @@ use App\Components\Sorter;
 use App\Components\Sql\SqlFilter;
 use App\Components\Tables\PivotTable;
 use App\Components\Tables\PivotTableConfig;
+use App\Components\Tables\RecordItem;
 use App\Components\Tables\Table;
 use App\Components\Tables\TableConfig;
 use App\Models\Appliance;
@@ -276,7 +277,7 @@ class Test extends Controller
     }
 
     /**
-     * create config based on devGeoPeople_1 view
+     * create config based on devGeoPeople_1 view (1 pivot column)
      */
     public function actionConfigPivotTable2()
     {
@@ -314,6 +315,62 @@ class Test extends Controller
             ->dataUrl('/test/devicesPivotTable.json')
             ->tableWidth(100)
             ->pivotPreFilter('plTitle', $preFilter)
+            ->pivotSortBy('plTitle', ['platformTitle'], 'desc')
+            ->pivotWidthItems('plTitle', '40px')
+            ->cssSetHeaderTableClasses(['bg-primary', 'table-bordered', 'table-header-rotated'])
+            ->cssSetBodyTableClasses(["table", "cell-bordered", "cust-table-striped"])
+            ->rowsOnPageList([10,50,100,200,'все'])
+            ->tablePreFilter($preFilter)
+            ->save();
+
+        var_dump($tab);
+    }
+
+   /**
+     * create config based on devGeoPeople_1 view (2 pivot column. Second is't displayed)
+     */
+    public function actionConfigPivotTable3()
+    {
+        $tableName = 'devGeoPeoplePivot2';
+        $columns = ['regCenter', 'region', 'city', 'office', 'people', 'plTitle', 'plTitleActive'];
+        $pivots = [
+            'plTitle' => ['name' => 'platformTitle', 'display' => true],
+            'plTitleActive' => ['name' => 'platformTitle', 'display' => false]];
+        $extraColumns = [];
+        $confColumns = [
+            'regCenter' => ['id' => 'regcent','name' => 'Рег.центр', 'width' => 12, 'sortable' => true, 'filterable' => true],
+            'region' => ['id' => 'region','name' => 'Регион', 'width' => 10, 'sortable' => true, 'filterable' => true],
+            'city' => ['id' => 'city','name' => 'Город', 'width' => 10, 'sortable' => true, 'filterable' => true],
+            'office' => ['id' => 'office','name' => 'Офис', 'width' =>15, 'sortable' => true, 'filterable' => true],
+            'people' => ['id' => 'people','name' => 'Сотр.', 'width' => '60px'],
+            'plTitle' => ['id' => 'pl','name' => 'Оборудование', 'width' => 65],
+        ];
+        $sortTemplates = [
+            'regCenter' => ['regCenter' => '', 'region' => '', 'city' => '', 'office' => ''],
+            'region' => ['region' => '', 'city' => '', 'office' => ''],
+            'city' => ['city' => '', 'office' => ''],
+        ];
+        $preFilter = (new SqlFilter(DevGeoPeople_1::class))
+            ->setFilter('appType', 'eq', ['phone']);
+        $preFilterActive = (new SqlFilter(DevGeoPeople_1::class))
+            ->setFilter('appType', 'eq', ['phone']);
+        $preFilterActive->addFilter('appAge', 'lt', [200]);
+        $tab = (new PivotTableConfig($tableName, DevGeoPeople_1::class));
+        foreach ($pivots as $alias => $col) {
+            $tab->definePivotColumn($col['name'], $alias, $col['display']);
+        }
+        $tab->columns($columns, $extraColumns)
+            ->sortOrderSets($sortTemplates)
+            ->sortBy('regCenter');
+        foreach ($confColumns as $col => $conf)
+        {
+            $tab->columnConfig($col, new Std($conf));
+        }
+        $tab
+            ->dataUrl('/test/devicesPivotTable.json')
+            ->tableWidth(100)
+            ->pivotPreFilter('plTitle', $preFilter)
+            ->pivotPreFilter('plTitleActive', $preFilterActive)
             ->pivotSortBy('plTitle', ['platformTitle'], 'desc')
             ->pivotWidthItems('plTitle', '40px')
             ->cssSetHeaderTableClasses(['bg-primary', 'table-bordered', 'table-header-rotated'])
@@ -373,16 +430,37 @@ class Test extends Controller
                         $request = $request->body;
                         $tb = new PivotTable(new PivotTableConfig($request->tableName));
                         $tb->paginationUpdate($request->pager->page, $request->pager->rowsOnPage);
+//                        $data['data'] = $tb->getRecordsByPage(null, RecordItem::class);
                         $data['data'] = $tb->getRecordsByPage();
+
+                        // concatenate data from pivot columns with glue '/' and unset array plTitleActive
+                        $totalDevs = 'plTitle';
+                        $activeDevs = 'plTitleActive';
+                        foreach ($data['data'] as $key => $values) {
+                            if (! isset($values[$totalDevs])) {
+                                continue;
+                            }
+                            array_walk($values[$totalDevs], function (&$counter, $platform) use($values, $totalDevs, $activeDevs) {
+                                $counter = (isset($values[$activeDevs][$platform])) ? $counter . '/' . $values[$activeDevs][$platform] : $counter . '/0';
+                            });
+                            $data['data'][$key][$totalDevs] = $values[$totalDevs];
+                            unset($data['data'][$key][$activeDevs]);
+                            $data['data'][$key] = new RecordItem($data['data'][$key]);
+                        }
+
                         $data['columns'] = $request->columns;
                         $this->data->body->html = $this->view->render('DevicesPivotTableBody.html', $data);
-
                         $this->data->body->pager = $request->pager;
                         $this->data->body->pager->page = $tb->currentPage();
                         $this->data->body->pager->pages = $tb->numberOfPages();
                         $this->data->body->pager->records = $tb->numberOfRecords();
                         $info[] = 'Записей: ' . $tb->numberOfRecords();
                         $this->data->body->info = $info;
+                        break;
+                    case 'headerFilter':
+                        break;
+                    default:
+                        break;
                 }
             }
         } catch (\Exception $e) {
