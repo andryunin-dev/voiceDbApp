@@ -118,6 +118,8 @@ class PivotTable extends Table implements PivotTableInterface
         $columns = array_diff($columns, $this->config->extraColumns->toArray());
         $this->mergedFilter = $this->config->tablePreFilter()->mergeWith($this->filter, 'ignore');
         $pivotAliases = $this->config->pivots();
+        //if defined pivotItemsSelectBy column, than use it for inner where clause for pivot items
+        //else use $groupColumns
         $groupColumns = array_diff($columns, array_keys($pivotAliases->toArray()));
 
         $sql = 'SELECT' . "\n";
@@ -131,6 +133,9 @@ class PivotTable extends Table implements PivotTableInterface
                 $pivCol = $this->driver->quoteName($pivCol);
                 $pivPreFilter = $this->config->pivotPreFilter($column);
                 $pivPrefilters[] = $pivPreFilter;
+                $pivotItemsSelectBy = $this->config->pivotItemsSelectBy($column)->toArray();
+                $pivotItemsSelectBy = empty($pivotItemsSelectBy) ? $groupColumns : $pivotItemsSelectBy;
+                $groupColumns = array_unique(array_merge($groupColumns, $pivotItemsSelectBy));
 
                 $order = $this->config->pivotSortByQuotedString($column);
 
@@ -142,7 +147,7 @@ class PivotTable extends Table implements PivotTableInterface
                 $pivotSql .= 'FROM ' . $table . '  AS t3' . "\n";
                 $innerClause_1 = array_map(function($item) {
                     return $this->driver->quoteName('t3.' . $item) . ' = ' . $this->driver->quoteName('t1.' . $item);
-                }, $groupColumns);
+                }, $pivotItemsSelectBy);
                 $innerClause_1 = empty($innerClause_1) ? '' : ' AND ' . implode(' AND ', $innerClause_1);
                 $innerFilterStatement = $pivPreFilter->filterStatement();
                 if (! empty($innerClause_1) || !empty($innerFilterStatement)) {
@@ -209,7 +214,7 @@ class PivotTable extends Table implements PivotTableInterface
 
         $sql = $this->selectStatement($offset, $limit);
         $params = $this->selectParams();
-        $queryRes = $this->config->className()::getDbConnection()->query($sql, $params)->fetchAll(\PDO::FETCH_ASSOC);
+        $queryRes = $this->config->connection()->query($sql, $params)->fetchAll(\PDO::FETCH_ASSOC);
         foreach ($queryRes as $key => $val) {
             foreach ($pivotAliases as $pivCol) {
                 if (array_key_exists($pivCol, $val)) {

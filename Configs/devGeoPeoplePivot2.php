@@ -165,11 +165,15 @@ return [
           ],
         ],
       ],
+      'selectPivotItemsBy' =>
+      [
+        0 => 'lotusId',
+      ],
       'sortBy' =>
       [
         'platformTitle' => 'desc',
       ],
-      'itemWidth' => '70px',
+      'itemWidth' => '65px',
     ],
     'plTitleActive' =>
     [
@@ -188,9 +192,13 @@ return [
         [
           'lt' =>
           [
-            0 => 200,
+            0 => 300,
           ],
         ],
+      ],
+      'selectPivotItemsBy' =>
+      [
+        0 => 'lotusId',
       ],
       'sortBy' =>
       [

@@ -42,6 +42,8 @@ interface PivotTableConfigInterface extends TableConfigInterface
      */
     public function pivotPreFilter(string $pivotColumn, SqlFilter $condition = null);
 
+    public function pivotItemsSelectBy(string $pivotColumn, array $columns = []);
+
     /**
      * @param string $pivotColumnAlias
      * @param array $sortColumns

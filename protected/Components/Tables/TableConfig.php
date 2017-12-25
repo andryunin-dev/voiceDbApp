@@ -6,13 +6,16 @@ use App\Components\Sql\SqlFilter;
 use T4\Core\Config;
 use T4\Core\Exception;
 use T4\Core\Std;
+use T4\Dbal\Connection;
 use T4\Dbal\IDriver;
+use T4\Mvc\Application;
 use T4\Orm\Model;
 
 /**
  * Class TableConfig
  * @package App\Components\Tables
  *
+ * @property Connection $connection
  * @property string $className
  * @property Std $sizes has property 'width' and 'height'
  * @property Std $columns set of columns with properties
@@ -32,6 +35,7 @@ class TableConfig extends Config implements TableConfigInterface
 
     protected $tablePropertiesTemplate = [
         'dataUrl' => '',
+        'connection' => '',
         'className' => '',
         'columns' => [],
         'aliases' => [],
@@ -118,6 +122,23 @@ class TableConfig extends Config implements TableConfigInterface
             throw new Exception('Invalid URL');
         }
         $this->dataUrl = $url;
+        return $this;
+    }
+
+    public function connection($connectionName = null)
+    {
+        if (is_null($connectionName)) {
+            if (empty($this->connection)) {
+                return $this->className()::getDbConnection();
+            } else {
+                $this->className()::setConnection($this->connection);
+                $res = $this->className()::getDbConnection();
+                return $res;
+            }
+        }
+        $this->connectionNameValidate($connectionName);
+        $this->connection = $connectionName;
+
         return $this;
     }
 
@@ -559,6 +580,21 @@ class TableConfig extends Config implements TableConfigInterface
             default:
                 return $val;
         }
+    }
+
+    protected function connectionNameValidate($connectionName)
+    {
+            if ('cli' == PHP_SAPI) {
+                $app = \T4\Console\Application::instance();
+            } else {
+                $app = \T4\Mvc\Application::instance();
+            }
+            $res = $app->db->$connectionName;
+
+            if ($res instanceof Connection) {
+                return true;
+            }
+            throw new Exception($connectionName . ' is not valid connection name');
     }
     /* ============= GETTERS =================*/
     protected function getHeaderCssClasses()

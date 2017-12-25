@@ -15,6 +15,13 @@ use T4\Core\Config;
 class TableConfigTest extends \PHPUnit\Framework\TestCase
 {
     protected static $fileName;
+    public static function setUpBeforeClass()
+    {
+        \T4\Console\Application::instance()->setConfig(
+            new \T4\Core\Config(ROOT_PATH . '/Tests/dbTestsConfig.php')
+        );
+    }
+
 
     public static function tearDownAfterClass()
     {
@@ -53,6 +60,35 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
         $conf->columns($columnsArray);
         $this->assertInstanceOf(TableConfig::class, $conf);
         return $conf;
+    }
+
+    /**
+     * @depends testCreateBaseConfig
+     * @param TableConfig $conf
+     *
+     */
+    public function testConnection($conf)
+    {
+        $connName = 'connection_1';
+        $res = $conf->connection($connName);
+        $this->assertInstanceOf(TableConfig::class, $res);
+        $res = $conf->connection();
+        $this->assertInstanceOf(\T4\Dbal\Connection::class, $res);
+    }
+
+    /**
+     * @depends testCreateBaseConfig
+     * @param TableConfig $conf
+     * @expectedException \T4\Core\Exception
+     *
+     */
+    public function testConnection_wrongConnectionName($conf)
+    {
+        $connName = 'connection_wrong';
+        $res = $conf->connection($connName);
+        $this->assertInstanceOf(TableConfig::class, $res);
+        $res = $conf->connection();
+        $this->assertInstanceOf(\T4\Dbal\Connection::class, $res);
     }
 
     /**

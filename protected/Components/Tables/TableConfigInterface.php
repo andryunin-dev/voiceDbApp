@@ -21,6 +21,8 @@ interface TableConfigInterface
     public function save();
     public function delete();
 
+    public function connection($connectionName = null);
+
     public function dataUrl($url = null);
     public function tableWidth($width = null);
     public function tableHeight($height = null);

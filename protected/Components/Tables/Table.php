@@ -116,7 +116,7 @@ class Table extends Std
         }
         $sql = $this->selectStatement($offset, $limit);
         $params = $this->selectParams();
-        $queryRes = $this->config->className()::getDbConnection()->query($sql, $params)->fetchAll(\PDO::FETCH_COLUMN, 0);
+        $queryRes = $this->config->connection()->query($sql, $params)->fetchAll(\PDO::FETCH_ASSOC);
         if (! is_null($class)) {
             foreach ($queryRes as $key => $val) {
                 $queryRes[$key] = new $class($queryRes[$key]);
@@ -303,7 +303,7 @@ class Table extends Std
         /**
          * @var Connection $conn
          */
-        $conn = $this->config->className::getDbConnection();
+        $conn = $this->config->connection();
         $res = $conn->query($sql, $param)->fetchAllObjects(Std::class);
     }
     protected function countByQuery($sql, $param)
@@ -311,7 +311,7 @@ class Table extends Std
         /**
          * @var Connection $conn
          */
-        $conn = $this->config->className::getDbConnection();
+        $conn = $this->config->connection();
         $res = $conn->query($sql, $param)->fetchScalar();
         return $res;
     }

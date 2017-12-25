@@ -25,6 +25,7 @@ use T4\Core\Config;
 use T4\Core\Exception;
 use T4\Core\Std;
 use T4\Core\Url;
+use T4\Dbal\Connection;
 use T4\Http\Request;
 use T4\Mvc\Controller;
 use T4\Orm\Model;
@@ -33,9 +34,13 @@ class Test extends Controller
 {
     public function actionDefault()
     {
-        $str = '{"CP-7911G": 1, "CP-7912G-A": 10}';
-        $res = json_decode($str, true, 512);
-        var_dump(ceil(4.3)); die;
+        /**
+         * @var Connection $conn
+         */
+        $conn = $this->app->db->lotusData;
+        $conn->
+        var_dump($this->app->db->lotusData);
+
 
 
         $rep = new PivotReport('test', GeoDev_View::class);
@@ -350,11 +355,14 @@ class Test extends Controller
             'region' => ['region' => '', 'city' => '', 'office' => ''],
             'city' => ['city' => '', 'office' => ''],
         ];
+        $tablePreFilter = (new SqlFilter(DevGeoPeople_1::class))
+            ->setFilter('appType', 'eq', ['phone']);
         $preFilter = (new SqlFilter(DevGeoPeople_1::class))
             ->setFilter('appType', 'eq', ['phone']);
         $preFilterActive = (new SqlFilter(DevGeoPeople_1::class))
             ->setFilter('appType', 'eq', ['phone']);
-        $preFilterActive->addFilter('appAge', 'lt', [200]);
+        $preFilterActive->addFilter('appAge', 'lt', [300]);
+        $pivotItemsSelectBy = ['lotusId'];
         $tab = (new PivotTableConfig($tableName, DevGeoPeople_1::class));
         foreach ($pivots as $alias => $col) {
             $tab->definePivotColumn($col['name'], $alias, $col['display']);
@@ -369,19 +377,69 @@ class Test extends Controller
         $tab
             ->dataUrl('/test/devicesPivotTable.json')
             ->tableWidth(100)
+            ->pivotItemsSelectBy('plTitle', $pivotItemsSelectBy)
             ->pivotPreFilter('plTitle', $preFilter)
+            ->pivotItemsSelectBy('plTitleActive', $pivotItemsSelectBy)
             ->pivotPreFilter('plTitleActive', $preFilterActive)
             ->pivotSortBy('plTitle', ['platformTitle'], 'desc')
-            ->pivotWidthItems('plTitle', '40px')
+            ->pivotWidthItems('plTitle', '65px')
             ->cssSetHeaderTableClasses(['bg-primary', 'table-bordered', 'table-header-rotated'])
             ->cssSetBodyTableClasses(["table", "cell-bordered", "cust-table-striped"])
             ->rowsOnPageList([10,50,100,200,'все'])
-            ->tablePreFilter($preFilter)
+            ->tablePreFilter($tablePreFilter)
             ->save();
 
         var_dump($tab);
     }
 
+    public function actionLotusLocation()
+    {
+        $tableName = 'lotusLocation';
+        $columns = ['lotus_id', 'title', 'reg_center', 'region', 'city', 'address', 'employees'];
+        $extraColumns = [];
+        $confColumns = [
+            'lotus_id' => ['id' => 'lotus-id','name' => 'Lotus ID', 'width' => 12, 'sortable' => true, 'filterable' => true],
+            'title' => ['id' => 'title','name' => 'Офис', 'width' => 10, 'sortable' => true, 'filterable' => true],
+            'reg_center' => ['id' => 'regc','name' => 'Рег.ц', 'width' => 10, 'sortable' => true, 'filterable' => true],
+            'region' => ['id' => 'region','name' => 'Регион', 'width' => 10, 'sortable' => true, 'filterable' => true],
+            'city' => ['id' => 'city','name' => 'Город', 'width' => 10, 'sortable' => true, 'filterable' => true],
+            'address' => ['id' => 'addr','name' => 'Адрес', 'width' =>15, 'sortable' => true, 'filterable' => true],
+            'employees' => ['id' => 'employees','name' => 'Сотр.', 'width' => '60px'],
+        ];
+        $sortTemplates = [
+            'regCenter' => ['reg_center' => '', 'region' => '', 'city' => '', 'title' => ''],
+            'region' => ['region' => '', 'city' => '', 'title' => ''],
+            'city' => ['city' => '', 'title' => ''],
+        ];
+        $tablePreFilter = (new SqlFilter(LotusLocation::class));
+        $tab = (new TableConfig($tableName, LotusLocation::class));
+        $tab->columns($columns, $extraColumns)
+            ->sortOrderSets($sortTemplates)
+            ->sortBy('regCenter');
+        foreach ($confColumns as $col => $conf)
+        {
+            $tab->columnConfig($col, new Std($conf));
+        }
+        $tab
+            ->connection('lotusData')
+            ->dataUrl('/test/devicesPivotTable.json')
+            ->tableWidth(100)
+            ->cssSetHeaderTableClasses(['bg-primary', 'table-bordered', 'table-header-rotated'])
+            ->cssSetBodyTableClasses(["table", "cell-bordered", "cust-table-striped"])
+            ->rowsOnPageList([10,50,100,200,'все'])
+            ->tablePreFilter($tablePreFilter)
+            ->save();
+
+        var_dump($tab);
+
+    }
+
+    public function actionLotusData()
+    {
+        $tableName = 'lotusLocation';
+        $tb = new Table(new TableConfig($tableName));
+        $res = $tb->getRecords();
+    }
 
 
     public function actionDevices()

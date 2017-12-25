@@ -211,6 +211,28 @@ class PivotTableConfigTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($expected, $conf->pivotPreFilter('columnTwo')->toArray());
     }
 
+    public function providerPivotItemsSelectBy()
+    {
+        return [
+            '_1' => [[]],
+            '_2' => [['columnOne']],
+            '_3' => [['columnOne', 'columnThree']],
+        ];
+    }
+
+    /**
+     * @dataProvider providerPivotItemsSelectBy
+     * @depends      testCreateBasePivotConfig
+     * @param array $selectColumns
+     * @param PivotTableConfig $conf
+     */
+    public function testPivotItemsSelectBy($selectColumns, $conf)
+    {
+        $conf->pivotItemsSelectBy('columnTwo', $selectColumns);
+        $this->assertEquals($selectColumns, $conf->pivotItemsSelectBy('columnTwo')->toArray());
+    }
+
+
     public function providerPivotSortBy()
     {
         return [

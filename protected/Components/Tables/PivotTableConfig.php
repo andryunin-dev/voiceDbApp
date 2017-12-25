@@ -37,6 +37,7 @@ class PivotTableConfig extends TableConfig
         'column' => '',
         'display' => true, // use or not in table header building
         'preFilter' => [], //preFilter for pivot column values
+        'selectPivotItemsBy' => [], //columns for inner select pivot items
         'sortBy' => [], //sort columns and direction for pivot column
         'itemWidth' => 0, //width for each column from pivot values.
     ];
@@ -128,6 +129,23 @@ class PivotTableConfig extends TableConfig
                 ->setFilterFromArray($this->pivot->$pivColumnAlias->preFilter->toArray());
         }
         $this->pivot->$pivColumnAlias->preFilter = new Std($preFilter->toArray());
+        return $this;
+    }
+
+    /**
+     * @param string $pivColumnAlias
+     * @param array $columns that is used in inner select for pivot items.
+     * if not defined - will be used all defined columns from GROUP clause
+     * @return self|Std
+     */
+    public function pivotItemsSelectBy(string $pivColumnAlias, array $columns = null)
+    {
+        $this->validatePivotColumn($pivColumnAlias);
+        if (is_null($columns)) {
+            return $this->pivot->$pivColumnAlias->selectPivotItemsBy;
+        }
+        $this->areAllColumnsDefined($columns);
+        $this->pivot->$pivColumnAlias->selectPivotItemsBy = new Std($columns);
         return $this;
     }
 

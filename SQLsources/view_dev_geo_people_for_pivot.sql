@@ -51,8 +51,8 @@ FROM equipment.appliances AS appliances
 SELECT * FROM view.dev_geo_people_1;
 -- variant 2
 
-CREATE OR REPLACE VIEW view.dev_geo_people_1 AS
-EXPLAIN ANALYSE SELECT
+CREATE OR REPLACE VIEW view.dev_geo_people_2 AS
+  SELECT
     --   geo."regCenter" AS "regCenter",
     region.title      AS region,
     region.__id       AS region_id,
@@ -83,4 +83,3 @@ EXPLAIN ANALYSE SELECT
     JOIN geolocation.addresses AS address ON address.__id = offices.__address_id
     JOIN geolocation.cities AS city ON city.__id = address.__city_id
     JOIN geolocation.regions AS region ON region.__id = city.__region_id
-    LEFT JOIN lotus.locations AS "lotusData" ON offices."lotusId" = "lotusData".lotus_id;
