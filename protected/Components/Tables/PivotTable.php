@@ -228,28 +228,11 @@ class PivotTable extends Table implements PivotTableInterface
 
          $this->mergedFilter = $this->config->tablePreFilter()->mergeWith($this->filter, 'ignore');
 
-         $whereClause = $this->mergedFilter->filterStatement();
-         $params = $this->mergedFilter->filterParams();
-         $query = (new Query())
-             ->distinct()
-             ->select($column)
-             ->from($this->config->className()::getTableName())
-             ->order($column)
-             ->where($whereClause)
-             ->params($params)
-             ->limit($limit);
-
-/*       не понятно почему не работает
          $sql = $this->distinctStatementByColumn($column, $offset, $limit);
          $params = $this->selectParams();
          $conn = $this->config->connection();
-         $queryRes = $conn->query($sql, $params)->fetchAll(\PDO::FETCH_ASSOC);*/
+         $res = $conn->query($sql, $params)->fetchAll(\PDO::FETCH_COLUMN, 0);
 
-         $conn = $this->config->connection();
-         $queryRes = $conn->query($query, $params)->fetchAll(\PDO::FETCH_ASSOC);
-         $res = array_map(function ($item) {
-             return array_pop($item);
-         }, $queryRes);
          return $res;
      }
 
@@ -257,6 +240,9 @@ class PivotTable extends Table implements PivotTableInterface
     {
         $params = [];
         $params = array_merge($params, $this->mergedFilter->filterParams);
+        if (empty($this->pivPrefilters)) {
+            return $params;
+        }
         foreach ($this->pivPrefilters as $preFilter) {
             $params = array_merge($params, $preFilter->filterParams);
         }

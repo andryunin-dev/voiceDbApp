@@ -505,7 +505,7 @@ class Test extends Controller
                         $tb->paginationUpdate($request->pager->page, $request->pager->rowsOnPage);
                         $data['data'] = $tb->getRecordsByPage();
 
-                        // concatenate data from pivot columns with glue '/' and unset array plTitleActive
+                        // ================concatenate data from pivot columns with glue '/' and unset array plTitleActive
                         $totalDevs = 'plTitle';
                         $activeDevs = 'plTitleActive';
                         foreach ($data['data'] as $key => $values) {
@@ -535,8 +535,8 @@ class Test extends Controller
                         $filter = $request->headerFilter->filter;
                         $column = $filter->column;
                         $values[] = $filter->value . '%';
-                        $sqlFilter = new SqlFilter($tb->config->className());
-                        $sqlFilter->setFilter($filter->column, $filter->statement, $values);
+                        $sqlFilter = (new SqlFilter($tb->config->className()))
+                            ->setFilter($filter->column, $filter->statement, $values);
                         $tb->addFilter($sqlFilter, 'append');
                         $this->data->result = $tb->distinctColumnValues($column);
                         break;
