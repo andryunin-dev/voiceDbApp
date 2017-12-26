@@ -134,11 +134,64 @@ class DSPphones extends Std
             $vendor = Vendor::findByColumn('title', self::VENDOR);
 
             // Platform
-            $templates = ['~Cisco~','~CISCO~'];
-            foreach ($templates as $template) {
-                $data->model = trim(preg_replace($template,'',$data->model));
-            }
             $model = (!empty($data->modelNumber)) ? $data->modelNumber : $data->model;
+            preg_match('~\d+~', $model, $numericModelCode);
+            switch ($numericModelCode[0]) {
+                case '6921';
+                    $model = 'CP-6921';
+                    break;
+                case '7905';
+                    $model = 'CP-7905G';
+                    break;
+                case '7911';
+                    $model = 'CP-7911G';
+                    break;
+                case '7912';
+                    $model = 'CP-7912G';
+                    break;
+                case '7936';
+                    $model = 'CP-7936';
+                    break;
+                case '7937';
+                    $model = 'CP-7937';
+                    break;
+                case '7940';
+                    $model = 'CP-7940G';
+                    break;
+                case '7942';
+                    $model = 'CP-7942G';
+                    break;
+                case '7945';
+                    $model = 'CP-7945G';
+                    break;
+                case '7960';
+                    $model = 'CP-7960G';
+                    break;
+                case '7965';
+                    $model = 'CP-7965G';
+                    break;
+                case '7975';
+                    $model = 'CP-7975G';
+                    break;
+                case '8831';
+                    $model = 'CP-8831';
+                    break;
+                case '8865';
+                    $model = 'CP-8865';
+                    break;
+                case '8945';
+                    $model = 'CP-8945';
+                    break;
+                default:
+                    preg_match('~communicator~', mb_strtolower($model), $modelName);
+                    if ('communicator' == $modelName[0]) {
+                        $model = 'Communicator';
+                    } else {
+                        $model = trim(preg_replace('~Cisco|CISCO~', '', $model));
+                        $model = trim(preg_replace('~  +~', ' ', $model));
+                    }
+            }
+
             $platform = Platform::findByVendorTitle($vendor, $model);
             if (false === $platform) {
                 $platform = (new Platform())->fill([

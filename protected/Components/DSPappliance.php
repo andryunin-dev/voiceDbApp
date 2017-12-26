@@ -79,10 +79,9 @@ class DSPappliance extends Std
             }
 
             // Platform
-            $templates = ['~Cisco~','~CISCO~','~-CHASSIS~'];
-            foreach ($templates as $template) {
-                $data->chassis = trim(preg_replace($template,'',$data->chassis));
-            }
+            $data->chassis = trim(preg_replace('~Cisco|CISCO|-CHASSIS~', '', $data->chassis));
+            $data->chassis = trim(preg_replace('~  +~', ' ', $data->chassis));
+
             $platform = Platform::findByVendorTitle($vendor, $data->chassis);
             if (false === $platform) {
                 $platform = (new Platform())->fill([
