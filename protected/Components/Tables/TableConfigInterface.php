@@ -28,6 +28,7 @@ interface TableConfigInterface
     public function tableHeight($height = null);
 
     public function columns(array $columns = null,  array $extraColumns = null);
+    public function calculatedColumn(string $alias, string $column = null, string $method = null);
     public function columnList();
     public function columnConfig(string $column, Std $config = null);
 

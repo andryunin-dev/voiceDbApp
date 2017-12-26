@@ -924,4 +924,31 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($expected, $conf->footerCssClasses->table->toArray());
     }
 
+    public function providerCalculatedColumns()
+    {
+        return [
+            '_1' => [
+                ['alias' => 'calculated', 'column' => 'columnTwo', 'method' => 'count'],
+                ['calculated' => ['column' => 'columnTwo', 'method' => 'count']],
+            ],
+        ];
+    }
+
+    /**
+     * @depends testCreateBaseConfig
+     * @dataProvider providerCalculatedColumns
+     *
+     * @param $input
+     * @param $expected
+     * @param TableConfig $conf
+     *
+     *
+     */
+    public function testCalculatedColumns($input, $expected, $conf)
+    {
+        $conf->calculatedColumn($input['alias'], $input['column'], $input['method']);
+        $this->assertTrue(isset($conf->{$input['alias']}));
+        $this->assertInstanceOf(Std::class, $conf->{$input['alias']});
+        $this->assertEquals($expected, $conf->{$input['alias']}->toArray());
+    }
 }

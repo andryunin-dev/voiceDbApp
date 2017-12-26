@@ -62,6 +62,9 @@ class PivotTable extends Table implements PivotTableInterface
                 $columnsConf->$col = $colConf;
                 continue;
             }
+//            if (! $this->config->isCalculated($col)) {
+//                $columnsConf->$col = $colConf;
+//            }
             if (! $pivots->$col->display) {
                 continue;
             }
@@ -115,19 +118,25 @@ class PivotTable extends Table implements PivotTableInterface
     {
         $table = $this->driver->quoteName($this->config->className()::getTableName());
         $columns = $this->config->columns()->toArray();
+        $calculatedColumns = array_keys($this->config->calculated->toArray());
         $columns = array_diff($columns, $this->config->extraColumns->toArray());
         $this->mergedFilter = $this->config->tablePreFilter()->mergeWith($this->filter, 'ignore');
         $pivotAliases = $this->config->pivots();
         //if defined pivotItemsSelectBy column, than use it for inner where clause for pivot items
         //else use $groupColumns
-        $groupColumns = array_diff($columns, array_keys($pivotAliases->toArray()));
+        $groupColumns = array_diff($columns, array_keys($pivotAliases->toArray()), $calculatedColumns);
 
         $sql = 'SELECT' . "\n";
         $selectList = [];
         $pivPrefilters = [];
         foreach ($columns as $column) {
             if (! isset($pivotAliases->$column)) {
-                $selectList[] = $this->driver->quoteName($column);
+                if (in_array($column, $calculatedColumns)) {
+                    $colParams = $this->config->calculatedColumn($column);
+                    $selectList[] = $colParams->method . '(' . $this->driver->quoteName($colParams->column) . ') AS ' . $this->driver->quoteName($column) ;
+                } else {
+                    $selectList[] = $this->driver->quoteName($column);
+                }
             } else {
                 $pivCol = $pivotAliases->$column->column;
                 $pivCol = $this->driver->quoteName($pivCol);
@@ -230,18 +239,20 @@ class PivotTable extends Table implements PivotTableInterface
 
     public function countStatement()
     {
+        //TODO refactor
         $table = $this->driver->quoteName($this->config->className()::getTableName());
         $columns = $this->config->columns()->toArray();
         $columns = array_diff($columns, $this->config->extraColumns->toArray());
         $this->mergedFilter = $this->config->tablePreFilter()->mergeWith($this->filter, 'ignore');
         $pivotAliases = $this->config->pivots();
-        $groupColumns = array_diff($columns, array_keys($pivotAliases->toArray()));
+        $calculated = $this->config->calculatedColumns();
+        $groupColumns = array_diff($columns, array_keys($pivotAliases->toArray()), array_keys($calculated->toArray()));
 
         $sql = 'SELECT' . "\n";
         $selectList = [];
         $this->pivPrefilters = [];
         foreach ($columns as $column) {
-            if (! isset($pivotAliases->$column)) {
+            if (! isset($pivotAliases->$column) && ! isset($calculated->$column)) {
                 $selectList[] = $this->driver->quoteName($column);
             }
         }

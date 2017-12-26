@@ -100,6 +100,7 @@ SELECT
   region,
   city,
   office,
+  count(appliance_id),
   (SELECT jsonb_object_agg(t2."platformTitle", t2.numbers)
    FROM (
           SELECT

@@ -337,16 +337,20 @@ class Test extends Controller
     public function actionConfigPivotTable3()
     {
         $tableName = 'devGeoPeoplePivot2';
-        $columns = ['regCenter', 'region', 'city', 'office', 'people', 'plTitle', 'plTitleActive'];
+        $columns = ['regCenter', 'region', 'city', 'office', 'phoneAmount', 'people', 'plTitle', 'plTitleActive'];
         $pivots = [
             'plTitle' => ['name' => 'platformTitle', 'display' => true],
             'plTitleActive' => ['name' => 'platformTitle', 'display' => false]];
         $extraColumns = [];
+        $countedColumns = [
+            'phoneAmount' => ['name' => 'appliance_id', 'method' => 'count']
+        ];
         $confColumns = [
             'regCenter' => ['id' => 'regcent','name' => 'Рег.центр', 'width' => 12, 'sortable' => true, 'filterable' => true],
             'region' => ['id' => 'region','name' => 'Регион', 'width' => 10, 'sortable' => true, 'filterable' => true],
             'city' => ['id' => 'city','name' => 'Город', 'width' => 10, 'sortable' => true, 'filterable' => true],
             'office' => ['id' => 'office','name' => 'Офис', 'width' =>15, 'sortable' => true, 'filterable' => true],
+            'phoneAmount' => ['id' => 'phone-count','name' => 'кол-во тел.', 'width' => '60px'],
             'people' => ['id' => 'people','name' => 'Сотр.', 'width' => '60px'],
             'plTitle' => ['id' => 'pl','name' => 'Оборудование', 'width' => 65],
         ];
@@ -366,6 +370,9 @@ class Test extends Controller
         $tab = (new PivotTableConfig($tableName, DevGeoPeople_1::class));
         foreach ($pivots as $alias => $col) {
             $tab->definePivotColumn($col['name'], $alias, $col['display']);
+        }
+        foreach ($countedColumns as $alias => $col) {
+            $tab->calculatedColumn($alias, $col['name'], $col['method']);
         }
         $tab->columns($columns, $extraColumns)
             ->sortOrderSets($sortTemplates)

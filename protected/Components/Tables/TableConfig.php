@@ -19,6 +19,7 @@ use T4\Orm\Model;
  * @property string $className
  * @property Std $sizes has property 'width' and 'height'
  * @property Std $columns set of columns with properties
+ * @property Std $calculated calculated columns
  * @property Std $sortOrderSets
  * @property Std $sortBy
  * @property Std $preFilter
@@ -38,6 +39,7 @@ class TableConfig extends Config implements TableConfigInterface
         'connection' => '',
         'className' => '',
         'columns' => [],
+        'calculated' => [],
         'aliases' => [],
         'extraColumns' => [],
         'sortOrderSets' => [],
@@ -61,12 +63,18 @@ class TableConfig extends Config implements TableConfigInterface
         'sortable' => false,
         'filterable' => false,
     ];
+    protected $calculatedColumnProperties = [
+        'column' => '',
+        'method' => 'count'
+    ];
+
 
     protected static $sqlOperators = ['eq', 'ne', 'lt', 'le', 'gt', 'ge', 'isnull', 'notnull'];
     protected static $unarySqlOperators = [
         'isnull',
         'notnull'
     ];
+    protected static $sqlMethods = ['count', 'sum'];
 
     /**
      * TableConfig constructor.
@@ -190,6 +198,40 @@ class TableConfig extends Config implements TableConfigInterface
         $columns = array_fill_keys($columns, $this->columnPropertiesTemplate);
         $this->columns = new Std($columns);
         return $this;
+    }
+
+    /**
+     * @param string $alias
+     * @param string|null $column
+     * @param string|null $method count or sum
+     * @return self
+     * @throws Exception
+     */
+    public function calculatedColumn(string $alias, string $column = null, string $method = null)
+    {
+        if(is_null($column) && is_null($method)) {
+            if (! $this->isCalculated($alias)) {
+                throw new Exception($alias . ' is not define as alias for calculated column');
+            }
+            return $this->calculated->$alias;
+        }
+        if (! $this->isColumnDefinedInClass($column)) {
+            throw new Exception('Calculated column has to be one of class columns(properties)');
+        }
+        $this->sqlMethodValidate($method);
+        $alias = is_null($alias) ? $column : $alias;
+        $this->calculated->$alias = new Std($this->calculatedColumnProperties);
+        $this->calculated->$alias->column = $column;
+
+        return $this;
+    }
+
+    /**
+     * @return Std
+     */
+    public function calculatedColumns()
+    {
+        return $this->calculated;
     }
 
     public function columnList()
@@ -458,11 +500,12 @@ class TableConfig extends Config implements TableConfigInterface
         $this->cssStyles->$tablePart->$tag = new Std($tar);
         return $this;
     }
-    protected function areAllColumnsDefined(array $columns, $checkInExtraColumns = false)
+    protected function areAllColumnsDefined(array $columns, $checkExtraColumns = false, $checkCalculatedColumns = false)
     {
         $classColumns = array_keys($this->className::getColumns());
-        $extraColumns = true === $checkInExtraColumns ? $this->extraColumns->toArray() : [];
-        $unionColumns = array_merge($classColumns, $extraColumns);
+        $extraColumns = true === $checkExtraColumns ? $this->extraColumns->toArray() : [];
+        $calculatedColumn = true === $checkCalculatedColumns ? array_keys($this->calculated->toArray()) : [];
+        $unionColumns = array_merge($classColumns, $extraColumns, $calculatedColumn);
         $diff = array_diff($columns, $unionColumns);
         if (count($diff) > 0) {
             throw new Exception('columns have to belong ' . $this->className::getTableName() . ' table!');
@@ -470,11 +513,12 @@ class TableConfig extends Config implements TableConfigInterface
         return true;
     }
 
-    protected function validateColumnName(string $columns, $checkInExtraColumns = false)
+    protected function validateColumnName(string $columns, $checkExtraColumns = false, $checkCalculatedColumns = false)
     {
         $classColumns = array_keys($this->className::getColumns());
-        $extraColumns = true === $checkInExtraColumns ? $this->extraColumns->toArray() : [];
-        $unionColumns = array_merge($classColumns, $extraColumns);
+        $extraColumns = true === $checkExtraColumns ? $this->extraColumns->toArray() : [];
+        $calculatedColumn = true === $checkCalculatedColumns ? array_keys($this->calculated->toArray()) : [];
+        $unionColumns = array_merge($classColumns, $extraColumns, $calculatedColumn);
         if (! in_array($columns, $unionColumns)) {
             throw new Exception('columns have to belong ' . $this->className::getTableName() . ' table or have been defined as ExtraColumns!');
         }
@@ -553,6 +597,18 @@ class TableConfig extends Config implements TableConfigInterface
         return true;
     }
 
+    protected function isSqlMethodValid($val)
+    {
+        return in_array(strtolower($val), self::$sqlMethods);
+    }
+    protected function sqlMethodValidate($methodName)
+    {
+        if (! $this->isSqlMethodValid($methodName)) {
+            throw new Exception($methodName . ' doesn\'t valid sql aggregated method');
+        }
+        return true;
+    }
+
     protected function sanitizeConfigParam($param, $val)
     {
         switch($param) {
@@ -595,6 +651,11 @@ class TableConfig extends Config implements TableConfigInterface
                 return true;
             }
             throw new Exception($connectionName . ' is not valid connection name');
+    }
+
+    public function isCalculated($columnAlias)
+    {
+        return isset($this->calculated->$columnAlias);
     }
     /* ============= GETTERS =================*/
     protected function getHeaderCssClasses()

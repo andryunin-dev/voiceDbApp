@@ -1,7 +1,7 @@
 <thead>
 <tr style="height: 120px">
     {% for column in columns %}
-        <th id="{{ column.th_id|trim('#') }}" title="{{ column.name }}" {% if column.isPivot %}class="rotate-2"{% endif %}>
+        <th id="{{ column.th_id|trim('#') }}" title="{{ column.name }}" {% if column.isPivot  or column.id == 'phone-count' or column.id == 'people' %}class="rotate-2"{% endif %}>
             <div>
                 <p>{{ column.name }}</p>
             </div>

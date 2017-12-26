@@ -2,6 +2,7 @@
 
 return [
   'dataUrl' => '/test/devicesPivotTable.json',
+  'connection' => '',
   'className' => 'App\\ViewModels\\DevGeoPeople_1',
   'columns' =>
   [
@@ -37,6 +38,14 @@ return [
       'sortable' => true,
       'filterable' => true,
     ],
+    'phoneAmount' =>
+    [
+      'id' => 'phone-count',
+      'name' => 'кол-во тел.',
+      'width' => '60px',
+      'sortable' => false,
+      'filterable' => false,
+    ],
     'people' =>
     [
       'id' => 'people',
@@ -60,6 +69,14 @@ return [
       'width' => 0,
       'sortable' => false,
       'filterable' => false,
+    ],
+  ],
+  'calculated' =>
+  [
+    'phoneAmount' =>
+    [
+      'column' => 'appliance_id',
+      'method' => 'count',
     ],
   ],
   'aliases' =>
