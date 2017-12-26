@@ -493,9 +493,16 @@ class Test extends Controller
                         break;
                     case 'body':
                         $request = $request->body;
-                        $tb = new PivotTable(new PivotTableConfig($request->tableName));
+                        $tbConf = new PivotTableConfig($request->tableName);
+                        $tabFilter = new SqlFilter($tbConf->className());
+                        if (isset($request->tableFilter)) {
+
+                            $filterSet = $request->tableFilter->toArray();
+                            $tabFilter->setFilterFromArray($filterSet);
+                        }
+                        $tb = new PivotTable($tbConf);
+                        $tb->addFilter($tabFilter, 'append');
                         $tb->paginationUpdate($request->pager->page, $request->pager->rowsOnPage);
-//                        $data['data'] = $tb->getRecordsByPage(null, RecordItem::class);
                         $data['data'] = $tb->getRecordsByPage();
 
                         // concatenate data from pivot columns with glue '/' and unset array plTitleActive
@@ -512,9 +519,10 @@ class Test extends Controller
                             unset($data['data'][$key][$activeDevs]);
                             $data['data'][$key] = new RecordItem($data['data'][$key]);
                         }
-
+                        //========end concatenate==============
                         $data['columns'] = $request->columns;
                         $this->data->body->html = $this->view->render('DevicesPivotTableBody.html', $data);
+                        $this->data->body->tableFilter = $tabFilter;
                         $this->data->body->pager = $request->pager;
                         $this->data->body->pager->page = $tb->currentPage();
                         $this->data->body->pager->pages = $tb->numberOfPages();
@@ -523,6 +531,14 @@ class Test extends Controller
                         $this->data->body->info = $info;
                         break;
                     case 'headerFilter':
+                        $tb = new PivotTable(new PivotTableConfig($request->tableName));
+                        $filter = $request->headerFilter->filter;
+                        $column = $filter->column;
+                        $values[] = $filter->value . '%';
+                        $sqlFilter = new SqlFilter($tb->config->className());
+                        $sqlFilter->setFilter($filter->column, $filter->statement, $values);
+                        $tb->addFilter($sqlFilter, 'append');
+                        $this->data->result = $tb->distinctColumnValues($column);
                         break;
                     default:
                         break;

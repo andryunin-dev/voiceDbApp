@@ -3,6 +3,7 @@
 namespace App\Components\Tables;
 
 use App\Components\Sql\SqlFilter;
+use SebastianBergmann\CodeCoverage\Report\PHP;
 use T4\Core\Exception;
 use T4\Core\Std;
 use T4\Dbal\Query;
@@ -196,6 +197,61 @@ class PivotTable extends Table implements PivotTableInterface
         }
         return $sql;
     }
+    public function distinctStatementByColumn(string $column, int $offset = null, int $limit = null)
+    {
+        $table = $this->driver->quoteName($this->config->className()::getTableName());
+        $columns = $this->config->columns()->toArray();
+        $calculatedColumns = array_keys($this->config->calculated->toArray());
+        $columns = array_diff($columns, $this->config->extraColumns->toArray(), $calculatedColumns);
+        $this->mergedFilter = $this->config->tablePreFilter()->mergeWith($this->filter, 'ignore');
+
+        $sql = 'SELECT DISTINCT ' . $column . "\n";
+        $sql .= 'FROM ' . $table . "\n";
+        $whereClause = $this->mergedFilter->filterStatement();
+        if (! empty($whereClause)) {
+            $sql .= 'WHERE ' . $whereClause . "\n";
+        }
+        if (! is_null($offset) && $offset > 0) {
+            $sql .= "\n";
+            $sql .= 'OFFSET ' . $offset;
+        }
+        if (! is_null($limit) && $limit > 0) {
+            $sql .= "\n";
+            $sql .= 'LIMIT ' . $limit;
+        }
+        return $sql;
+     }
+
+     public function distinctColumnValues(string $column, int $offset = null, int $limit = null)
+     {
+         $limit = is_null($limit) ? 50 : $limit;
+
+         $this->mergedFilter = $this->config->tablePreFilter()->mergeWith($this->filter, 'ignore');
+
+         $whereClause = $this->mergedFilter->filterStatement();
+         $params = $this->mergedFilter->filterParams();
+         $query = (new Query())
+             ->distinct()
+             ->select($column)
+             ->from($this->config->className()::getTableName())
+             ->order($column)
+             ->where($whereClause)
+             ->params($params)
+             ->limit($limit);
+
+/*       не понятно почему не работает
+         $sql = $this->distinctStatementByColumn($column, $offset, $limit);
+         $params = $this->selectParams();
+         $conn = $this->config->connection();
+         $queryRes = $conn->query($sql, $params)->fetchAll(\PDO::FETCH_ASSOC);*/
+
+         $conn = $this->config->connection();
+         $queryRes = $conn->query($query, $params)->fetchAll(\PDO::FETCH_ASSOC);
+         $res = array_map(function ($item) {
+             return array_pop($item);
+         }, $queryRes);
+         return $res;
+     }
 
     public function selectParams()
     {

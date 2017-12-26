@@ -1304,6 +1304,7 @@ jqTable.workSetTmpl = {
                                     url: ws.model.dataUrl,
                                     dataType: "json",
                                     data: {
+                                        tableName: ws.model.tableName,
                                         headerFilter: {
                                             filter: {
                                                 column: key,
