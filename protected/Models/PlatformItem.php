@@ -51,7 +51,7 @@ class PlatformItem extends Model
             return true;
         }
 
-        $platformItem = PlatformItem::findByPlatformSerial($this->platform, $this->serialNumber);
+        $platformItem = PlatformItem::findByVendorSerial($this->platform->vendor, $this->serialNumber);
 
         if (true === $this->isNew && ($platformItem instanceof PlatformItem)) {
             throw new Exception('Такой PlatformItem уже существует');
@@ -65,16 +65,22 @@ class PlatformItem extends Model
     }
 
     /**
-     * @param Platform $platform
+     * @param Vendor $vendor
      * @param $serialNumber
-     * @return PlatformItem|bool
+     * @return self|bool
      */
-    public static function findByPlatformSerial(Platform $platform, $serialNumber)
+    public static function findByVendorSerial(Vendor $vendor, $serialNumber)
     {
-        return $platform->platformItems->filter(
-            function ($platformItem) use ($serialNumber) {
-                return $serialNumber == $platformItem->serialNumber;
+        $platformsItems = self::findAllByColumn('serialNumber', $serialNumber);
+        $platformsItem = $platformsItems->filter(
+            function($platformsItem) use ($vendor) {
+                return $platformsItem->platform->vendor->title == $vendor->title;
             }
         )->first();
+        if (is_null($platformsItem)) {
+            return false;
+        } else {
+            return $platformsItem;
+        }
     }
 }

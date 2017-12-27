@@ -17,6 +17,8 @@ class TableConfigs extends Controller
         $tableName = 'devGeoPivotStatistic';
         $ajaxHandlersURL = '/report/PhoneStatsReportHandler.json';
         $className = DevGeo_View::class;
+        $maxAge = 73;
+
         $columns = ['region', 'city', 'office', 'people', 'phoneAmount', 'plTitle', 'plTitleActive', 'lotusId'];
         $pivots = [
             'plTitle' => ['name' => 'platformTitle', 'display' => true],
@@ -44,7 +46,7 @@ class TableConfigs extends Controller
             ->setFilter('appType', 'eq', ['phone']);
         $preFilterActive = (new SqlFilter($className))
             ->setFilter('appType', 'eq', ['phone']);
-        $preFilterActive->addFilter('appAge', 'lt', [300]);
+        $preFilterActive->addFilter('appAge', 'lt', [$maxAge]);
         $pivotItemsSelectBy = ['lotusId'];
         $tab = (new PivotTableConfig($tableName, $className));
         foreach ($pivots as $alias => $col) {

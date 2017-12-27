@@ -7,6 +7,8 @@ use App\Components\IpTools;
 use T4\Core\Collection;
 use T4\Core\Exception;
 use T4\Core\IArrayable;
+use T4\Core\MultiException;
+use T4\Core\Std;
 use T4\Dbal\Query;
 use T4\Orm\Model;
 
@@ -37,7 +39,7 @@ class DataPort extends Model
 
     public function __construct($data = null)
     {
-        $this->details = ['portName' => self::DEFAULT_PORTNAME];
+        $this->details = new Std(['portName' => self::DEFAULT_PORTNAME]);
         $this->macAddress = self::DEFAULT_MACADDRESS;
 
         parent::__construct($data);
@@ -155,11 +157,15 @@ class DataPort extends Model
 
     public function fill($data)
     {
+//        var_dump($data);
         if ($data instanceof IArrayable) {
             $data = $data->toArray();
         } else {
             $data = (array)$data;
         }
+//        var_dump($data['vrf']);
+//        var_dump($data['vrf'] instanceof Vrf);die;
+
         if (array_key_exists('vrf', $data) && ($data['vrf'] instanceof Vrf) || null === ($data['vrf'])) {
             $this->vrf = $data['vrf'];
             unset($data['vrf']);
@@ -207,7 +213,7 @@ class DataPort extends Model
             return true;
         }
         if (!empty(trim($val)) && false === filter_var(trim($val), FILTER_VALIDATE_MAC)) {
-            throw new Exception($val . ' - Неверный формат MAC адреса');
+            throw new Exception('DataPort: Неверный формат MAC адреса');
         }
         return true;
     }
@@ -411,29 +417,6 @@ class DataPort extends Model
         $result = self::findAllByIpVrf($ip, $vrf)->first();
         return (null === $result) ? false : $result;
     }
-
-
-    /**
-     * @param Appliance $appliance
-     * @param string $portName
-     * @param string $macAddress
-     * @return static
-     */
-    public static function findByAppliancePortnameMacaddress(Appliance $appliance, string $portName, string $macAddress)
-    {
-        $query = (new Query())
-            ->select('*')
-            ->from(self::getTableName())
-            ->where('__appliance_id = :appliance_id AND "macAddress" = :macAddress AND details::json->>\'portName\' = :portName')
-            ->params([
-                ':appliance_id' => $appliance->getPk(),
-                ':macAddress' => $macAddress,
-                ':portName' => $portName,
-            ]);
-
-        return self::findByQuery($query);
-    }
-
 
     public function isManagement()
     {

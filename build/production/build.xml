@@ -52,6 +52,8 @@
                     <token key="db.lotusDB.DbName" value="${db.lotusDB.DbName}" />
                     <token key="axl.username" value="${axl.username}" />
                     <token key="axl.password" value="${axl.password}" />
+                    <token key="ssh.login" value="${ssh.login}" />
+                    <token key="ssh.password" value="${ssh.password}" />
                 </replacetokens>
             </filterchain>
         </copy>

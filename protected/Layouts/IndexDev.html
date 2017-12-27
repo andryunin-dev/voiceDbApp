@@ -95,6 +95,9 @@
                     <li {% if activeLink.reportNew == true %}class="active" {% endif %}>
                         <a href="/report/new">Reports</a>
                     </li>
+                    <li {% if activeLink.reportNew == true %}class="active" {% endif %}>
+                        <a href="/report/phoneStatsReport">Phones' report</a>
+                    </li>
 
                 </ul>
                 {% block navBarInfo %}
@@ -120,7 +123,8 @@
                             <li><a href="/admin/devparts">Оборудование</a></li>
                             <li><a href="/admin/portTypes">Типы портов</a></li>
                             <li role="separator" class="divider"></li>
-                            <li><a href="/logs">Логи</a></li>
+                            <li><a href="/logs">Логи Hardware</a></li>
+                            <li><a href="/logs/phones">Логи Phones</a></li>
                         </ul>
                     </li>
                 </ul>
