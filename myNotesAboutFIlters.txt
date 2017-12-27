@@ -1,0 +1,20 @@
+фильтры:
+    href - фильтр задаваемый get параметрами,
+    column - фильтр по определенным значениям колонок
+    global - фильтр который ищет по всем фильтруемым колонкам
+
+структура фильтра должна быть общей:
+[
+    column_name_1 => {
+        [
+            operator_1 => [values],
+            operator_N => [values]
+        ]
+    },
+    column_name_N => {
+        [
+            operator_1 => [values],
+            operator_N => [values]
+        ]
+    }
+]

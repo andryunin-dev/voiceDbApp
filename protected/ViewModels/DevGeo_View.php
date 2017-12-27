@@ -18,10 +18,14 @@ use T4\Orm\Model;
  * @property int $appliance_id
  * @property int $location_id
  * @property string $appLastUpdate
+ * @property int $appAge
  * @property bool $appInUse
  * @property int $hostname
  * @property string $appDetails
  * @property string $appComment
+ * @property string $appType_id
+ * @property string $appType
+ * @property string $appSortOrder
  * @property int $cluster_id
  * @property string $clusterTitle
  * @property string $clusterDetails
@@ -30,19 +34,22 @@ use T4\Orm\Model;
  * @property int $platformVendor
  * @property int $platformItem_id
  * @property int $platformTitle
+ * @property int $platform_id
+ * @property string $platformSerial
  * @property int $softwareVendor_id
  * @property int $softwareVendor
  * @property int $softwareItem_id
  * @property int $softwareTitle
  * @property int $softwareVersion
+ * @property string $managementIp
  * @inheritdoc
  */
-class GeoDev_View extends Model
+class DevGeo_View extends Model
 {
     use PivotReportTrait;
 
     protected static $schema = [
-        'table' => 'view.geo_dev',
+        'table' => 'view.dev_geo',
         'columns' => [
             'region' => ['type' => 'string'],
             'region_id' => ['type' => 'int', 'length' => 'big'],
@@ -57,7 +64,7 @@ class GeoDev_View extends Model
             'appliance_id' => ['type' => 'int', 'length' => 'big'],
             'location_id' => ['type' => 'int', 'length' => 'big'],
             'appLastUpdate' => ['type' => 'datetime'],
-            'applAge' => ['type' => 'int'],
+            'appAge' => ['type' => 'int'],
             'appInUse' => ['type' => 'boolean'],
             'hostname' => ['type' => 'string'],
             'appDetails' => ['type' => 'jsonb'],

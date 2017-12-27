@@ -34,12 +34,15 @@ var jqTable = {};
  */
 
 jqTable.defaultModel = {
+    tableName: '',
     width: 100, //относительно контейнера таблицы
     height: 100, //От верха заголовка, включая заголовок и футер(если он есть).
     marginBottom: '10px',
     dataUrl: "", //URL для запроса данных
     header: {
         fixed: true, //фиксировать или нет заголовок таблицы
+        fixedPivColWidth: 0,
+        fixedColWidth: 0,
         buildOnServer: true, //если true - заголовок собирается на стороне сервера, false - локально
         columns: {}, // модель хедера (см. описание структуры)
         selectors: {
@@ -309,7 +312,8 @@ jqTable.workSetTmpl = {
         X_Scroll_enable: false,
         Y_Scroll_enable: true,
 
-        isBuilt: false
+        isBuilt: false,
+        isPivot: false
     },
 
     header: {
@@ -558,6 +562,7 @@ jqTable.workSetTmpl = {
                 var tableWidth = ws.table.width - ws.scrolls.Y_scrollWidth - ws.scrolls.scrollMargin;
                 var headerPx = {columns: {}};
                 var acc = 0;
+                var pivotItemsWidth = 0;
                 var maxWidth = {val: 0, key: ''};
                 $.each(md.header.columns, function (key, colModel) {
                     var cell = headerPx.columns[key] = $.extend(true, {}, colModel);
@@ -567,17 +572,24 @@ jqTable.workSetTmpl = {
                     if (String(cell.width).indexOf("px") >= 0) {
                         cell.fixed = true;
                         cell.width = parseInt(cell.width);
-                        acc += parseInt(cell.width);
-                        if (maxWidth.val < cell.width) {
-                            maxWidth.val = cell.width;
-                            maxWidth.key = key;
+                        if (!cell.isPivot) {
+                            acc += parseInt(cell.width);
+                            if (maxWidth.val < cell.width) {
+                                maxWidth.val = cell.width;
+                                maxWidth.key = key;
+                            }
+                        } else {
+                            ws.table.isPivot = true;
+                            pivotItemsWidth += cell.width;
                         }
+
                     } else {
                         cell.fixed = false;
                         cell.width = parseInt(cell.width); //пока ширину оставим в процентах, переведем в px позже
                     }
                 });
                 ws.header.fixedColWidth = acc; //запоминаем фиксированную часть ширины, чтобы каждый раз не пересчитывать
+                ws.header.fixedPivColWidth = pivotItemsWidth;
                 var freeWidth = tableWidth - acc;
                 //ищем колонки с шириной в % и пересчитываем в px
                 $.each(headerPx.columns, function (key, colModel) {
@@ -591,10 +603,16 @@ jqTable.workSetTmpl = {
                     }
                 });
                 /**
+                 * если это не pivot таблица
                  * корректируем расхождение суммарной ширины ячеек и ширины контейнера
                  * путем вычитания разности из ширины самой широкой ячейки
                  */
-                headerPx.columns[maxWidth.key].width -= acc - tableWidth;
+                if (!ws.table.isPivot) {
+                    headerPx.columns[maxWidth.key].width -= acc - tableWidth;
+                } else {
+                    /*если pivot table то считаем новую ширину как сумму всех колонок + скролл + scroll margin*/
+                    ws.table.width = acc + ws.header.fixedPivColWidth + ws.scrolls.Y_scrollWidth + ws.scrolls.scrollMargin;
+                }
                 // workSet.header = headerPx; //запоминаем получившийся массив колонок в workSet.header.columns
                 ws.header = $.extend(true, ws.header, headerPx); //запоминаем получившийся массив колонок в workSet.header.columns
             },
@@ -604,7 +622,7 @@ jqTable.workSetTmpl = {
                 var freeWidth = tableWidth - ws.header.fixedColWidth;
 
                 var acc = 0;
-                var maxWidth = {val: 0, key: ''}; //воременный объект для хранения самой широкой колонки
+                var maxWidth = {val: 0, key: ''}; //временный объект для хранения самой широкой колонки
                 $.each(ws.header.columns, function (name, column) {
                     if (column.fixed === false) {
                         column.width = Math.round(freeWidth *  md.header.columns[name].width / 100);
@@ -615,17 +633,28 @@ jqTable.workSetTmpl = {
                             maxWidth.key = name;
                         }
                     } else {
+                        if (ws.header.isPivot) {
+                            return true;
+                        }
                         if (maxWidth.val < column.width) {
                             maxWidth.val = column.width;
                             maxWidth.key = name;
                         }
                     }
                 });
+
                 /**
+                 * если это не pivot таблица
                  * корректируем расхождение суммарной ширины ячеек и ширины контейнера
                  * путем вычитания разности из ширины самой широкой ячейки
                  */
-                ws.header.columns[maxWidth.key].width -= (acc + ws.header.fixedColWidth) - tableWidth;
+                if (!ws.table.isPivot) {
+                    ws.header.columns[maxWidth.key].width -= (acc + ws.header.fixedColWidth) - tableWidth;
+                } else {
+                    /*если pivot table то считаем новую ширину как сумму всех колонок + скролл + scroll margin*/
+                    ws.table.width = acc + ws.header.fixedColWidth + ws.header.fixedPivColWidth + ws.scrolls.Y_scrollWidth + ws.scrolls.scrollMargin;
+                }
+
             },
             pagerWidthToPx: function (ws) {
                 ws.pager.width = parseInt(ws.model.pager.width)
@@ -911,7 +940,7 @@ jqTable.workSetTmpl = {
             },
             columnsIdUpdate: function (ws) {
                 $.each(ws.header.columns, function (key,value) {
-                    if (typeof value.id === 'undefined') {
+                    if (typeof value.id === 'undefined' ) {
                         value.id = key;
                     }
                     value.th_id = ws.mainSelector + '_th_' + value.id;
@@ -934,9 +963,14 @@ jqTable.workSetTmpl = {
                     };
                     $.ajax({
                         url: ws.model.dataUrl,
-                        data: dataRequest
+                        data: dataRequest,
+                        method: 'post'
                     })
                         .done(function (data, textStatus, jqXHR) {
+                            if (data.exception) {
+                                console.log(data.exception);
+                                return
+                            }
                             inner.debug(ws, 'buildHeader: ' + textStatus);
                             ws.obj.$header.html(data.header.html);
                             inner.setStyles(ws, 'header');
@@ -1002,7 +1036,12 @@ jqTable.workSetTmpl = {
                  * если ширина таблицы посчитана и она больше ширины родительского элемента главного контейнера
                  * то ширину containerObj ограничиваем шириной его родителя (позже включим у containerObj скрол по горизонтале)
                  */
-                ws.obj.$tableBox.width(ws.table.tableBoxParentWidth);
+                /*если table.width < table.tableBoxParentWidth, то ширину $tableBox делаем = table.width */
+                if (ws.table.width < ws.table.tableBoxParentWidth) {
+                    ws.obj.$tableBox.width(ws.table.width);
+                } else {
+                    ws.obj.$tableBox.width(ws.table.tableBoxParentWidth);
+                }
                 ws.table.X_Scroll_enable = ws.table.width > 0 && ws.table.width > ws.table.tableBoxParentWidth;
                 //ширина заголовка
                 ws.obj.$header.outerWidth(ws.table.width);
@@ -1186,6 +1225,7 @@ jqTable.workSetTmpl = {
                 ws.hrefFilter.href = requestedURL || '';
                 return {
                     body: {
+                        tableName: ws.model.tableName,
                         tableFilter: ws.tableFilter,
                         hrefFilter: ws.hrefFilter,
                         globalFilter: ws.globalFilter,
@@ -1264,6 +1304,7 @@ jqTable.workSetTmpl = {
                                     url: ws.model.dataUrl,
                                     dataType: "json",
                                     data: {
+                                        tableName: ws.model.tableName,
                                         headerFilter: {
                                             filter: {
                                                 column: key,
@@ -1587,9 +1628,14 @@ jqTable.workSetTmpl = {
                 ws.obj.$pgPreloader.show();
                 $.ajax({
                     url: ws.model.dataUrl,
-                    data: requestParams
+                    data: requestParams,
+                    method: 'post'
                     })
                     .done(function (data, textStatus, jqXHR) {
+                        if (data.exception) {
+                            console.log(data.exception);
+                            return
+                        }
                         ws.obj.$body.children('tbody').html(data.body.html);
                         if (data.body.info) {
                             inner.updateFooterInfo(ws, data.body.info);
