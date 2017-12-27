@@ -2,7 +2,6 @@ DROP VIEW IF EXISTS view.dev_geo_people_1;
 
 CREATE OR REPLACE VIEW view.dev_geo_people_1 AS
 SELECT
-  geo."regCenter" AS "regCenter",
   region,
   region_id,
   city,
@@ -10,8 +9,6 @@ SELECT
   office,
   office_id,
   "lotusId",
-  geo.people AS people,
-
   appliances.__id                                                         AS appliance_id,
   appliances."lastUpdate"                                                 AS "appLastUpdate",
   (EXTRACT(EPOCH FROM age(now(), appliances."lastUpdate")) / 3600) :: INT AS "appAge",
@@ -36,12 +33,9 @@ FROM equipment.appliances AS appliances
                 city.__id         AS city_id,
                 offices.title     AS office,
                 offices.__id      AS office_id,
-                offices."lotusId" AS "lotusId",
-                "lotusData".employees AS people,
-                CAST("lotusData".reg_center AS citext) AS "regCenter"
+                offices."lotusId" AS "lotusId"
 
               FROM company.offices AS offices
-                LEFT JOIN lotus.locations AS "lotusData" ON offices."lotusId" = "lotusData".lotus_id
                 JOIN geolocation.addresses AS address ON address.__id = offices.__address_id
                 JOIN geolocation.cities AS city ON city.__id = address.__city_id
                 JOIN geolocation.regions AS region ON region.__id = city.__region_id

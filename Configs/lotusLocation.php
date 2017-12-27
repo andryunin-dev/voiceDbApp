@@ -63,6 +63,9 @@ return [
       'filterable' => false,
     ],
   ],
+  'calculated' =>
+  [
+  ],
   'aliases' =>
   [
   ],

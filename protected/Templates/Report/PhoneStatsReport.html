@@ -21,7 +21,7 @@
     <script>
 
         jQuery(function ($) {
-            var tableName = "devGeoPivot";
+            var tableName = "devGeoPivotStatistic";
             var highlightRow = function (e) {
                 var ws = e.data;
                 ws.obj.$body.find(".js-table-row.ui-state-highlight").removeClass("ui-state-highlight");
@@ -30,7 +30,7 @@
                 console.log('click on row')
             };
             $.ajax({
-                url: '/test/tableSettings.json',
+                url: '/report/tableSettings.json',
                 dataType: "json",
                 data: {
                     tableName: tableName

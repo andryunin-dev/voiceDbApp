@@ -18,6 +18,7 @@ use App\Components\Tables\TableConfig;
 use App\Models\Appliance;
 use App\Models\DPortType;
 use App\Models\LotusLocation;
+use App\ViewModels\DevGeo_View;
 use App\ViewModels\DevGeoPeople_1;
 use App\ViewModels\DevModulePortGeo;
 use App\ViewModels\GeoDev_View;
@@ -34,6 +35,21 @@ class Test extends Controller
 {
     public function actionDefault()
     {
+        $a = [
+            [
+                'lot_id' => 10,
+                'data' => 'test_d1'
+            ],
+            [
+                'lot_id' => 20,
+                'data' => 'test_d1'
+            ],
+        ];
+        $res = array_reduce($a,function($carry, $item) {
+            $id = $item['lot_id'];
+            $carry[$id] = $item;
+            return $carry;
+        });
         /**
          * @var Connection $conn
          */
@@ -237,107 +253,13 @@ class Test extends Controller
         }
     }
     /*===================================*/
-    public function actionConfigPivotTable()
-    {
-        $tableName = 'deviceInfoPivot';
-        $pivots = ['plTitle' => 'platformTitle'];
-        $columns = ['region', 'city', 'office', 'plTitle', 'action'];
-        $confColumns = [
-            'region' => ['id' => 'region','name' => 'Регион', 'width' => 10, 'sortable' => true, 'filterable' => true],
-            'city' => ['id' => 'city','name' => 'Город', 'width' => 10, 'sortable' => true, 'filterable' => true],
-            'office' => ['id' => 'office','name' => 'Офис', 'width' =>15, 'sortable' => true, 'filterable' => true],
-            'plTitle' => ['id' => 'pl','name' => 'Оборудование', 'width' => 65],
-/*            'action' => ['id' => 'action','name' => 'Действия', 'width' => '105px'],*/
-        ];
-        $sortTemplates = [
-            'region' => ['region' => '', 'city' => ''],
-            'city' => ['city' => '', 'office' => ''],
-        ];
-        $preFilter = (new SqlFilter(DevModulePortGeo::class))
-            ->setFilter('appType', 'eq', ['phone']);
-        $tab = (new PivotTableConfig($tableName, DevModulePortGeo::class));
-        foreach ($pivots as $alias => $col) {
-            $tab->definePivotColumn($col, $alias);
-        }
-        $tab->columns($columns, ['action'])
-            ->sortOrderSets($sortTemplates)
-            ->sortBy('region');
-        foreach ($confColumns as $col => $conf)
-        {
-            $tab->columnConfig($col, new Std($conf));
-        }
-        $tab
-            ->dataUrl('/test/devicesPivotTable.json')
-            ->tableWidth(100)
-            ->pivotPreFilter('plTitle', $preFilter)
-            ->pivotSortBy('plTitle', ['platformTitle'], 'desc')
-            ->pivotWidthItems('plTitle', '40px')
-            ->cssSetHeaderTableClasses(['bg-primary', 'table-bordered', 'table-header-rotated'])
-            ->cssSetBodyTableClasses(["table", "cell-bordered", "cust-table-striped"])
-            ->rowsOnPageList([10,50,100,200,'все'])
-            ->tablePreFilter($preFilter)
-            ->save();
-
-        var_dump($tab);
-    }
-
-    /**
-     * create config based on devGeoPeople_1 view (1 pivot column)
-     */
-    public function actionConfigPivotTable2()
-    {
-        $tableName = 'devGeoPeoplePivot';
-        $columns = ['regCenter', 'region', 'city', 'office', 'people', 'plTitle'];
-        $pivots = ['plTitle' => 'platformTitle'];
-        $extraColumns = [];
-        $confColumns = [
-            'regCenter' => ['id' => 'regcent','name' => 'Рег.центр', 'width' => 12, 'sortable' => true, 'filterable' => true],
-            'region' => ['id' => 'region','name' => 'Регион', 'width' => 10, 'sortable' => true, 'filterable' => true],
-            'city' => ['id' => 'city','name' => 'Город', 'width' => 10, 'sortable' => true, 'filterable' => true],
-            'office' => ['id' => 'office','name' => 'Офис', 'width' =>15, 'sortable' => true, 'filterable' => true],
-            'people' => ['id' => 'people','name' => 'Сотр.', 'width' => '60px'],
-            'plTitle' => ['id' => 'pl','name' => 'Оборудование', 'width' => 65],
-        ];
-        $sortTemplates = [
-            'regCenter' => ['regCenter' => '', 'region' => '', 'city' => '', 'office' => ''],
-            'region' => ['region' => '', 'city' => '', 'office' => ''],
-            'city' => ['city' => '', 'office' => ''],
-        ];
-        $preFilter = (new SqlFilter(DevGeoPeople_1::class))
-            ->setFilter('appType', 'eq', ['phone']);
-        $tab = (new PivotTableConfig($tableName, DevGeoPeople_1::class));
-        foreach ($pivots as $alias => $col) {
-            $tab->definePivotColumn($col, $alias);
-        }
-        $tab->columns($columns, $extraColumns)
-            ->sortOrderSets($sortTemplates)
-            ->sortBy('regCenter');
-        foreach ($confColumns as $col => $conf)
-        {
-            $tab->columnConfig($col, new Std($conf));
-        }
-        $tab
-            ->dataUrl('/test/devicesPivotTable.json')
-            ->tableWidth(100)
-            ->pivotPreFilter('plTitle', $preFilter)
-            ->pivotSortBy('plTitle', ['platformTitle'], 'desc')
-            ->pivotWidthItems('plTitle', '40px')
-            ->cssSetHeaderTableClasses(['bg-primary', 'table-bordered', 'table-header-rotated'])
-            ->cssSetBodyTableClasses(["table", "cell-bordered", "cust-table-striped"])
-            ->rowsOnPageList([10,50,100,200,'все'])
-            ->tablePreFilter($preFilter)
-            ->save();
-
-        var_dump($tab);
-    }
-
    /**
      * create config based on devGeoPeople_1 view (2 pivot column. Second is't displayed)
      */
-    public function actionConfigPivotTable3()
+    public function actionConfigPivotTable()
     {
-        $tableName = 'devGeoPeoplePivot2';
-        $columns = ['regCenter', 'region', 'city', 'office', 'phoneAmount', 'people', 'plTitle', 'plTitleActive'];
+        $tableName = 'devGeoPeoplePivot';
+        $columns = ['regCenter', 'region', 'city', 'office', 'phoneAmount', 'plTitle', 'plTitleActive'];
         $pivots = [
             'plTitle' => ['name' => 'platformTitle', 'display' => true],
             'plTitleActive' => ['name' => 'platformTitle', 'display' => false]];
@@ -351,7 +273,6 @@ class Test extends Controller
             'city' => ['id' => 'city','name' => 'Город', 'width' => 10, 'sortable' => true, 'filterable' => true],
             'office' => ['id' => 'office','name' => 'Офис', 'width' =>15, 'sortable' => true, 'filterable' => true],
             'phoneAmount' => ['id' => 'phone-count','name' => 'кол-во тел.', 'width' => '60px'],
-            'people' => ['id' => 'people','name' => 'Сотр.', 'width' => '60px'],
             'plTitle' => ['id' => 'pl','name' => 'Оборудование', 'width' => 65],
         ];
         $sortTemplates = [
@@ -377,6 +298,70 @@ class Test extends Controller
         $tab->columns($columns, $extraColumns)
             ->sortOrderSets($sortTemplates)
             ->sortBy('regCenter');
+        foreach ($confColumns as $col => $conf)
+        {
+            $tab->columnConfig($col, new Std($conf));
+        }
+        $tab
+            ->dataUrl('/test/devicesPivotTable.json')
+            ->tableWidth(100)
+            ->pivotItemsSelectBy('plTitle', $pivotItemsSelectBy)
+            ->pivotPreFilter('plTitle', $preFilter)
+            ->pivotItemsSelectBy('plTitleActive', $pivotItemsSelectBy)
+            ->pivotPreFilter('plTitleActive', $preFilterActive)
+            ->pivotSortBy('plTitle', ['platformTitle'], 'desc')
+            ->pivotWidthItems('plTitle', '65px')
+            ->cssSetHeaderTableClasses(['bg-primary', 'table-bordered', 'table-header-rotated'])
+            ->cssSetBodyTableClasses(["table", "cell-bordered", "cust-table-striped"])
+            ->rowsOnPageList([10,50,100,200,'все'])
+            ->tablePreFilter($tablePreFilter)
+            ->save();
+
+        var_dump($tab);
+    }
+    public function actionConfigPivotTable2()
+    {
+        $tableName = 'devGeoPivot';
+        $className = DevGeo_View::class;
+        $columns = ['region', 'city', 'office', 'people', 'phoneAmount', 'plTitle', 'plTitleActive', 'lotusId'];
+        $pivots = [
+            'plTitle' => ['name' => 'platformTitle', 'display' => true],
+            'plTitleActive' => ['name' => 'platformTitle', 'display' => false]];
+        $extraColumns = ['people'];
+        $countedColumns = [
+            'phoneAmount' => ['name' => 'appliance_id', 'method' => 'count']
+        ];
+        $confColumns = [
+            'lotusId' => ['id' => 'lot_id','name' => 'ID', 'width' => '50px'],
+            'region' => ['id' => 'region','name' => 'Регион', 'width' => 10, 'sortable' => true, 'filterable' => true],
+            'city' => ['id' => 'city','name' => 'Город', 'width' => 10, 'sortable' => true, 'filterable' => true],
+            'office' => ['id' => 'office','name' => 'Офис', 'width' =>15, 'sortable' => true, 'filterable' => true],
+            'people' => ['id' => 'people','name' => 'Сотр.', 'width' => '60px'],
+            'phoneAmount' => ['id' => 'phone-count','name' => 'кол-во тел.', 'width' => '60px'],
+            'plTitle' => ['id' => 'pl','name' => 'Оборудование', 'width' => 65],
+        ];
+        $sortTemplates = [
+            'region' => ['region' => '', 'city' => '', 'office' => ''],
+            'city' => ['city' => '', 'office' => ''],
+        ];
+        $tablePreFilter = (new SqlFilter($className))
+            ->setFilter('appType', 'eq', ['phone']);
+        $preFilter = (new SqlFilter($className))
+            ->setFilter('appType', 'eq', ['phone']);
+        $preFilterActive = (new SqlFilter($className))
+            ->setFilter('appType', 'eq', ['phone']);
+        $preFilterActive->addFilter('appAge', 'lt', [300]);
+        $pivotItemsSelectBy = ['lotusId'];
+        $tab = (new PivotTableConfig($tableName, $className));
+        foreach ($pivots as $alias => $col) {
+            $tab->definePivotColumn($col['name'], $alias, $col['display']);
+        }
+        foreach ($countedColumns as $alias => $col) {
+            $tab->calculatedColumn($alias, $col['name'], $col['method']);
+        }
+        $tab->columns($columns, $extraColumns)
+            ->sortOrderSets($sortTemplates)
+            ->sortBy('region');
         foreach ($confColumns as $col => $conf)
         {
             $tab->columnConfig($col, new Std($conf));
@@ -503,23 +488,37 @@ class Test extends Controller
                         $tb = new PivotTable($tbConf);
                         $tb->addFilter($tabFilter, 'append');
                         $tb->paginationUpdate($request->pager->page, $request->pager->rowsOnPage);
-                        $data['data'] = $tb->getRecordsByPage();
+                        $tbData = $tb->getRecordsByPage();
 
+                        //==========lotusLocation=========
+                        $tbLotusConf = new TableConfig('lotusLocation');
+                        $tbLotus = new Table($tbLotusConf);
+                        $lotusData = $tbLotus->getRecords();
+                        $lotusDataByLotusId = array_reduce($lotusData, function ($carry, $item) {
+                            $carry[$item['lotus_id']] = $item;
+                            return $carry;
+                        });
                         // ================concatenate data from pivot columns with glue '/' and unset array plTitleActive
                         $totalDevs = 'plTitle';
                         $activeDevs = 'plTitleActive';
-                        foreach ($data['data'] as $key => $values) {
+                        foreach ($tbData as $dataKey => $values) {
                             if (! isset($values[$totalDevs])) {
                                 continue;
                             }
                             array_walk($values[$totalDevs], function (&$counter, $platform) use($values, $totalDevs, $activeDevs) {
                                 $counter = (isset($values[$activeDevs][$platform])) ? $counter . '/' . $values[$activeDevs][$platform] : $counter . '/0';
                             });
-                            $data['data'][$key][$totalDevs] = $values[$totalDevs];
-                            unset($data['data'][$key][$activeDevs]);
-                            $data['data'][$key] = new RecordItem($data['data'][$key]);
+                            $tbData[$dataKey][$totalDevs] = $values[$totalDevs];
+                            unset($tbData[$dataKey][$activeDevs]);
+                            $tbData[$dataKey] = new RecordItem($tbData[$dataKey]);
                         }
-                        //========end concatenate==============
+                        //========end==============
+                        //===========append info about people
+                        $data['data'] = array_map(function ($dataItem) use($lotusDataByLotusId)  {
+                            $dataItem->people = $lotusDataByLotusId[$dataItem->lotusId]['employees'];
+                            return $dataItem;
+                        }, $tbData);
+                        //==========end================
                         $data['columns'] = $request->columns;
                         $this->data->body->html = $this->view->render('DevicesPivotTableBody.html', $data);
                         $this->data->body->tableFilter = $tabFilter;
