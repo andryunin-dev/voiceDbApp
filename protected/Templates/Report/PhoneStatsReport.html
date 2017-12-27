@@ -19,46 +19,33 @@
 
 {% block JS %}
     <script>
-        tableSettings = {
-            dataUrl: "/device/devicesTable.json",
-            width: '100',
-            header: {
-                tableClasses: "bg-primary table-bordered",
-                columns: {
-                    region: {name: 'Регион', width: 10, sortable: true, filterable: true},
-                    office: {id: 'office', name: 'Офис', width: 15, sortable: true, filterable: true, class: "text-left"},
-                    hostname_dn: {id: 'hostname', name: 'Hostname', width: 15, sortable: true, filterable: true},
-                    appType: {id: 'app-type', name: 'Тип', width: "70px", sortable: true, filterable: true},
-                    platformTitle: {id: 'appliance', name: 'Оборудование', width: 20, sortable: true, filterable: true},
-                    softwareAndVersion: {id: 'soft', name: 'ПО', width: 15, sortable: true, filterable: true},
-                    module: {id: 'module', name: 'Модуль', width: 10, sortable: false, filterable: false},
-                    data_port: {id: 'dport', name: 'Интерфейсы', width: 15, filterable: false},
-                    {% if not user.readOnly %}
-                    action: {id: 'action', name: 'Действия', width: '105px'}
-                    {% endif %}
-                }
-            },
-            pager: {
-                rowsOnPage: 50,
-                rowList: [10,20,50,100,200,"все"]
-            },
-            styles: {
-                header: {
-                    table: {
-                        classes: ["bg-primary", "table-bordered"],
-                        css: {}
-                    }
-                },
-                body: {
-                    table: {
-                        classes: ["table", "cell-bordered", "cust-table-striped"],
-                        css: {}
-                    }
-                }
-            }
-        };
 
         jQuery(function ($) {
+            var tableName = "devGeoPivotStatistic";
+            var highlightRow = function (e) {
+                var ws = e.data;
+                ws.obj.$body.find(".js-table-row.ui-state-highlight").removeClass("ui-state-highlight");
+                $(e.target).closest(".js-table-row").addClass("ui-state-highlight");
+
+                console.log('click on row')
+            };
+            $.ajax({
+                url: '/report/tableSettings.json',
+                dataType: "json",
+                data: {
+                    tableName: tableName
+                }
+            })
+                .done(function(data) {
+                    console.log(data.config);
+                    var tableSettings = data.config;
+                    var devTable = $("#dev_tab");
+                    devTable.jqTable(tableSettings);
+                    devTable.jqTable('updateBodyContent', {}, window.location.href);
+                    devTable.jqTable('addBodyEventHandler', 'click', "", highlightRow);
+                });
+
+/*
             var devTable = $("#dev_tab");
             devTable.jqTable(tableSettings).jqTable('updateBodyContent', {}, window.location.href);
             var toggleInnerTable = function (e) {
@@ -85,6 +72,7 @@
                     }).focus()
                 }
             })
+*/
 
         });
     </script>
