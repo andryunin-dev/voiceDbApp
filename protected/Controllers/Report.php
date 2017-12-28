@@ -82,7 +82,7 @@ class Report extends Controller
 
     public function actionPhoneStatsReport()
     {
-
+        $this->data->activeLink->phonesReports = true;
     }
 
     public function actionPhoneStatsReportHandler()
@@ -125,6 +125,99 @@ class Report extends Controller
                         // ================concatenate data from pivot columns with glue '/' and unset array plTitleActive
                         $totalDevs = 'plTitle';
                         $activeDevs = 'plTitleActive';
+                        foreach ($tbData as $dataKey => $values) {
+                            if (! isset($values[$totalDevs])) {
+                                continue;
+                            }
+                            array_walk($values[$totalDevs], function (&$counter, $platform) use($values, $totalDevs, $activeDevs) {
+                                $counter = (isset($values[$activeDevs][$platform])) ? $counter . '/' . $values[$activeDevs][$platform] : $counter . '/0';
+                            });
+                            $tbData[$dataKey][$totalDevs] = $values[$totalDevs];
+                            unset($tbData[$dataKey][$activeDevs]);
+                            $tbData[$dataKey] = new RecordItem($tbData[$dataKey]);
+                        }
+                        //========end==============
+                        //===========append info about people
+                        $data['data'] = array_map(function ($dataItem) use($lotusDataByLotusId)  {
+                            $dataItem->people = $lotusDataByLotusId[$dataItem->lotusId]['employees'];
+                            return $dataItem;
+                        }, $tbData);
+                        //==========end================
+                        $data['columns'] = $request->columns;
+                        $this->data->body->html = $this->view->render($bodyTemplate, $data);
+                        $this->data->body->tableFilter = $tabFilter;
+                        $this->data->body->pager = $request->pager;
+                        $this->data->body->pager->page = $tb->currentPage();
+                        $this->data->body->pager->pages = $tb->numberOfPages();
+                        $this->data->body->pager->records = $tb->numberOfRecords();
+                        $info[] = 'Записей: ' . $tb->numberOfRecords();
+                        $this->data->body->info = $info;
+                        break;
+                    case 'headerFilter':
+                        $tb = new PivotTable(new PivotTableConfig($request->tableName));
+                        $filter = $request->headerFilter->filter;
+                        $column = $filter->column;
+                        $values[] = $filter->value . '%';
+                        $sqlFilter = (new SqlFilter($tb->config->className()))
+                            ->setFilter($filter->column, $filter->statement, $values);
+                        $tb->addFilter($sqlFilter, 'append');
+                        $this->data->result = $tb->distinctColumnValues($column);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        } catch (\Exception $e) {
+            $this->data->exception = $e->getMessage();
+        }
+
+    }
+
+    public function actionPhoneStatsByClustersReport()
+    {
+        $this->data->activeLink->phonesReports = true;
+    }
+
+    public function actionPhoneStatsByClustersReportHandler()
+    {
+        try {
+            $headerTemplate = 'PhoneStatsReportByModelsHeader.html';
+            $bodyTemplate = 'PhoneStatsReportByModelsBody.html';
+            $lotusLocationConf = 'lotusLocation';
+            $request = (new Request());
+            $request = (0 == $request->get->count()) ? $request = $request->post : $request->get;
+            foreach ($request as $key => $value ) {
+                switch ($key) {
+                    case 'header':
+                        $data['columns'] = $value->columns->toArrayRecursive();
+                        $data['user'] = $this->data->user;
+                        $this->data->header->html = $this->view->render($headerTemplate, $data);
+                        break;
+                    case 'body':
+                        $request = $request->body;
+                        $tbConf = new PivotTableConfig($request->tableName);
+                        $tabFilter = new SqlFilter($tbConf->className());
+                        if (isset($request->tableFilter)) {
+
+                            $filterSet = $request->tableFilter->toArray();
+                            $tabFilter->setFilterFromArray($filterSet);
+                        }
+                        $tb = new PivotTable($tbConf);
+                        $tb->addFilter($tabFilter, 'append');
+                        $tb->paginationUpdate($request->pager->page, $request->pager->rowsOnPage);
+                        $tbData = $tb->getRecordsByPage();
+
+                        //==========lotusLocation=========
+                        $tbLotusConf = new TableConfig($lotusLocationConf);
+                        $tbLotus = new Table($tbLotusConf);
+                        $lotusData = $tbLotus->getRecords();
+                        $lotusDataByLotusId = array_reduce($lotusData, function ($carry, $item) {
+                            $carry[$item['lotus_id']] = $item;
+                            return $carry;
+                        });
+                        // ================concatenate data from pivot columns with glue '/' and unset array plTitleActive
+                        $totalDevs = 'byPublishIp';
+                        $activeDevs = 'byPublishIpActive';
                         foreach ($tbData as $dataKey => $values) {
                             if (! isset($values[$totalDevs])) {
                                 continue;
