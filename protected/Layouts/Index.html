@@ -11,13 +11,18 @@
     <title>Net CMDB</title>
     {{ publish('/Layouts/resources') }}
     {{ publishCss() }}
-    <link rel="stylesheet" href="{{ asset('/Layouts/resources/jquery-ui-min/jquery-ui.min.css') }}">
     <link rel="stylesheet" href="{{ asset('/Layouts/resources/bootstrap/css/bootstrap.css') }}">
-    <link rel="stylesheet" href="{{ asset('/Layouts/resources/tooltipster/css/tooltipster.bundle.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('/Layouts/resources/tooltipster/css/plugins/tooltipster/sideTip/themes/tooltipster-sideTip-light.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('/Layouts/resources/css/style.css') }}">
-    <link rel="stylesheet" href="{{ asset('/Layouts/resources/css/headerFix.css') }}">
+    <link rel="stylesheet" href="{{ asset('/Layouts/resources/jquery-ui-1.12.1.base/jquery-ui.css') }}">
 
+    {#<link rel="stylesheet" href="{{ asset('/Layouts/resources/JQGrid/css/ui.jqgrid.css') }}">#}
+
+    <link rel="stylesheet" href="{{ asset('/Layouts/resources/css/jqTable/ui.jqtable.css') }}">
+    <link rel="stylesheet" href="{{ asset('/Layouts/resources/css/jqTable/ui.ajaxPreloader.css') }}">
+    {#<link rel="stylesheet" href="{{ asset('/Layouts/resources/css/styleAjax.css') }}">#}
+    {#<link rel="stylesheet" href="{{ asset('/Layouts/resources/css/headerFix.css') }}">#}
+    <link rel="stylesheet" href="{{ asset('/Layouts/resources/css/bootstrapExt.css') }}">
+    <link rel="stylesheet" href="{{ asset('/Layouts/resources/css/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('/Layouts/resources/css/testStyle.css') }}">
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -28,12 +33,17 @@
 
     <!--js-->
     {{ publishJs() }}
-    <script src="{{ asset('/Layouts/resources/jquery-ui-min/external/jquery/jquery.js') }}"></script>
-    <script src="{{ asset('/Layouts/resources/bootstrap/js/dropdown.js') }}"></script>
-    <script src="{{ asset('/Layouts/resources/jquery-ui-min/jquery-ui.min.js') }}"></script>
+    <script src="{{ asset('/Layouts/resources/jquery-ui-1.12.1.base/external/jquery/jquery.js') }}"></script>
+    <script src="{{ asset('/Layouts/resources/jquery-ui-1.12.1.base/jquery-ui.js') }}"></script>
+
+    {#<script src="{{ asset('/Layouts/resources/JQGrid/js/i18n/grid.locale-en.js') }}"></script>#}
+    {#<script src="{{ asset('/Layouts/resources/JQGrid/js/jquery.jqGrid.min.js') }}"></script>#}
+    <script src="{{ asset('/Layouts/resources/js/js.cookie.js') }}"></script>
     <script src="{{ asset('/Layouts/resources/js/jquery.cookie.js') }}"></script>
-    <script src="{{ asset('/Layouts/resources/js/headerFix.js') }}"></script>
-    <script src="{{ asset('/Layouts/resources/tooltipster/js/tooltipster.bundle.min.js') }}"></script>
+    <script src="{{ asset('/Layouts/resources/bootstrap/js/dropdown.js') }}"></script>
+    {#<script src="{{ asset('/Layouts/resources/ajaxTable/main.js') }}"></script>#}
+    <script src="{{ asset('/Layouts/resources/jqTable/jqTable.js') }}"></script>
+    {#<script src="{{ asset('/Layouts/resources/jsRender/jsrender.js') }}"></script>#}
     <script src="{{ asset('/Layouts/resources/js/script.js') }}"></script>
     {% block headerScript %}
     {% endblock %}
@@ -60,17 +70,17 @@
                         <a href="/locations">Офисы</a>
                     </li>
                     {#<li {% if activeLink.devices == true %}class="active" {% endif %}>#}
-                        {#<a href="/admin/devices">Оборудование</a>#}
+                    {#<a href="/admin/devices">Оборудование</a>#}
                     {#</li>#}
                     <li {% if activeLink.devicesNew == true %}class="active" {% endif %}>
                         <a href="/device/info">Оборудование</a>
                     </li>
                     {#<li class="dropdown {% if activeLink.devices == true %} active {% endif %}">#}
-                        {#<a href="#" class="dropdown-toggle active" data-toggle="dropdown">Оборудование <b class="caret"></b></a>#}
-                        {#<ul class="dropdown-menu">#}
-                            {#<li><a href="/admin/devices">По офисам(HW inventory)</a></li>#}
-                            {#<li><a href="/admin/portInventory">По офисам(ports inventory)</a></li>#}
-                        {#</ul>#}
+                    {#<a href="#" class="dropdown-toggle active" data-toggle="dropdown">Оборудование <b class="caret"></b></a>#}
+                    {#<ul class="dropdown-menu">#}
+                    {#<li><a href="/admin/devices">По офисам(HW inventory)</a></li>#}
+                    {#<li><a href="/admin/portInventory">По офисам(ports inventory)</a></li>#}
+                    {#</ul>#}
                     {#</li>#}
                     <li class="dropdown {% if activeLink.ipPlanning == true %} active {% endif %}">
                         <a href="#" class="dropdown-toggle active" data-toggle="dropdown">IP Planning<b class="caret"></b></a>
@@ -80,11 +90,15 @@
                             <li><a href="/admin/NetworksTree">Networks(Tree)</a></li>
                         </ul>
                     </li>
-                    {#<li {% if activeLink.report == true %}class="active" {% endif %}>#}
-                        {#<a href="/report">Reports</a>#}
-                    {#</li>#}
                     <li {% if activeLink.reportNew == true %}class="active" {% endif %}>
                         <a href="/report/new">Reports</a>
+                    </li>
+                    <li class="dropdown {% if activeLink.phonesReports == true %} active {% endif %}">
+                        <a href="#" class="dropdown-toggle active" data-toggle="dropdown">Phones reports<b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="/report/phoneStatsReport">По моделям</a></li>
+                            <li><a href="/report/phoneStatsByClustersReport">По кластерам</a></li>
+                        </ul>
                     </li>
 
                 </ul>
@@ -117,35 +131,20 @@
                     </li>
                 </ul>
             </div><!-- /.navbar-collapse -->
-
         </div>
     </nav>
 
     {% block main %}
     {% endblock %}
 </div>
-<script>
-    var APP = APP || {};
-    if ("{{exportUrl}}") {
-        $("#excelExport").removeClass("hidden");
-        APP.setLink("#excelExport", "{{ exportUrl }}");
-    }
-    if ("{{eraseLogUrl}}") {
-        $("#eraseLog").removeClass("hidden");
-        APP.setLink("#eraseLog", "{{ eraseLogUrl }}");
-    }
-</script>
-    {% block JS %}
 
-    {% endblock %}
-
-{#debug timer output#}
-
+{% block JS %}
+{% endblock %}
 {% if timer is defined and user.debugMode == true %}
     {{ timer.fix('Twig render finish') }}
     <div id="dialog-timer" title="Runtime Info">
         {% for prop, value in timer %}
-        <p>{{ prop }} - {{ timer[prop] }}</p>
+            <p>{{ prop }} - {{ timer[prop] }}</p>
         {% endfor %}
     </div>
     <script>
