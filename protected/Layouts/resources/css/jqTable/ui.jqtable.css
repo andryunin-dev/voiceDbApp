@@ -23,6 +23,7 @@
     overflow: hidden !important;
     white-space: nowrap !important;
     text-overflow: ellipsis !important;
+    vertical-align: bottom;
 
 }
 /* body */
