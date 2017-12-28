@@ -616,8 +616,9 @@ class Admin extends Controller
             }
             (new Platform())
                 ->fill([
+                    'vendor' => $vendor,
                     'title' => $platform->title,
-                    'vendor' => $vendor
+                    'isHW' => (bool) $platform->isHW,
                 ])
                 ->save();
             Platform::getDbConnection()->commitTransaction();
@@ -646,8 +647,9 @@ class Admin extends Controller
             }
             $updatedPlatform
                 ->fill([
+                    'vendor' => $vendor,
                     'title' => $platform->title,
-                    'vendor' => $vendor
+                    'isHW' => (bool) $platform->isHW,
                 ])
                 ->save();
 
