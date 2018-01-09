@@ -398,6 +398,11 @@ class TableConfig extends Config implements TableConfigInterface
         return isset($this->columns->$column) && (true === $this->columns->$column->sortable);
     }
 
+    public function isColumnVisible($column) :bool
+    {
+        return isset($this->columns->$column) && (true === $this->columns->$column->visible);
+    }
+
     /**
      * @param array|null $variantList
      * @return self
@@ -651,7 +656,7 @@ class TableConfig extends Config implements TableConfigInterface
             throw new Exception($connectionName . ' is not valid connection name');
     }
 
-    public function isCalculated($columnAlias)
+    public function isCalculated(string $columnAlias)
     {
         return isset($this->calculated->$columnAlias);
     }

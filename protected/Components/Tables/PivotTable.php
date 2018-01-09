@@ -59,6 +59,9 @@ class PivotTable extends Table implements PivotTableInterface
         $columnsConf = new Std();
         $pivotWidth = 0;
         foreach ($this->config->columns as $col => $colConf) {
+            if (! $this->config->isColumnVisible($col)) {
+                continue;
+            }
             if (! $this->config->isPivot($col)) {
                 $columnsConf->$col = $colConf;
                 continue;

@@ -52,8 +52,14 @@ class Table extends Std
         $tbConf->dataUrl = $this->config->dataUrl();
         $tbConf->width = $this->config->tableWidth();
         $tbConf->header = new Std();
+        $tbConf->header->columns = new Std();
         $tbConf->header->tableClasses = implode(', ', $this->config->headerCssClasses->toArray());
-        $tbConf->header->columns = $this->config->columns();
+//        $tbConf->header->columns = $this->config->columns();
+        foreach ($this->config->columns as $col => $colConf) {
+            if ($this->config->isColumnVisible($col)) {
+                $tbConf->header->columns->$col = $colConf;
+            }
+        }
         $tbConf->pager = new Std(
             [
                 'rowsOnPage' => $this->rowsOnPage(),

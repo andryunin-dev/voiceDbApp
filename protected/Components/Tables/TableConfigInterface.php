@@ -29,6 +29,7 @@ interface TableConfigInterface
 
     public function columns(array $columns = null,  array $extraColumns = null);
     public function calculatedColumn(string $alias, string $column = null, string $method = null);
+    public function isCalculated(string $columnAlias);
     public function columnList();
     public function columnConfig(string $column, Std $config = null);
 
@@ -63,7 +64,9 @@ interface TableConfigInterface
      */
     public function tablePreFilter(SqlFilter $preFilter = null);
 
-    public function isColumnDefined($column) :bool ;
+    public function isColumnDefined($column) :bool;
+    public function isColumnSortable($column) :bool;
+    public function isColumnVisible($column) :bool;
 
     /**
      * @param array|null $variantList

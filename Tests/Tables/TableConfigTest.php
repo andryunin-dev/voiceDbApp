@@ -280,6 +280,14 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
                 ['id' => 'test_id', 'name' => 'test', 'width' => '50PX', 'filterable' => true],
                 ['id' => 'test_id', 'name' => 'test', 'width' => '50px', 'filterable' => true],
             ],
+            '_3' => [
+                ['id' => 'test_id', 'name' => 'test', 'width' => '50PX', 'filterable' => true, 'visible' => true],
+                ['id' => 'test_id', 'name' => 'test', 'width' => '50px', 'filterable' => true, 'visible' => true],
+            ],
+            '_4' => [
+                ['id' => 'test_id', 'name' => 'test', 'width' => '50PX', 'filterable' => true, 'visible' => false],
+                ['id' => 'test_id', 'name' => 'test', 'width' => '50px', 'filterable' => true, 'visible' => false],
+            ],
         ];
     }
 

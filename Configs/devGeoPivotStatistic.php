@@ -13,6 +13,7 @@ return [
       'width' => 10,
       'sortable' => true,
       'filterable' => true,
+      'visible' => true,
     ],
     'city' =>
     [
@@ -21,6 +22,7 @@ return [
       'width' => 10,
       'sortable' => true,
       'filterable' => true,
+      'visible' => true,
     ],
     'office' =>
     [
@@ -29,6 +31,7 @@ return [
       'width' => 15,
       'sortable' => true,
       'filterable' => true,
+      'visible' => true,
     ],
     'people' =>
     [
@@ -37,6 +40,7 @@ return [
       'width' => '60px',
       'sortable' => false,
       'filterable' => false,
+      'visible' => true,
     ],
     'phoneAmount' =>
     [
@@ -45,6 +49,7 @@ return [
       'width' => '60px',
       'sortable' => false,
       'filterable' => false,
+      'visible' => true,
     ],
     'plTitle' =>
     [
@@ -53,6 +58,7 @@ return [
       'width' => 65,
       'sortable' => false,
       'filterable' => false,
+      'visible' => true,
     ],
     'plTitleActive' =>
     [
@@ -61,6 +67,7 @@ return [
       'width' => 0,
       'sortable' => false,
       'filterable' => false,
+      'visible' => true,
     ],
     'lotusId' =>
     [
@@ -69,6 +76,7 @@ return [
       'width' => '50px',
       'sortable' => false,
       'filterable' => false,
+      'visible' => false,
     ],
   ],
   'calculated' =>

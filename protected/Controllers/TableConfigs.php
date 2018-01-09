@@ -29,7 +29,7 @@ class TableConfigs extends Controller
             'phoneAmount' => ['name' => 'appliance_id', 'method' => 'count']
         ];
         $confColumns = [
-            'lotusId' => ['id' => 'lot_id','name' => 'ID', 'width' => '50px'],
+            'lotusId' => ['id' => 'lot_id','name' => 'ID', 'width' => '50px', 'visible' => false],
             'region' => ['id' => 'region','name' => 'Регион', 'width' => 10, 'sortable' => true, 'filterable' => true],
             'city' => ['id' => 'city','name' => 'Город', 'width' => 10, 'sortable' => true, 'filterable' => true],
             'office' => ['id' => 'office','name' => 'Офис', 'width' =>15, 'sortable' => true, 'filterable' => true],
@@ -98,7 +98,7 @@ class TableConfigs extends Controller
             'phoneAmount' => ['name' => 'appliance_id', 'method' => 'count']
         ];
         $confColumns = [
-            'lotusId' => ['id' => 'lot_id','name' => 'ID', 'width' => '50px'],
+            'lotusId' => ['id' => 'lot_id','name' => 'ID', 'width' => '50px', 'visible' => false],
             'region' => ['id' => 'region','name' => 'Регион', 'width' => 10, 'sortable' => true, 'filterable' => true],
             'city' => ['id' => 'city','name' => 'Город', 'width' => 10, 'sortable' => true, 'filterable' => true],
             'office' => ['id' => 'office','name' => 'Офис', 'width' =>15, 'sortable' => true, 'filterable' => true],
