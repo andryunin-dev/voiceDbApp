@@ -62,6 +62,7 @@ class TableConfig extends Config implements TableConfigInterface
         'width' => 0,
         'sortable' => false,
         'filterable' => false,
+        'visible' => true
     ];
     protected $calculatedColumnProperties = [
         'column' => '',
@@ -570,13 +571,10 @@ class TableConfig extends Config implements TableConfigInterface
                 throw new Exception('Invalid width value');
                 break;
             case 'sortable':
+            case 'filterable':
+            case 'visible':
                 if (! is_bool($val)) {
                     throw new Exception('Invalid sortable value');
-                }
-                break;
-            case 'filterable':
-                if (! is_bool($val)) {
-                    throw new Exception('Invalid filterable value');
                 }
                 break;
             default:
