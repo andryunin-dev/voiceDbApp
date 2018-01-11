@@ -6,6 +6,7 @@ use App\Components\Sql\SqlFilter;
 use T4\Core\Config;
 use T4\Core\Exception;
 use T4\Core\Std;
+use T4\Dbal\Connection;
 
 interface TableConfigInterface
 {
@@ -21,8 +22,17 @@ interface TableConfigInterface
     public function save();
     public function delete();
 
+    /**
+     * set connection for current table or return existed
+     * @param null $connectionName
+     * @return self|Connection
+     */
     public function connection($connectionName = null);
 
+    /**
+     * @param null $url
+     * @return self|string
+     */
     public function dataUrl($url = null);
     public function tableWidth($width = null);
     public function tableHeight($height = null);
