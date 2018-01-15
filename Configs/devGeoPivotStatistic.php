@@ -62,12 +62,12 @@ return [
     ],
     'plTitleActive' =>
     [
-      'id' => '',
+      'id' => 'pl_active',
       'name' => '',
       'width' => 0,
       'sortable' => false,
       'filterable' => false,
-      'visible' => true,
+      'visible' => false,
     ],
     'lotusId' =>
     [
@@ -78,6 +78,9 @@ return [
       'filterable' => false,
       'visible' => false,
     ],
+  ],
+  'lowerColumns' =>
+  [
   ],
   'calculated' =>
   [
@@ -93,6 +96,9 @@ return [
   'extraColumns' =>
   [
     0 => 'people',
+  ],
+  'lowerExtraColumns' =>
+  [
   ],
   'sortOrderSets' =>
   [
@@ -172,7 +178,6 @@ return [
     'plTitle' =>
     [
       'column' => 'platformTitle',
-      'display' => true,
       'preFilter' =>
       [
         'appType' =>
@@ -196,7 +201,6 @@ return [
     'plTitleActive' =>
     [
       'column' => 'platformTitle',
-      'display' => false,
       'preFilter' =>
       [
         'appType' =>

@@ -61,6 +61,16 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
         $this->assertInstanceOf(TableConfig::class, $conf);
         return $conf;
     }
+    public function testCreateEmptyConfig()
+    {
+        $fileName = '__unitTest_testTableConfig.php';
+        /**
+         * @var TableConfig $conf
+         */
+        $conf = new TableConfig($fileName, ModelClass_1::class);
+        $this->assertInstanceOf(TableConfig::class, $conf);
+        return $conf;
+    }
 
     /**
      * @depends testCreateBaseConfig
@@ -958,5 +968,71 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue(isset($conf->{$input['alias']}));
         $this->assertInstanceOf(Std::class, $conf->{$input['alias']});
         $this->assertEquals($expected, $conf->{$input['alias']}->toArray());
+    }
+
+    public function providerLowerColumns()
+    {
+        return [
+            '_1' => [
+                ['columnOne', 'columnTwo'], ['extraLoColOne', 'extraLoColTwo'], ['columnOne', 'columnTwo'], ['extraLoColOne', 'extraLoColTwo']
+            ],
+        ];
+    }
+
+    /**
+     * @depends      testCreateEmptyConfig
+     * @dataProvider providerLowerColumns
+     *
+     * @param $columns
+     * @param $extraColumns
+     * @param $expectedColumns
+     * @param $expectedExtra
+     * @param TableConfig $conf
+     */
+    public function testLowerColumns($columns, $extraColumns, $expectedColumns, $expectedExtra, $conf)
+    {
+        $conf->lowerColumns($columns, $extraColumns);
+        $this->assertEquals($expectedColumns, $conf->lowerColumns()->toArray());
+        $this->assertEquals($expectedExtra, $conf->extraColumns()->toArray());
+    }
+
+    public function providerMainAndLowerColumns()
+    {
+        return [
+            '_1' => [
+                ['columnOne', 'columnTwo'],
+                ['extraM1'],
+                ['columnThree', 'columnFour'],
+                ['extraM2'],
+                ['extraM1', 'extraM2']
+            ],
+            '_2' => [
+                ['columnOne', 'columnTwo'],
+                ['extraM1', 'extraM2'],
+                ['columnTwo', 'columnThree'],
+                ['extraM2'],
+                ['extraM1', 'extraM2']
+            ],
+        ];
+    }
+
+    /**
+     * @depends      testCreateEmptyConfig
+     * @dataProvider providerMainAndLowerColumns
+     *
+     * @param $mainCols
+     * @param $mainExtra
+     * @param $lowCols
+     * @param $lowExtra
+     * @param $expExtra
+     * @param TableConfig $conf
+     */
+    public function testMainAndLowerColumns($mainCols, $mainExtra, $lowCols, $lowExtra,  $expExtra, $conf)
+    {
+        $conf->columns($mainCols, $mainExtra);
+        $conf->lowerColumns($lowCols, $lowExtra);
+        $this->assertEquals($mainCols, $conf->columns()->toArray());
+        $this->assertEquals($lowCols, $conf->lowerColumns()->toArray());
+        $this->assertEquals($expExtra, $conf->extraColumns()->toArray());
     }
 }

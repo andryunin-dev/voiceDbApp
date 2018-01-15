@@ -39,9 +39,11 @@ class TableConfig extends Config implements TableConfigInterface
         'connection' => '',
         'className' => '',
         'columns' => [],
+        'lowerColumns' => [],
         'calculated' => [],
         'aliases' => [],
         'extraColumns' => [],
+        'lowerExtraColumns' => [],
         'sortOrderSets' => [],
         'sortBy' => [],
         'preFilter' => [],
@@ -201,6 +203,42 @@ class TableConfig extends Config implements TableConfigInterface
         return $this;
     }
 
+    public function extraColumns()
+    {
+        $extraCols = array_unique(array_merge($this->extraColumns->toArray(), $this->lowerExtraColumns->toArray()));
+        return new Std($extraCols);
+    }
+    /**
+     * @param array $columns only columns names
+     * @param array $extraColumns only columns names
+     * All columns names have to belong a class that specified in construct method
+     * @return self|Std  return columns Config object
+     *
+     * if $columns is null - return only list of columns as Std object (without config params)
+     * if $columns is array - set columns from this array for current table
+     * this method should be called first
+     * @throws Exception
+     */
+    public function lowerColumns(array $columns = null, array $extraColumns = null)
+    {
+        /*if arg is null - return list of columns as Std*/
+        if (is_null($columns)) {
+            $res = array_keys($this->lowerColumns->toArray());
+            return new Std($res);
+        }
+        $extraColumns = is_null($extraColumns) ? [] : $extraColumns;
+        $classColumns = array_keys($this->className::getColumns());
+        $unionColumns = array_merge($classColumns, $extraColumns);
+        $diff = array_diff($columns, $unionColumns);
+        if (count($diff) > 0) {
+            throw new Exception('columns have to belong ' . $this->className::getTableName() . ' table or is defined as extraColumns!');
+        }
+        $this->lowerExtraColumns = new Std($extraColumns);
+        $columns = array_fill_keys($columns, $this->columnPropertiesTemplate);
+        $this->lowerColumns = new Std($columns);
+        return $this;
+    }
+
     /**
      * @param string $alias
      * @param string|null $column
@@ -262,6 +300,31 @@ class TableConfig extends Config implements TableConfigInterface
         }
         foreach ($config as $param => $value) {
             $this->columns->$column->$param = $value;
+        }
+        return $this;
+    }
+    /**
+     * @param string $column
+     * @param Std|null $config
+     * @return self|Std if $config is null - return current config $column column
+     * @throws Exception
+     */
+    public function lowerColumnConfig(string $column, Std $config = null)
+    {
+        $this->validateLowerColumnIsDefined($column);
+        if (is_null($config)) {
+            return $this->lowerColumns->$column;
+        }
+        $diff = array_diff(array_keys($config->toArray()), array_keys($this->columnPropertiesTemplate));
+        if (count($diff) > 0) {
+            throw new Exception('Some config parameters are not correct');
+        }
+        foreach ($config as $param => $value) {
+            $this->validateConfigParam($param, $value);
+            $config->$param = $this->sanitizeConfigParam($param, $value);
+        }
+        foreach ($config as $param => $value) {
+            $this->lowerColumns->$column->$param = $value;
         }
         return $this;
     }
@@ -388,6 +451,10 @@ class TableConfig extends Config implements TableConfigInterface
     {
         return isset($this->columns->$column);
     }
+    public function isLowerColumnDefined($column) :bool
+    {
+        return isset($this->lowerColumns->$column);
+    }
     public function isColumnDefinedInClass(string $column)
     {
         return in_array($column, array_keys($this->className::getColumns()));
@@ -401,6 +468,10 @@ class TableConfig extends Config implements TableConfigInterface
     public function isColumnVisible($column) :bool
     {
         return isset($this->columns->$column) && (true === $this->columns->$column->visible);
+    }
+    public function isLowerColumnVisible($column) :bool
+    {
+        return isset($this->lowerColumns->$column) && (true === $this->lowerColumns->$column->visible);
     }
 
     /**
@@ -509,7 +580,7 @@ class TableConfig extends Config implements TableConfigInterface
     protected function areAllColumnsDefined(array $columns, $checkExtraColumns = false, $checkCalculatedColumns = false)
     {
         $classColumns = array_keys($this->className::getColumns());
-        $extraColumns = true === $checkExtraColumns ? $this->extraColumns->toArray() : [];
+        $extraColumns = true === $checkExtraColumns ? $this->extraColumns()->toArray() : [];
         $calculatedColumn = true === $checkCalculatedColumns ? array_keys($this->calculated->toArray()) : [];
         $unionColumns = array_merge($classColumns, $extraColumns, $calculatedColumn);
         $diff = array_diff($columns, $unionColumns);
@@ -522,7 +593,7 @@ class TableConfig extends Config implements TableConfigInterface
     protected function validateColumnName(string $columns, $checkExtraColumns = false, $checkCalculatedColumns = false)
     {
         $classColumns = array_keys($this->className::getColumns());
-        $extraColumns = true === $checkExtraColumns ? $this->extraColumns->toArray() : [];
+        $extraColumns = true === $checkExtraColumns ? $this->extraColumns()->toArray() : [];
         $calculatedColumn = true === $checkCalculatedColumns ? array_keys($this->calculated->toArray()) : [];
         $unionColumns = array_merge($classColumns, $extraColumns, $calculatedColumn);
         if (! in_array($columns, $unionColumns)) {
@@ -533,6 +604,14 @@ class TableConfig extends Config implements TableConfigInterface
     protected function validateColumnIsDefined($column)
     {
         if ($this->isColumnDefined($column)) {
+            return true;
+        } else {
+            throw new Exception('Column ' . $column . ' doesn\'t set as table column');
+        }
+    }
+    protected function validateLowerColumnIsDefined($column)
+    {
+        if ($this->isLowerColumnDefined($column)) {
             return true;
         } else {
             throw new Exception('Column ' . $column . ' doesn\'t set as table column');

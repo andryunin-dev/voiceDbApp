@@ -18,10 +18,9 @@ interface PivotTableConfigInterface extends TableConfigInterface
     /**
      * @param string $column
      * @param string|null $alias
-     * @param bool $display
      * @return self this method only define what column will be pivot.
      */
-    public function definePivotColumn(string $column, string $alias = null, bool $display = true);
+    public function definePivotColumn(string $column, string $alias = null);
 
     /**
      * define column that will be calculated as value for pivot items

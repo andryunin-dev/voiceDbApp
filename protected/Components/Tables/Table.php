@@ -53,11 +53,16 @@ class Table extends Std
         $tbConf->width = $this->config->tableWidth();
         $tbConf->header = new Std();
         $tbConf->header->columns = new Std();
+        $tbConf->header->lowerColumns = new Std();
         $tbConf->header->tableClasses = implode(', ', $this->config->headerCssClasses->toArray());
-//        $tbConf->header->columns = $this->config->columns();
         foreach ($this->config->columns as $col => $colConf) {
             if ($this->config->isColumnVisible($col)) {
                 $tbConf->header->columns->$col = $colConf;
+            }
+        }
+        foreach ($this->config->lowerColumns as $col => $colConf) {
+            if ($this->config->isColumnVisible($col)) {
+                $tbConf->header->lowerColumns->$col = $colConf;
             }
         }
         $tbConf->pager = new Std(

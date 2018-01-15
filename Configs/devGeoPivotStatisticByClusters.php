@@ -79,6 +79,9 @@ return [
       'visible' => false,
     ],
   ],
+  'lowerColumns' =>
+  [
+  ],
   'calculated' =>
   [
     'phoneAmount' =>
@@ -93,6 +96,9 @@ return [
   'extraColumns' =>
   [
     0 => 'people',
+  ],
+  'lowerExtraColumns' =>
+  [
   ],
   'sortOrderSets' =>
   [
@@ -172,7 +178,6 @@ return [
     'byPublishIp' =>
     [
       'column' => 'publisherIp',
-      'display' => true,
       'preFilter' =>
       [
         'appType' =>
@@ -196,7 +201,6 @@ return [
     'byPublishIpActive' =>
     [
       'column' => 'publisherIp',
-      'display' => false,
       'preFilter' =>
       [
         'appType' =>
