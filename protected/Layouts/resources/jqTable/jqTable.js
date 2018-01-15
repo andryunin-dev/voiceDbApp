@@ -47,7 +47,7 @@ jqTable.defaultModel = {
         columns: {}, // модель хедера (см. описание структуры)
         selectors: {
             table: '_hd',
-            scrollCell: '_scrollCell' //ячейка для компенсации скрола
+            scrollCell: '_hd_scrollCell' //ячейка для компенсации скрола
         },
         filters: { //параметры контекстных фильтров в заголовке таблицы.
             url: undefined //URL по которому обращаются фильтры (jQuery UI autocomplete).
@@ -62,7 +62,8 @@ jqTable.defaultModel = {
     bodyFooter: {
         selectors: {
             table: '_bd_ft',
-            firstRow: '_bd_ft_fr'
+            firstRow: '_bd_ft_fr',
+            scrollCell: '_bd_ft_scrollCell' //ячейка для компенсации скрола
         }
     },
     footer: {
@@ -282,6 +283,7 @@ jqTable.workSetTmpl = {
     obj: {
         $header: $($.parseHTML('<table><thead></thead></table>')), //header ($(#main_selector-hd))
         $headerScrollCell: undefined, //ячейка для компенсации скролла
+        $bodyFooterScrollCell: undefined, //ячейка для компенсации скролла
         $headerBox: undefined,
         $headerBodyBox: undefined, //контейнер в котором контейнеры хедера и боди
         $body: $($.parseHTML('<table><thead></thead><tbody></tbody></table>')), //body ($(#main_selector-bd))
@@ -336,7 +338,11 @@ jqTable.workSetTmpl = {
     body: {
         data: {} //данные для body которые получаем по AJAX (rendered body template )
     },
-    bodyFooter: {},
+    bodyFooter: {
+        columns: {}, //сюда копируется bodyFooter.columns из  model.bodyFooter.columns с пересчетом всех размеров в px
+        fixedColWidth: 0, //суммарная ширина колонок которые заданы в px. Заполняется в ходе расчетов
+        isBuilt: false
+    },
     footer: {
     },
     globalSearch: {
@@ -435,6 +441,7 @@ jqTable.workSetTmpl = {
                 ws.obj.$header.attr("id", ws.model.header.selectors.table.slice(1));
                 //формируем объект ячейки для компенсации скролла
                 ws.obj.$headerScrollCell = $('<th></th>').attr('id', ws.model.header.selectors.scrollCell.slice(1));
+                ws.obj.$bodyFooterScrollCell = $('<th></th>').attr('id', ws.model.bodyFooter.selectors.scrollCell.slice(1));
                 //дописываем id к объектам  bodyObj, bodyFooter, footerObj
                 ws.obj.$body.attr("id", ws.model.body.selectors.table.slice(1)); //body
                 ws.obj.$bodyFooter.attr("id", ws.model.bodyFooter.selectors.table.slice(1)); //bodyFooter
@@ -517,6 +524,7 @@ jqTable.workSetTmpl = {
                 inner.tableWidthToPx(ws);
                 inner.tableHeightToPx(ws);
                 inner.colSizesToPx(ws);
+                inner.colSizesBodyFooterToPx(ws);
                 inner.pagerWidthToPx(ws);
                 inner.globalSearchSizeToPx(ws);
             },
@@ -634,7 +642,7 @@ jqTable.workSetTmpl = {
                 ws.header = $.extend(true, ws.header, headerPx); //запоминаем получившийся массив колонок в workSet.header.columns
             },
             colSizesBodyFooterToPx: function (ws) {
-                if (! ws.bodyFooter.columns) {
+                if ($.isPlainObject(ws.model.bodyFooter.columns) && $.isEmptyObject(ws.model.bodyFooter.columns)) {
                     return;
                 }
                 var md = ws.model;
@@ -647,12 +655,12 @@ jqTable.workSetTmpl = {
                  */
                     //для расчета ширины ячеек берем ширину таблицы - ширину верт. скрола - scrollMargin (защитный маргин)
                 var tableWidth = ws.table.width - ws.scrolls.Y_scrollWidth - ws.scrolls.scrollMargin;
-                var headerPx = {columns: {}};
+                var bodyFooterPx = {columns: {}};
                 var acc = 0;
                 var pivotItemsWidth = 0;
                 var maxWidth = {val: 0, key: ''};
                 $.each(md.bodyFooter.columns, function (key, colModel) {
-                    var cell = headerPx.columns[key] = $.extend(true, {}, colModel);
+                    var cell = bodyFooterPx.columns[key] = $.extend(true, {}, colModel);
                     /**
                      * ищем ширину колонок заданную в px
                      */
@@ -675,11 +683,11 @@ jqTable.workSetTmpl = {
                         cell.width = parseInt(cell.width); //пока ширину оставим в процентах, переведем в px позже
                     }
                 });
-                ws.header.fixedColWidth = acc; //запоминаем фиксированную часть ширины, чтобы каждый раз не пересчитывать
-                ws.header.fixedPivColWidth = pivotItemsWidth;
+                ws.bodyFooter.fixedColWidth = acc; //запоминаем фиксированную часть ширины, чтобы каждый раз не пересчитывать
+                ws.bodyFooter.fixedPivColWidth = pivotItemsWidth;
                 var freeWidth = tableWidth - acc;
                 //ищем колонки с шириной в % и пересчитываем в px
-                $.each(headerPx.columns, function (key, colModel) {
+                $.each(bodyFooterPx.columns, function (key, colModel) {
                     if (colModel.fixed === false) {
                         colModel.width = Math.round(freeWidth * colModel.width / 100);
                         acc += colModel.width;
@@ -695,13 +703,13 @@ jqTable.workSetTmpl = {
                  * путем вычитания разности из ширины самой широкой ячейки
                  */
                 if (!ws.table.isPivot) {
-                    headerPx.columns[maxWidth.key].width -= acc - tableWidth;
+                    bodyFooterPx.columns[maxWidth.key].width -= acc - tableWidth;
                 } else {
                     /*если pivot table то считаем новую ширину как сумму всех колонок + скролл + scroll margin*/
                     ws.table.width = acc + ws.header.fixedPivColWidth + ws.scrolls.Y_scrollWidth + ws.scrolls.scrollMargin;
                 }
                 // workSet.header = headerPx; //запоминаем получившийся массив колонок в workSet.header.columns
-                ws.header = $.extend(true, ws.header, headerPx); //запоминаем получившийся массив колонок в workSet.header.columns
+                ws.bodyFooter = $.extend(true, ws.bodyFooter, bodyFooterPx); //запоминаем получившийся массив колонок в workSet.header.columns
             },
             updateColSizesInPx: function (ws) {
                 var md = ws.model;
@@ -881,6 +889,7 @@ jqTable.workSetTmpl = {
             },
             setScrollCellStyle: function (ws) {
                 ws.obj.$headerScrollCell.removeClass().addClass("ui-state-default");
+                ws.obj.$bodyFooterScrollCell.removeClass().addClass("ui-state-default");
             },
             setInitialStyles: function (ws) {
                 inner.setDefaultStyles(ws, 'header');
@@ -1043,6 +1052,20 @@ jqTable.workSetTmpl = {
                     value.th_id = ws.mainSelector + '_th_' + value.id;
                     value.td_id = ws.mainSelector + '_td_' + value.id;
                 });
+                $.each(ws.bodyFooter.columns, function (key,value) {
+                    if (typeof value.id === 'undefined' ) {
+                        value.id = key;
+                    }
+                    value.th_id = ws.mainSelector + '_bd_ft_th_' + value.id;
+                    value.td_id = ws.mainSelector + '_bd_ft_td_' + value.id;
+                });
+                $.each(ws.model.bodyFooter.columns, function (key,value) {
+                    if (typeof value.id === 'undefined') {
+                        value.id = key;
+                    }
+                    value.th_id = ws.mainSelector + '_bd_ft_th_' + value.id;
+                    value.td_id = ws.mainSelector + '_bd_ft_td_' + value.id;
+                });
             },
             buildHeader: function (ws) {
                 if (ws.model.header.buildOnServer) {
@@ -1104,6 +1127,15 @@ jqTable.workSetTmpl = {
                     $('<th></th>').attr({"id": value.td_id.slice(1)}).appendTo(ws.obj.$bodyFirstRow);
                 });
             },
+            buildFirstRowBodyFooter: function (ws) {
+                //добавляем id к 1-й строке, наполняем ячейками с нужными id
+                ws.obj.$bodyFooterFirstRow.attr("id", ws.model.bodyFooter.selectors.firstRow.slice(1));
+                $.each(ws.model.bodyFooter.columns, function (key,value) {
+                    $('<th></th>').attr({"id": value.td_id.slice(1)}).appendTo(ws.obj.$bodyFooterFirstRow);
+                });
+                //append scroll cell
+                ws.obj.$bodyFooterFirstRow.append(ws.obj.$bodyFooterScrollCell);
+            },
             buildPreloader: function (fontSize) {
                 fontSize = fontSize || '0.2em';
                 return $('<div><div></div></div>').css('font-size', fontSize).addClass('in_progress').hide();
@@ -1116,6 +1148,7 @@ jqTable.workSetTmpl = {
                 });
                 //установка ширины ячейки компенсации скрола
                 ws.obj.$headerScrollCell.outerWidth(ws.scrolls.Y_scrollWidth + ws.scrolls.scrollMargin);
+                ws.obj.$bodyFooterScrollCell.outerWidth(ws.scrolls.Y_scrollWidth + ws.scrolls.scrollMargin);
             },
             setTableSizes: function (ws) {
                 //РАЗМЕРЫ КОЛОНОК ЗДЕСЬ НЕ УСТАНАВЛИВАЮТСЯ!!!
@@ -1673,8 +1706,8 @@ jqTable.workSetTmpl = {
              */
             init: function (userOptions) {
                 userOptions = userOptions || {};
-                if ($.isArray(userOptions.bodyFooter)) {
-                    userOptions.bodyFooter = {};
+                if ($.isArray(userOptions.bodyFooter.columns)) {
+                    userOptions.bodyFooter.columns = {};
                 }
                 var mainSelector = $(this).attr("id");
                 //создаем эл-т массива  с селектором в качестве ключа, в который пишем workSet из workSetTmpl(в корень)
@@ -1694,6 +1727,7 @@ jqTable.workSetTmpl = {
                 inner.columnsIdUpdate(ws);
                 inner.buildHeader(ws);
                 inner.buildFirstRowBody(ws);
+                inner.buildFirstRowBodyFooter(ws);
                 inner.buildFooter(ws);
                 //заполняем в ws начальные данные для пагинатора из Cooks
                 inner.initPagerSettings(ws);
