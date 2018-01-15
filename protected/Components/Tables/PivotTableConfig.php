@@ -35,7 +35,6 @@ class PivotTableConfig extends TableConfig
      */
     protected $pivotColumnPropertiesTemplate = [
         'column' => '',
-        'display' => true, // use or not in table header building
         'preFilter' => [], //preFilter for pivot column values
         'selectPivotItemsBy' => [], //columns for inner select pivot items
         'sortBy' => [], //sort columns and direction for pivot column
@@ -75,6 +74,27 @@ class PivotTableConfig extends TableConfig
         $this->columns = new Std($columns);
         return $this;
     }
+    public function lowerColumns(array $columns = null, array $extraColumns = null)
+    {
+        /*if arg is null - return list of columns as Std*/
+        if (is_null($columns)) {
+            $res = array_keys($this->columns->toArray());
+            return new Std($res);
+        }
+        $extraColumns = is_null($extraColumns) ? [] : $extraColumns;
+        $classColumns = array_keys($this->className::getColumns());
+        $calculatedColumnsAliases = array_keys($this->calculated->toArray());
+        $pivotAliases = array_keys($this->pivot->toArray());
+        $unionColumns = array_merge($classColumns, $extraColumns, $pivotAliases, $calculatedColumnsAliases);
+        $diff = array_diff($columns, $unionColumns);
+        if (count($diff) > 0) {
+            throw new Exception('columns have to belong ' . $this->className::getTableName() . ' table or is defined as extraColumns or is defined as pivot column!');
+        }
+        $this->lowerExtraColumns = new Std($extraColumns);
+        $columns = array_fill_keys($columns, $this->columnPropertiesTemplate);
+        $this->lowerColumns = new Std($columns);
+        return $this;
+    }
 
 
     /**
@@ -84,13 +104,12 @@ class PivotTableConfig extends TableConfig
 
      * @param string $column
      * @param string|null $alias
-     * @param bool $display
      * @return self set column as pivot
      * @throws Exception set column as pivot / get params this column
      * if $alias is null, one will set = $column
      * $alias has to be unique in pivot part of config
      */
-    public function definePivotColumn(string $column, string $alias = null, bool $display = true)
+    public function definePivotColumn(string $column, string $alias = null)
     {
         if (! $this->isColumnDefinedInClass($column)) {
             throw new Exception('Pivot column has to be one of class columns(properties)');
@@ -98,7 +117,6 @@ class PivotTableConfig extends TableConfig
         $alias = is_null($alias) ? $column : $alias;
         $this->pivot->$alias = new Std($this->pivotColumnPropertiesTemplate);
         $this->pivot->$alias->column = $column;
-        $this->pivot->$alias->display = $display;
         return $this;
     }
 

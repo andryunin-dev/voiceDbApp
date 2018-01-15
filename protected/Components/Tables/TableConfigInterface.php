@@ -6,6 +6,7 @@ use App\Components\Sql\SqlFilter;
 use T4\Core\Config;
 use T4\Core\Exception;
 use T4\Core\Std;
+use T4\Dbal\Connection;
 
 interface TableConfigInterface
 {
@@ -21,16 +22,45 @@ interface TableConfigInterface
     public function save();
     public function delete();
 
+    /**
+     * set connection for current table or return existed
+     * @param null $connectionName
+     * @return self|Connection
+     */
     public function connection($connectionName = null);
 
+    /**
+     * @param null $url
+     * @return self|string
+     */
     public function dataUrl($url = null);
     public function tableWidth($width = null);
     public function tableHeight($height = null);
 
+    /**
+     *
+     * @param array|null $columns
+     * @param array|null $extraColumns extraColumns is appended to existed
+     * @return mixed
+     */
     public function columns(array $columns = null,  array $extraColumns = null);
+
+    /**
+     * @param array|null $columns
+     * @param array|null $extraColumns extraColumns is appended to existed
+     * @return mixed
+     */
+    public function lowerColumns(array $columns = null,  array $extraColumns = null);
+
+    /**
+     * @return Std all extraColumns (for main part of table and )
+     */
+    public function extraColumns();
     public function calculatedColumn(string $alias, string $column = null, string $method = null);
+    public function isCalculated(string $columnAlias);
     public function columnList();
     public function columnConfig(string $column, Std $config = null);
+    public function lowerColumnConfig(string $column, Std $config = null);
 
     public function appendColumnAlias(string $column, string $alias, string $operator = '');
     public function removeColumnAlias(string $alias);
@@ -63,7 +93,11 @@ interface TableConfigInterface
      */
     public function tablePreFilter(SqlFilter $preFilter = null);
 
-    public function isColumnDefined($column) :bool ;
+    public function isColumnDefined($column) :bool;
+    public function isLowerColumnDefined($column) :bool;
+    public function isColumnSortable($column) :bool;
+    public function isColumnVisible($column) :bool;
+    public function isLowerColumnVisible($column) :bool;
 
     /**
      * @param array|null $variantList
