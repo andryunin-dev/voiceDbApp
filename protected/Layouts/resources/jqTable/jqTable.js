@@ -467,6 +467,7 @@ jqTable.workSetTmpl = {
                 ws.obj.$body.find('thead').html(ws.obj.$bodyFirstRow);
                 ws.obj.$bodyFooter.find('thead').html(ws.obj.$bodyFooterFirstRow);
                 ws.obj.$bodyBox = $(ws.model.wrappers.selectors.body);
+                ws.obj.$bodyFooterBox = $(ws.model.wrappers.selectors.bodyFooter);
                 ws.obj.$footer.appendTo(ws.obj.$tableBox);
                 ws.obj.$footer.wrap($("<div></div>").attr("id",ws.model.wrappers.selectors.footer.slice(1)));
                 ws.obj.$footerBox = $(ws.model.wrappers.selectors.footer);
@@ -483,7 +484,7 @@ jqTable.workSetTmpl = {
                 workSet.bodyObj.parent().css('max-height', maxHeight);
             },
             setBodyHeight: function (ws) {
-                var height = ws.table.height - (ws.obj.$headerBox.height() + ws.obj.$footerBox.height() + ws.table.marginBottom);
+                var height = ws.table.height - (ws.obj.$headerBox.height() + ws.obj.$footerBox.height() + ws.obj.$bodyFooter.height() + ws.table.marginBottom);
                 ws.obj.$bodyBox.css('height', height);
             },
 
@@ -524,7 +525,7 @@ jqTable.workSetTmpl = {
                 inner.tableWidthToPx(ws);
                 inner.tableHeightToPx(ws);
                 inner.colSizesToPx(ws);
-                inner.colSizesBodyFooterToPx(ws);
+                //inner.colSizesBodyFooterToPx(ws);
                 inner.pagerWidthToPx(ws);
                 inner.globalSearchSizeToPx(ws);
             },
@@ -589,6 +590,7 @@ jqTable.workSetTmpl = {
                 var acc = 0;
                 var pivotItemsWidth = 0;
                 var maxWidth = {val: 0, key: ''};
+
                 $.each(md.header.columns, function (key, colModel) {
                     var cell = headerPx.columns[key] = $.extend(true, {}, colModel);
                     /**
@@ -627,6 +629,54 @@ jqTable.workSetTmpl = {
                         }
                     }
                 });
+
+                //calculate bodyFooter cell's sizes
+                //for bodyFooter
+                var bodyFooterPx = {columns: {}};
+                var accBF = 0;
+                var pivotItemsWidthBF = 0;
+                var maxWidthBF = {val: 0, key: ''};
+
+                $.each(md.bodyFooter.columns, function (key, colModel) {
+                    var cell = bodyFooterPx.columns[key] = $.extend(true, {}, colModel);
+                    /**
+                     * ищем ширину колонок заданную в px
+                     */
+                    if (String(cell.width).indexOf("px") >= 0) {
+                        cell.fixed = true;
+                        cell.width = parseInt(cell.width);
+                        if (!cell.isPivot) {
+                            accBF += parseInt(cell.width);
+                            if (maxWidthBF.val < cell.width) {
+                                maxWidthBF.val = cell.width;
+                                maxWidthBF.key = key;
+                            }
+                        } else {
+                            ws.table.isPivot = true;
+                            pivotItemsWidthBF += cell.width;
+                        }
+
+                    } else {
+                        cell.fixed = false;
+                        cell.width = parseInt(cell.width); //пока ширину оставим в процентах, переведем в px позже
+                    }
+                });
+                ws.bodyFooter.fixedColWidth = accBF; //запоминаем фиксированную часть ширины, чтобы каждый раз не пересчитывать
+                ws.bodyFooter.fixedPivColWidth = pivotItemsWidthBF;
+                var freeWidthBF = tableWidth - accBF;
+                //ищем колонки с шириной в % и пересчитываем в px
+                $.each(bodyFooterPx.columns, function (key, colModel) {
+                    if (colModel.fixed === false) {
+                        colModel.width = Math.round(freeWidthBF * colModel.width / 100);
+                        accBF += colModel.width;
+                        if (maxWidthBF.val < colModel.width) {
+                            maxWidthBF.val = colModel.width;
+                            maxWidthBF.key = key;
+                        }
+                    }
+                });
+
+
                 /**
                  * если это не pivot таблица
                  * корректируем расхождение суммарной ширины ячеек и ширины контейнера
@@ -634,12 +684,14 @@ jqTable.workSetTmpl = {
                  */
                 if (!ws.table.isPivot) {
                     headerPx.columns[maxWidth.key].width -= acc - tableWidth;
+                    bodyFooterPx.columns[maxWidthBF.key].width -= acc - tableWidth;
                 } else {
                     /*если pivot table то считаем новую ширину как сумму всех колонок + скролл + scroll margin*/
                     ws.table.width = acc + ws.header.fixedPivColWidth + ws.scrolls.Y_scrollWidth + ws.scrolls.scrollMargin;
                 }
                 // workSet.header = headerPx; //запоминаем получившийся массив колонок в workSet.header.columns
                 ws.header = $.extend(true, ws.header, headerPx); //запоминаем получившийся массив колонок в workSet.header.columns
+                ws.bodyFooter = $.extend(true, ws.bodyFooter, bodyFooterPx); //запоминаем получившийся массив колонок в workSet.header.columns
             },
             colSizesBodyFooterToPx: function (ws) {
                 if ($.isPlainObject(ws.model.bodyFooter.columns) && $.isEmptyObject(ws.model.bodyFooter.columns)) {
@@ -715,9 +767,12 @@ jqTable.workSetTmpl = {
                 var md = ws.model;
                 var tableWidth = ws.table.width - ws.scrolls.Y_scrollWidth - ws.scrolls.scrollMargin;
                 var freeWidth = tableWidth - ws.header.fixedColWidth;
+                var freeWidthBF = tableWidth - ws.bodyFooter.fixedColWidth;
 
                 var acc = 0;
+                var accBF = 0;
                 var maxWidth = {val: 0, key: ''}; //временный объект для хранения самой широкой колонки
+                var maxWidthBF = {val: 0, key: ''}; //временный объект для хранения самой широкой колонки
                 $.each(ws.header.columns, function (name, column) {
                     if (column.fixed === false) {
                         column.width = Math.round(freeWidth *  md.header.columns[name].width / 100);
@@ -737,6 +792,25 @@ jqTable.workSetTmpl = {
                         }
                     }
                 });
+                $.each(ws.bodyFooter.columns, function (name, column) {
+                    if (column.fixed === false) {
+                        column.width = Math.round(freeWidthBF *  md.bodyFooter.columns[name].width / 100);
+                        accBF += column.width;
+
+                        if (maxWidthBF.val < column.width) {
+                            maxWidthBF.val = column.width;
+                            maxWidthBF.key = name;
+                        }
+                    } else {
+                        if (ws.bodyFooter.isPivot) {
+                            return true;
+                        }
+                        if (maxWidthBF.val < column.width) {
+                            maxWidthBF.val = column.width;
+                            maxWidthBF.key = name;
+                        }
+                    }
+                });
 
                 /**
                  * если это не pivot таблица
@@ -745,6 +819,7 @@ jqTable.workSetTmpl = {
                  */
                 if (!ws.table.isPivot) {
                     ws.header.columns[maxWidth.key].width -= (acc + ws.header.fixedColWidth) - tableWidth;
+                    ws.bodyFooter.columns[maxWidthBF.key].width -= (accBF + ws.bodyFooter.fixedColWidth) - tableWidth;
                 } else {
                     /*если pivot table то считаем новую ширину как сумму всех колонок + скролл + scroll margin*/
                     ws.table.width = acc + ws.header.fixedColWidth + ws.header.fixedPivColWidth + ws.scrolls.Y_scrollWidth + ws.scrolls.scrollMargin;
@@ -1128,10 +1203,14 @@ jqTable.workSetTmpl = {
                 });
             },
             buildFirstRowBodyFooter: function (ws) {
+                //if ws.model.bodyFooter.columns is empty - hide $bodyFooter
+                if ($.isPlainObject(ws.model.bodyFooter.columns) && $.isEmptyObject(ws.model.bodyFooter.columns)) {
+                    ws.obj.$bodyFooterBox.hide();
+                }
                 //добавляем id к 1-й строке, наполняем ячейками с нужными id
                 ws.obj.$bodyFooterFirstRow.attr("id", ws.model.bodyFooter.selectors.firstRow.slice(1));
                 $.each(ws.model.bodyFooter.columns, function (key,value) {
-                    $('<th></th>').attr({"id": value.td_id.slice(1)}).appendTo(ws.obj.$bodyFooterFirstRow);
+                    $('<th></th>').attr({"id": value.th_id.slice(1)}).appendTo(ws.obj.$bodyFooterFirstRow);
                 });
                 //append scroll cell
                 ws.obj.$bodyFooterFirstRow.append(ws.obj.$bodyFooterScrollCell);
@@ -1145,6 +1224,9 @@ jqTable.workSetTmpl = {
                 $.each(ws.header.columns, function (key,value) {
                     ws.obj.$header.find(value.th_id).outerWidth(value.width);
                     ws.obj.$bodyFirstRow.find(value.td_id).outerWidth(value.width);
+                });
+                $.each(ws.bodyFooter.columns, function (key, value) {
+                    ws.obj.$bodyFooter.find(value.th_id).outerWidth(value.width).text("t");
                 });
                 //установка ширины ячейки компенсации скрола
                 ws.obj.$headerScrollCell.outerWidth(ws.scrolls.Y_scrollWidth + ws.scrolls.scrollMargin);
@@ -1170,13 +1252,17 @@ jqTable.workSetTmpl = {
                 ws.obj.$header.outerWidth(ws.table.width);
                 //ширину контейнера body
                 ws.obj.$bodyBox.width(ws.table.width);
+                //ширину контейнера bodyFooter
+                ws.obj.$bodyFooterBox.width(ws.table.width);
                 //ширина таблицы body
                 var bodyWidth = ws.table.width;
                 if (ws.table.Y_Scroll_enable) {
                     bodyWidth = bodyWidth - ws.scrolls.Y_scrollWidth - ws.scrolls.scrollMargin;
                 }
                 ws.obj.$body.width(bodyWidth);
-                //ширина ячейки preloader
+                //set body footer width
+                ws.obj.$bodyFooter.width(ws.table.width);
+                //ширина ячейки preLoader
                 ws.obj.$pgPreloader.parent('td').css('width', ws.model.pager.preloader.width);
                 //ширина ячейки пейджинатора
                 ws.obj.$pager.parent('td').outerWidth(ws.pager.width);
