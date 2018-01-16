@@ -50,7 +50,7 @@ interface TableConfigInterface
      * @param array|null $extraColumns extraColumns is appended to existed
      * @return mixed
      */
-    public function lowerColumns(array $columns = null,  array $extraColumns = null);
+    public function bodyFooterColumns(array $columns = null, array $extraColumns = null);
 
     /**
      * @return Std all extraColumns (for main part of table and )
@@ -60,7 +60,7 @@ interface TableConfigInterface
     public function isCalculated(string $columnAlias);
     public function columnList();
     public function columnConfig(string $column, Std $config = null);
-    public function lowerColumnConfig(string $column, Std $config = null);
+    public function bodyFooterColumnConfig(string $column, Std $config = null);
 
     public function appendColumnAlias(string $column, string $alias, string $operator = '');
     public function removeColumnAlias(string $alias);
@@ -97,7 +97,7 @@ interface TableConfigInterface
     public function isLowerColumnDefined($column) :bool;
     public function isColumnSortable($column) :bool;
     public function isColumnVisible($column) :bool;
-    public function isLowerColumnVisible($column) :bool;
+    public function isBodyFooterColumnVisible($column) :bool;
 
     /**
      * @param array|null $variantList
@@ -121,9 +121,15 @@ interface TableConfigInterface
     /**
      * @param string|array $cssClass
      * @return self
-     * add css class for header table
+     * add css class for body table
      */
     public function cssAddBodyTableClasses($cssClass);
+    /**
+     * @param string|array $cssClass
+     * @return self
+     * add css class for bodyFooter table
+     */
+    public function cssAddBodyFooterTableClasses($cssClass);
     /**
      * @param string|array $cssClass
      * @return self
@@ -142,6 +148,12 @@ interface TableConfigInterface
      * add css class for header table
      */
     public function cssSetBodyTableClasses($cssClass);
+    /**
+     * @param string|array $cssClass
+     * @return self
+     * add css class for bodyFooter table
+     */
+    public function cssSetBodyFooterTableClasses($cssClass);
     /**
      * @param string|array $cssClass
      * @return self

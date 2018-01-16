@@ -79,7 +79,7 @@ return [
       'visible' => false,
     ],
   ],
-  'lowerColumns' =>
+  'bodyFooterColumns' =>
   [
     'textField' =>
     [
@@ -160,7 +160,7 @@ return [
   [
     0 => 'people',
   ],
-  'lowerExtraColumns' =>
+  'bodyFooterExtraColumns' =>
   [
     0 => 'textField',
     1 => 'people',
@@ -224,6 +224,15 @@ return [
         0 => 'table',
         1 => 'cell-bordered',
         2 => 'cust-table-striped',
+      ],
+    ],
+    'bodyFooter' =>
+    [
+      'table' =>
+      [
+        0 => 'table',
+        1 => 'bg-success',
+        2 => 'table-bordered',
       ],
     ],
     'footer' =>

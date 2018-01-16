@@ -90,6 +90,7 @@ class Report extends Controller
         try {
             $headerTemplate = 'PhoneStatsReportByModelsHeader.html';
             $bodyTemplate = 'PhoneStatsReportByModelsBody.html';
+            $bodyFooterTemplate = 'PhoneStatsReportByModelsBodyFooter.html';
             $lotusLocationConf = 'lotusLocation';
             $request = (new Request());
             $request = (0 == $request->get->count()) ? $request = $request->post : $request->get;
@@ -144,7 +145,9 @@ class Report extends Controller
                         }, $tbData);
                         //==========end================
                         $data['columns'] = $request->columns;
+                        $data['bodyFooter'] = $request->bodyFooter;
                         $this->data->body->html = $this->view->render($bodyTemplate, $data);
+                        $this->data->bodyFooter->html = $this->view->render($bodyFooterTemplate, $data);
                         $this->data->body->tableFilter = $tabFilter;
                         $this->data->body->pager = $request->pager;
                         $this->data->body->pager->page = $tb->currentPage();

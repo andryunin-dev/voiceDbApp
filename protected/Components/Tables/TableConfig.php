@@ -39,11 +39,11 @@ class TableConfig extends Config implements TableConfigInterface
         'connection' => '',
         'className' => '',
         'columns' => [],
-        'lowerColumns' => [],
+        'bodyFooterColumns' => [],
         'calculated' => [],
         'aliases' => [],
         'extraColumns' => [],
-        'lowerExtraColumns' => [],
+        'bodyFooterExtraColumns' => [],
         'sortOrderSets' => [],
         'sortBy' => [],
         'preFilter' => [],
@@ -51,6 +51,7 @@ class TableConfig extends Config implements TableConfigInterface
         'cssStyles' => [
             'header' => ['table' => []],
             'body' => ['table' => []],
+            'bodyFooter' => ['table' => []],
             'footer' => ['table' => []],
         ],
         'sizes' => [
@@ -205,7 +206,7 @@ class TableConfig extends Config implements TableConfigInterface
 
     public function extraColumns()
     {
-        $extraCols = array_unique(array_merge($this->extraColumns->toArray(), $this->lowerExtraColumns->toArray()));
+        $extraCols = array_unique(array_merge($this->extraColumns->toArray(), $this->bodyFooterExtraColumns->toArray()));
         return new Std($extraCols);
     }
     /**
@@ -219,11 +220,11 @@ class TableConfig extends Config implements TableConfigInterface
      * this method should be called first
      * @throws Exception
      */
-    public function lowerColumns(array $columns = null, array $extraColumns = null)
+    public function bodyFooterColumns(array $columns = null, array $extraColumns = null)
     {
         /*if arg is null - return list of columns as Std*/
         if (is_null($columns)) {
-            $res = array_keys($this->lowerColumns->toArray());
+            $res = array_keys($this->bodyFooterColumns->toArray());
             return new Std($res);
         }
         $extraColumns = is_null($extraColumns) ? [] : $extraColumns;
@@ -233,9 +234,9 @@ class TableConfig extends Config implements TableConfigInterface
         if (count($diff) > 0) {
             throw new Exception('columns have to belong ' . $this->className::getTableName() . ' table or is defined as extraColumns!');
         }
-        $this->lowerExtraColumns = new Std($extraColumns);
+        $this->bodyFooterExtraColumns = new Std($extraColumns);
         $columns = array_fill_keys($columns, $this->columnPropertiesTemplate);
-        $this->lowerColumns = new Std($columns);
+        $this->bodyFooterColumns = new Std($columns);
         return $this;
     }
 
@@ -309,11 +310,11 @@ class TableConfig extends Config implements TableConfigInterface
      * @return self|Std if $config is null - return current config $column column
      * @throws Exception
      */
-    public function lowerColumnConfig(string $column, Std $config = null)
+    public function bodyFooterColumnConfig(string $column, Std $config = null)
     {
         $this->validateLowerColumnIsDefined($column);
         if (is_null($config)) {
-            return $this->lowerColumns->$column;
+            return $this->bodyFooterColumns->$column;
         }
         $diff = array_diff(array_keys($config->toArray()), array_keys($this->columnPropertiesTemplate));
         if (count($diff) > 0) {
@@ -324,7 +325,7 @@ class TableConfig extends Config implements TableConfigInterface
             $config->$param = $this->sanitizeConfigParam($param, $value);
         }
         foreach ($config as $param => $value) {
-            $this->lowerColumns->$column->$param = $value;
+            $this->bodyFooterColumns->$column->$param = $value;
         }
         return $this;
     }
@@ -453,7 +454,7 @@ class TableConfig extends Config implements TableConfigInterface
     }
     public function isLowerColumnDefined($column) :bool
     {
-        return isset($this->lowerColumns->$column);
+        return isset($this->bodyFooterColumns->$column);
     }
     public function isColumnDefinedInClass(string $column)
     {
@@ -469,9 +470,9 @@ class TableConfig extends Config implements TableConfigInterface
     {
         return isset($this->columns->$column) && (true === $this->columns->$column->visible);
     }
-    public function isLowerColumnVisible($column) :bool
+    public function isBodyFooterColumnVisible($column) :bool
     {
-        return isset($this->lowerColumns->$column) && (true === $this->lowerColumns->$column->visible);
+        return isset($this->bodyFooterColumns->$column) && (true === $this->bodyFooterColumns->$column->visible);
     }
 
     /**
@@ -504,6 +505,15 @@ class TableConfig extends Config implements TableConfigInterface
      * @return self
      * add css class for header table
      */
+    public function cssAddBodyFooterTableClasses($cssClass)
+    {
+        return $this->innerAddCssClass('bodyFooter', 'table', $cssClass);
+    }
+    /**
+     * @param string|array $cssClass
+     * @return self
+     * add css class for header table
+     */
     public function cssAddFooterTableClasses($cssClass)
     {
         return $this->innerAddCssClass('footer', 'table', $cssClass);
@@ -525,6 +535,15 @@ class TableConfig extends Config implements TableConfigInterface
     public function cssSetBodyTableClasses($cssClass)
     {
         return $this->innerSetCssClass('body', 'table', $cssClass);
+    }
+    /**
+     * @param string|array $cssClass
+     * @return self
+     * add css class for bodyFooter table
+     */
+    public function cssSetBodyFooterTableClasses($cssClass)
+    {
+        return $this->innerSetCssClass('bodyFooter', 'table', $cssClass);
     }
     /**
      * @param string|array $cssClass
@@ -747,6 +766,10 @@ class TableConfig extends Config implements TableConfigInterface
     protected function getBodyCssClasses()
     {
         return isset($this->cssStyles->body) ? $this->cssStyles->body : false;
+    }
+    protected function getBodyFooterCssClasses()
+    {
+        return isset($this->cssStyles->bodyFooter) ? $this->cssStyles->bodyFooter : false;
     }
     protected function getFooterCssClasses()
     {

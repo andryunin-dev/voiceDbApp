@@ -91,13 +91,13 @@ class TableConfigs extends Controller
         $maxAge = 73;
 
         $columns = ['region', 'city', 'office', 'people', 'phoneAmount', 'plTitle', 'plTitleActive', 'lotusId'];
-        $lowerColumns = ['textField', 'appType', 'people', 'phoneAmount', 'plTitle', 'plTitleActive', 'lotusId'];
+        $bodyFooterColumns = ['textField', 'appType', 'people', 'phoneAmount', 'plTitle', 'plTitleActive', 'lotusId'];
         $pivots = [
             'plTitle' => ['name' => 'platformTitle'],
             'plTitleActive' => ['name' => 'platformTitle']
         ];
         $extraColumns = ['people'];
-        $lowerExtraColumns = ['textField', 'people'];
+        $bodyFooterExtraColumns = ['textField', 'people'];
         $countedColumns = [
             'phoneAmount' => ['name' => 'appliance_id', 'method' => 'count']
         ];
@@ -111,9 +111,9 @@ class TableConfigs extends Controller
             'plTitle' => ['id' => 'pl','name' => 'Оборудование', 'width' => 65],
             'plTitleActive' => ['id' => 'pl_active','visible' => false],
         ];
-        $confLowerColumns = [
+        $confBodyFooterColumns = [
             'lotusId' => ['id' => 'lot_id','name' => 'ID', 'width' => '50px', 'visible' => false],
-            'textField' => ['id' => 'txt_field','name' => 'txtField', 'width' => 10, 'visible' => true],
+            'textField' => ['id' => 'txt_field','name' => 'txtField', 'width' => 35, 'visible' => true],
             'appType' => ['id' => 'app_type','name' => 'appType', 'width' => 10, 'visible' => false],
             'people' => ['id' => 'people','name' => 'Сотр.', 'width' => '60px'],
             'phoneAmount' => ['id' => 'phone-count','name' => 'кол-во тел.', 'width' => '60px'],
@@ -142,14 +142,14 @@ class TableConfigs extends Controller
         $tab->columns($columns, $extraColumns)
             ->sortOrderSets($sortTemplates)
             ->sortBy('region');
-        $tab->lowerColumns($lowerColumns, $lowerExtraColumns);
+        $tab->bodyFooterColumns($bodyFooterColumns, $bodyFooterExtraColumns);
         foreach ($confColumns as $col => $conf)
         {
             $tab->columnConfig($col, new Std($conf));
         }
-        foreach ($confLowerColumns as $col => $conf)
+        foreach ($confBodyFooterColumns as $col => $conf)
         {
-            $tab->lowerColumnConfig($col, new Std($conf));
+            $tab->bodyFooterColumnConfig($col, new Std($conf));
         }
         $tab
             ->dataUrl($ajaxHandlersURL)
@@ -162,6 +162,7 @@ class TableConfigs extends Controller
             ->pivotWidthItems('plTitle', '65px')
             ->cssSetHeaderTableClasses(['bg-primary', 'table-bordered', 'table-header-rotated'])
             ->cssSetBodyTableClasses(["table", "cell-bordered", "cust-table-striped"])
+            ->cssSetBodyFooterTableClasses(["table", "bg-success", "table-bordered", "body-footer"])
             ->rowsOnPageList([10,50,100,200,'все'])
             ->tablePreFilter($tablePreFilter)
             ->save();

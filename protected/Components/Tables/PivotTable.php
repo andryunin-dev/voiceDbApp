@@ -57,7 +57,7 @@ class PivotTable extends Table implements PivotTableInterface
         /*build columns config*/
         $pivots = $this->config->pivots();
         $columnsConf = new Std();
-        $lowerColumnsConf = new Std();
+        $bodyFooterColumnsConf = new Std();
         $pivotWidth = 0;
         foreach ($this->config->columns as $col => $colConf) {
             if (! $this->config->isColumnVisible($col)) {
@@ -78,23 +78,23 @@ class PivotTable extends Table implements PivotTableInterface
                 $columnsConf->$item->width = $this->config->pivotWidthItems($col);
             }
         }
-        foreach ($this->config->lowerColumns as $col => $colConf) {
-            if (! $this->config->isLowerColumnVisible($col)) {
+        foreach ($this->config->bodyFooterColumns as $col => $colConf) {
+            if (! $this->config->isBodyFooterColumnVisible($col)) {
                 continue;
             }
             if (! $this->config->isPivot($col)) {
-                $lowerColumnsConf->$col = $colConf;
+                $bodyFooterColumnsConf->$col = $colConf;
                 continue;
             }
-            $pivotWidth += $this->config->lowerColumnConfig($col)->width;
+            $pivotWidth += $this->config->bodyFooterColumnConfig($col)->width;
             $pivotItems = $this->findPivotItems($col);
             $propsTemplate = $this->config->columnPropertiesTemplate->merge(new Std($this->pivotItemProperties));
             foreach ($pivotItems as $idx => $item) {
-                $lowerColumnsConf->$item = new Std($propsTemplate->toArray());
-                $lowerColumnsConf->$item->pivotColumn = $col;
-                $lowerColumnsConf->$item->id = $col . '_' . $idx;
-                $lowerColumnsConf->$item->name = $item;
-                $lowerColumnsConf->$item->width = $this->config->pivotWidthItems($col);
+                $bodyFooterColumnsConf->$item = new Std($propsTemplate->toArray());
+                $bodyFooterColumnsConf->$item->pivotColumn = $col;
+                $bodyFooterColumnsConf->$item->id = $col . '_' . $idx;
+                $bodyFooterColumnsConf->$item->name = $item;
+                $bodyFooterColumnsConf->$item->width = $this->config->pivotWidthItems($col);
             }
         }
         /*build table config*/
@@ -111,7 +111,7 @@ class PivotTable extends Table implements PivotTableInterface
         //todo write methods to set and get config->bodyFooterCssClasses !!!
         //$tbConf->bodyFooter->tableClasses = implode(', ', $this->config->bodyFooterCssClasses->toArray());
         $tbConf->bodyFooter->pivotColumnsWidth = $pivotWidth;
-        $tbConf->bodyFooter->columns = $lowerColumnsConf;
+        $tbConf->bodyFooter->columns = $bodyFooterColumnsConf;
 
         $tbConf->pager = new Std(
             [
@@ -135,6 +135,7 @@ class PivotTable extends Table implements PivotTableInterface
         );
         $tbConf->styles->header->table->classes = $this->config->headerCssClasses->table;
         $tbConf->styles->body->table->classes = $this->config->bodyCssClasses->table;
+        $tbConf->styles->bodyFooter->table->classes = $this->config->bodyFooterCssClasses->table;
 
         return $tbConf;
 

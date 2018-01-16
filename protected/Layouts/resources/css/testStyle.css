@@ -58,3 +58,6 @@
 
     font-size: small;
 }
+.jqtable .jqt-bd-ft-table td {
+    text-align: center;
+}

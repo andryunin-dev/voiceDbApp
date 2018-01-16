@@ -1,0 +1,19 @@
+{% spaceless %}
+    {#{% for record in data %}#}
+        <tr class="js-table-row">
+        {% for colname, columnParams in bodyFooter %}
+            {% if columnParams.isPivot %}
+                {% set pivColumn = columnParams.pivotColumn  %}
+                {% set pivObj = record.getValue(pivColumn) %}
+
+                {#<td>{{ pivObj.getValue(colname) }}</td>#}
+                <td>test</td>
+            {% else %}
+                {#<td>{{ record.getValue(colname) }}</td>#}
+                <td>test2</td>
+            {% endif %}
+        {% endfor %}
+        </tr>
+    {#{% endfor %}#}
+
+{% endspaceless %}

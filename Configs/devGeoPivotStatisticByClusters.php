@@ -79,7 +79,7 @@ return [
       'visible' => false,
     ],
   ],
-  'lowerColumns' =>
+  'bodyFooterColumns' =>
   [
   ],
   'calculated' =>

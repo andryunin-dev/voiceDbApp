@@ -991,8 +991,8 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
      */
     public function testLowerColumns($columns, $extraColumns, $expectedColumns, $expectedExtra, $conf)
     {
-        $conf->lowerColumns($columns, $extraColumns);
-        $this->assertEquals($expectedColumns, $conf->lowerColumns()->toArray());
+        $conf->bodyFooterColumns($columns, $extraColumns);
+        $this->assertEquals($expectedColumns, $conf->bodyFooterColumns()->toArray());
         $this->assertEquals($expectedExtra, $conf->extraColumns()->toArray());
     }
 
@@ -1030,9 +1030,9 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
     public function testMainAndLowerColumns($mainCols, $mainExtra, $lowCols, $lowExtra,  $expExtra, $conf)
     {
         $conf->columns($mainCols, $mainExtra);
-        $conf->lowerColumns($lowCols, $lowExtra);
+        $conf->bodyFooterColumns($lowCols, $lowExtra);
         $this->assertEquals($mainCols, $conf->columns()->toArray());
-        $this->assertEquals($lowCols, $conf->lowerColumns()->toArray());
+        $this->assertEquals($lowCols, $conf->bodyFooterColumns()->toArray());
         $this->assertEquals($expExtra, $conf->extraColumns()->toArray());
     }
 }

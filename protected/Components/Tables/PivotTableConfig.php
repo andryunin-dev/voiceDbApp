@@ -74,7 +74,7 @@ class PivotTableConfig extends TableConfig
         $this->columns = new Std($columns);
         return $this;
     }
-    public function lowerColumns(array $columns = null, array $extraColumns = null)
+    public function bodyFooterColumns(array $columns = null, array $extraColumns = null)
     {
         /*if arg is null - return list of columns as Std*/
         if (is_null($columns)) {
@@ -90,9 +90,9 @@ class PivotTableConfig extends TableConfig
         if (count($diff) > 0) {
             throw new Exception('columns have to belong ' . $this->className::getTableName() . ' table or is defined as extraColumns or is defined as pivot column!');
         }
-        $this->lowerExtraColumns = new Std($extraColumns);
+        $this->bodyFooterExtraColumns = new Std($extraColumns);
         $columns = array_fill_keys($columns, $this->columnPropertiesTemplate);
-        $this->lowerColumns = new Std($columns);
+        $this->bodyFooterColumns = new Std($columns);
         return $this;
     }
 
