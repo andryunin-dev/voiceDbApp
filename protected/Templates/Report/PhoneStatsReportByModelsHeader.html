@@ -3,7 +3,7 @@
     {% for column in columns %}
         <th id="{{ column.th_id|trim('#') }}" title="{{ column.name }}" {% if column.isPivot  or column.id == 'phone-count' %}class="rotate-2"{% endif %}>
             <div>
-                <p>{{ column.name }}</p>
+                <p>{{ column.name }}{% if column.isPivot %}<br>всего/актив.{% endif %}</p>
             </div>
         </th>
     {% endfor %}

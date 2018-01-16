@@ -1885,7 +1885,7 @@ jqTable.workSetTmpl = {
                             return
                         }
                         ws.obj.$body.children('tbody').html(data.body.html);
-                        if (data.bodyFooter.html) {
+                        if (data.bodyFooter && data.bodyFooter.html) {
                             ws.obj.$bodyFooter.children('tbody').html(data.bodyFooter.html);
                             inner.setBodyHeight(ws);
                         }

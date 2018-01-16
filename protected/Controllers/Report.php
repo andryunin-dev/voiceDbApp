@@ -184,8 +184,8 @@ class Report extends Controller
     public function actionPhoneStatsByClustersReportHandler()
     {
         try {
-            $headerTemplate = 'PhoneStatsReportByModelsHeader.html';
-            $bodyTemplate = 'PhoneStatsReportByModelsBody.html';
+            $headerTemplate = 'PhoneStatsReportByClustersHeader.html';
+            $bodyTemplate = 'PhoneStatsReportByClustersBody.html';
             $lotusLocationConf = 'lotusLocation';
             $request = (new Request());
             $request = (0 == $request->get->count()) ? $request = $request->post : $request->get;
