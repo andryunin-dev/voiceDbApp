@@ -233,6 +233,7 @@ return [
         0 => 'table',
         1 => 'bg-success',
         2 => 'table-bordered',
+        3 => 'body-footer',
       ],
     ],
     'footer' =>
