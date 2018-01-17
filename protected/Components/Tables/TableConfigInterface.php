@@ -94,7 +94,7 @@ interface TableConfigInterface
     public function tablePreFilter(SqlFilter $preFilter = null);
 
     public function isColumnDefined($column) :bool;
-    public function isLowerColumnDefined($column) :bool;
+    public function isBodyFooterColumnDefined($column) :bool;
     public function isColumnSortable($column) :bool;
     public function isColumnVisible($column) :bool;
     public function isBodyFooterColumnVisible($column) :bool;

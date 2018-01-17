@@ -134,7 +134,7 @@ class TableConfigs extends Controller
         $pivotItemsSelectBy = ['lotusId'];
         $tab = (new PivotTableConfig($tableName, $className));
         foreach ($pivots as $alias => $col) {
-            $tab->definePivotColumn($col['name'], $alias, $col['display']);
+            $tab->definePivotColumn($col['name'], $alias);
         }
         foreach ($countedColumns as $alias => $col) {
             $tab->calculatedColumn($alias, $col['name'], $col['method']);
@@ -154,10 +154,13 @@ class TableConfigs extends Controller
         $tab
             ->dataUrl($ajaxHandlersURL)
             ->tableWidth(100)
+
             ->pivotItemsSelectBy('plTitle', $pivotItemsSelectBy)
             ->pivotPreFilter('plTitle', $preFilter)
+
             ->pivotItemsSelectBy('plTitleActive', $pivotItemsSelectBy)
             ->pivotPreFilter('plTitleActive', $preFilterActive)
+
             ->pivotSortBy('plTitle', ['platformTitle'], 'desc')
             ->pivotWidthItems('plTitle', '65px')
             ->cssSetHeaderTableClasses(['bg-primary', 'table-bordered', 'table-header-rotated'])
@@ -209,7 +212,7 @@ class TableConfigs extends Controller
         $pivotItemsSelectBy = ['lotusId'];
         $tab = (new PivotTableConfig($tableName, $className));
         foreach ($pivots as $alias => $col) {
-            $tab->definePivotColumn($col['name'], $alias, $col['display']);
+            $tab->definePivotColumn($col['name'], $alias);
         }
         foreach ($countedColumns as $alias => $col) {
             $tab->calculatedColumn($alias, $col['name'], $col['method']);

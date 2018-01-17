@@ -65,7 +65,7 @@ class TableConfig extends Config implements TableConfigInterface
         'width' => 0,
         'sortable' => false,
         'filterable' => false,
-        'visible' => true
+        'visible' => true,
     ];
     protected $calculatedColumnProperties = [
         'column' => '',
@@ -312,7 +312,7 @@ class TableConfig extends Config implements TableConfigInterface
      */
     public function bodyFooterColumnConfig(string $column, Std $config = null)
     {
-        $this->validateLowerColumnIsDefined($column);
+        $this->validateBodyFooterColumnIsDefined($column);
         if (is_null($config)) {
             return $this->bodyFooterColumns->$column;
         }
@@ -452,7 +452,7 @@ class TableConfig extends Config implements TableConfigInterface
     {
         return isset($this->columns->$column);
     }
-    public function isLowerColumnDefined($column) :bool
+    public function isBodyFooterColumnDefined($column) :bool
     {
         return isset($this->bodyFooterColumns->$column);
     }
@@ -628,9 +628,9 @@ class TableConfig extends Config implements TableConfigInterface
             throw new Exception('Column ' . $column . ' doesn\'t set as table column');
         }
     }
-    protected function validateLowerColumnIsDefined($column)
+    protected function validateBodyFooterColumnIsDefined($column)
     {
-        if ($this->isLowerColumnDefined($column)) {
+        if ($this->isBodyFooterColumnDefined($column)) {
             return true;
         } else {
             throw new Exception('Column ' . $column . ' doesn\'t set as table column');
