@@ -86,18 +86,17 @@ class TableConfigs extends Controller
     public function actionPhoneStatsByModelsWithLowerRow()
     {
         $tableName = 'devGeoPivotStatisticWithLower';
+        $tableNameBF = $tableName . 'BF';
         $ajaxHandlersURL = '/report/PhoneStatsReportHandler.json';
         $className = DevGeo_View::class;
         $maxAge = 73;
 
         $columns = ['region', 'city', 'office', 'people', 'phoneAmount', 'plTitle', 'plTitleActive', 'lotusId'];
-        $bodyFooterColumns = ['textField', 'appType', 'people', 'phoneAmount', 'plTitle', 'plTitleActive', 'lotusId'];
         $pivots = [
             'plTitle' => ['name' => 'platformTitle'],
             'plTitleActive' => ['name' => 'platformTitle']
         ];
         $extraColumns = ['people'];
-        $bodyFooterExtraColumns = ['textField', 'people'];
         $countedColumns = [
             'phoneAmount' => ['name' => 'appliance_id', 'method' => 'count']
         ];
@@ -111,26 +110,17 @@ class TableConfigs extends Controller
             'plTitle' => ['id' => 'pl','name' => 'Оборудование', 'width' => 65],
             'plTitleActive' => ['id' => 'pl_active','visible' => false],
         ];
-        $confBodyFooterColumns = [
-            'lotusId' => ['id' => 'lot_id','name' => 'ID', 'width' => '50px', 'visible' => false],
-            'textField' => ['id' => 'txt_field','name' => 'txtField', 'width' => 35, 'visible' => true],
-            'appType' => ['id' => 'app_type','name' => 'appType', 'width' => 10, 'visible' => false],
-            'people' => ['id' => 'people','name' => 'Сотр.', 'width' => '60px'],
-            'phoneAmount' => ['id' => 'phone-count','name' => 'кол-во тел.', 'width' => '60px'],
-            'plTitle' => ['id' => 'pl','name' => 'Оборудование', 'width' => 65],
-            'plTitleActive' => ['id' => 'pl_active','visible' => false],
-        ];
         $sortTemplates = [
             'region' => ['region' => '', 'city' => '', 'office' => ''],
             'city' => ['city' => '', 'office' => ''],
         ];
         $tablePreFilter = (new SqlFilter($className))
             ->setFilter('appType', 'eq', ['phone']);
-        $preFilter = (new SqlFilter($className))
+        $pivotPreFilter = (new SqlFilter($className))
             ->setFilter('appType', 'eq', ['phone']);
-        $preFilterActive = (new SqlFilter($className))
+        $pivotPreFilterActive = (new SqlFilter($className))
             ->setFilter('appType', 'eq', ['phone']);
-        $preFilterActive->addFilter('appAge', 'lt', [$maxAge]);
+        $pivotPreFilterActive->addFilter('appAge', 'lt', [$maxAge]);
         $pivotItemsSelectBy = ['lotusId'];
         $tab = (new PivotTableConfig($tableName, $className));
         foreach ($pivots as $alias => $col) {
@@ -142,34 +132,96 @@ class TableConfigs extends Controller
         $tab->columns($columns, $extraColumns)
             ->sortOrderSets($sortTemplates)
             ->sortBy('region');
-        $tab->bodyFooterColumns($bodyFooterColumns, $bodyFooterExtraColumns);
         foreach ($confColumns as $col => $conf)
         {
             $tab->columnConfig($col, new Std($conf));
         }
-        foreach ($confBodyFooterColumns as $col => $conf)
-        {
-            $tab->bodyFooterColumnConfig($col, new Std($conf));
-        }
+
         $tab
             ->dataUrl($ajaxHandlersURL)
             ->tableWidth(100)
 
+            ->bodyFooterTableName($tableNameBF)
+
             ->pivotItemsSelectBy('plTitle', $pivotItemsSelectBy)
-            ->pivotPreFilter('plTitle', $preFilter)
+            ->pivotPreFilter('plTitle', $pivotPreFilter)
 
             ->pivotItemsSelectBy('plTitleActive', $pivotItemsSelectBy)
-            ->pivotPreFilter('plTitleActive', $preFilterActive)
+            ->pivotPreFilter('plTitleActive', $pivotPreFilterActive)
 
             ->pivotSortBy('plTitle', ['platformTitle'], 'desc')
             ->pivotWidthItems('plTitle', '65px')
             ->cssSetHeaderTableClasses(['bg-primary', 'table-bordered', 'table-header-rotated'])
             ->cssSetBodyTableClasses(["table", "cell-bordered", "cust-table-striped"])
-            ->cssSetBodyFooterTableClasses(["table", "bg-success", "table-bordered", "body-footer"])
             ->rowsOnPageList([10,50,100,200,'все'])
             ->tablePreFilter($tablePreFilter)
             ->save();
+        var_dump($tab);
+        echo '===============body footer table config===============';
+        /*=============body footer table================*/
 
+        $columns = ['textField', 'appType', 'people', 'phoneAmount', 'plTitle', 'plTitleActive'];
+        $pivots = [
+            'plTitle' => ['name' => 'platformTitle'],
+            'plTitleActive' => ['name' => 'platformTitle']
+        ];
+        $pivotItemsSelectBy = ['appType'];
+        $extraColumns = ['textField', 'people'];
+        $confColumns = [
+            'textField' => ['id' => 'txt_field','name' => 'txtField', 'width' => 35, 'visible' => true],
+            'appType' => ['id' => 'app_type','name' => 'appType', 'width' => 10, 'visible' => false],
+            'people' => ['id' => 'people','name' => 'Сотр.', 'width' => '60px'],
+            'phoneAmount' => ['id' => 'phone-count','name' => 'кол-во тел.', 'width' => '60px'],
+            'plTitle' => ['id' => 'pl','name' => 'Оборудование', 'width' => 65],
+            'plTitleActive' => ['id' => 'pl_active','visible' => false],
+        ];
+        $countedColumns = [
+            'phoneAmount' => ['name' => 'appliance_id', 'method' => 'count']
+        ];
+        $sortTemplates = [
+            'default' => [],
+        ];
+        /*======preFilters=============*/
+        $tablePreFilter = (new SqlFilter($className))
+            ->setFilter('appType', 'eq', ['phone']);
+        $pivotPreFilter = (new SqlFilter($className))
+            ->setFilter('appType', 'eq', ['phone']);
+        $pivotPreFilterActive = (new SqlFilter($className))
+            ->setFilter('appType', 'eq', ['phone']);
+        $pivotPreFilterActive->addFilter('appAge', 'lt', [$maxAge]);
+
+        /*=======make config================*/
+        $tab = (new PivotTableConfig($tableNameBF, $className));
+        foreach ($pivots as $alias => $col) {
+            $tab->definePivotColumn($col['name'], $alias);
+        }
+        foreach ($countedColumns as $alias => $col) {
+            $tab->calculatedColumn($alias, $col['name'], $col['method']);
+        }
+        $tab->columns($columns, $extraColumns)
+            ->sortOrderSets($sortTemplates)
+            ->sortBy('default');
+        foreach ($confColumns as $col => $conf)
+        {
+            $tab->columnConfig($col, new Std($conf));
+        }
+
+        $tab
+            ->dataUrl($ajaxHandlersURL)
+            ->tableWidth(100)
+
+            ->pivotItemsSelectBy('plTitle', $pivotItemsSelectBy)
+            ->pivotPreFilter('plTitle', $pivotPreFilter)
+
+            ->pivotItemsSelectBy('plTitleActive', $pivotItemsSelectBy)
+            ->pivotPreFilter('plTitleActive', $pivotPreFilterActive)
+
+            ->pivotSortBy('plTitle', ['platformTitle'], 'desc')
+            ->pivotWidthItems('plTitle', '65px')
+            ->cssSetBodyTableClasses(["table", "bg-success", "table-bordered", "body-footer"])
+            ->rowsOnPageList([10,50,100,200,'все'])
+            ->tablePreFilter($tablePreFilter)
+            ->save();
         var_dump($tab);
         die;
     }

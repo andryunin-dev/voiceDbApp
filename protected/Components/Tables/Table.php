@@ -29,6 +29,45 @@ class Table extends Std
         'totalRecords' => 0
     ];
 
+    public static function buildConfig(string $tableName)
+    {
+        if (TableConfig::isPivotTableConfig($tableName)) {
+            $tbConf = (new PivotTable(new PivotTableConfig($tableName)))
+                ->buildTableConfig();
+        } else {
+            $tbConf = (new Table(new TableConfig($tableName)))
+                ->buildTableConfig();
+        }
+        $tbConf->tableName = $tableName;
+        return $tbConf;
+    }
+
+    public static function getTableConfig($tableName)
+    {
+        if (TableConfig::isPivotTableConfig($tableName)) {
+            return new PivotTableConfig($tableName);
+        } else {
+            return new TableConfig($tableName);
+        }
+    }
+    public static function getTable(TableConfig $config)
+    {
+        if ($config instanceof PivotTableConfig) {
+            return new PivotTable($config);
+        } else {
+            return new Table($config);
+        }
+    }
+
+    public function getBodyFooterTable()
+    {
+        try {
+            return self::getTable(self::getTableConfig($this->config->bodyFooterTableName()));
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+
     public function __construct(TableConfig $tableConfig)
     {
         parent::__construct();
@@ -87,6 +126,7 @@ class Table extends Std
         );
         $tbConf->styles->header->table->classes = $this->config->headerCssClasses->table;
         $tbConf->styles->body->table->classes = $this->config->bodyCssClasses->table;
+
 
         return $tbConf;
     }

@@ -23,6 +23,12 @@ interface TableConfigInterface
     public function delete();
 
     /**
+     * @param string $tableName
+     * @return bool true if it's pivot table config
+     */
+    public static function isPivotTableConfig(string $tableName);
+
+    /**
      * set connection for current table or return existed
      * @param null $connectionName
      * @return self|Connection
@@ -46,13 +52,6 @@ interface TableConfigInterface
     public function columns(array $columns = null,  array $extraColumns = null);
 
     /**
-     * @param array|null $columns
-     * @param array|null $extraColumns extraColumns is appended to existed
-     * @return mixed
-     */
-    public function bodyFooterColumns(array $columns = null, array $extraColumns = null);
-
-    /**
      * @return Std all extraColumns (for main part of table and )
      */
     public function extraColumns();
@@ -60,7 +59,7 @@ interface TableConfigInterface
     public function isCalculated(string $columnAlias);
     public function columnList();
     public function columnConfig(string $column, Std $config = null);
-    public function bodyFooterColumnConfig(string $column, Std $config = null);
+    public function bodyFooterTableName(string $bodyFooterTable);
 
     public function appendColumnAlias(string $column, string $alias, string $operator = '');
     public function removeColumnAlias(string $alias);
@@ -94,10 +93,8 @@ interface TableConfigInterface
     public function tablePreFilter(SqlFilter $preFilter = null);
 
     public function isColumnDefined($column) :bool;
-    public function isBodyFooterColumnDefined($column) :bool;
     public function isColumnSortable($column) :bool;
     public function isColumnVisible($column) :bool;
-    public function isBodyFooterColumnVisible($column) :bool;
 
     /**
      * @param array|null $variantList
@@ -127,12 +124,6 @@ interface TableConfigInterface
     /**
      * @param string|array $cssClass
      * @return self
-     * add css class for bodyFooter table
-     */
-    public function cssAddBodyFooterTableClasses($cssClass);
-    /**
-     * @param string|array $cssClass
-     * @return self
      * add css class for header table
      */
     public function cssAddFooterTableClasses($cssClass);
@@ -148,12 +139,6 @@ interface TableConfigInterface
      * add css class for header table
      */
     public function cssSetBodyTableClasses($cssClass);
-    /**
-     * @param string|array $cssClass
-     * @return self
-     * add css class for bodyFooter table
-     */
-    public function cssSetBodyFooterTableClasses($cssClass);
     /**
      * @param string|array $cssClass
      * @return self

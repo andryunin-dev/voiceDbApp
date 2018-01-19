@@ -68,10 +68,8 @@ class Report extends Controller
         if (isset($_GET['tableName'])) {
             try {
                 $tableName = $_GET['tableName'];
-                $tb = new PivotTable(new PivotTableConfig($tableName));
-                $tb->rowsOnPage(50);
-                $config = $tb->buildTableConfig();
-                $config->tableName = $_GET['tableName'];
+                $config = Table::buildConfig($tableName);
+
                 return $this->data->config = $config;
             } catch (Exception $e) {
                 return $this->data->config = new Std();
@@ -85,6 +83,9 @@ class Report extends Controller
         $this->data->activeLink->phonesReports = true;
     }
 
+    /**
+     *
+     */
     public function actionPhoneStatsReportHandler()
     {
         try {
@@ -103,14 +104,13 @@ class Report extends Controller
                         break;
                     case 'body':
                         $request = $request->body;
-                        $tbConf = new PivotTableConfig($request->tableName);
+                        $tbConf = Table::getTableConfig($request->tableName);
+                        $tb = Table::getTable($tbConf);
                         $tabFilter = new SqlFilter($tbConf->className());
                         if (isset($request->tableFilter)) {
-
                             $filterSet = $request->tableFilter->toArray();
                             $tabFilter->setFilterFromArray($filterSet);
                         }
-                        $tb = new PivotTable($tbConf);
                         $tb->addFilter($tabFilter, 'append');
                         $tb->paginationUpdate($request->pager->page, $request->pager->rowsOnPage);
                         $tbData = $tb->getRecordsByPage();
@@ -138,14 +138,34 @@ class Report extends Controller
                             $tbData[$dataKey] = new RecordItem($tbData[$dataKey]);
                         }
                         //========end==============
-                        //===========append info about people
+                        //===========append info about people=================
                         $data['data'] = array_map(function ($dataItem) use($lotusDataByLotusId)  {
                             $dataItem->people = $lotusDataByLotusId[$dataItem->lotusId]['employees'];
                             return $dataItem;
                         }, $tbData);
                         //==========end================
                         $data['columns'] = $request->columns;
-                        $data['bodyFooter'] = $request->bodyFooter;
+                        $data['columnsBF'] = $request->bodyFooter;
+                        //============get body footer data==============
+                        $tbBF = $tb->getBodyFooterTable();
+                        $tbDataBF = [];
+                        if (false !== $tbBF) {
+                            $tbBF->addFilter($tabFilter, 'append');
+                            $tbDataBF = $tbBF->getRecords();
+                        }
+                        foreach ($tbDataBF as $dataKey => $values) {
+                            if (! isset($values[$totalDevs]) || is_null($values[$totalDevs])) {
+                                continue;
+                            }
+                            array_walk($values[$totalDevs], function(&$counter, $platform) use($values, $totalDevs, $activeDevs){
+                                $counter = (isset($values[$activeDevs][$platform])) ? $counter . '/' . $values[$activeDevs][$platform] : $counter . '/0';
+                            });
+                            $tbDataBF[$dataKey][$totalDevs] = $values[$totalDevs];
+                            unset($tbDataBF[$dataKey][$activeDevs]);
+                            $tbDataBF[$dataKey] = new RecordItem($tbDataBF[$dataKey]);
+                        }
+                        $data['dataBF'] = $tbDataBF;
+                        //=============render templates=============
                         $this->data->body->html = $this->view->render($bodyTemplate, $data);
                         $this->data->bodyFooter->html = $this->view->render($bodyFooterTemplate, $data);
                         $this->data->body->tableFilter = $tabFilter;
@@ -186,6 +206,7 @@ class Report extends Controller
         try {
             $headerTemplate = 'PhoneStatsReportByClustersHeader.html';
             $bodyTemplate = 'PhoneStatsReportByClustersBody.html';
+            $bodyFooterTemplate = 'PhoneStatsReportByClustersBodyFooter.html';
             $lotusLocationConf = 'lotusLocation';
             $request = (new Request());
             $request = (0 == $request->get->count()) ? $request = $request->post : $request->get;

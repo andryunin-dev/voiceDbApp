@@ -1,19 +1,36 @@
 {% spaceless %}
-    {#{% for record in data %}#}
+    {% for record in dataBF %}
         <tr class="js-table-row">
-        {% for colname, columnParams in bodyFooter %}
+        {% for colname, columnParams in columnsBF %}
             {% if columnParams.isPivot %}
                 {% set pivColumn = columnParams.pivotColumn  %}
                 {% set pivObj = record.getValue(pivColumn) %}
 
-                {#<td>{{ pivObj.getValue(colname) }}</td>#}
-                <td>test</td>
+                <td>{{ pivObj.getValue(colname) }}</td>
             {% else %}
-                {#<td>{{ record.getValue(colname) }}</td>#}
-                <td>test2</td>
+                <td>{{ record.getValue(colname) }}</td>
             {% endif %}
         {% endfor %}
         </tr>
-    {#{% endfor %}#}
+    {% endfor %}
 
 {% endspaceless %}
+{#{% spaceless %}
+    #}{#{% for record in data %}#}{#
+    <tr class="js-table-row">
+        {% for colname, columnParams in columnsBF %}
+            {% if columnParams.isPivot %}
+                {% set pivColumn = columnParams.pivotColumn  %}
+                {% set pivObj = record.getValue(pivColumn) %}
+
+                #}{#<td>{{ pivObj.getValue(colname) }}</td>#}{#
+                <td>test</td>
+            {% else %}
+                #}{#<td>{{ record.getValue(colname) }}</td>#}{#
+                <td>test2</td>
+            {% endif %}
+        {% endfor %}
+    </tr>
+    #}{#{% endfor %}#}{#
+
+{% endspaceless %}#}

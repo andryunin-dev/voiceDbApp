@@ -1824,7 +1824,8 @@ jqTable.workSetTmpl = {
              */
             init: function (userOptions) {
                 userOptions = userOptions || {};
-                userOptions.bodyFooter = userOptions.bodyFooter || {};
+
+                userOptions.bodyFooter = userOptions.bodyFooter && userOptions.bodyFooter.header || {};
                 userOptions.bodyFooter.columns = userOptions.bodyFooter.columns || {};
 
                 if ($.isArray(userOptions.bodyFooter.columns)) {

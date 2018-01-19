@@ -74,27 +74,6 @@ class PivotTableConfig extends TableConfig
         $this->columns = new Std($columns);
         return $this;
     }
-    public function bodyFooterColumns(array $columns = null, array $extraColumns = null)
-    {
-        /*if arg is null - return list of columns as Std*/
-        if (is_null($columns)) {
-            $res = array_keys($this->columns->toArray());
-            return new Std($res);
-        }
-        $extraColumns = is_null($extraColumns) ? [] : $extraColumns;
-        $classColumns = array_keys($this->className::getColumns());
-        $calculatedColumnsAliases = array_keys($this->calculated->toArray());
-        $pivotAliases = array_keys($this->pivot->toArray());
-        $unionColumns = array_merge($classColumns, $extraColumns, $pivotAliases, $calculatedColumnsAliases);
-        $diff = array_diff($columns, $unionColumns);
-        if (count($diff) > 0) {
-            throw new Exception('columns have to belong ' . $this->className::getTableName() . ' table or is defined as extraColumns or is defined as pivot column!');
-        }
-        $this->bodyFooterExtraColumns = new Std($extraColumns);
-        $columns = array_fill_keys($columns, $this->columnPropertiesTemplate);
-        $this->bodyFooterColumns = new Std($columns);
-        return $this;
-    }
 
 
     /**

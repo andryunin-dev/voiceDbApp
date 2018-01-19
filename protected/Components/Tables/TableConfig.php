@@ -39,11 +39,10 @@ class TableConfig extends Config implements TableConfigInterface
         'connection' => '',
         'className' => '',
         'columns' => [],
-        'bodyFooterColumns' => [],
         'calculated' => [],
         'aliases' => [],
         'extraColumns' => [],
-        'bodyFooterExtraColumns' => [],
+        'bodyFooterTable' => '',
         'sortOrderSets' => [],
         'sortBy' => [],
         'preFilter' => [],
@@ -51,7 +50,6 @@ class TableConfig extends Config implements TableConfigInterface
         'cssStyles' => [
             'header' => ['table' => []],
             'body' => ['table' => []],
-            'bodyFooter' => ['table' => []],
             'footer' => ['table' => []],
         ],
         'sizes' => [
@@ -79,6 +77,22 @@ class TableConfig extends Config implements TableConfigInterface
         'notnull'
     ];
     protected static $sqlMethods = ['count', 'sum'];
+
+    public static function isPivotTableConfig(string $tableName)
+    {
+        if (empty($tableName)) {
+            throw new Exception('Table name can not be empty');
+        }
+        $path = static::BASE_CONF_PATH . $tableName . '.php';
+        if (! is_readable($path)) {
+            throw new Exception('Can\'t open config file ' . $tableName);
+        }
+        $conf = new Config($path);
+        if (! isset($conf->className)) {
+            throw new Exception('Config file error!');
+        }
+        return (isset($conf->pivot));
+    }
 
     /**
      * TableConfig constructor.
@@ -206,37 +220,32 @@ class TableConfig extends Config implements TableConfigInterface
 
     public function extraColumns()
     {
-        $extraCols = array_unique(array_merge($this->extraColumns->toArray(), $this->bodyFooterExtraColumns->toArray()));
-        return new Std($extraCols);
+        return new Std($this->extraColumns->toArray());
     }
+
     /**
-     * @param array $columns only columns names
-     * @param array $extraColumns only columns names
-     * All columns names have to belong a class that specified in construct method
-     * @return self|Std  return columns Config object
-     *
-     * if $columns is null - return only list of columns as Std object (without config params)
-     * if $columns is array - set columns from this array for current table
-     * this method should be called first
+     * get/set name for body footer config file
+     * @param string|null $bodyFooterTable
+     * @return static|string
      * @throws Exception
      */
-    public function bodyFooterColumns(array $columns = null, array $extraColumns = null)
+    public function bodyFooterTableName(string $bodyFooterTable = null)
     {
-        /*if arg is null - return list of columns as Std*/
-        if (is_null($columns)) {
-            $res = array_keys($this->bodyFooterColumns->toArray());
-            return new Std($res);
+        if (is_null($bodyFooterTable)) {
+            if (empty($this->bodyFooterTable)) {
+                return $this->bodyFooterTable;
+            }
+            $path = static::BASE_CONF_PATH . $this->bodyFooterTable . '.php';
+            if (! is_readable($path)) {
+                throw new Exception('Can\'t find config for body footer');
+            }
+            return $this->bodyFooterTable;
         }
-        $extraColumns = is_null($extraColumns) ? [] : $extraColumns;
-        $classColumns = array_keys($this->className::getColumns());
-        $unionColumns = array_merge($classColumns, $extraColumns);
-        $diff = array_diff($columns, $unionColumns);
-        if (count($diff) > 0) {
-            throw new Exception('columns have to belong ' . $this->className::getTableName() . ' table or is defined as extraColumns!');
+        $path = static::BASE_CONF_PATH . $bodyFooterTable . '.php';
+        if (! is_readable($path)) {
+            throw new Exception('Can\'t find config for body footer');
         }
-        $this->bodyFooterExtraColumns = new Std($extraColumns);
-        $columns = array_fill_keys($columns, $this->columnPropertiesTemplate);
-        $this->bodyFooterColumns = new Std($columns);
+        $this->bodyFooterTable = $bodyFooterTable;
         return $this;
     }
 
@@ -301,31 +310,6 @@ class TableConfig extends Config implements TableConfigInterface
         }
         foreach ($config as $param => $value) {
             $this->columns->$column->$param = $value;
-        }
-        return $this;
-    }
-    /**
-     * @param string $column
-     * @param Std|null $config
-     * @return self|Std if $config is null - return current config $column column
-     * @throws Exception
-     */
-    public function bodyFooterColumnConfig(string $column, Std $config = null)
-    {
-        $this->validateBodyFooterColumnIsDefined($column);
-        if (is_null($config)) {
-            return $this->bodyFooterColumns->$column;
-        }
-        $diff = array_diff(array_keys($config->toArray()), array_keys($this->columnPropertiesTemplate));
-        if (count($diff) > 0) {
-            throw new Exception('Some config parameters are not correct');
-        }
-        foreach ($config as $param => $value) {
-            $this->validateConfigParam($param, $value);
-            $config->$param = $this->sanitizeConfigParam($param, $value);
-        }
-        foreach ($config as $param => $value) {
-            $this->bodyFooterColumns->$column->$param = $value;
         }
         return $this;
     }
@@ -452,10 +436,6 @@ class TableConfig extends Config implements TableConfigInterface
     {
         return isset($this->columns->$column);
     }
-    public function isBodyFooterColumnDefined($column) :bool
-    {
-        return isset($this->bodyFooterColumns->$column);
-    }
     public function isColumnDefinedInClass(string $column)
     {
         return in_array($column, array_keys($this->className::getColumns()));
@@ -470,10 +450,7 @@ class TableConfig extends Config implements TableConfigInterface
     {
         return isset($this->columns->$column) && (true === $this->columns->$column->visible);
     }
-    public function isBodyFooterColumnVisible($column) :bool
-    {
-        return isset($this->bodyFooterColumns->$column) && (true === $this->bodyFooterColumns->$column->visible);
-    }
+
 
     /**
      * @param array|null $variantList
@@ -505,10 +482,6 @@ class TableConfig extends Config implements TableConfigInterface
      * @return self
      * add css class for header table
      */
-    public function cssAddBodyFooterTableClasses($cssClass)
-    {
-        return $this->innerAddCssClass('bodyFooter', 'table', $cssClass);
-    }
     /**
      * @param string|array $cssClass
      * @return self
@@ -536,15 +509,7 @@ class TableConfig extends Config implements TableConfigInterface
     {
         return $this->innerSetCssClass('body', 'table', $cssClass);
     }
-    /**
-     * @param string|array $cssClass
-     * @return self
-     * add css class for bodyFooter table
-     */
-    public function cssSetBodyFooterTableClasses($cssClass)
-    {
-        return $this->innerSetCssClass('bodyFooter', 'table', $cssClass);
-    }
+
     /**
      * @param string|array $cssClass
      * @return self
@@ -623,14 +588,6 @@ class TableConfig extends Config implements TableConfigInterface
     protected function validateColumnIsDefined($column)
     {
         if ($this->isColumnDefined($column)) {
-            return true;
-        } else {
-            throw new Exception('Column ' . $column . ' doesn\'t set as table column');
-        }
-    }
-    protected function validateBodyFooterColumnIsDefined($column)
-    {
-        if ($this->isBodyFooterColumnDefined($column)) {
             return true;
         } else {
             throw new Exception('Column ' . $column . ' doesn\'t set as table column');
@@ -767,10 +724,7 @@ class TableConfig extends Config implements TableConfigInterface
     {
         return isset($this->cssStyles->body) ? $this->cssStyles->body : false;
     }
-    protected function getBodyFooterCssClasses()
-    {
-        return isset($this->cssStyles->bodyFooter) ? $this->cssStyles->bodyFooter : false;
-    }
+
     protected function getFooterCssClasses()
     {
         return isset($this->cssStyles->footer) ? $this->cssStyles->footer : false;
