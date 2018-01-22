@@ -67,7 +67,8 @@ class TableConfig extends Config implements TableConfigInterface
     ];
     protected $calculatedColumnProperties = [
         'column' => '',
-        'method' => 'count'
+        'method' => 'count',
+        'preFilter' => []
     ];
 
 
@@ -242,9 +243,9 @@ class TableConfig extends Config implements TableConfigInterface
             return $this->bodyFooterTable;
         }
         $path = static::BASE_CONF_PATH . $bodyFooterTable . '.php';
-        if (! is_readable($path)) {
-            throw new Exception('Can\'t find config for body footer');
-        }
+//        if (! is_readable($path)) {
+//            throw new Exception('Can\'t find config for body footer');
+//        }
         $this->bodyFooterTable = $bodyFooterTable;
         return $this;
     }
@@ -272,6 +273,19 @@ class TableConfig extends Config implements TableConfigInterface
         $this->calculated->$alias = new Std($this->calculatedColumnProperties);
         $this->calculated->$alias->column = $column;
 
+        return $this;
+    }
+
+    public function calculatedColumnPreFilter(string $alias, SqlFilter $preFilter = null)
+    {
+        if (is_null($preFilter)) {
+            if (! $this->isCalculated($alias)) {
+                throw new Exception($alias . ' is not define as alias for calculated column');
+            }
+            return (new SqlFilter($this->className()))
+                ->setFilterFromArray($this->calculated->$alias->preFilter->toArray());
+        }
+        $this->calculated->$alias->preFilter = new Std($preFilter->toArray());
         return $this;
     }
 

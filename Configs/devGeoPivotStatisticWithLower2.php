@@ -51,6 +51,15 @@ return [
       'filterable' => false,
       'visible' => true,
     ],
+    'HWActive' =>
+    [
+      'id' => 'hw-active',
+      'name' => 'HW Phones',
+      'width' => '60px',
+      'sortable' => false,
+      'filterable' => false,
+      'visible' => true,
+    ],
     'plTitle' =>
     [
       'id' => 'pl',
@@ -85,6 +94,38 @@ return [
     [
       'column' => 'appliance_id',
       'method' => 'count',
+      'preFilter' =>
+      [
+      ],
+    ],
+    'HWActive' =>
+    [
+      'column' => 'appType',
+      'method' => 'count',
+      'preFilter' =>
+      [
+        'appType' =>
+        [
+          'eq' =>
+          [
+            0 => 'phone',
+          ],
+        ],
+        'isHW' =>
+        [
+          'eq' =>
+          [
+            0 => true,
+          ],
+        ],
+        'appAge' =>
+        [
+          'lt' =>
+          [
+            0 => 73,
+          ],
+        ],
+      ],
     ],
   ],
   'aliases' =>
@@ -94,7 +135,7 @@ return [
   [
     0 => 'people',
   ],
-  'bodyFooterTable' => '',
+  'bodyFooterTable' => 'devGeoPivotStatisticWithLower2BF',
   'sortOrderSets' =>
   [
     'region' =>

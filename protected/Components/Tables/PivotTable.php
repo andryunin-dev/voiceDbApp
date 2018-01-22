@@ -3,7 +3,6 @@
 namespace App\Components\Tables;
 
 use App\Components\Sql\SqlFilter;
-use SebastianBergmann\CodeCoverage\Report\PHP;
 use T4\Core\Exception;
 use T4\Core\Std;
 use T4\Dbal\Query;
@@ -145,8 +144,9 @@ class PivotTable extends Table implements PivotTableInterface
         foreach ($columns as $column) {
             if (! isset($pivotAliases->$column)) {
                 if (in_array($column, $calculatedColumns)) {
-                    $colParams = $this->config->calculatedColumn($column);
-                    $selectList[] = $colParams->method . '(' . $this->driver->quoteName($colParams->column) . ') AS ' . $this->driver->quoteName($column) ;
+//                    $colParams = $this->config->calculatedColumn($column);
+//                    $selectList[] = $colParams->method . '(' . $this->driver->quoteName($colParams->column) . ') AS ' . $this->driver->quoteName($column) ;
+                    $selectList[] = $this->calculatedColumnStatement($column, $this->mergedFilter);
                 } else {
                     $selectList[] = $this->driver->quoteName($column);
                 }
@@ -263,6 +263,9 @@ class PivotTable extends Table implements PivotTableInterface
         foreach ($this->pivPrefilters as $preFilter) {
             $params = array_merge($params, $preFilter->filterParams);
         }
+        foreach ($this->calculatedColumnFilters as $filter) {
+            $params = array_merge($params, $filter->filterParams);
+        }
         return $params;
     }
 
@@ -328,6 +331,59 @@ class PivotTable extends Table implements PivotTableInterface
             $sql .= 'GROUP BY ' . implode(', ', $groupColumns) . "\n";
         }
         $sql = 'SELECT count(*) FROM (' . "\n" . $sql . ') as t1';
+        return $sql;
+    }
+    public function calculatedColumnStatement($alias, $tableFilter = null, $mainTableNameAlias = 't1')
+    {
+        if (!$this->config->isCalculated($alias)) {
+            throw new Exception($alias . ' isn\'t defines as calculated column!');
+        }
+        $params = $this->config->calculatedColumn($alias);
+        $preFilter = $this->config->calculatedColumnPreFilter($alias);
+        /**
+         * if preFilter for calculated column isn't set - return simple clause
+         */
+        if (empty($preFilter->toArray())) {
+            $sql = $params->method . '(' . $this->driver->quoteName($params->column) . ') AS ' . $this->driver->quoteName($alias);
+            return $sql;
+        }
+        /**
+         * if preFilter is set - create select statement
+         */
+        $tableFilter = !is_null($tableFilter) ? $tableFilter : new SqlFilter($this->config->className());
+        $columnFilter = $preFilter->mergeWith($tableFilter);
+        $this->calculatedColumnFilters->append($columnFilter);
+
+        $columns = $this->config->columns()->toArray();
+        $calculatedColumns = array_keys($this->config->calculated->toArray());
+        $pivotAliases = array_keys($this->config->pivots()->toArray());
+        $extraColumns = $this->config->extraColumns()->toArray();
+        $conditionalColumns = array_diff($columns, $pivotAliases, $calculatedColumns, $extraColumns);
+
+        $clauses = [];
+        $columnFilterClause = $columnFilter->filterStatement();
+        if (!empty($columnFilterClause)) {
+            $clauses[] = $columnFilterClause;
+        }
+        $mainTableNameOriginal = $this->config->className()::getTableName();
+        $linkingClause = array_map(function ($item) use ($mainTableNameAlias) {
+            return $this->driver->quoteName($item) . ' = ' . $mainTableNameAlias . '.' . $this->driver->quoteName($item);
+        }, $conditionalColumns);
+        $linkingClause = implode(' AND ', $linkingClause);
+
+        if (!empty($linkingClause)) {
+            $clauses[] = $linkingClause;
+        }
+        $resClause = implode(' AND ', $clauses);
+
+        $sql = '(SELECT ' . $params->method . '(' . $this->driver->quoteName($params->column) . ')';
+        $sql .= "\n";
+        $sql .= 'FROM ' . $mainTableNameOriginal . ' AS ' . 't_' . strtolower($alias);
+        $sql .= "\n";
+        $sql .= 'WHERE ' . $resClause;
+        $sql .= "\n";
+        $sql .= ') AS ' . $this->driver->quoteName($alias);
+
         return $sql;
     }
 }

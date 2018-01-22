@@ -17,6 +17,7 @@ use T4\Dbal\IDriver;
  * @property SqlFilter $filter
  * @property SqlFilter $mergedFilter
  * @property Std $pagination
+ * @property Std calculatedColumnFilters
  * @property IDriver $driver
  */
 class Table extends Std
@@ -28,6 +29,20 @@ class Table extends Std
         'numberOfPages' => 0,
         'totalRecords' => 0
     ];
+
+    public function __construct(TableConfig $tableConfig)
+    {
+        parent::__construct();
+
+        if (empty($tableConfig->className)) {
+            throw new Exception('Table configuration isn\'t valid');
+        }
+        $this->config = $tableConfig;
+        $this->filter = new SqlFilter($this->config->className());
+        $this->driver = $this->config->className()::getDbDriver();
+        $this->pagination = new Std($this->paginationTemplate);
+        $this->calculatedColumnFilters = new Std();
+    }
 
     public static function buildConfig(string $tableName)
     {
@@ -66,19 +81,6 @@ class Table extends Std
         } catch (Exception $e) {
             return false;
         }
-    }
-
-    public function __construct(TableConfig $tableConfig)
-    {
-        parent::__construct();
-
-        if (empty($tableConfig->className)) {
-            throw new Exception('Table configuration isn\'t valid');
-        }
-        $this->config = $tableConfig;
-        $this->filter = new SqlFilter($this->config->className());
-        $this->driver = $this->config->className()::getDbDriver();
-        $this->pagination = new Std($this->paginationTemplate);
     }
 
     /**
@@ -316,6 +318,7 @@ class Table extends Std
         $sql .= is_numeric($limit) ? 'LIMIT ' . $limit : '';
         return $sql;
     }
+
 
     public function countAll()
     {

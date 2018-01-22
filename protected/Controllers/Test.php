@@ -179,7 +179,7 @@ class Test extends Controller
                     $globalFilter = isset($value->globalFilter) ?
                         new ContentFilter($value->globalFilter, DevModulePortGeo::class, DevModulePortGeo::$columnMap, 'g', 'OR', 'OR') :
                         new ContentFilter();
-
+DevGeo_View::
                     $sorter = isset($value->sorting->sortBy) ?
                         new Sorter(DevModulePortGeo::sortOrder($value->sorting->sortBy), '', DevModulePortGeo::class, DevModulePortGeo::$columnMap) :
                         new Sorter(DevModulePortGeo::sortOrder('default'), '', DevModulePortGeo::class, DevModulePortGeo::$columnMap);

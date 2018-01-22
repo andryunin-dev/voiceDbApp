@@ -56,6 +56,7 @@ interface TableConfigInterface
      */
     public function extraColumns();
     public function calculatedColumn(string $alias, string $column = null, string $method = null);
+    public function calculatedColumnPreFilter(string $alias, SqlFilter $preFilter = null);
     public function isCalculated(string $columnAlias);
     public function columnList();
     public function columnConfig(string $column, Std $config = null);

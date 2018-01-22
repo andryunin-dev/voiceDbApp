@@ -186,7 +186,7 @@ TAG;
             ],
             'columnOne 1 val' => [
                 ['columnOne' => ['eq' => ['c-1-v-0', 'c-1-v-1']]],
-                'SELECT "columnOne", (SELECT jsonb_object_agg(t2."columnTwo", t2.numbers) FROM ( SELECT "columnTwo", count("columnTwo") AS numbers FROM "ModelClass_1"  AS t3 WHERE "columnOne" = :columnOne_eq_0 AND t3."columnOne" = t1."columnOne" AND t3."columnThree" = t1."columnThree" GROUP BY "columnTwo" ORDER BY "columnTwo", "columnThree" ) AS t2 ) AS "columnTwoPivot", "columnThree" FROM "ModelClass_1" AS t1 WHERE ("columnOne" = :columnOne_eq_0 OR "columnOne" = :columnOne_eq_1) GROUP BY "columnOne", "columnThree" ORDER BY "columnOne" ASC, "columnThree" ASC'
+                'SELECT "columnOne", (SELECT jsonb_object_agg(t2."columnTwo", t2.numbers) FROM ( SELECT "columnTwo", count("columnTwo") AS numbers FROM "ModelClass_1"  AS t3 WHERE ("columnOne" = :columnOne_eq_0 OR "columnOne" = :columnOne_eq_1) AND t3."columnOne" = t1."columnOne" AND t3."columnThree" = t1."columnThree" GROUP BY "columnTwo" ORDER BY "columnTwo", "columnThree" ) AS t2 ) AS "columnTwoPivot", "columnThree" FROM "ModelClass_1" AS t1 WHERE ("columnOne" = :columnOne_eq_0 OR "columnOne" = :columnOne_eq_1) GROUP BY "columnOne", "columnThree" ORDER BY "columnOne" ASC, "columnThree" ASC'
             ],
             'columnOne 2 val' => [
                 ['columnOne' => ['eq' => ['c-1-v-0']]],

@@ -67,6 +67,9 @@ return [
     [
       'column' => 'appliance_id',
       'method' => 'count',
+      'preFilter' =>
+      [
+      ],
     ],
   ],
   'aliases' =>
