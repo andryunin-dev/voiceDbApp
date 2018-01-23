@@ -64,6 +64,7 @@ class TableConfig extends Config implements TableConfigInterface
         'sortable' => false,
         'filterable' => false,
         'visible' => true,
+        'classes' => []
     ];
     protected $calculatedColumnProperties = [
         'column' => '',
@@ -268,9 +269,11 @@ class TableConfig extends Config implements TableConfigInterface
         if (! $this->isColumnDefinedInClass($column)) {
             throw new Exception('Calculated column has to be one of class columns(properties)');
         }
-        $this->sqlMethodValidate($method);
+
         $alias = is_null($alias) ? $column : $alias;
         $this->calculated->$alias = new Std($this->calculatedColumnProperties);
+        $this->sqlMethodValidate($method);
+        $this->calculated->$alias->method = $method;
         $this->calculated->$alias->column = $column;
 
         return $this;
@@ -649,6 +652,11 @@ class TableConfig extends Config implements TableConfigInterface
             case 'visible':
                 if (! is_bool($val)) {
                     throw new Exception('Invalid sortable value');
+                }
+                break;
+            case 'classes':
+                if (! $val instanceof Std) {
+                    throw new Exception('Invalid classes value');
                 }
                 break;
             default:

@@ -150,7 +150,10 @@ class Test extends Controller
 
     public function actionTest()
     {
-        $conn = Model::getDbConnection();
+        $tbConf = Table::getTableConfig('lotusLocationTotal');
+        $tb = Table::getTable($tbConf);
+        $res = $tb->getRecords();
+        var_dump($res);die;
 
     }
 

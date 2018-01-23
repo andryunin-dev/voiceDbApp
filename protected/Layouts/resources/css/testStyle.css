@@ -63,3 +63,6 @@
     font-weight: 600;
     color: #4c4c4c;
 }
+.jqtable .body-footer {
+    font-size: smaller;
+}

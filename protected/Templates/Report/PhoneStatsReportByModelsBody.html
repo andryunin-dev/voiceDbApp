@@ -8,7 +8,12 @@
 
                 <td>{{ pivObj.getValue(colname) }}</td>
             {% else %}
-                <td>{{ record.getValue(colname) }}</td>
+                {% set val = record.getValue(colname) %}
+                {% if (columnParams.id == 'not-hw-active-v' or columnParams.id == 'hw-active-v') and val == 0 %}
+                    <td></td>
+                {% else %}
+                    <td>{{ val }}</td>
+                {% endif %}
             {% endif %}
         {% endfor %}
         </tr>

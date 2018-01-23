@@ -93,6 +93,7 @@ class Report extends Controller
             $bodyTemplate = 'PhoneStatsReportByModelsBody.html';
             $bodyFooterTemplate = 'PhoneStatsReportByModelsBodyFooter.html';
             $lotusLocationConf = 'lotusLocation';
+            $lotusLocationTotalConf = 'lotusLocationTotal';
             $request = (new Request());
             $request = (0 == $request->get->count()) ? $request = $request->post : $request->get;
             foreach ($request as $key => $value ) {
@@ -123,6 +124,12 @@ class Report extends Controller
                             $carry[$item['lotus_id']] = $item;
                             return $carry;
                         });
+                        //общее кол-во сотрудников(работает неправильно)
+//                        $tbLotusTotalConf = Table::getTableConfig($lotusLocationTotalConf);
+//                        $tbLotusTotal = Table::getTable($tbLotusTotalConf);
+//                        $tbLotusTotal->addFilter($tabFilter, 'append');
+//                        $lotusDataTotalEmployees = $tbLotusTotal->getRecords();
+//                        $lotusDataTotalEmployees = array_pop($lotusDataTotalEmployees);
                         // ================concatenate data from pivot columns with glue '/' and unset array plTitleActive
                         $totalDevs = 'plTitle';
                         $activeDevs = 'plTitleActive';
@@ -165,6 +172,7 @@ class Report extends Controller
                             $tbDataBF[$dataKey] = new RecordItem($tbDataBF[$dataKey]);
                         }
                         $data['dataBF'] = $tbDataBF;
+                        //$data['lotusEmployeesTotal'] = $lotusDataTotalEmployees;
                         //=============render templates=============
                         $this->data->body->html = $this->view->render($bodyTemplate, $data);
                         $this->data->bodyFooter->html = $this->view->render($bodyFooterTemplate, $data);

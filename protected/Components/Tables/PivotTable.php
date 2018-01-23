@@ -74,6 +74,7 @@ class PivotTable extends Table implements PivotTableInterface
                 $columnsConf->$item->id = $col . '_' . $idx;
                 $columnsConf->$item->name = $item;
                 $columnsConf->$item->width = $this->config->pivotWidthItems($col);
+                $columnsConf->$item->classes = $colConf->classes;
             }
         }
 
