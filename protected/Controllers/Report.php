@@ -227,14 +227,14 @@ class Report extends Controller
                         break;
                     case 'body':
                         $request = $request->body;
-                        $tbConf = new PivotTableConfig($request->tableName);
+                        $tbConf = Table::getTableConfig($request->tableName);
+                        $tb = Table::getTable($tbConf);
+
                         $tabFilter = new SqlFilter($tbConf->className());
                         if (isset($request->tableFilter)) {
-
                             $filterSet = $request->tableFilter->toArray();
                             $tabFilter->setFilterFromArray($filterSet);
                         }
-                        $tb = new PivotTable($tbConf);
                         $tb->addFilter($tabFilter, 'append');
                         $tb->paginationUpdate($request->pager->page, $request->pager->rowsOnPage);
                         $tbData = $tb->getRecordsByPage();
@@ -269,7 +269,31 @@ class Report extends Controller
                         }, $tbData);
                         //==========end================
                         $data['columns'] = $request->columns;
+                        $data['columnsBF'] = $request->bodyFooter;
+                        //============get body footer data==============
+                        $tbBF = $tb->getBodyFooterTable();
+                        $tbDataBF = [];
+                        if (false !== $tbBF) {
+                            $tbBF->addFilter($tabFilter, 'append');
+                            $tbDataBF = $tbBF->getRecords();
+                        }
+                        foreach ($tbDataBF as $dataKey => $values) {
+                            if (! isset($values[$totalDevs]) || is_null($values[$totalDevs])) {
+                                continue;
+                            }
+                            array_walk($values[$totalDevs], function(&$counter, $platform) use($values, $totalDevs, $activeDevs){
+                                $counter = (isset($values[$activeDevs][$platform])) ? $counter . '/' . $values[$activeDevs][$platform] : $counter . '/0';
+                            });
+                            $tbDataBF[$dataKey][$totalDevs] = $values[$totalDevs];
+                            unset($tbDataBF[$dataKey][$activeDevs]);
+                            $tbDataBF[$dataKey] = new RecordItem($tbDataBF[$dataKey]);
+                        }
+                        $data['dataBF'] = $tbDataBF;
+                        //$data['lotusEmployeesTotal'] = $lotusDataTotalEmployees;
+                        //=============render templates=============
+
                         $this->data->body->html = $this->view->render($bodyTemplate, $data);
+                        $this->data->bodyFooter->html = $this->view->render($bodyFooterTemplate, $data);
                         $this->data->body->tableFilter = $tabFilter;
                         $this->data->body->pager = $request->pager;
                         $this->data->body->pager->page = $tb->currentPage();
