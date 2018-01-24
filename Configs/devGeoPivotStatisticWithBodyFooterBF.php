@@ -6,41 +6,41 @@ return [
   'className' => 'App\\ViewModels\\DevGeo_View',
   'columns' =>
   [
-    'region' =>
+    'textField' =>
     [
-      'id' => 'region',
-      'name' => 'Регион',
-      'width' => 10,
-      'sortable' => true,
-      'filterable' => true,
+      'id' => 'txt_field',
+      'name' => 'ИТОГО:',
+      'width' => 35,
+      'sortable' => false,
+      'filterable' => false,
       'visible' => true,
+      'classes' =>
+      [
+      ],
     ],
-    'city' =>
+    'appType' =>
     [
-      'id' => 'city',
-      'name' => 'Город',
+      'id' => 'app_type',
+      'name' => 'appType',
       'width' => 10,
-      'sortable' => true,
-      'filterable' => true,
-      'visible' => true,
-    ],
-    'office' =>
-    [
-      'id' => 'office',
-      'name' => 'Офис',
-      'width' => 15,
-      'sortable' => true,
-      'filterable' => true,
-      'visible' => true,
+      'sortable' => false,
+      'filterable' => false,
+      'visible' => false,
+      'classes' =>
+      [
+      ],
     ],
     'people' =>
     [
-      'id' => 'people',
+      'id' => 'people-v',
       'name' => 'Сотр.',
       'width' => '60px',
       'sortable' => false,
       'filterable' => false,
       'visible' => true,
+      'classes' =>
+      [
+      ],
     ],
     'phoneAmount' =>
     [
@@ -50,6 +50,33 @@ return [
       'sortable' => false,
       'filterable' => false,
       'visible' => true,
+      'classes' =>
+      [
+      ],
+    ],
+    'HWActive' =>
+    [
+      'id' => 'hw-active',
+      'name' => 'HW Phones',
+      'width' => '60px',
+      'sortable' => false,
+      'filterable' => false,
+      'visible' => true,
+      'classes' =>
+      [
+      ],
+    ],
+    'notHWActive' =>
+    [
+      'id' => 'not-hw-active-v',
+      'name' => 'not HW Phones',
+      'width' => '60px',
+      'sortable' => false,
+      'filterable' => false,
+      'visible' => true,
+      'classes' =>
+      [
+      ],
     ],
     'plTitle' =>
     [
@@ -59,6 +86,9 @@ return [
       'sortable' => false,
       'filterable' => false,
       'visible' => true,
+      'classes' =>
+      [
+      ],
     ],
     'plTitleActive' =>
     [
@@ -68,15 +98,9 @@ return [
       'sortable' => false,
       'filterable' => false,
       'visible' => false,
-    ],
-    'lotusId' =>
-    [
-      'id' => 'lot_id',
-      'name' => 'ID',
-      'width' => '50px',
-      'sortable' => false,
-      'filterable' => false,
-      'visible' => false,
+      'classes' =>
+      [
+      ],
     ],
   ],
   'calculated' =>
@@ -85,6 +109,67 @@ return [
     [
       'column' => 'appliance_id',
       'method' => 'count',
+      'preFilter' =>
+      [
+      ],
+    ],
+    'HWActive' =>
+    [
+      'column' => 'appType',
+      'method' => 'count',
+      'preFilter' =>
+      [
+        'appType' =>
+        [
+          'eq' =>
+          [
+            0 => 'phone',
+          ],
+        ],
+        'isHW' =>
+        [
+          'eq' =>
+          [
+            0 => 'true',
+          ],
+        ],
+        'appAge' =>
+        [
+          'lt' =>
+          [
+            0 => 73,
+          ],
+        ],
+      ],
+    ],
+    'notHWActive' =>
+    [
+      'column' => 'appType',
+      'method' => 'count',
+      'preFilter' =>
+      [
+        'appType' =>
+        [
+          'eq' =>
+          [
+            0 => 'phone',
+          ],
+        ],
+        'isHW' =>
+        [
+          'eq' =>
+          [
+            0 => 'false',
+          ],
+        ],
+        'appAge' =>
+        [
+          'lt' =>
+          [
+            0 => 73,
+          ],
+        ],
+      ],
     ],
   ],
   'aliases' =>
@@ -92,28 +177,18 @@ return [
   ],
   'extraColumns' =>
   [
-    0 => 'people',
+    0 => 'textField',
+    1 => 'people',
   ],
   'bodyFooterTable' => '',
   'sortOrderSets' =>
   [
-    'region' =>
+    'default' =>
     [
-      'region' => '',
-      'city' => '',
-      'office' => '',
-    ],
-    'city' =>
-    [
-      'city' => '',
-      'office' => '',
     ],
   ],
   'sortBy' =>
   [
-    'region' => '',
-    'city' => '',
-    'office' => '',
   ],
   'preFilter' =>
   [
@@ -142,9 +217,6 @@ return [
     [
       'table' =>
       [
-        0 => 'bg-primary',
-        1 => 'table-bordered',
-        2 => 'table-header-rotated',
       ],
     ],
     'body' =>
@@ -152,8 +224,9 @@ return [
       'table' =>
       [
         0 => 'table',
-        1 => 'cell-bordered',
-        2 => 'cust-table-striped',
+        1 => 'bg-success',
+        2 => 'table-bordered',
+        3 => 'body-footer',
       ],
     ],
     'footer' =>
@@ -185,13 +258,13 @@ return [
       ],
       'selectPivotItemsBy' =>
       [
-        0 => 'lotusId',
+        0 => 'appType',
       ],
       'sortBy' =>
       [
         'platformTitle' => 'desc',
       ],
-      'itemWidth' => '65px',
+      'itemWidth' => '67px',
     ],
     'plTitleActive' =>
     [
@@ -215,7 +288,7 @@ return [
       ],
       'selectPivotItemsBy' =>
       [
-        0 => 'lotusId',
+        0 => 'appType',
       ],
       'sortBy' =>
       [

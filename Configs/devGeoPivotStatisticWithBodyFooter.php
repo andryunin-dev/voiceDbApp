@@ -14,6 +14,9 @@ return [
       'sortable' => true,
       'filterable' => true,
       'visible' => true,
+      'classes' =>
+      [
+      ],
     ],
     'city' =>
     [
@@ -23,6 +26,9 @@ return [
       'sortable' => true,
       'filterable' => true,
       'visible' => true,
+      'classes' =>
+      [
+      ],
     ],
     'office' =>
     [
@@ -32,15 +38,21 @@ return [
       'sortable' => true,
       'filterable' => true,
       'visible' => true,
+      'classes' =>
+      [
+      ],
     ],
     'people' =>
     [
-      'id' => 'people',
-      'name' => 'Сотр.',
+      'id' => 'people-v',
+      'name' => 'Сотрудников',
       'width' => '60px',
       'sortable' => false,
       'filterable' => false,
       'visible' => true,
+      'classes' =>
+      [
+      ],
     ],
     'phoneAmount' =>
     [
@@ -50,6 +62,37 @@ return [
       'sortable' => false,
       'filterable' => false,
       'visible' => true,
+      'classes' =>
+      [
+      ],
+    ],
+    'HWActive' =>
+    [
+      'id' => 'hw-active-v',
+      'name' => 'HW Phones<br>(актив.)',
+      'width' => '60px',
+      'sortable' => false,
+      'filterable' => false,
+      'visible' => true,
+      'classes' =>
+      [
+        0 => 'class_1',
+        1 => 'class_2',
+      ],
+    ],
+    'notHWActive' =>
+    [
+      'id' => 'not-hw-active-v',
+      'name' => 'virtual & analog<br>Phones(актив.)',
+      'width' => '60px',
+      'sortable' => false,
+      'filterable' => false,
+      'visible' => true,
+      'classes' =>
+      [
+        0 => 'class_1',
+        1 => 'class_2',
+      ],
     ],
     'plTitle' =>
     [
@@ -59,6 +102,9 @@ return [
       'sortable' => false,
       'filterable' => false,
       'visible' => true,
+      'classes' =>
+      [
+      ],
     ],
     'plTitleActive' =>
     [
@@ -68,6 +114,9 @@ return [
       'sortable' => false,
       'filterable' => false,
       'visible' => false,
+      'classes' =>
+      [
+      ],
     ],
     'lotusId' =>
     [
@@ -77,6 +126,9 @@ return [
       'sortable' => false,
       'filterable' => false,
       'visible' => false,
+      'classes' =>
+      [
+      ],
     ],
   ],
   'calculated' =>
@@ -85,6 +137,67 @@ return [
     [
       'column' => 'appliance_id',
       'method' => 'count',
+      'preFilter' =>
+      [
+      ],
+    ],
+    'HWActive' =>
+    [
+      'column' => 'appType',
+      'method' => 'count',
+      'preFilter' =>
+      [
+        'appType' =>
+        [
+          'eq' =>
+          [
+            0 => 'phone',
+          ],
+        ],
+        'isHW' =>
+        [
+          'eq' =>
+          [
+            0 => 'true',
+          ],
+        ],
+        'appAge' =>
+        [
+          'lt' =>
+          [
+            0 => 73,
+          ],
+        ],
+      ],
+    ],
+    'notHWActive' =>
+    [
+      'column' => 'appType',
+      'method' => 'count',
+      'preFilter' =>
+      [
+        'appType' =>
+        [
+          'eq' =>
+          [
+            0 => 'phone',
+          ],
+        ],
+        'isHW' =>
+        [
+          'eq' =>
+          [
+            0 => 'false',
+          ],
+        ],
+        'appAge' =>
+        [
+          'lt' =>
+          [
+            0 => 73,
+          ],
+        ],
+      ],
     ],
   ],
   'aliases' =>
@@ -94,7 +207,7 @@ return [
   [
     0 => 'people',
   ],
-  'bodyFooterTable' => '',
+  'bodyFooterTable' => 'devGeoPivotStatisticWithBodyFooterBF',
   'sortOrderSets' =>
   [
     'region' =>
@@ -133,7 +246,8 @@ return [
       1 => 50,
       2 => 100,
       3 => 200,
-      4 => 'все',
+      4 => 500,
+      5 => 'все',
     ],
   ],
   'cssStyles' =>
@@ -191,7 +305,7 @@ return [
       [
         'platformTitle' => 'desc',
       ],
-      'itemWidth' => '65px',
+      'itemWidth' => '67px',
     ],
     'plTitleActive' =>
     [

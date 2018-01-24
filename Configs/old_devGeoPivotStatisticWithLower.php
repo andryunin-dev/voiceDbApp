@@ -85,6 +85,9 @@ return [
     [
       'column' => 'appliance_id',
       'method' => 'count',
+      'preFilter' =>
+      [
+      ],
     ],
   ],
   'aliases' =>
@@ -94,7 +97,7 @@ return [
   [
     0 => 'people',
   ],
-  'bodyFooterTable' => '',
+  'bodyFooterTable' => 'devGeoPivotStatisticWithLowerBF',
   'sortOrderSets' =>
   [
     'region' =>

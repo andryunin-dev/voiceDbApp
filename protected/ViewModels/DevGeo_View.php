@@ -25,6 +25,7 @@ use T4\Orm\Model;
  * @property string $appComment
  * @property string $appType_id
  * @property string $appType
+ * @property bool $isHW
  * @property string $appSortOrder
  * @property int $cluster_id
  * @property string $clusterTitle
@@ -79,6 +80,7 @@ class DevGeo_View extends Model
             'platformVendor' => ['type' => 'string'],
             'platformItem_id' => ['type' => 'int', 'length' => 'big'],
             'platformTitle' => ['type' => 'string'],
+            'isHW' => ['type' => 'boolean'],
             'platform_id' => ['type' => 'int', 'length' => 'big'],
             'softwareVendor_id' => ['type' => 'int', 'length' => 'big'],
             'softwareVendor' => ['type' => 'string'],

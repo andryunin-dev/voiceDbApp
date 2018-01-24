@@ -17,6 +17,7 @@ use T4\Dbal\IDriver;
  * @property SqlFilter $filter
  * @property SqlFilter $mergedFilter
  * @property Std $pagination
+ * @property Std calculatedColumnFilters
  * @property IDriver $driver
  */
 class Table extends Std
@@ -40,6 +41,46 @@ class Table extends Std
         $this->filter = new SqlFilter($this->config->className());
         $this->driver = $this->config->className()::getDbDriver();
         $this->pagination = new Std($this->paginationTemplate);
+        $this->calculatedColumnFilters = new Std();
+    }
+
+    public static function buildConfig(string $tableName)
+    {
+        if (TableConfig::isPivotTableConfig($tableName)) {
+            $tbConf = (new PivotTable(new PivotTableConfig($tableName)))
+                ->buildTableConfig();
+        } else {
+            $tbConf = (new Table(new TableConfig($tableName)))
+                ->buildTableConfig();
+        }
+        $tbConf->tableName = $tableName;
+        return $tbConf;
+    }
+
+    public static function getTableConfig($tableName)
+    {
+        if (TableConfig::isPivotTableConfig($tableName)) {
+            return new PivotTableConfig($tableName);
+        } else {
+            return new TableConfig($tableName);
+        }
+    }
+    public static function getTable(TableConfig $config)
+    {
+        if ($config instanceof PivotTableConfig) {
+            return new PivotTable($config);
+        } else {
+            return new Table($config);
+        }
+    }
+
+    public function getBodyFooterTable()
+    {
+        try {
+            return self::getTable(self::getTableConfig($this->config->bodyFooterTableName()));
+        } catch (Exception $e) {
+            return false;
+        }
     }
 
     /**
@@ -87,6 +128,7 @@ class Table extends Std
         );
         $tbConf->styles->header->table->classes = $this->config->headerCssClasses->table;
         $tbConf->styles->body->table->classes = $this->config->bodyCssClasses->table;
+
 
         return $tbConf;
     }
@@ -276,6 +318,7 @@ class Table extends Std
         $sql .= is_numeric($limit) ? 'LIMIT ' . $limit : '';
         return $sql;
     }
+
 
     public function countAll()
     {

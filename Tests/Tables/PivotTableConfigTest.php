@@ -41,7 +41,6 @@ class PivotTableConfigTest extends \PHPUnit\Framework\TestCase
         $this->assertInstanceOf(PivotTableConfig::class, $res);
         $this->assertTrue(isset($res->pivot->$expectedAlias));
         $this->assertEquals($res->pivot->$expectedAlias->column,$expected['col']);
-        $this->assertEquals($res->pivot->$expectedAlias->display, $expected['disp']);
         return $conf;
     }
     public function providerSetTwoPivotColumn()
@@ -49,12 +48,12 @@ class PivotTableConfigTest extends \PHPUnit\Framework\TestCase
         return [
             '_1' => [
                 [
-                    'col_1' => ['col' => 'columnOne', 'alias' => null, 'disp' => true],
-                    'col_2' => ['col' => 'columnTwo', 'alias' => null, 'disp' => false],
+                    'col_1' => ['col' => 'columnOne', 'alias' => null],
+                    'col_2' => ['col' => 'columnTwo', 'alias' => null],
                 ],
                 [
-                    'exp_col_1' => ['col' => 'columnOne', 'alias' => 'columnOne', 'disp' => true],
-                    'exp_col_2' => ['col' => 'columnTwo', 'alias' => 'columnTwo', 'disp' => false],
+                    'exp_col_1' => ['col' => 'columnOne', 'alias' => 'columnOne'],
+                    'exp_col_2' => ['col' => 'columnTwo', 'alias' => 'columnTwo'],
                 ],
             ]
 
@@ -86,8 +85,6 @@ class PivotTableConfigTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue(isset($res->pivot->$expectedAlias_2));
         $this->assertEquals($res->pivot->$expectedAlias_1->column,$expected['exp_col_1']['col']);
         $this->assertEquals($res->pivot->$expectedAlias_2->column,$expected['exp_col_2']['col']);
-        $this->assertEquals($res->pivot->$expectedAlias_1->display,$expected['exp_col_1']['disp']);
-        $this->assertEquals($res->pivot->$expectedAlias_2->display, $expected['exp_col_2']['disp']);
         return $conf;
 
     }

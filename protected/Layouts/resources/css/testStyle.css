@@ -58,3 +58,11 @@
 
     font-size: small;
 }
+.jqtable .jqt-bd-ft-table td {
+    text-align: center;
+    font-weight: 600;
+    color: #4c4c4c;
+}
+.jqtable .body-footer {
+    font-size: smaller;
+}
