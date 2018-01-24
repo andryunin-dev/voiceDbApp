@@ -35,6 +35,15 @@
     white-space: normal;
     word-wrap: break-word;
 }
+/* bodyFooter */
+.jqtable .jqt-bd-ft-table {
+    margin:0;
+}
+.jqtable .jqt-bd-ft-table td {
+    padding: 2px 5px;
+    white-space: normal;
+    word-wrap: break-word;
+}
 /* footer */
 .jqtable .ui-separator {
     height: 18px;

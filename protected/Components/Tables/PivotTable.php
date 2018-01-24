@@ -3,7 +3,6 @@
 namespace App\Components\Tables;
 
 use App\Components\Sql\SqlFilter;
-use SebastianBergmann\CodeCoverage\Report\PHP;
 use T4\Core\Exception;
 use T4\Core\Std;
 use T4\Dbal\Query;
@@ -59,14 +58,11 @@ class PivotTable extends Table implements PivotTableInterface
         $columnsConf = new Std();
         $pivotWidth = 0;
         foreach ($this->config->columns as $col => $colConf) {
-            if (! $this->config->isPivot($col)) {
-                $columnsConf->$col = $colConf;
+            if (! $this->config->isColumnVisible($col)) {
                 continue;
             }
-//            if (! $this->config->isCalculated($col)) {
-//                $columnsConf->$col = $colConf;
-//            }
-            if (! $pivots->$col->display) {
+            if (! $this->config->isPivot($col)) {
+                $columnsConf->$col = $colConf;
                 continue;
             }
             $pivotWidth += $this->config->columnConfig($col)->width;
@@ -78,16 +74,20 @@ class PivotTable extends Table implements PivotTableInterface
                 $columnsConf->$item->id = $col . '_' . $idx;
                 $columnsConf->$item->name = $item;
                 $columnsConf->$item->width = $this->config->pivotWidthItems($col);
+                $columnsConf->$item->classes = $colConf->classes;
             }
         }
+
         /*build table config*/
         $tbConf = new Std();
         $tbConf->dataUrl = $this->config->dataUrl();
         $tbConf->width = $this->config->tableWidth();
+
         $tbConf->header = new Std();
         $tbConf->header->tableClasses = implode(', ', $this->config->headerCssClasses->toArray());
         $tbConf->header->pivotColumnsWidth = $pivotWidth;
         $tbConf->header->columns = $columnsConf;
+
         $tbConf->pager = new Std(
             [
                 'rowsOnPage' => $this->rowsOnPage(),
@@ -106,10 +106,22 @@ class PivotTable extends Table implements PivotTableInterface
                         'classes' => [],
                     ]
                 ],
+                'bodyFooter' => [
+                    'table' => [
+                        'classes' => [],
+                    ]
+                ],
             ]
         );
         $tbConf->styles->header->table->classes = $this->config->headerCssClasses->table;
         $tbConf->styles->body->table->classes = $this->config->bodyCssClasses->table;
+
+        $bodyFooterTable = $this->config->bodyFooterTableName();
+        if (! empty($bodyFooterTable)) {
+            $tbConf->bodyFooter = Table::buildConfig($bodyFooterTable);
+            //copy styles for body footer table to common section for styles
+            $tbConf->styles->bodyFooter = $tbConf->bodyFooter->styles->body;
+        }
 
         return $tbConf;
 
@@ -133,8 +145,9 @@ class PivotTable extends Table implements PivotTableInterface
         foreach ($columns as $column) {
             if (! isset($pivotAliases->$column)) {
                 if (in_array($column, $calculatedColumns)) {
-                    $colParams = $this->config->calculatedColumn($column);
-                    $selectList[] = $colParams->method . '(' . $this->driver->quoteName($colParams->column) . ') AS ' . $this->driver->quoteName($column) ;
+//                    $colParams = $this->config->calculatedColumn($column);
+//                    $selectList[] = $colParams->method . '(' . $this->driver->quoteName($colParams->column) . ') AS ' . $this->driver->quoteName($column) ;
+                    $selectList[] = $this->calculatedColumnStatement($column, $this->mergedFilter);
                 } else {
                     $selectList[] = $this->driver->quoteName($column);
                 }
@@ -143,6 +156,8 @@ class PivotTable extends Table implements PivotTableInterface
                 $pivCol = $this->driver->quoteName($pivCol);
                 $pivPreFilter = $this->config->pivotPreFilter($column);
                 $pivPrefilters[] = $pivPreFilter;
+                $pivPreFilter->mergeWith($this->mergedFilter);
+
                 $pivotItemsSelectBy = $this->config->pivotItemsSelectBy($column)->toArray();
                 $pivotItemsSelectBy = empty($pivotItemsSelectBy) ? $groupColumns : $pivotItemsSelectBy;
                 $groupColumns = array_unique(array_merge($groupColumns, $pivotItemsSelectBy));
@@ -186,7 +201,10 @@ class PivotTable extends Table implements PivotTableInterface
             }, $groupColumns);
             $sql .= 'GROUP BY ' . implode(', ', $groupColumns) . "\n";
         }
-        $sql .= 'ORDER BY ' . $this->config->sortByQuotedString();
+        $sortByClause = $this->config->sortByQuotedString();
+        if (! empty($sortByClause)) {
+            $sql .= 'ORDER BY ' . $sortByClause;
+        }
         if (! is_null($offset) && $offset > 0) {
             $sql .= "\n";
             $sql .= 'OFFSET ' . $offset;
@@ -245,6 +263,9 @@ class PivotTable extends Table implements PivotTableInterface
         }
         foreach ($this->pivPrefilters as $preFilter) {
             $params = array_merge($params, $preFilter->filterParams);
+        }
+        foreach ($this->calculatedColumnFilters as $filter) {
+            $params = array_merge($params, $filter->filterParams);
         }
         return $params;
     }
@@ -311,6 +332,59 @@ class PivotTable extends Table implements PivotTableInterface
             $sql .= 'GROUP BY ' . implode(', ', $groupColumns) . "\n";
         }
         $sql = 'SELECT count(*) FROM (' . "\n" . $sql . ') as t1';
+        return $sql;
+    }
+    public function calculatedColumnStatement($alias, $tableFilter = null, $mainTableNameAlias = 't1')
+    {
+        if (!$this->config->isCalculated($alias)) {
+            throw new Exception($alias . ' isn\'t defines as calculated column!');
+        }
+        $params = $this->config->calculatedColumn($alias);
+        $preFilter = $this->config->calculatedColumnPreFilter($alias);
+        /**
+         * if preFilter for calculated column isn't set - return simple clause
+         */
+        if (empty($preFilter->toArray())) {
+            $sql = $params->method . '(' . $this->driver->quoteName($params->column) . ') AS ' . $this->driver->quoteName($alias);
+            return $sql;
+        }
+        /**
+         * if preFilter is set - create select statement
+         */
+        $tableFilter = !is_null($tableFilter) ? $tableFilter : new SqlFilter($this->config->className());
+        $columnFilter = $preFilter->mergeWith($tableFilter);
+        $this->calculatedColumnFilters->append($columnFilter);
+
+        $columns = $this->config->columns()->toArray();
+        $calculatedColumns = array_keys($this->config->calculated->toArray());
+        $pivotAliases = array_keys($this->config->pivots()->toArray());
+        $extraColumns = $this->config->extraColumns()->toArray();
+        $conditionalColumns = array_diff($columns, $pivotAliases, $calculatedColumns, $extraColumns);
+
+        $clauses = [];
+        $columnFilterClause = $columnFilter->filterStatement();
+        if (!empty($columnFilterClause)) {
+            $clauses[] = $columnFilterClause;
+        }
+        $mainTableNameOriginal = $this->config->className()::getTableName();
+        $linkingClause = array_map(function ($item) use ($mainTableNameAlias) {
+            return $this->driver->quoteName($item) . ' = ' . $mainTableNameAlias . '.' . $this->driver->quoteName($item);
+        }, $conditionalColumns);
+        $linkingClause = implode(' AND ', $linkingClause);
+
+        if (!empty($linkingClause)) {
+            $clauses[] = $linkingClause;
+        }
+        $resClause = implode(' AND ', $clauses);
+
+        $sql = '(SELECT ' . $params->method . '(' . $this->driver->quoteName($params->column) . ')';
+        $sql .= "\n";
+        $sql .= 'FROM ' . $mainTableNameOriginal . ' AS ' . 't_' . strtolower($alias);
+        $sql .= "\n";
+        $sql .= 'WHERE ' . $resClause;
+        $sql .= "\n";
+        $sql .= ') AS ' . $this->driver->quoteName($alias);
+
         return $sql;
     }
 }

@@ -40,6 +40,8 @@ class SqlFilter extends Std implements SqlFilterInterface
         'notnull'
     ];
 
+    protected static $paramsIndex = 0;
+
     protected $class;
     /**
      * @var IDriver $driver
@@ -185,7 +187,8 @@ class SqlFilter extends Std implements SqlFilterInterface
                     $opStatement[] = $transRes['string'];
                 } else {
                     foreach ($vals as $index => $val) {
-                        $transRes = $this->sqlTranslator($col, $op, $index, $val);
+                        $transRes = $this->sqlTranslator($col, $op, self::$paramsIndex++, $val);
+
                         $opStatement[] = $transRes['string'];
                         $this->params = array_merge($this->params, $transRes['param']);
                     }

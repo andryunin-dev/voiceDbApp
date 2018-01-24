@@ -14,7 +14,8 @@ use T4\Core\Config;
 
 class TableConfigTest extends \PHPUnit\Framework\TestCase
 {
-    protected static $fileName;
+    protected static $tableFileName;
+    protected static $tableBodyFooterFileName;
     public static function setUpBeforeClass()
     {
         \T4\Console\Application::instance()->setConfig(
@@ -25,18 +26,24 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
 
     public static function tearDownAfterClass()
     {
-        if (file_exists(TableConfig::BASE_CONF_PATH . self::$fileName)) {
-            unlink(TableConfig::BASE_CONF_PATH . self::$fileName);
+        if (file_exists(TableConfig::BASE_CONF_PATH . self::$tableFileName)) {
+            unlink(TableConfig::BASE_CONF_PATH . self::$tableFileName);
+        }
+        if (file_exists(TableConfig::BASE_CONF_PATH . self::$tableBodyFooterFileName)) {
+            unlink(TableConfig::BASE_CONF_PATH . self::$tableBodyFooterFileName);
         }
     }
 
     public function testCreateConfig()
     {
         do {
-            self::$fileName = '__unitTest_testTableConfig_' . rand() . 'php';
-        } while (file_exists(TableConfig::BASE_CONF_PATH . self::$fileName));
+            self::$tableFileName = '__unitTest_testTableConfig_' . rand() . 'php';
+        } while (file_exists(TableConfig::BASE_CONF_PATH . self::$tableFileName));
+        do {
+            self::$tableBodyFooterFileName = '__unitTest_testTableBodyFooterConfig_' . rand() . 'php';
+        } while (file_exists(TableConfig::BASE_CONF_PATH . self::$tableBodyFooterFileName));
 
-        $conf = (new TableConfig(self::$fileName, ModelClass_1::class))->save();
+        $conf = (new TableConfig(self::$tableFileName, ModelClass_1::class))->save();
         $this->assertFileIsWritable($conf->getPath());
         $this->assertInstanceOf(TableConfig::class, $conf);
         $conf->delete();
@@ -46,7 +53,7 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
 
     public function testReadConfig()
     {
-        $conf = new TableConfig(self::$fileName);
+        $conf = new TableConfig(self::$tableFileName);
         $this->assertInstanceOf(TableConfig::class, $conf);
         $conf->delete();
     }
@@ -58,6 +65,16 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
 
         $conf = new TableConfig($fileName, ModelClass_1::class);
         $conf->columns($columnsArray);
+        $this->assertInstanceOf(TableConfig::class, $conf);
+        return $conf;
+    }
+    public function testCreateEmptyConfig()
+    {
+        $fileName = '__unitTest_testTableConfig.php';
+        /**
+         * @var TableConfig $conf
+         */
+        $conf = new TableConfig($fileName, ModelClass_1::class);
         $this->assertInstanceOf(TableConfig::class, $conf);
         return $conf;
     }
@@ -280,6 +297,14 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
                 ['id' => 'test_id', 'name' => 'test', 'width' => '50PX', 'filterable' => true],
                 ['id' => 'test_id', 'name' => 'test', 'width' => '50px', 'filterable' => true],
             ],
+            '_3' => [
+                ['id' => 'test_id', 'name' => 'test', 'width' => '50PX', 'filterable' => true, 'visible' => true],
+                ['id' => 'test_id', 'name' => 'test', 'width' => '50px', 'filterable' => true, 'visible' => true],
+            ],
+            '_4' => [
+                ['id' => 'test_id', 'name' => 'test', 'width' => '50PX', 'filterable' => true, 'visible' => false],
+                ['id' => 'test_id', 'name' => 'test', 'width' => '50px', 'filterable' => true, 'visible' => false],
+            ],
         ];
     }
 
@@ -312,7 +337,7 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
         return [
             '_1' => [
                 [
-                    'columnOne' => ['id' => 'test_id', 'name' => 'test', 'width' => 50, 'sortable' => true, 'filterable' => true]
+                    'columnOne' => ['id' => 'test_id', 'name' => 'test', 'width' => 50, 'sortable' => true, 'filterable' => true, 'visible' => true]
                 ]
             ]
         ];
@@ -929,7 +954,7 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
         return [
             '_1' => [
                 ['alias' => 'calculated', 'column' => 'columnTwo', 'method' => 'count'],
-                ['calculated' => ['column' => 'columnTwo', 'method' => 'count']],
+                ['calculated' => ['column' => 'columnTwo', 'method' => 'count', 'preFilter' => []]],
             ],
         ];
     }
@@ -950,5 +975,58 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue(isset($conf->{$input['alias']}));
         $this->assertInstanceOf(Std::class, $conf->{$input['alias']});
         $this->assertEquals($expected, $conf->{$input['alias']}->toArray());
+    }
+
+    public function providerCalculatedColumnPreFilter()
+    {
+        return [
+            '_1' => [
+                [
+                    'alias' => 'calculated', 'column' => 'columnTwo', 'method' => 'count',
+                    'preFilter' => ['columnTwo' => ['eq' => ['value']]]
+                ],
+                [
+                    'alias' => 'calculated', 'column' => 'columnTwo', 'method' => 'count',
+                    'preFilter' => ['columnTwo' => ['eq' => ['value']]]
+                ]
+            ]
+        ];
+    }
+
+    /**
+     * @depends testCreateEmptyConfig
+     * @dataProvider providerCalculatedColumnPreFilter
+     *
+     * @param array $input
+     * @param array $expected
+     * @param TableConfig $conf
+     */
+    public function testCalculatedColumnPreFilter($input, $expected, $conf)
+    {
+        $conf->calculatedColumn($input['alias'], $input['column'], $input['method']);
+        $preFilter = (new SqlFilter($conf->className()))->setFilterFromArray($input['preFilter']);
+        $conf->calculatedColumnPreFilter($input['alias'], $preFilter);
+        $this->assertEquals($expected['preFilter'], $conf->calculatedColumnPreFilter($input['alias'])->toArray());
+    }
+
+
+    public function providerBodyFooterTable()
+    {
+        return [
+            '_1' => [self::$tableBodyFooterFileName],
+        ];
+    }
+
+    /**
+     * @depends      testCreateEmptyConfig
+     * @dataProvider providerBodyFooterTable
+     *
+     * @param $bodyFooterTable
+     * @param TableConfig $conf
+     */
+    public function testBodyFooterTable($bodyFooterTable, $conf)
+    {
+        $conf->bodyFooterTableName($bodyFooterTable);
+        $this->assertEquals($bodyFooterTable, $conf->bodyFooterTableName());
     }
 }

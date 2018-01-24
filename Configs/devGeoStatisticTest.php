@@ -33,15 +33,6 @@ return [
       'filterable' => true,
       'visible' => true,
     ],
-    'people' =>
-    [
-      'id' => 'people',
-      'name' => 'Сотр.',
-      'width' => '60px',
-      'sortable' => false,
-      'filterable' => false,
-      'visible' => true,
-    ],
     'phoneAmount' =>
     [
       'id' => 'phone-count',
@@ -50,24 +41,6 @@ return [
       'sortable' => false,
       'filterable' => false,
       'visible' => true,
-    ],
-    'plTitle' =>
-    [
-      'id' => 'pl',
-      'name' => 'Оборудование',
-      'width' => 65,
-      'sortable' => false,
-      'filterable' => false,
-      'visible' => true,
-    ],
-    'plTitleActive' =>
-    [
-      'id' => 'pl_active',
-      'name' => '',
-      'width' => 0,
-      'sortable' => false,
-      'filterable' => false,
-      'visible' => false,
     ],
     'lotusId' =>
     [
@@ -92,7 +65,6 @@ return [
   ],
   'extraColumns' =>
   [
-    0 => 'people',
   ],
   'bodyFooterTable' => '',
   'sortOrderSets' =>
@@ -170,57 +142,5 @@ return [
   ],
   'pivot' =>
   [
-    'plTitle' =>
-    [
-      'column' => 'platformTitle',
-      'preFilter' =>
-      [
-        'appType' =>
-        [
-          'eq' =>
-          [
-            0 => 'phone',
-          ],
-        ],
-      ],
-      'selectPivotItemsBy' =>
-      [
-        0 => 'lotusId',
-      ],
-      'sortBy' =>
-      [
-        'platformTitle' => 'desc',
-      ],
-      'itemWidth' => '65px',
-    ],
-    'plTitleActive' =>
-    [
-      'column' => 'platformTitle',
-      'preFilter' =>
-      [
-        'appType' =>
-        [
-          'eq' =>
-          [
-            0 => 'phone',
-          ],
-        ],
-        'appAge' =>
-        [
-          'lt' =>
-          [
-            0 => 73,
-          ],
-        ],
-      ],
-      'selectPivotItemsBy' =>
-      [
-        0 => 'lotusId',
-      ],
-      'sortBy' =>
-      [
-      ],
-      'itemWidth' => 0,
-    ],
   ],
 ];

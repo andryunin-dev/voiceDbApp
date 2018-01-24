@@ -1,9 +1,9 @@
 <?php
 
 return [
-  'dataUrl' => '/report/PhoneStatsReportHandler.json',
+  'dataUrl' => '/report/PhoneStatsByClustersReportHandler.json',
   'connection' => '',
-  'className' => 'App\\ViewModels\\DevGeo_View',
+  'className' => 'App\\ViewModels\\DevPhoneInfoGeo',
   'columns' =>
   [
     'region' =>
@@ -14,6 +14,9 @@ return [
       'sortable' => true,
       'filterable' => true,
       'visible' => true,
+      'classes' =>
+      [
+      ],
     ],
     'city' =>
     [
@@ -23,6 +26,9 @@ return [
       'sortable' => true,
       'filterable' => true,
       'visible' => true,
+      'classes' =>
+      [
+      ],
     ],
     'office' =>
     [
@@ -32,15 +38,21 @@ return [
       'sortable' => true,
       'filterable' => true,
       'visible' => true,
+      'classes' =>
+      [
+      ],
     ],
     'people' =>
     [
-      'id' => 'people',
-      'name' => 'Сотр.',
+      'id' => 'people-v',
+      'name' => 'Сотрудников',
       'width' => '60px',
       'sortable' => false,
       'filterable' => false,
       'visible' => true,
+      'classes' =>
+      [
+      ],
     ],
     'phoneAmount' =>
     [
@@ -50,24 +62,61 @@ return [
       'sortable' => false,
       'filterable' => false,
       'visible' => true,
+      'classes' =>
+      [
+      ],
     ],
-    'plTitle' =>
+    'HWActive' =>
     [
-      'id' => 'pl',
+      'id' => 'hw-active-v',
+      'name' => 'HW Phones<br>(актив.)',
+      'width' => '60px',
+      'sortable' => false,
+      'filterable' => false,
+      'visible' => true,
+      'classes' =>
+      [
+        0 => 'class_1',
+        1 => 'class_2',
+      ],
+    ],
+    'notHWActive' =>
+    [
+      'id' => 'not-hw-active-v',
+      'name' => 'virtual & analog<br>Phones(актив.)',
+      'width' => '60px',
+      'sortable' => false,
+      'filterable' => false,
+      'visible' => true,
+      'classes' =>
+      [
+        0 => 'class_1',
+        1 => 'class_2',
+      ],
+    ],
+    'byPublishIp' =>
+    [
+      'id' => 'pub',
       'name' => 'Оборудование',
       'width' => 65,
       'sortable' => false,
       'filterable' => false,
       'visible' => true,
+      'classes' =>
+      [
+      ],
     ],
-    'plTitleActive' =>
+    'byPublishIpActive' =>
     [
-      'id' => 'pl_active',
-      'name' => '',
+      'id' => 'pub',
+      'name' => 'Оборудование',
       'width' => 0,
       'sortable' => false,
       'filterable' => false,
       'visible' => false,
+      'classes' =>
+      [
+      ],
     ],
     'lotusId' =>
     [
@@ -77,6 +126,9 @@ return [
       'sortable' => false,
       'filterable' => false,
       'visible' => false,
+      'classes' =>
+      [
+      ],
     ],
   ],
   'calculated' =>
@@ -85,6 +137,67 @@ return [
     [
       'column' => 'appliance_id',
       'method' => 'count',
+      'preFilter' =>
+      [
+      ],
+    ],
+    'HWActive' =>
+    [
+      'column' => 'appType',
+      'method' => 'count',
+      'preFilter' =>
+      [
+        'appType' =>
+        [
+          'eq' =>
+          [
+            0 => 'phone',
+          ],
+        ],
+        'isHW' =>
+        [
+          'eq' =>
+          [
+            0 => 'true',
+          ],
+        ],
+        'appAge' =>
+        [
+          'lt' =>
+          [
+            0 => 73,
+          ],
+        ],
+      ],
+    ],
+    'notHWActive' =>
+    [
+      'column' => 'appType',
+      'method' => 'count',
+      'preFilter' =>
+      [
+        'appType' =>
+        [
+          'eq' =>
+          [
+            0 => 'phone',
+          ],
+        ],
+        'isHW' =>
+        [
+          'eq' =>
+          [
+            0 => 'false',
+          ],
+        ],
+        'appAge' =>
+        [
+          'lt' =>
+          [
+            0 => 73,
+          ],
+        ],
+      ],
     ],
   ],
   'aliases' =>
@@ -94,7 +207,7 @@ return [
   [
     0 => 'people',
   ],
-  'bodyFooterTable' => '',
+  'bodyFooterTable' => 'devGeoPivotStatisticByClustersWithBodyFooterBF',
   'sortOrderSets' =>
   [
     'region' =>
@@ -133,7 +246,9 @@ return [
       1 => 50,
       2 => 100,
       3 => 200,
-      4 => 'все',
+      4 => 300,
+      5 => 500,
+      6 => 'все',
     ],
   ],
   'cssStyles' =>
@@ -170,9 +285,9 @@ return [
   ],
   'pivot' =>
   [
-    'plTitle' =>
+    'byPublishIp' =>
     [
-      'column' => 'platformTitle',
+      'column' => 'publisherIp',
       'preFilter' =>
       [
         'appType' =>
@@ -189,13 +304,13 @@ return [
       ],
       'sortBy' =>
       [
-        'platformTitle' => 'desc',
+        'publisherIp' => 'desc',
       ],
-      'itemWidth' => '65px',
+      'itemWidth' => '67px',
     ],
-    'plTitleActive' =>
+    'byPublishIpActive' =>
     [
-      'column' => 'platformTitle',
+      'column' => 'publisherIp',
       'preFilter' =>
       [
         'appType' =>

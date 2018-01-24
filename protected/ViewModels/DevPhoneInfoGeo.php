@@ -41,6 +41,7 @@ class DevPhoneInfoGeo extends Model
             'platformVendor' => ['type' => 'string'],
             'platformItem_id' => ['type' => 'int', 'length' => 'big'],
             'platformTitle' => ['type' => 'string'],
+            'isHW' => ['type' => 'boolean'],
             'platform_id' => ['type' => 'int', 'length' => 'big'],
             'platformSerial' => ['type' => 'string'],
             'softwareVendor_id' => ['type' => 'int', 'length' => 'big'],

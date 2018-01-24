@@ -35,7 +35,6 @@ class PivotTableConfig extends TableConfig
      */
     protected $pivotColumnPropertiesTemplate = [
         'column' => '',
-        'display' => true, // use or not in table header building
         'preFilter' => [], //preFilter for pivot column values
         'selectPivotItemsBy' => [], //columns for inner select pivot items
         'sortBy' => [], //sort columns and direction for pivot column
@@ -84,13 +83,12 @@ class PivotTableConfig extends TableConfig
 
      * @param string $column
      * @param string|null $alias
-     * @param bool $display
      * @return self set column as pivot
      * @throws Exception set column as pivot / get params this column
      * if $alias is null, one will set = $column
      * $alias has to be unique in pivot part of config
      */
-    public function definePivotColumn(string $column, string $alias = null, bool $display = true)
+    public function definePivotColumn(string $column, string $alias = null)
     {
         if (! $this->isColumnDefinedInClass($column)) {
             throw new Exception('Pivot column has to be one of class columns(properties)');
@@ -98,7 +96,6 @@ class PivotTableConfig extends TableConfig
         $alias = is_null($alias) ? $column : $alias;
         $this->pivot->$alias = new Std($this->pivotColumnPropertiesTemplate);
         $this->pivot->$alias->column = $column;
-        $this->pivot->$alias->display = $display;
         return $this;
     }
 
