@@ -161,7 +161,7 @@ class CucmsPhones extends Command
         $query = (new Query())
             ->select('"managementIp", hostname')
             ->from(DevModulePortGeo::getTableName())
-            ->where('"appType" = :switch AND "managementIp" IS NOT NULL AND "platformTitle" NOT IN (:title1, :title2, :title3, :title4, :title5, :title6, :title7, :title8, :title9, :title10)')
+            ->where('"appType" = :switch AND "managementIp" IS NOT NULL AND "platformTitle" NOT IN (:title1, :title2, :title3, :title4, :title5, :title6, :title7, :title8)')
             ->params([
                 ':switch' => 'switch',
                 ':title1' => 'WS-C4948',
@@ -169,11 +169,9 @@ class CucmsPhones extends Command
                 ':title3' => 'WS-C4948E',
                 ':title4' => 'WS-C6509-E',
                 ':title5' => 'WS-C6513',
-                ':title6' => 'WS-C2232PP',
-                ':title7' => 'WS-C5548P',
+                ':title6' => 'N2K-C2232PP',
+                ':title7' => 'N5K-C5548P',
                 ':title8' => 'WS-CBS3110G-S-I',
-                ':title9' => 'N5K-C5548P',
-                ':title10' => 'N2K-C2232PP',
             ])
         ;
         $switches = DevModulePortGeo::findAllByQuery($query);
