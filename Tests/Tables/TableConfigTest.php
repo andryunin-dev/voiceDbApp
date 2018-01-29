@@ -337,7 +337,7 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
         return [
             '_1' => [
                 [
-                    'columnOne' => ['id' => 'test_id', 'name' => 'test', 'width' => 50, 'sortable' => true, 'filterable' => true, 'visible' => true]
+                    'columnOne' => ['id' => 'test_id', 'name' => 'test', 'width' => 50, 'sortable' => true, 'filterable' => true, 'visible' => true, 'classes' => []]
                 ]
             ]
         ];
