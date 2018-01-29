@@ -169,8 +169,8 @@ class CucmsPhones extends Command
                 ':title3' => 'WS-C4948E',
                 ':title4' => 'WS-C6509-E',
                 ':title5' => 'WS-C6513',
-                ':title6' => 'WS-C2232PP',
-                ':title7' => 'WS-C5548P',
+                ':title6' => 'N2K-C2232PP',
+                ':title7' => 'N5K-C5548P',
                 ':title8' => 'WS-CBS3110G-S-I',
             ])
         ;
