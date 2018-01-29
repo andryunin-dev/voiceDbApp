@@ -29,13 +29,14 @@ interface TableInterface
      * @param int|null $limit
      * @param int|null $offset
      * @param string|null $class
+     * @param bool $distinct
      * @return mixed return set of records (like array or Collection?)
      *
      * return set of records (like array or Collection?)
      */
-    public function getRecords(int $limit = null, int $offset = null, string $class = null);
-    public function getRecordsByPage(int $pageNumber, string $class = null);
-    public function selectStatement(int $offset = null, int $limit = null);
+    public function getRecords(int $limit = null, int $offset = null, string $class = null, $distinct = false);
+    public function getRecordsByPage(int $pageNumber, string $class = null, $distinct = false);
+    public function selectStatement(int $offset = null, int $limit = null, $distinct = false);
 
     /**
      * @param int|null $pageNumber

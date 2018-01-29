@@ -127,7 +127,7 @@ class PivotTable extends Table implements PivotTableInterface
 
     }
 
-    public function selectStatement(int $offset = null, int $limit = null)
+    public function selectStatement(int $offset = null, int $limit = null, $distinct = false)
     {
         $table = $this->driver->quoteName($this->config->className()::getTableName());
         $columns = $this->config->columns()->toArray();
@@ -139,7 +139,8 @@ class PivotTable extends Table implements PivotTableInterface
         //else use $groupColumns
         $groupColumns = array_diff($columns, array_keys($pivotAliases->toArray()), $calculatedColumns);
 
-        $sql = 'SELECT' . "\n";
+        $sql = false ===$distinct ? 'SELECT': 'SELECT DISTINCT';
+        $sql .= "\n";
         $selectList = [];
         $pivPrefilters = [];
         foreach ($columns as $column) {
@@ -274,17 +275,18 @@ class PivotTable extends Table implements PivotTableInterface
      * @param int|null $limit
      * @param int|null $offset
      * @param string|null $class
+     * @param bool $distinct
      * @return mixed return set of records
      * @throws Exception
      */
-    public function getRecords(int $limit = null, int $offset = null, string $class = null)
+    public function getRecords(int $limit = null, int $offset = null, string $class = null, $distinct = false)
     {
         if (! is_null($class) && ! class_exists($class)) {
             throw new Exception('getRecords: class name isn\'t valid');
         }
         $pivotAliases = array_keys($this->config->pivots()->toArray());
 
-        $sql = $this->selectStatement($offset, $limit);
+        $sql = $this->selectStatement($offset, $limit, $distinct);
         $params = $this->selectParams();
         $queryRes = $this->config->connection()->query($sql, $params)->fetchAll(\PDO::FETCH_ASSOC);
         foreach ($queryRes as $key => $val) {

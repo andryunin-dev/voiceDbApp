@@ -223,6 +223,17 @@ class Report extends Controller
                     case 'header':
                         $data['columns'] = $value->columns->toArrayRecursive();
                         $data['user'] = $this->data->user;
+                        //==============CUCM names=============
+                        $tbCucmConf = Table::getTableConfig('devGeoCUCMPublishers');
+                        $tbCucm = Table::getTable($tbCucmConf);
+                        $cucmNames = $tbCucm->getRecords(null,null,null,true);
+                        $data['cucmNames'] = array_reduce($cucmNames, function ($carry, $item) {
+                            $appDetails = json_decode($item['appDetails'], true);
+                            $cucmName = isset($appDetails['reportName']) ? $appDetails['reportName'] : null;
+                            $carry[$item['managementIp']] = $cucmName;
+                            return $carry;
+                        });
+
                         $this->data->header->html = $this->view->render($headerTemplate, $data);
                         break;
                     case 'body':

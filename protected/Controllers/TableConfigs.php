@@ -430,4 +430,41 @@ class TableConfigs extends Controller
         die;
     }
 
+    public function actionCucmPublishers()
+    {
+        $tableName = 'devGeoCUCMPublishers';
+        $ajaxHandlersURL = '/report/getCucmPublishers.json';
+        $className = DevGeo_View::class;
+
+        $columns = ['managementIp', 'appDetails'];
+        $extraColumns = [];
+        $confColumns = [
+            'managementIp' => ['visible' => false],
+            'appDetails' => ['visible' => false],
+        ];
+        $sortTemplates = [
+            'default' => ['managementIp' => ''],
+        ];
+        $tablePreFilter = (new SqlFilter($className))
+            ->setFilter('appType', 'eq', ['cmp']);
+        $tab = (new PivotTableConfig($tableName, $className));
+        //=====================
+        $tab->columns($columns, $extraColumns)
+            ->sortOrderSets($sortTemplates)
+            ->sortBy('default');
+        foreach ($confColumns as $col => $conf)
+        {
+            $tab->columnConfig($col, new Std($conf));
+        }
+
+        $tab
+            ->dataUrl($ajaxHandlersURL)
+            ->tableWidth(100)
+            ->rowsOnPageList([10,50,100,200,300,500,'все'])
+            ->tablePreFilter($tablePreFilter)
+            ->save();
+        var_dump($tab);
+
+    }
+
 }

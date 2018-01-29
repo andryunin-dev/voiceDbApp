@@ -87,7 +87,8 @@ class DevGeo_View extends Model
             'softwareItem_id' => ['type' => 'int', 'length' => 'big'],
             'software_id' => ['type' => 'int', 'length' => 'big'],
             'softwareTitle' => ['type' => 'string'],
-            'softwareVersion' => ['type' => 'string']
+            'softwareVersion' => ['type' => 'string'],
+            'managementIp' => ['type' => 'string']
         ]
     ];
 
