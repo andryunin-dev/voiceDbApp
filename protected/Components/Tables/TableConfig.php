@@ -64,7 +64,7 @@ class TableConfig extends Config implements TableConfigInterface
         'sortable' => false,
         'filterable' => false,
         'visible' => true,
-        'classes' => []
+        'classes' => [],
     ];
     protected $calculatedColumnProperties = [
         'column' => '',

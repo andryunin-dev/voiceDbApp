@@ -157,17 +157,16 @@ class Table extends Std
      * @param int|null $limit
      * @param int|null $offset
      * @param string|null $class
+     * @param bool $distinct
      * @return mixed return set of records (like array or Collection?)
-     * @throws Exception
-     *
-     * return set of records (like array or Collection?)
+     * @throws Exception return set of records (like array or Collection?)
      */
-    public function getRecords(int $limit = null, int $offset = null,  string $class = null)
+    public function getRecords(int $limit = null, int $offset = null,  string $class = null, $distinct = false)
     {
         if (! is_null($class) && ! class_exists($class)) {
             throw new Exception('getRecords: class name isn\'t valid');
         }
-        $sql = $this->selectStatement($offset, $limit);
+        $sql = $this->selectStatement($offset, $limit, $distinct);
         $params = $this->selectParams();
         $queryRes = $this->config->connection()->query($sql, $params)->fetchAll(\PDO::FETCH_ASSOC);
         if (! is_null($class)) {
@@ -178,10 +177,10 @@ class Table extends Std
         return $queryRes;
     }
 
-    public function getRecordsByPage(int $pageNumber = null, string $class = null)
+    public function getRecordsByPage(int $pageNumber = null, string $class = null, $distinct = false)
     {
         $pageNumber = is_null($pageNumber) ? $this->currentPage() : $this->currentPageSanitize($pageNumber);
-        return $this->getRecords($this->rowsOnPage(), ($pageNumber-1) * $this->rowsOnPage(), $class);
+        return $this->getRecords($this->rowsOnPage(), ($pageNumber-1) * $this->rowsOnPage(), $class, $distinct);
     }
 
     /**
@@ -296,7 +295,7 @@ class Table extends Std
     }
 
 
-    public function selectStatement(int $offset = null, int $limit = null)
+    public function selectStatement(int $offset = null, int $limit = null, $distinct = false)
     {
         $table = $this->driver->quoteName($this->config->className()::getTableName());
         $columns = $this->config->columns()->toArray();
