@@ -22,6 +22,7 @@ use App\ViewModels\DevGeo_View;
 use App\ViewModels\DevGeoPeople_1;
 use App\ViewModels\DevModulePortGeo;
 use App\ViewModels\GeoDev_View;
+use App\ViewModels\GeoDevStat;
 use T4\Core\Config;
 use T4\Core\Exception;
 use T4\Core\Std;
@@ -35,16 +36,18 @@ class Test extends Controller
 {
     public function actionDefault()
     {
-        $tbConf = Table::getTableConfig('devGeoCUCMPublishers');
+        $tbConf = Table::getTableConfig('devGeoEmployeesLotusIdDistinct');
         $tb = Table::getTable($tbConf);
         $res = $tb->getRecords(null,null,null,true);
-
-        $res = array_reduce($res, function ($carry, $item) {
-            $appDetails = json_decode($item['appDetails'], true);
-            $cucmName = isset($appDetails['reportName']) ? $appDetails['reportName'] : null;
-            $carry[$item['managementIp']] = $cucmName;
-            return $carry;
+        $res = array_reduce($res, function ($acc, $item) {
+            return $acc += $item['lotus_employees'];
         });
+//        $res = array_reduce($res, function ($carry, $item) {
+//            $appDetails = json_decode($item['appDetails'], true);
+//            $cucmName = isset($appDetails['reportName']) ? $appDetails['reportName'] : null;
+//            $carry[$item['managementIp']] = $cucmName;
+//            return $carry;
+//        });
 
         var_dump($res);
         die;

@@ -12,6 +12,6 @@ class Index
 
     public function actionDefault()
     {
-       header('location: /device/info');
+       header('location: /locations');
     }
 }

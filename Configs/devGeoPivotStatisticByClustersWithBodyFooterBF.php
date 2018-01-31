@@ -30,7 +30,7 @@ return [
       [
       ],
     ],
-    'people' =>
+    'employees' =>
     [
       'id' => 'people-v',
       'name' => 'Сотрудников',
@@ -182,7 +182,7 @@ return [
   'extraColumns' =>
   [
     0 => 'textField',
-    1 => 'people',
+    1 => 'employees',
   ],
   'bodyFooterTable' => '',
   'sortOrderSets' =>

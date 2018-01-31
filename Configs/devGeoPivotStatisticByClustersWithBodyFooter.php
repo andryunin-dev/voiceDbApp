@@ -42,7 +42,7 @@ return [
       [
       ],
     ],
-    'people' =>
+    'lotus_employees' =>
     [
       'id' => 'people-v',
       'name' => 'Сотрудников',
@@ -205,7 +205,6 @@ return [
   ],
   'extraColumns' =>
   [
-    0 => 'people',
   ],
   'bodyFooterTable' => 'devGeoPivotStatisticByClustersWithBodyFooterBF',
   'sortOrderSets' =>
