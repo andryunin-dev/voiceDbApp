@@ -1,0 +1,14 @@
+<thead>
+<tr style="height: 120px">
+    {% for column in columns %}
+        <th id="{{ column.th_id|trim('#') }}" title="{{ column.name }}" {% if column.isPivot  or column.id == 'phone-count'  or column.id[-2:] == '-v' %}class="rotate-2"{% endif %}>
+            <div>
+                <p>{{ column.name|raw }}
+                    {% if column.isPivot %}
+                        <br>всего/актив.
+                    {% endif %}</p>
+            </div>
+        </th>
+    {% endfor %}
+</tr>
+</thead>

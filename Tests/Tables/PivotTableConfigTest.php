@@ -16,21 +16,18 @@ class PivotTableConfigTest extends \PHPUnit\Framework\TestCase
     public function providerSetPivotColumn()
     {
         return [
-            '_1' => ['columnOne', null, 'columnOne', 'columnOne'],
-            '_2' => ['columnOne', 'alias', 'alias', 'columnOne'],
+            '_1' => [['col' => 'columnOne', 'alias' => null, 'disp' => true], ['col' => 'columnOne', 'alias' => 'columnOne', 'disp' => true]],
+            '_2' => [['col' => 'columnOne', 'alias' => 'alias', 'disp' => false], ['col' => 'columnOne', 'alias' => 'alias', 'disp' => false]],
         ];
     }
 
     /**
      * @dataProvider providerSetPivotColumn
-     * @param $column
-     * @param $alias
-     * @param $expectedAlias
-     * @param $expectedValue
+     * @param $input
+     * @param $expected
      * @return PivotTableConfig
-     * @internal param $expected
      */
-    public function testDefinePivotColumn($column, $alias, $expectedAlias, $expectedValue)
+    public function testDefinePivotColumn($input, $expected)
     {
         $fileName = '__unitTest_testTableConfig.php';
         $columnsArray = array_keys(ModelClass_1::getColumns());
@@ -38,11 +35,58 @@ class PivotTableConfigTest extends \PHPUnit\Framework\TestCase
         $conf = new PivotTableConfig($fileName, ModelClass_1::class);
         $conf->columns($columnsArray);
 
-        $res = $conf->definePivotColumn($column, $alias);
+        $res = $conf->definePivotColumn($input['col'], $input['alias'], $input['disp']);
+
+        $expectedAlias = $expected['alias'];
         $this->assertInstanceOf(PivotTableConfig::class, $res);
         $this->assertTrue(isset($res->pivot->$expectedAlias));
-        $this->assertEquals($res->pivot->$expectedAlias->column, $expectedValue);
+        $this->assertEquals($res->pivot->$expectedAlias->column,$expected['col']);
         return $conf;
+    }
+    public function providerSetTwoPivotColumn()
+    {
+        return [
+            '_1' => [
+                [
+                    'col_1' => ['col' => 'columnOne', 'alias' => null],
+                    'col_2' => ['col' => 'columnTwo', 'alias' => null],
+                ],
+                [
+                    'exp_col_1' => ['col' => 'columnOne', 'alias' => 'columnOne'],
+                    'exp_col_2' => ['col' => 'columnTwo', 'alias' => 'columnTwo'],
+                ],
+            ]
+
+        ];
+    }
+
+    /**
+     * @dataProvider providerSetTwoPivotColumn
+     * @param $input
+     * @param $expected
+     * @return PivotTableConfig
+     */
+    public function testDefineTwoPivotColumn($input, $expected)
+    {
+        $fileName = '__unitTest_testTableConfig.php';
+        $columnsArray = array_keys(ModelClass_1::getColumns());
+
+        $conf = new PivotTableConfig($fileName, ModelClass_1::class);
+        $conf->columns($columnsArray);
+
+        $res = $conf->definePivotColumn($input['col_1']['col'], $input['col_1']['alias'], $input['col_1']['disp']);
+        $res = $conf->definePivotColumn($input['col_2']['col'], $input['col_2']['alias'], $input['col_2']['disp']);
+
+        $expectedAlias_1 = $expected['exp_col_1']['alias'];
+        $expectedAlias_2 = $expected['exp_col_2']['alias'];
+        $this->assertInstanceOf(PivotTableConfig::class, $res);
+        $this->assertInstanceOf(PivotTableConfig::class, $res);
+        $this->assertTrue(isset($res->pivot->$expectedAlias_1));
+        $this->assertTrue(isset($res->pivot->$expectedAlias_2));
+        $this->assertEquals($res->pivot->$expectedAlias_1->column,$expected['exp_col_1']['col']);
+        $this->assertEquals($res->pivot->$expectedAlias_2->column,$expected['exp_col_2']['col']);
+        return $conf;
+
     }
 
     public function providerSetPivotColumn_Exception()
@@ -163,6 +207,28 @@ class PivotTableConfigTest extends \PHPUnit\Framework\TestCase
         //test getter
         $this->assertEquals($expected, $conf->pivotPreFilter('columnTwo')->toArray());
     }
+
+    public function providerPivotItemsSelectBy()
+    {
+        return [
+            '_1' => [[]],
+            '_2' => [['columnOne']],
+            '_3' => [['columnOne', 'columnThree']],
+        ];
+    }
+
+    /**
+     * @dataProvider providerPivotItemsSelectBy
+     * @depends      testCreateBasePivotConfig
+     * @param array $selectColumns
+     * @param PivotTableConfig $conf
+     */
+    public function testPivotItemsSelectBy($selectColumns, $conf)
+    {
+        $conf->pivotItemsSelectBy('columnTwo', $selectColumns);
+        $this->assertEquals($selectColumns, $conf->pivotItemsSelectBy('columnTwo')->toArray());
+    }
+
 
     public function providerPivotSortBy()
     {

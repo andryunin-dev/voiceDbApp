@@ -67,7 +67,7 @@ class ModuleItem extends Model
             throw new Exception('ModuleItem: Неверный тип Office');
         }
 
-        $moduleItem = ModuleItem::findByVendorSerial($this->module->vendor->title, $this->serialNumber);
+        $moduleItem = ModuleItem::findByVendorSerial($this->module->vendor, $this->serialNumber);
 
         if (true === $this->isNew && ($moduleItem instanceof ModuleItem)) {
             throw new Exception('Такой ModuleItem уже существует');
@@ -137,19 +137,23 @@ class ModuleItem extends Model
     }
 
     /**
-     * @param $vendorTitle
+     * @param Vendor $vendor
      * @param $serialNumber
-     * @return ModuleItem|bool
+     * @return self|bool
      */
-    public static function findByVendorSerial($vendorTitle, $serialNumber)
+    public static function findByVendorSerial(Vendor $vendor, $serialNumber)
     {
-        $moduleItems = ModuleItem::findAllByColumn('serialNumber', $serialNumber);
-
-        return $moduleItems->filter(
-            function($moduleItem) use ($vendorTitle) {
-                return $vendorTitle == $moduleItem->module->vendor->title;
+        $moduleItems = self::findAllByColumn('serialNumber', $serialNumber);
+        $moduleItem = $moduleItems->filter(
+            function($moduleItem) use ($vendor) {
+                return $moduleItem->module->vendor->title == $vendor->title;
             }
         )->first();
+        if (is_null($moduleItem)) {
+            return false;
+        } else {
+            return $moduleItem;
+        }
     }
 
     public function lastUpdateDate()

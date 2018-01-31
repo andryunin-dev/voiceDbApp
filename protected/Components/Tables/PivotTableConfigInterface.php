@@ -18,10 +18,20 @@ interface PivotTableConfigInterface extends TableConfigInterface
     /**
      * @param string $column
      * @param string|null $alias
-     * @param bool $display
      * @return self this method only define what column will be pivot.
      */
-    public function definePivotColumn(string $column, string $alias = null, bool $display = true);
+    public function definePivotColumn(string $column, string $alias = null);
+
+    /**
+     * define column that will be calculated as value for pivot items
+     * allowed methods: count, sum
+     *
+     * @param string $pivotAlias
+     * @param string $calColumn
+     * @param string $method
+     * @return self
+     */
+    public function pivotValueCalculatedColumn(string $pivotAlias, string $calColumn = '', string $method = 'count');
 
     /**
      * @param string $pivotColumn
@@ -30,6 +40,8 @@ interface PivotTableConfigInterface extends TableConfigInterface
      * set/get prefilter for decided pivot column
      */
     public function pivotPreFilter(string $pivotColumn, SqlFilter $condition = null);
+
+    public function pivotItemsSelectBy(string $pivotColumn, array $columns = []);
 
     /**
      * @param string $pivotColumnAlias

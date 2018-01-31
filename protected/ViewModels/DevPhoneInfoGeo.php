@@ -40,18 +40,18 @@ class DevPhoneInfoGeo extends Model
             'platformVendor_id' => ['type' => 'int', 'length' => 'big'],
             'platformVendor' => ['type' => 'string'],
             'platformItem_id' => ['type' => 'int', 'length' => 'big'],
-            'platformSerial' => ['type' => 'string'],
             'platformTitle' => ['type' => 'string'],
+            'isHW' => ['type' => 'boolean'],
             'platform_id' => ['type' => 'int', 'length' => 'big'],
+            'platformSerial' => ['type' => 'string'],
             'softwareVendor_id' => ['type' => 'int', 'length' => 'big'],
             'softwareVendor' => ['type' => 'string'],
             'softwareItem_id' => ['type' => 'int', 'length' => 'big'],
             'software_id' => ['type' => 'int', 'length' => 'big'],
             'softwareTitle' => ['type' => 'string'],
             'softwareVersion' => ['type' => 'string'],
-            'managementIp' => ['type' => 'string'],
-            'model' => ['type' => 'string'],
             'name' => ['type' => 'string'],
+            'model' => ['type' => 'string'],
             'prefix' => ['type' => 'int'],
             'phoneDN' => ['type' => 'int'],
             'status' => ['type' => 'string'],
@@ -79,7 +79,8 @@ class DevPhoneInfoGeo extends Model
             'cdpNeighborIP' => ['type' => 'string'],
             'cdpNeighborPort' => ['type' => 'string'],
             'publisherIp' => ['type' => 'string'],
-            'unknownLocation' => ['type' => 'boolean']
+            'unknownLocation' => ['type' => 'boolean'],
+            'managementIp' => ['type' => 'string'],
         ]
     ];
 

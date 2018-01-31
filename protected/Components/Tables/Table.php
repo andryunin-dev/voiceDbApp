@@ -17,6 +17,7 @@ use T4\Dbal\IDriver;
  * @property SqlFilter $filter
  * @property SqlFilter $mergedFilter
  * @property Std $pagination
+ * @property Std calculatedColumnFilters
  * @property IDriver $driver
  */
 class Table extends Std
@@ -40,6 +41,46 @@ class Table extends Std
         $this->filter = new SqlFilter($this->config->className());
         $this->driver = $this->config->className()::getDbDriver();
         $this->pagination = new Std($this->paginationTemplate);
+        $this->calculatedColumnFilters = new Std();
+    }
+
+    public static function buildConfig(string $tableName)
+    {
+        if (TableConfig::isPivotTableConfig($tableName)) {
+            $tbConf = (new PivotTable(new PivotTableConfig($tableName)))
+                ->buildTableConfig();
+        } else {
+            $tbConf = (new Table(new TableConfig($tableName)))
+                ->buildTableConfig();
+        }
+        $tbConf->tableName = $tableName;
+        return $tbConf;
+    }
+
+    public static function getTableConfig($tableName)
+    {
+        if (TableConfig::isPivotTableConfig($tableName)) {
+            return new PivotTableConfig($tableName);
+        } else {
+            return new TableConfig($tableName);
+        }
+    }
+    public static function getTable(TableConfig $config)
+    {
+        if ($config instanceof PivotTableConfig) {
+            return new PivotTable($config);
+        } else {
+            return new Table($config);
+        }
+    }
+
+    public function getBodyFooterTable()
+    {
+        try {
+            return self::getTable(self::getTableConfig($this->config->bodyFooterTableName()));
+        } catch (Exception $e) {
+            return false;
+        }
     }
 
     /**
@@ -52,8 +93,19 @@ class Table extends Std
         $tbConf->dataUrl = $this->config->dataUrl();
         $tbConf->width = $this->config->tableWidth();
         $tbConf->header = new Std();
+        $tbConf->header->columns = new Std();
+        $tbConf->header->lowerColumns = new Std();
         $tbConf->header->tableClasses = implode(', ', $this->config->headerCssClasses->toArray());
-        $tbConf->header->columns = $this->config->columns();
+        foreach ($this->config->columns as $col => $colConf) {
+            if ($this->config->isColumnVisible($col)) {
+                $tbConf->header->columns->$col = $colConf;
+            }
+        }
+        foreach ($this->config->lowerColumns as $col => $colConf) {
+            if ($this->config->isColumnVisible($col)) {
+                $tbConf->header->lowerColumns->$col = $colConf;
+            }
+        }
         $tbConf->pager = new Std(
             [
                 'rowsOnPage' => $this->rowsOnPage(),
@@ -76,6 +128,7 @@ class Table extends Std
         );
         $tbConf->styles->header->table->classes = $this->config->headerCssClasses->table;
         $tbConf->styles->body->table->classes = $this->config->bodyCssClasses->table;
+
 
         return $tbConf;
     }
@@ -103,22 +156,31 @@ class Table extends Std
     /**
      * @param int|null $limit
      * @param int|null $offset
-     * @return mixed
-     *
-     * return set of records (like array or Collection?)
+     * @param string|null $class
+     * @param bool $distinct
+     * @return mixed return set of records (like array or Collection?)
+     * @throws Exception return set of records (like array or Collection?)
      */
-    public function getRecords(int $limit = null, int $offset = null)
+    public function getRecords(int $limit = null, int $offset = null,  string $class = null, $distinct = false)
     {
-        $sql = $this->selectStatement($offset, $limit);
+        if (! is_null($class) && ! class_exists($class)) {
+            throw new Exception('getRecords: class name isn\'t valid');
+        }
+        $sql = $this->selectStatement($offset, $limit, $distinct);
         $params = $this->selectParams();
-        $queryRes = $this->config->className()::getDbConnection()->query($sql, $params)->fetchAll(\PDO::FETCH_COLUMN, 0);
-        return$queryRes;
+        $queryRes = $this->config->connection()->query($sql, $params)->fetchAll(\PDO::FETCH_ASSOC);
+        if (! is_null($class)) {
+            foreach ($queryRes as $key => $val) {
+                $queryRes[$key] = new $class($queryRes[$key]);
+            }
+        }
+        return $queryRes;
     }
 
-    public function getRecordsByPage(int $pageNumber = null)
+    public function getRecordsByPage(int $pageNumber = null, string $class = null, $distinct = false)
     {
         $pageNumber = is_null($pageNumber) ? $this->currentPage() : $this->currentPageSanitize($pageNumber);
-        return $this->getRecords($this->rowsOnPage(), ($pageNumber-1) * $this->rowsOnPage());
+        return $this->getRecords($this->rowsOnPage(), ($pageNumber-1) * $this->rowsOnPage(), $class, $distinct);
     }
 
     /**
@@ -233,7 +295,7 @@ class Table extends Std
     }
 
 
-    public function selectStatement(int $offset = null, int $limit = null)
+    public function selectStatement(int $offset = null, int $limit = null, $distinct = false)
     {
         $table = $this->driver->quoteName($this->config->className()::getTableName());
         $columns = $this->config->columns()->toArray();
@@ -255,6 +317,7 @@ class Table extends Std
         $sql .= is_numeric($limit) ? 'LIMIT ' . $limit : '';
         return $sql;
     }
+
 
     public function countAll()
     {
@@ -293,7 +356,7 @@ class Table extends Std
         /**
          * @var Connection $conn
          */
-        $conn = $this->config->className::getDbConnection();
+        $conn = $this->config->connection();
         $res = $conn->query($sql, $param)->fetchAllObjects(Std::class);
     }
     protected function countByQuery($sql, $param)
@@ -301,7 +364,7 @@ class Table extends Std
         /**
          * @var Connection $conn
          */
-        $conn = $this->config->className::getDbConnection();
+        $conn = $this->config->connection();
         $res = $conn->query($sql, $param)->fetchScalar();
         return $res;
     }

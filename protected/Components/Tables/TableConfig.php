@@ -6,16 +6,20 @@ use App\Components\Sql\SqlFilter;
 use T4\Core\Config;
 use T4\Core\Exception;
 use T4\Core\Std;
+use T4\Dbal\Connection;
 use T4\Dbal\IDriver;
+use T4\Mvc\Application;
 use T4\Orm\Model;
 
 /**
  * Class TableConfig
  * @package App\Components\Tables
  *
+ * @property Connection $connection
  * @property string $className
  * @property Std $sizes has property 'width' and 'height'
  * @property Std $columns set of columns with properties
+ * @property Std $calculated calculated columns
  * @property Std $sortOrderSets
  * @property Std $sortBy
  * @property Std $preFilter
@@ -32,10 +36,13 @@ class TableConfig extends Config implements TableConfigInterface
 
     protected $tablePropertiesTemplate = [
         'dataUrl' => '',
+        'connection' => '',
         'className' => '',
         'columns' => [],
+        'calculated' => [],
         'aliases' => [],
         'extraColumns' => [],
+        'bodyFooterTable' => '',
         'sortOrderSets' => [],
         'sortBy' => [],
         'preFilter' => [],
@@ -56,13 +63,38 @@ class TableConfig extends Config implements TableConfigInterface
         'width' => 0,
         'sortable' => false,
         'filterable' => false,
+        'visible' => true,
+        'classes' => [],
     ];
+    protected $calculatedColumnProperties = [
+        'column' => '',
+        'method' => 'count',
+        'preFilter' => []
+    ];
+
 
     protected static $sqlOperators = ['eq', 'ne', 'lt', 'le', 'gt', 'ge', 'isnull', 'notnull'];
     protected static $unarySqlOperators = [
         'isnull',
         'notnull'
     ];
+    protected static $sqlMethods = ['count', 'sum'];
+
+    public static function isPivotTableConfig(string $tableName)
+    {
+        if (empty($tableName)) {
+            throw new Exception('Table name can not be empty');
+        }
+        $path = static::BASE_CONF_PATH . $tableName . '.php';
+        if (! is_readable($path)) {
+            throw new Exception('Can\'t open config file ' . $tableName);
+        }
+        $conf = new Config($path);
+        if (! isset($conf->className)) {
+            throw new Exception('Config file error!');
+        }
+        return (isset($conf->pivot));
+    }
 
     /**
      * TableConfig constructor.
@@ -121,6 +153,23 @@ class TableConfig extends Config implements TableConfigInterface
         return $this;
     }
 
+    public function connection($connectionName = null)
+    {
+        if (is_null($connectionName)) {
+            if (empty($this->connection)) {
+                return $this->className()::getDbConnection();
+            } else {
+                $this->className()::setConnection($this->connection);
+                $res = $this->className()::getDbConnection();
+                return $res;
+            }
+        }
+        $this->connectionNameValidate($connectionName);
+        $this->connection = $connectionName;
+
+        return $this;
+    }
+
     public function tableWidth($width = null)
     {
         if (is_null($width)) {
@@ -169,6 +218,86 @@ class TableConfig extends Config implements TableConfigInterface
         $columns = array_fill_keys($columns, $this->columnPropertiesTemplate);
         $this->columns = new Std($columns);
         return $this;
+    }
+
+    public function extraColumns()
+    {
+        return new Std($this->extraColumns->toArray());
+    }
+
+    /**
+     * get/set name for body footer config file
+     * @param string|null $bodyFooterTable
+     * @return static|string
+     * @throws Exception
+     */
+    public function bodyFooterTableName(string $bodyFooterTable = null)
+    {
+        if (is_null($bodyFooterTable)) {
+            if (empty($this->bodyFooterTable)) {
+                return $this->bodyFooterTable;
+            }
+            $path = static::BASE_CONF_PATH . $this->bodyFooterTable . '.php';
+            if (! is_readable($path)) {
+                throw new Exception('Can\'t find config for body footer');
+            }
+            return $this->bodyFooterTable;
+        }
+        $path = static::BASE_CONF_PATH . $bodyFooterTable . '.php';
+//        if (! is_readable($path)) {
+//            throw new Exception('Can\'t find config for body footer');
+//        }
+        $this->bodyFooterTable = $bodyFooterTable;
+        return $this;
+    }
+
+    /**
+     * @param string $alias
+     * @param string|null $column
+     * @param string|null $method count or sum
+     * @return self
+     * @throws Exception
+     */
+    public function calculatedColumn(string $alias, string $column = null, string $method = null)
+    {
+        if(is_null($column) && is_null($method)) {
+            if (! $this->isCalculated($alias)) {
+                throw new Exception($alias . ' is not define as alias for calculated column');
+            }
+            return $this->calculated->$alias;
+        }
+        if (! $this->isColumnDefinedInClass($column)) {
+            throw new Exception('Calculated column has to be one of class columns(properties)');
+        }
+
+        $alias = is_null($alias) ? $column : $alias;
+        $this->calculated->$alias = new Std($this->calculatedColumnProperties);
+        $this->sqlMethodValidate($method);
+        $this->calculated->$alias->method = $method;
+        $this->calculated->$alias->column = $column;
+
+        return $this;
+    }
+
+    public function calculatedColumnPreFilter(string $alias, SqlFilter $preFilter = null)
+    {
+        if (is_null($preFilter)) {
+            if (! $this->isCalculated($alias)) {
+                throw new Exception($alias . ' is not define as alias for calculated column');
+            }
+            return (new SqlFilter($this->className()))
+                ->setFilterFromArray($this->calculated->$alias->preFilter->toArray());
+        }
+        $this->calculated->$alias->preFilter = new Std($preFilter->toArray());
+        return $this;
+    }
+
+    /**
+     * @return Std
+     */
+    public function calculatedColumns()
+    {
+        return $this->calculated;
     }
 
     public function columnList()
@@ -334,6 +463,12 @@ class TableConfig extends Config implements TableConfigInterface
         return isset($this->columns->$column) && (true === $this->columns->$column->sortable);
     }
 
+    public function isColumnVisible($column) :bool
+    {
+        return isset($this->columns->$column) && (true === $this->columns->$column->visible);
+    }
+
+
     /**
      * @param array|null $variantList
      * @return self
@@ -364,6 +499,11 @@ class TableConfig extends Config implements TableConfigInterface
      * @return self
      * add css class for header table
      */
+    /**
+     * @param string|array $cssClass
+     * @return self
+     * add css class for header table
+     */
     public function cssAddFooterTableClasses($cssClass)
     {
         return $this->innerAddCssClass('footer', 'table', $cssClass);
@@ -386,6 +526,7 @@ class TableConfig extends Config implements TableConfigInterface
     {
         return $this->innerSetCssClass('body', 'table', $cssClass);
     }
+
     /**
      * @param string|array $cssClass
      * @return self
@@ -437,11 +578,12 @@ class TableConfig extends Config implements TableConfigInterface
         $this->cssStyles->$tablePart->$tag = new Std($tar);
         return $this;
     }
-    protected function areAllColumnsDefined(array $columns, $checkInExtraColumns = false)
+    protected function areAllColumnsDefined(array $columns, $checkExtraColumns = false, $checkCalculatedColumns = false)
     {
         $classColumns = array_keys($this->className::getColumns());
-        $extraColumns = true === $checkInExtraColumns ? $this->extraColumns->toArray() : [];
-        $unionColumns = array_merge($classColumns, $extraColumns);
+        $extraColumns = true === $checkExtraColumns ? $this->extraColumns()->toArray() : [];
+        $calculatedColumn = true === $checkCalculatedColumns ? array_keys($this->calculated->toArray()) : [];
+        $unionColumns = array_merge($classColumns, $extraColumns, $calculatedColumn);
         $diff = array_diff($columns, $unionColumns);
         if (count($diff) > 0) {
             throw new Exception('columns have to belong ' . $this->className::getTableName() . ' table!');
@@ -449,11 +591,12 @@ class TableConfig extends Config implements TableConfigInterface
         return true;
     }
 
-    protected function validateColumnName(string $columns, $checkInExtraColumns = false)
+    protected function validateColumnName(string $columns, $checkExtraColumns = false, $checkCalculatedColumns = false)
     {
         $classColumns = array_keys($this->className::getColumns());
-        $extraColumns = true === $checkInExtraColumns ? $this->extraColumns->toArray() : [];
-        $unionColumns = array_merge($classColumns, $extraColumns);
+        $extraColumns = true === $checkExtraColumns ? $this->extraColumns()->toArray() : [];
+        $calculatedColumn = true === $checkCalculatedColumns ? array_keys($this->calculated->toArray()) : [];
+        $unionColumns = array_merge($classColumns, $extraColumns, $calculatedColumn);
         if (! in_array($columns, $unionColumns)) {
             throw new Exception('columns have to belong ' . $this->className::getTableName() . ' table or have been defined as ExtraColumns!');
         }
@@ -505,13 +648,15 @@ class TableConfig extends Config implements TableConfigInterface
                 throw new Exception('Invalid width value');
                 break;
             case 'sortable':
+            case 'filterable':
+            case 'visible':
                 if (! is_bool($val)) {
                     throw new Exception('Invalid sortable value');
                 }
                 break;
-            case 'filterable':
-                if (! is_bool($val)) {
-                    throw new Exception('Invalid filterable value');
+            case 'classes':
+                if (! $val instanceof Std) {
+                    throw new Exception('Invalid classes value');
                 }
                 break;
             default:
@@ -528,6 +673,18 @@ class TableConfig extends Config implements TableConfigInterface
     {
         if (! $this->isSqlOperatorValid($op)) {
             throw new Exception($op . ' doesn\'t valid sql operator');
+        }
+        return true;
+    }
+
+    protected function isSqlMethodValid($val)
+    {
+        return in_array(strtolower($val), self::$sqlMethods);
+    }
+    protected function sqlMethodValidate($methodName)
+    {
+        if (! $this->isSqlMethodValid($methodName)) {
+            throw new Exception($methodName . ' doesn\'t valid sql aggregated method');
         }
         return true;
     }
@@ -560,6 +717,26 @@ class TableConfig extends Config implements TableConfigInterface
                 return $val;
         }
     }
+
+    protected function connectionNameValidate($connectionName)
+    {
+            if ('cli' == PHP_SAPI) {
+                $app = \T4\Console\Application::instance();
+            } else {
+                $app = \T4\Mvc\Application::instance();
+            }
+            $res = $app->db->$connectionName;
+
+            if ($res instanceof Connection) {
+                return true;
+            }
+            throw new Exception($connectionName . ' is not valid connection name');
+    }
+
+    public function isCalculated(string $columnAlias)
+    {
+        return isset($this->calculated->$columnAlias);
+    }
     /* ============= GETTERS =================*/
     protected function getHeaderCssClasses()
     {
@@ -569,6 +746,7 @@ class TableConfig extends Config implements TableConfigInterface
     {
         return isset($this->cssStyles->body) ? $this->cssStyles->body : false;
     }
+
     protected function getFooterCssClasses()
     {
         return isset($this->cssStyles->footer) ? $this->cssStyles->footer : false;

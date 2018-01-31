@@ -9,10 +9,20 @@
             </select>
         </div>
         <div class="form-group">
-            <label for="id-platform">HW platform</label>
+            <label for="id-platform">Platform</label>
             <input type="hidden" class="form-control" name="platform[id]" value="{{ platform.getPk }}">
             <input type="text" class="form-control" name="platform[title]" id="id-platform"
                    value="{{ platform.title }}">
+        </div>
+        <div class="form-group">
+            <div class="custom-box checkbox-container">
+                {% if (false == platform.isHW) %}
+                    <input type="hidden" name="platform[isHW]" value="0">
+                {% endif %}
+
+                <input id="id-isHW" type="checkbox" name="platform[isHW]" value="1" {% if (platform.isHW) %}checked {% endif %}>
+                <label class="icon-check-off" for="id-isHW">is hardware</label>
+            </div>
         </div>
 
         <button class="btn btn-success" type="submit">Сохранить</button>

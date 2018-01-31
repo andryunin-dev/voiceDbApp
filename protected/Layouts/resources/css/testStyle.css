@@ -32,6 +32,7 @@
     display: flex;
     flex-direction: column;
 }
+
 .rotate-2 div {
     position: relative;
     width: 100%;
@@ -56,4 +57,12 @@
     white-space: normal;
 
     font-size: small;
+}
+.jqtable .jqt-bd-ft-table td {
+    text-align: center;
+    font-weight: 600;
+    color: #4c4c4c;
+}
+.jqtable .body-footer {
+    font-size: smaller;
 }

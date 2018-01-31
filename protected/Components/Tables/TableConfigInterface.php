@@ -6,6 +6,7 @@ use App\Components\Sql\SqlFilter;
 use T4\Core\Config;
 use T4\Core\Exception;
 use T4\Core\Std;
+use T4\Dbal\Connection;
 
 interface TableConfigInterface
 {
@@ -21,13 +22,45 @@ interface TableConfigInterface
     public function save();
     public function delete();
 
+    /**
+     * @param string $tableName
+     * @return bool true if it's pivot table config
+     */
+    public static function isPivotTableConfig(string $tableName);
+
+    /**
+     * set connection for current table or return existed
+     * @param null $connectionName
+     * @return self|Connection
+     */
+    public function connection($connectionName = null);
+
+    /**
+     * @param null $url
+     * @return self|string
+     */
     public function dataUrl($url = null);
     public function tableWidth($width = null);
     public function tableHeight($height = null);
 
+    /**
+     *
+     * @param array|null $columns
+     * @param array|null $extraColumns extraColumns is appended to existed
+     * @return mixed
+     */
     public function columns(array $columns = null,  array $extraColumns = null);
+
+    /**
+     * @return Std all extraColumns (for main part of table and )
+     */
+    public function extraColumns();
+    public function calculatedColumn(string $alias, string $column = null, string $method = null);
+    public function calculatedColumnPreFilter(string $alias, SqlFilter $preFilter = null);
+    public function isCalculated(string $columnAlias);
     public function columnList();
     public function columnConfig(string $column, Std $config = null);
+    public function bodyFooterTableName(string $bodyFooterTable);
 
     public function appendColumnAlias(string $column, string $alias, string $operator = '');
     public function removeColumnAlias(string $alias);
@@ -60,7 +93,9 @@ interface TableConfigInterface
      */
     public function tablePreFilter(SqlFilter $preFilter = null);
 
-    public function isColumnDefined($column) :bool ;
+    public function isColumnDefined($column) :bool;
+    public function isColumnSortable($column) :bool;
+    public function isColumnVisible($column) :bool;
 
     /**
      * @param array|null $variantList
@@ -84,7 +119,7 @@ interface TableConfigInterface
     /**
      * @param string|array $cssClass
      * @return self
-     * add css class for header table
+     * add css class for body table
      */
     public function cssAddBodyTableClasses($cssClass);
     /**

@@ -23,6 +23,7 @@
     overflow: hidden !important;
     white-space: nowrap !important;
     text-overflow: ellipsis !important;
+    vertical-align: bottom;
 
 }
 /* body */
@@ -30,6 +31,15 @@
     margin:0;
 }
 .jqtable .jqt-bd-table td {
+    padding: 2px 5px;
+    white-space: normal;
+    word-wrap: break-word;
+}
+/* bodyFooter */
+.jqtable .jqt-bd-ft-table {
+    margin:0;
+}
+.jqtable .jqt-bd-ft-table td {
     padding: 2px 5px;
     white-space: normal;
     word-wrap: break-word;

@@ -27,5 +27,9 @@ return [
     'axl' => [
         'username' => '{{axl.username}}',
         'password' => '{{axl.password}}',
+    ],
+    'ssh' => [
+        'login' => '{{ssh.login}}',
+        'password' => '{{ssh.password}}',
     ]
 ];
