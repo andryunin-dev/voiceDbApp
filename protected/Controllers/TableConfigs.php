@@ -22,12 +22,12 @@ class TableConfigs extends Controller
         $pivotWidthItems = '67px';
         $maxAge = 73;
 
-        $columns = ['region', 'city', 'office', 'people', 'phoneAmount', 'HWActive', 'notHWActive', 'plTitle', 'plTitleActive', 'lotusId'];
+        $columns = ['region', 'city', 'office', 'lotus_employees', 'phoneAmount', 'HWActive', 'notHWActive', 'plTitle', 'plTitleActive', 'lotusId'];
         $pivots = [
             'plTitle' => ['name' => 'platformTitle'],
             'plTitleActive' => ['name' => 'platformTitle']
         ];
-        $extraColumns = ['people'];
+        $extraColumns = [];
         $countedColumns = [
             'phoneAmount' => ['name' => 'appliance_id', 'method' => 'count'],
             'HWActive' => ['name' => 'appType', 'method' => 'count'],
@@ -38,7 +38,8 @@ class TableConfigs extends Controller
             'region' => ['id' => 'region','name' => 'Регион', 'width' => 10, 'sortable' => true, 'filterable' => true],
             'city' => ['id' => 'city','name' => 'Город', 'width' => 10, 'sortable' => true, 'filterable' => true],
             'office' => ['id' => 'office','name' => 'Офис', 'width' =>15, 'sortable' => true, 'filterable' => true],
-            'people' => ['id' => 'people-v','name' => 'Сотрудников', 'width' => '60px'],
+            'lotus_employees' => ['id' => 'people-v','name' => 'Сотрудников', 'width' => '60px'],
+            //'people' => ['id' => 'people-v','name' => 'Сотрудников', 'width' => '60px'],
             'phoneAmount' => ['id' => 'phone-count','name' => 'кол-во тел.', 'width' => '60px'],
             'HWActive' => ['id' => 'hw-active-v','name' => 'HW Phones<br>(актив.)', 'width' => '60px', 'classes' => ['class_1', 'class_2']],
             'notHWActive' => ['id' => 'not-hw-active-v','name' => 'virtual & analog<br>Phones(актив.)', 'width' => '60px', 'classes' => ['class_1', 'class_2']],

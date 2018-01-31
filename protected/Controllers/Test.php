@@ -35,16 +35,16 @@ class Test extends Controller
 {
     public function actionDefault()
     {
-        $tbConf = Table::getTableConfig('devGeoCUCMPublishers');
+        $tbConf = Table::getTableConfig('devGeoPivotStatisticWithBodyFooter');
         $tb = Table::getTable($tbConf);
         $res = $tb->getRecords(null,null,null,true);
 
-        $res = array_reduce($res, function ($carry, $item) {
-            $appDetails = json_decode($item['appDetails'], true);
-            $cucmName = isset($appDetails['reportName']) ? $appDetails['reportName'] : null;
-            $carry[$item['managementIp']] = $cucmName;
-            return $carry;
-        });
+//        $res = array_reduce($res, function ($carry, $item) {
+//            $appDetails = json_decode($item['appDetails'], true);
+//            $cucmName = isset($appDetails['reportName']) ? $appDetails['reportName'] : null;
+//            $carry[$item['managementIp']] = $cucmName;
+//            return $carry;
+//        });
 
         var_dump($res);
         die;
