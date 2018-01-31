@@ -9,8 +9,8 @@
                 <td>{{ pivObj.getValue(colname) }}</td>
             {% elseif columnParams.id == 'txt_field' %}
                 <td>{{ columnParams.name }}</td>
-            {#{% elseif columnParams.id == 'people' %}#}
-                {#<td>{{ lotusEmployeesTotal.employees }}</td>#}
+            {% elseif colname == 'employees' %}
+                <td>{{ lotusEmployeesTotal }}</td>
             {% else %}
                 <td>{{ record.getValue(colname) }}</td>
             {% endif %}
