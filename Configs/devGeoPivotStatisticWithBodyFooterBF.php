@@ -66,6 +66,18 @@ return [
       [
       ],
     ],
+    'HWNotActive' =>
+    [
+      'id' => 'hw-not-active',
+      'name' => 'HW not active Phones',
+      'width' => '60px',
+      'sortable' => false,
+      'filterable' => false,
+      'visible' => true,
+      'classes' =>
+      [
+      ],
+    ],
     'notHWActive' =>
     [
       'id' => 'not-hw-active-v',
@@ -142,6 +154,35 @@ return [
         ],
       ],
     ],
+    'HWNotActive' =>
+    [
+      'column' => 'appType',
+      'method' => 'count',
+      'preFilter' =>
+      [
+        'appType' =>
+        [
+          'eq' =>
+          [
+            0 => 'phone',
+          ],
+        ],
+        'isHW' =>
+        [
+          'eq' =>
+          [
+            0 => 'true',
+          ],
+        ],
+        'appAge' =>
+        [
+          'ge' =>
+          [
+            0 => 73,
+          ],
+        ],
+      ],
+    ],
     'notHWActive' =>
     [
       'column' => 'appType',
@@ -164,7 +205,7 @@ return [
         ],
         'appAge' =>
         [
-          'lt' =>
+          'ge' =>
           [
             0 => 73,
           ],
