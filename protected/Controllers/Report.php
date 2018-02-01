@@ -245,10 +245,7 @@ class Report extends Controller
                             if (! isset($values[$totalDevs])) {
                                 continue;
                             }
-                            array_walk($values[$totalDevs], function (&$counter, $platform) use($values, $totalDevs, $activeDevs) {
-                                $counter = (isset($values[$activeDevs][$platform])) ? $counter . '/' . $values[$activeDevs][$platform] : $counter . '/0';
-                            });
-                            $tbData[$dataKey][$totalDevs] = $values[$totalDevs];
+                            $tbData[$dataKey][$totalDevs] = $tbData[$dataKey][$activeDevs];
                             unset($tbData[$dataKey][$activeDevs]);
                             $tbData[$dataKey] = new RecordItem($tbData[$dataKey]);
                         }
@@ -267,10 +264,7 @@ class Report extends Controller
                             if (! isset($values[$totalDevs]) || is_null($values[$totalDevs])) {
                                 continue;
                             }
-                            array_walk($values[$totalDevs], function(&$counter, $platform) use($values, $totalDevs, $activeDevs){
-                                $counter = (isset($values[$activeDevs][$platform])) ? $counter . '/' . $values[$activeDevs][$platform] : $counter . '/0';
-                            });
-                            $tbDataBF[$dataKey][$totalDevs] = $values[$totalDevs];
+                            $tbDataBF[$dataKey][$totalDevs] = $tbDataBF[$dataKey][$activeDevs];
                             unset($tbDataBF[$dataKey][$activeDevs]);
                             $tbDataBF[$dataKey] = new RecordItem($tbDataBF[$dataKey]);
                         }

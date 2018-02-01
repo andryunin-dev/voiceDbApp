@@ -8,7 +8,7 @@
                 {% if column.isPivot %}
                     <p>
                         {{ attribute(cucmNames, column.name)|trim('cm-', side='left') }}
-                        <br>всего/актив.
+                        <br>(актив.)
                     </p>
                 {% else %}
                     <p>{{ column.name|raw }}</p>
