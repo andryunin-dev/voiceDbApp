@@ -55,7 +55,7 @@ class TableConfigs extends Controller
         $pivotWidthItems = '67px';
         $maxAge = 73;
 
-        $columns = ['region', 'city', 'office', 'lotus_employees', 'phoneAmount', 'HWActive', 'notHWActive', 'plTitle', 'plTitleActive', 'lotusId'];
+        $columns = ['region', 'city', 'office', 'lotus_employees', 'phoneAmount', 'HWActive', 'HWNotActive', 'notHWActive', 'plTitle', 'plTitleActive', 'lotusId'];
         $pivots = [
             'plTitle' => ['name' => 'platformTitle'],
             'plTitleActive' => ['name' => 'platformTitle']
@@ -64,6 +64,7 @@ class TableConfigs extends Controller
         $countedColumns = [
             'phoneAmount' => ['name' => 'appliance_id', 'method' => 'count'],
             'HWActive' => ['name' => 'appType', 'method' => 'count'],
+            'HWNotActive' => ['name' => 'appType', 'method' => 'count'],
             'notHWActive' => ['name' => 'appType', 'method' => 'count']
         ];
         $confColumns = [
@@ -74,6 +75,7 @@ class TableConfigs extends Controller
             'lotus_employees' => ['id' => 'people-v','name' => 'Сотрудников', 'width' => '60px'],
             'phoneAmount' => ['id' => 'phone-count','name' => 'кол-во тел.', 'width' => '60px'],
             'HWActive' => ['id' => 'hw-active-v','name' => 'HW Phones<br>(актив.)', 'width' => '60px', 'classes' => ['class_1', 'class_2']],
+            'HWNotActive' => ['id' => 'hw-not-active-v','name' => 'HW Phones<br>(не актив.)', 'width' => '60px', 'classes' => ['class_1', 'class_2']],
             'notHWActive' => ['id' => 'not-hw-active-v','name' => 'virtual & analog<br>Phones(актив.)', 'width' => '60px', 'classes' => ['class_1', 'class_2']],
             'plTitle' => ['id' => 'pl','name' => 'Оборудование', 'width' => 65],
             'plTitleActive' => ['id' => 'pl_active','visible' => false],
@@ -87,8 +89,8 @@ class TableConfigs extends Controller
         $pivotPreFilter = (new SqlFilter($className))
             ->setFilter('appType', 'eq', ['phone']);
         $pivotPreFilterActive = (new SqlFilter($className))
-            ->setFilter('appType', 'eq', ['phone']);
-        $pivotPreFilterActive->addFilter('appAge', 'lt', [$maxAge]);
+            ->setFilter('appType', 'eq', ['phone'])
+            ->addFilter('appAge', 'lt', [$maxAge]);
         $pivotItemsSelectBy = ['lotusId'];
         $tab = (new PivotTableConfig($tableName, $className));
         foreach ($pivots as $alias => $col) {
@@ -98,15 +100,20 @@ class TableConfigs extends Controller
         foreach ($countedColumns as $alias => $col) {
             $tab->calculatedColumn($alias, $col['name'], $col['method']);
         }
-        $HWPhonePreFilter = (new SqlFilter($className))
+        $HWActivePhonePreFilter = (new SqlFilter($className))
             ->setFilter('appType', 'eq', ['phone'])
             ->setFilter('isHW', 'eq', ['true'])
             ->addFilter('appAge', 'lt', [73]);
-        $tab->calculatedColumnPreFilter('HWActive', $HWPhonePreFilter);
+        $tab->calculatedColumnPreFilter('HWActive', $HWActivePhonePreFilter);
+        $HWNotActivePhonePreFilter = (new SqlFilter($className))
+            ->setFilter('appType', 'eq', ['phone'])
+            ->setFilter('isHW', 'eq', ['true'])
+            ->addFilter('appAge', 'ge', [73]);
+        $tab->calculatedColumnPreFilter('HWNotActive', $HWNotActivePhonePreFilter);
         $notHWPhonePreFilter = (new SqlFilter($className))
             ->setFilter('appType', 'eq', ['phone'])
             ->setFilter('isHW', 'eq', ['false'])
-            ->addFilter('appAge', 'lt', [73]);
+            ->addFilter('appAge', 'ge', [73]);
         $tab->calculatedColumnPreFilter('notHWActive', $notHWPhonePreFilter);
 
         //=====================
@@ -141,7 +148,7 @@ class TableConfigs extends Controller
         echo '===============body footer table config===============';
         /*=============body footer table================*/
 
-        $columns = ['textField', 'appType', 'employees', 'phoneAmount', 'HWActive', 'notHWActive', 'plTitle', 'plTitleActive'];
+        $columns = ['textField', 'appType', 'employees', 'phoneAmount', 'HWActive', 'HWNotActive', 'notHWActive', 'plTitle', 'plTitleActive'];
         $pivots = [
             'plTitle' => ['name' => 'platformTitle'],
             'plTitleActive' => ['name' => 'platformTitle']
@@ -154,6 +161,7 @@ class TableConfigs extends Controller
             'employees' => ['id' => 'people-v','name' => 'Сотр.', 'width' => '60px'],
             'phoneAmount' => ['id' => 'phone-count','name' => 'кол-во тел.', 'width' => '60px'],
             'HWActive' => ['id' => 'hw-active','name' => 'HW Phones', 'width' => '60px'],
+            'HWNotActive' => ['id' => 'hw-not-active','name' => 'HW not active Phones', 'width' => '60px'],
             'notHWActive' => ['id' => 'not-hw-active-v','name' => 'not HW Phones', 'width' => '60px'],
             'plTitle' => ['id' => 'pl','name' => 'Оборудование', 'width' => 65],
             'plTitleActive' => ['id' => 'pl_active','visible' => false],
@@ -161,6 +169,7 @@ class TableConfigs extends Controller
         $countedColumns = [
             'phoneAmount' => ['name' => 'appliance_id', 'method' => 'count'],
             'HWActive' => ['name' => 'appType', 'method' => 'count'],
+            'HWNotActive' => ['name' => 'appType', 'method' => 'count'],
             'notHWActive' => ['name' => 'appType', 'method' => 'count']
         ];
         $sortTemplates = [
@@ -183,7 +192,8 @@ class TableConfigs extends Controller
         foreach ($countedColumns as $alias => $col) {
             $tab->calculatedColumn($alias, $col['name'], $col['method']);
         }
-        $tab->calculatedColumnPreFilter('HWActive', $HWPhonePreFilter);
+        $tab->calculatedColumnPreFilter('HWActive', $HWActivePhonePreFilter);
+        $tab->calculatedColumnPreFilter('HWNotActive', $HWNotActivePhonePreFilter);
         $tab->calculatedColumnPreFilter('notHWActive', $notHWPhonePreFilter);
 
         $tab->columns($columns, $extraColumns)
@@ -268,12 +278,12 @@ class TableConfigs extends Controller
         $HWPhonePreFilter = (new SqlFilter($className))
             ->setFilter('appType', 'eq', ['phone'])
             ->setFilter('isHW', 'eq', ['true'])
-            ->addFilter('appAge', 'lt', [73]);
+            ->addFilter('appAge', 'lt', [$maxAge]);
         $tab->calculatedColumnPreFilter('HWActive', $HWPhonePreFilter);
         $notHWPhonePreFilter = (new SqlFilter($className))
             ->setFilter('appType', 'eq', ['phone'])
             ->setFilter('isHW', 'eq', ['false'])
-            ->addFilter('appAge', 'lt', [73]);
+            ->addFilter('appAge', 'lt', [$maxAge]);
         $tab->calculatedColumnPreFilter('notHWActive', $notHWPhonePreFilter);
 
         //=====================

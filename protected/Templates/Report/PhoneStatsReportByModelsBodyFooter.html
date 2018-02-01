@@ -12,7 +12,8 @@
             {% elseif colname == 'employees' %}
                 <td>{{ lotusEmployeesTotal }}</td>
             {% else %}
-                <td>{{ record.getValue(colname) }}</td>
+                {% set value = record.getValue(colname) %}
+                <td>{% if value != 0 %}{{ value }}{% endif %}</td>
             {% endif %}
         {% endfor %}
         </tr>
