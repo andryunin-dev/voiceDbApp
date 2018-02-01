@@ -278,12 +278,12 @@ class TableConfigs extends Controller
         $HWPhonePreFilter = (new SqlFilter($className))
             ->setFilter('appType', 'eq', ['phone'])
             ->setFilter('isHW', 'eq', ['true'])
-            ->addFilter('appAge', 'lt', [73]);
+            ->addFilter('appAge', 'lt', [$maxAge]);
         $tab->calculatedColumnPreFilter('HWActive', $HWPhonePreFilter);
         $notHWPhonePreFilter = (new SqlFilter($className))
             ->setFilter('appType', 'eq', ['phone'])
             ->setFilter('isHW', 'eq', ['false'])
-            ->addFilter('appAge', 'lt', [73]);
+            ->addFilter('appAge', 'lt', [$maxAge]);
         $tab->calculatedColumnPreFilter('notHWActive', $notHWPhonePreFilter);
 
         //=====================
