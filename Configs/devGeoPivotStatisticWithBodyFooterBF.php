@@ -303,7 +303,7 @@ return [
       ],
       'sortBy' =>
       [
-        'platformTitle' => 'desc',
+        'platformTitle' => 'asc',
       ],
       'itemWidth' => '67px',
     ],

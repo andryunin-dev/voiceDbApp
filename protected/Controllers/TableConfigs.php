@@ -137,7 +137,7 @@ class TableConfigs extends Controller
             ->pivotItemsSelectBy('plTitleActive', $pivotItemsSelectBy)
             ->pivotPreFilter('plTitleActive', $pivotPreFilterActive)
 
-            ->pivotSortBy('plTitle', ['platformTitle'], 'desc')
+            ->pivotSortBy('plTitle', ['platformTitle'], 'asc')
             ->pivotWidthItems('plTitle', $pivotWidthItems)
             ->cssSetHeaderTableClasses(['bg-primary', 'table-bordered', 'table-header-rotated'])
             ->cssSetBodyTableClasses(["table", "cell-bordered", "cust-table-striped"])
@@ -214,7 +214,7 @@ class TableConfigs extends Controller
             ->pivotItemsSelectBy('plTitleActive', $pivotItemsSelectBy)
             ->pivotPreFilter('plTitleActive', $pivotPreFilterActive)
 
-            ->pivotSortBy('plTitle', ['platformTitle'], 'desc')
+            ->pivotSortBy('plTitle', ['platformTitle'], 'asc')
             ->pivotWidthItems('plTitle', $pivotWidthItems)
             ->cssSetBodyTableClasses(["table", "bg-success", "table-bordered", "body-footer"])
             ->rowsOnPageList([10,50,100,200,'все'])
