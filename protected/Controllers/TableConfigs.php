@@ -63,9 +63,9 @@ class TableConfigs extends Controller
         $extraColumns = [];
         $countedColumns = [
             'phoneAmount' => ['name' => 'appliance_id', 'method' => 'count'],
-            'HWActive' => ['name' => 'appType', 'method' => 'count'],
-            'HWNotActive' => ['name' => 'appType', 'method' => 'count'],
-            'notHWActive' => ['name' => 'appType', 'method' => 'count']
+            'HWActive' => ['name' => 'appType', 'method' => 'count', 'selectBy' => ['lotusId']],
+            'HWNotActive' => ['name' => 'appType', 'method' => 'count', 'selectBy' => ['lotusId']],
+            'notHWActive' => ['name' => 'appType', 'method' => 'count', 'selectBy' => ['lotusId']]
         ];
         $confColumns = [
             'lotusId' => ['id' => 'lot_id','name' => 'ID', 'width' => '50px', 'visible' => false],
@@ -98,7 +98,8 @@ class TableConfigs extends Controller
         }
         //calculated columns
         foreach ($countedColumns as $alias => $col) {
-            $tab->calculatedColumn($alias, $col['name'], $col['method']);
+            $col['selectBy'] = isset($col['selectBy']) ? $col['selectBy'] : null;
+            $tab->calculatedColumn($alias, $col['name'], $col['method'], $col['selectBy']);
         }
         $HWActivePhonePreFilter = (new SqlFilter($className))
             ->setFilter('appType', 'eq', ['phone'])
@@ -240,8 +241,8 @@ class TableConfigs extends Controller
         $extraColumns = [];
         $countedColumns = [
             'phoneAmount' => ['name' => 'appliance_id', 'method' => 'count'],
-            'HWActive' => ['name' => 'appType', 'method' => 'count'],
-            'notHWActive' => ['name' => 'appType', 'method' => 'count']
+            'HWActive' => ['name' => 'appType', 'method' => 'count', 'selectBy' => ['lotusId']],
+            'notHWActive' => ['name' => 'appType', 'method' => 'count', 'selectBy' => ['lotusId']]
         ];
         $confColumns = [
             'lotusId' => ['id' => 'lot_id','name' => 'ID', 'width' => '50px', 'visible' => false],
@@ -273,7 +274,8 @@ class TableConfigs extends Controller
         }
         //calculated columns
         foreach ($countedColumns as $alias => $col) {
-            $tab->calculatedColumn($alias, $col['name'], $col['method']);
+            $col['selectBy'] = isset($col['selectBy']) ? $col['selectBy'] : null;
+            $tab->calculatedColumn($alias, $col['name'], $col['method'], $col['selectBy']);
         }
         $HWPhonePreFilter = (new SqlFilter($className))
             ->setFilter('appType', 'eq', ['phone'])

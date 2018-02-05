@@ -124,6 +124,9 @@ return [
       'preFilter' =>
       [
       ],
+      'selectBy' =>
+      [
+      ],
     ],
     'HWActive' =>
     [
@@ -149,9 +152,12 @@ return [
         [
           'lt' =>
           [
-            0 => 73,
+            0 => 922,
           ],
         ],
+      ],
+      'selectBy' =>
+      [
       ],
     ],
     'HWNotActive' =>
@@ -178,9 +184,12 @@ return [
         [
           'ge' =>
           [
-            0 => 73,
+            0 => 922,
           ],
         ],
+      ],
+      'selectBy' =>
+      [
       ],
     ],
     'notHWActive' =>
@@ -207,9 +216,12 @@ return [
         [
           'lt' =>
           [
-            0 => 73,
+            0 => 922,
           ],
         ],
+      ],
+      'selectBy' =>
+      [
       ],
     ],
   ],
@@ -297,7 +309,7 @@ return [
           ],
         ],
       ],
-      'selectPivotItemsBy' =>
+      'selectBy' =>
       [
         0 => 'appType',
       ],
@@ -323,11 +335,11 @@ return [
         [
           'lt' =>
           [
-            0 => 73,
+            0 => 922,
           ],
         ],
       ],
-      'selectPivotItemsBy' =>
+      'selectBy' =>
       [
         0 => 'appType',
       ],

@@ -36,20 +36,14 @@ class Test extends Controller
 {
     public function actionDefault()
     {
-        $tbConf = Table::getTableConfig('devGeoEmployeesLotusIdDistinct');
-        $tb = Table::getTable($tbConf);
-        $res = $tb->getRecords(null,null,null,true);
-        $res = array_reduce($res, function ($acc, $item) {
-            return $acc += $item['lotus_employees'];
-        });
-//        $res = array_reduce($res, function ($carry, $item) {
-//            $appDetails = json_decode($item['appDetails'], true);
-//            $cucmName = isset($appDetails['reportName']) ? $appDetails['reportName'] : null;
-//            $carry[$item['managementIp']] = $cucmName;
-//            return $carry;
-//        });
+        $selectByColumns = ['one'];
+        $mainTableNameAlias = 't1';
 
-        var_dump($res);
+        $linkWithMainTable = array_map(function ($item) use ($mainTableNameAlias) {
+            return $mainTableNameAlias . '.' . $item;
+        }, $selectByColumns);
+
+        var_dump($linkWithMainTable);
         die;
     }
 }
