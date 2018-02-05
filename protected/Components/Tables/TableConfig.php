@@ -69,7 +69,8 @@ class TableConfig extends Config implements TableConfigInterface
     protected $calculatedColumnProperties = [
         'column' => '',
         'method' => 'count',
-        'preFilter' => []
+        'preFilter' => [],
+        'selectBy' => [],
     ];
 
 
@@ -132,6 +133,11 @@ class TableConfig extends Config implements TableConfigInterface
             }
             $this->className = $class;
         }
+    }
+
+    public function save()
+    {
+        return parent::save();
     }
 
     public function className()
@@ -255,10 +261,11 @@ class TableConfig extends Config implements TableConfigInterface
      * @param string $alias
      * @param string|null $column
      * @param string|null $method count or sum
+     * @param array|null $selectBy
      * @return self
      * @throws Exception
      */
-    public function calculatedColumn(string $alias, string $column = null, string $method = null)
+    public function calculatedColumn(string $alias, string $column = null, string $method = null, array $selectBy = null)
     {
         if(is_null($column) && is_null($method)) {
             if (! $this->isCalculated($alias)) {
@@ -275,6 +282,9 @@ class TableConfig extends Config implements TableConfigInterface
         $this->sqlMethodValidate($method);
         $this->calculated->$alias->method = $method;
         $this->calculated->$alias->column = $column;
+        if (! is_null($selectBy)) {
+            $this->calculatedColumnSelectBy($alias, $selectBy);
+        }
 
         return $this;
     }
@@ -289,6 +299,19 @@ class TableConfig extends Config implements TableConfigInterface
                 ->setFilterFromArray($this->calculated->$alias->preFilter->toArray());
         }
         $this->calculated->$alias->preFilter = new Std($preFilter->toArray());
+        return $this;
+    }
+
+    public function calculatedColumnSelectBy(string $alias, array $columns = null)
+    {
+        if (! $this->isCalculated($alias)) {
+            throw new Exception($alias . ' is not define as alias for calculated column');
+        }
+        if (is_null($columns)) {
+            return $this->calculated->$alias->selectBy;
+        }
+        $this->areAllColumnsDefined($columns);
+        $this->calculated->$alias->selectBy = new Std($columns);
         return $this;
     }
 

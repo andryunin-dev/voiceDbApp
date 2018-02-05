@@ -154,6 +154,9 @@ return [
       'preFilter' =>
       [
       ],
+      'selectBy' =>
+      [
+      ],
     ],
     'HWActive' =>
     [
@@ -182,6 +185,10 @@ return [
             0 => 73,
           ],
         ],
+      ],
+      'selectBy' =>
+      [
+        0 => 'lotusId',
       ],
     ],
     'HWNotActive' =>
@@ -212,6 +219,10 @@ return [
           ],
         ],
       ],
+      'selectBy' =>
+      [
+        0 => 'lotusId',
+      ],
     ],
     'notHWActive' =>
     [
@@ -240,6 +251,10 @@ return [
             0 => 73,
           ],
         ],
+      ],
+      'selectBy' =>
+      [
+        0 => 'lotusId',
       ],
     ],
   ],
@@ -339,13 +354,13 @@ return [
           ],
         ],
       ],
-      'selectPivotItemsBy' =>
+      'selectBy' =>
       [
         0 => 'lotusId',
       ],
       'sortBy' =>
       [
-        'platformTitle' => 'desc',
+        'platformTitle' => 'asc',
       ],
       'itemWidth' => '67px',
     ],
@@ -369,7 +384,7 @@ return [
           ],
         ],
       ],
-      'selectPivotItemsBy' =>
+      'selectBy' =>
       [
         0 => 'lotusId',
       ],

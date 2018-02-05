@@ -954,7 +954,7 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
         return [
             '_1' => [
                 ['alias' => 'calculated', 'column' => 'columnTwo', 'method' => 'count'],
-                ['calculated' => ['column' => 'columnTwo', 'method' => 'count', 'preFilter' => []]],
+                ['calculated' => ['column' => 'columnTwo', 'method' => 'count', 'preFilter' => [], 'selectBy' => []]],
             ],
         ];
     }
@@ -1008,6 +1008,36 @@ class TableConfigTest extends \PHPUnit\Framework\TestCase
         $conf->calculatedColumnPreFilter($input['alias'], $preFilter);
         $this->assertEquals($expected['preFilter'], $conf->calculatedColumnPreFilter($input['alias'])->toArray());
     }
+
+    public function providerCalculatedColumnSelectBy()
+    {
+        return [
+            '_1' => [
+                'input' => [
+                    'alias' => 'calculated', 'column' => 'columnTwo', 'method' => 'count', 'selectBy' => ['columnThree']
+                ],
+                'expected' => [
+                    'selectBy' => ['columnThree']
+                ]
+            ]
+        ];
+    }
+
+    /**
+     * @depends testCreateEmptyConfig
+     * @dataProvider providerCalculatedColumnSelectBy
+     *
+     * @param array $input
+     * @param array $expected
+     * @param TableConfig $conf
+     */
+    public function testCalculatedColumnSelectBy($input, $expected, $conf)
+    {
+        $conf->calculatedColumn($input['alias'], $input['column'], $input['method']);
+        $conf->calculatedColumnSelectBy($input['alias'], $input['selectBy']);
+        $this->assertEquals($expected['selectBy'], $conf->calculatedColumnSelectBy($input['alias'])->toArray());
+    }
+
 
 
     public function providerBodyFooterTable()

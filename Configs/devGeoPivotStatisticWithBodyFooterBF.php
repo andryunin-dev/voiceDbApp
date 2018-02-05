@@ -124,6 +124,9 @@ return [
       'preFilter' =>
       [
       ],
+      'selectBy' =>
+      [
+      ],
     ],
     'HWActive' =>
     [
@@ -152,6 +155,9 @@ return [
             0 => 73,
           ],
         ],
+      ],
+      'selectBy' =>
+      [
       ],
     ],
     'HWNotActive' =>
@@ -182,6 +188,9 @@ return [
           ],
         ],
       ],
+      'selectBy' =>
+      [
+      ],
     ],
     'notHWActive' =>
     [
@@ -210,6 +219,9 @@ return [
             0 => 73,
           ],
         ],
+      ],
+      'selectBy' =>
+      [
       ],
     ],
   ],
@@ -297,13 +309,13 @@ return [
           ],
         ],
       ],
-      'selectPivotItemsBy' =>
+      'selectBy' =>
       [
         0 => 'appType',
       ],
       'sortBy' =>
       [
-        'platformTitle' => 'desc',
+        'platformTitle' => 'asc',
       ],
       'itemWidth' => '67px',
     ],
@@ -327,7 +339,7 @@ return [
           ],
         ],
       ],
-      'selectPivotItemsBy' =>
+      'selectBy' =>
       [
         0 => 'appType',
       ],

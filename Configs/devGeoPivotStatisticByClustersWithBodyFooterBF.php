@@ -116,6 +116,9 @@ return [
       'preFilter' =>
       [
       ],
+      'selectBy' =>
+      [
+      ],
     ],
     'HWActive' =>
     [
@@ -145,6 +148,9 @@ return [
           ],
         ],
       ],
+      'selectBy' =>
+      [
+      ],
     ],
     'notHWActive' =>
     [
@@ -173,6 +179,9 @@ return [
             0 => 73,
           ],
         ],
+      ],
+      'selectBy' =>
+      [
       ],
     ],
   ],
@@ -260,7 +269,7 @@ return [
           ],
         ],
       ],
-      'selectPivotItemsBy' =>
+      'selectBy' =>
       [
         0 => 'appType',
       ],
@@ -290,7 +299,7 @@ return [
           ],
         ],
       ],
-      'selectPivotItemsBy' =>
+      'selectBy' =>
       [
         0 => 'appType',
       ],

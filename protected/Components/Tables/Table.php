@@ -41,7 +41,7 @@ class Table extends Std
         $this->filter = new SqlFilter($this->config->className());
         $this->driver = $this->config->className()::getDbDriver();
         $this->pagination = new Std($this->paginationTemplate);
-        $this->calculatedColumnFilters = new Std();
+        $this->calculatedColumnFilters = new Std(); //???
     }
 
     public static function buildConfig(string $tableName)
