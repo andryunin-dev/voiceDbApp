@@ -160,7 +160,7 @@ class PivotTable extends Table implements PivotTableInterface
                 $pivPreFilter->mergeWith($this->mergedFilter);
 
                 $pivotItemsSelectBy = $this->config->pivotItemsSelectBy($column)->toArray();
-                $pivotItemsSelectBy = empty($pivotItemsSelectBy) ? $groupColumns : $pivotItemsSelectBy;
+                //$pivotItemsSelectBy = empty($pivotItemsSelectBy) ? $groupColumns : $pivotItemsSelectBy;
                 $groupColumns = array_unique(array_merge($groupColumns, $pivotItemsSelectBy));
 
                 $order = $this->config->pivotSortByQuotedString($column);
@@ -341,45 +341,49 @@ class PivotTable extends Table implements PivotTableInterface
         if (!$this->config->isCalculated($alias)) {
             throw new Exception($alias . ' isn\'t defines as calculated column!');
         }
-        $params = $this->config->calculatedColumn($alias);
+        $props = $this->config->calculatedColumn($alias);
         $preFilter = $this->config->calculatedColumnPreFilter($alias);
         /**
          * if preFilter for calculated column isn't set - return simple clause
          */
         if (empty($preFilter->toArray())) {
-            $sql = $params->method . '(' . $this->driver->quoteName($params->column) . ') AS ' . $this->driver->quoteName($alias);
+            $sql = $props->method . '(' . $this->driver->quoteName($props->column) . ') AS ' . $this->driver->quoteName($alias);
             return $sql;
         }
+        $selectByColumns = $this->config->calculatedColumnSelectBy($alias)->toArray();
         /**
          * if preFilter is set - create select statement
          */
         $tableFilter = !is_null($tableFilter) ? $tableFilter : new SqlFilter($this->config->className());
         $columnFilter = $preFilter->mergeWith($tableFilter);
+
         $this->calculatedColumnFilters->append($columnFilter);
 
-        $columns = $this->config->columns()->toArray();
-        $calculatedColumns = array_keys($this->config->calculated->toArray());
-        $pivotAliases = array_keys($this->config->pivots()->toArray());
-        $extraColumns = $this->config->extraColumns()->toArray();
-        $conditionalColumns = array_diff($columns, $pivotAliases, $calculatedColumns, $extraColumns);
+        //$columns = $this->config->columns()->toArray();
+        //$calculatedColumns = array_keys($this->config->calculated->toArray());
+        //$pivotAliases = array_keys($this->config->pivots()->toArray());
+        //$extraColumns = $this->config->extraColumns()->toArray();
+        //$conditionalColumns = array_diff($columns, $pivotAliases, $calculatedColumns, $extraColumns);
 
         $clauses = [];
-        $columnFilterClause = $columnFilter->filterStatement();
-        if (!empty($columnFilterClause)) {
-            $clauses[] = $columnFilterClause;
+        $columnFilterStatement = $columnFilter->filterStatement();
+        if (!empty($columnFilterStatement)) {
+            $clauses[] = $columnFilterStatement;
         }
         $mainTableNameOriginal = $this->config->className()::getTableName();
-        $linkingClause = array_map(function ($item) use ($mainTableNameAlias) {
-            return $this->driver->quoteName($item) . ' = ' . $mainTableNameAlias . '.' . $this->driver->quoteName($item);
-        }, $conditionalColumns);
-        $linkingClause = implode(' AND ', $linkingClause);
 
-        if (!empty($linkingClause)) {
-            $clauses[] = $linkingClause;
+        $linkWithMainTable = array_map(function ($item) use ($mainTableNameAlias) {
+            return $this->driver->quoteName($item) . ' = ' . $mainTableNameAlias . '.' . $this->driver->quoteName($item);
+        }, $selectByColumns);
+
+        $linkWithMainTable = implode(' AND ', $linkWithMainTable);
+
+        if (!empty($linkWithMainTable)) {
+            $clauses[] = $linkWithMainTable;
         }
         $resClause = implode(' AND ', $clauses);
 
-        $sql = '(SELECT ' . $params->method . '(' . $this->driver->quoteName($params->column) . ')';
+        $sql = '(SELECT ' . $props->method . '(' . $this->driver->quoteName($props->column) . ')';
         $sql .= "\n";
         $sql .= 'FROM ' . $mainTableNameOriginal . ' AS ' . 't_' . strtolower($alias);
         $sql .= "\n";

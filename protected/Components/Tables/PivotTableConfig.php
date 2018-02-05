@@ -36,7 +36,7 @@ class PivotTableConfig extends TableConfig
     protected $pivotColumnPropertiesTemplate = [
         'column' => '',
         'preFilter' => [], //preFilter for pivot column values
-        'selectPivotItemsBy' => [], //columns for inner select pivot items
+        'selectBy' => [], //columns for inner select pivot items
         'sortBy' => [], //sort columns and direction for pivot column
         'itemWidth' => 0, //width for each column from pivot values.
     ];
@@ -140,10 +140,10 @@ class PivotTableConfig extends TableConfig
     {
         $this->validatePivotColumn($pivColumnAlias);
         if (is_null($columns)) {
-            return $this->pivot->$pivColumnAlias->selectPivotItemsBy;
+            return $this->pivot->$pivColumnAlias->selectBy;
         }
         $this->areAllColumnsDefined($columns);
-        $this->pivot->$pivColumnAlias->selectPivotItemsBy = new Std($columns);
+        $this->pivot->$pivColumnAlias->selectBy = new Std($columns);
         return $this;
     }
 

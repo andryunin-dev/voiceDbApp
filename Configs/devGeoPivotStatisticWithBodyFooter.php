@@ -154,6 +154,9 @@ return [
       'preFilter' =>
       [
       ],
+      'selectBy' =>
+      [
+      ],
     ],
     'HWActive' =>
     [
@@ -182,6 +185,10 @@ return [
             0 => 73,
           ],
         ],
+      ],
+      'selectBy' =>
+      [
+        0 => 'lotusId',
       ],
     ],
     'HWNotActive' =>
@@ -212,6 +219,10 @@ return [
           ],
         ],
       ],
+      'selectBy' =>
+      [
+        0 => 'lotusId',
+      ],
     ],
     'notHWActive' =>
     [
@@ -240,6 +251,10 @@ return [
             0 => 73,
           ],
         ],
+      ],
+      'selectBy' =>
+      [
+        0 => 'lotusId',
       ],
     ],
   ],
@@ -339,7 +354,7 @@ return [
           ],
         ],
       ],
-      'selectPivotItemsBy' =>
+      'selectBy' =>
       [
         0 => 'lotusId',
       ],
@@ -369,7 +384,7 @@ return [
           ],
         ],
       ],
-      'selectPivotItemsBy' =>
+      'selectBy' =>
       [
         0 => 'lotusId',
       ],
