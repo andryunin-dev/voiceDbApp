@@ -233,10 +233,11 @@ class TableConfigs extends Controller
         $pivotWidthItems = '67px';
         $maxAge = 73;
 
-        $columns = ['region', 'city', 'office', 'lotus_employees', 'phoneAmount', 'HWActive', 'notHWActive', 'byPublishIp', 'byPublishIpActive', 'lotusId'];
+        $columns = ['region', 'city', 'office', 'lotus_employees', 'phoneAmount', 'HWActive', 'notHWActive', 'byPublishIp', 'byPublishIpActive', 'byPublishIpActiveHW'];
         $pivots = [
             'byPublishIp' => ['name' => 'publisherIp'],
-            'byPublishIpActive' => ['name' => 'publisherIp']
+            'byPublishIpActive' => ['name' => 'publisherIp'],
+            'byPublishIpActiveHW' => ['name' => 'publisherIp'],
         ];
         $extraColumns = [];
         $countedColumns = [
@@ -245,7 +246,7 @@ class TableConfigs extends Controller
             'notHWActive' => ['name' => 'appType', 'method' => 'count', 'selectBy' => ['lotusId']]
         ];
         $confColumns = [
-            'lotusId' => ['id' => 'lot_id','name' => 'ID', 'width' => '50px', 'visible' => false],
+            //'lotusId' => ['id' => 'lot_id','name' => 'ID', 'width' => '50px', 'visible' => false],
             'region' => ['id' => 'region','name' => 'Регион', 'width' => 10, 'sortable' => true, 'filterable' => true],
             'city' => ['id' => 'city','name' => 'Город', 'width' => 10, 'sortable' => true, 'filterable' => true],
             'office' => ['id' => 'office','name' => 'Офис', 'width' =>15, 'sortable' => true, 'filterable' => true],
@@ -254,7 +255,8 @@ class TableConfigs extends Controller
             'HWActive' => ['id' => 'hw-active-v','name' => 'HW Phones<br>(актив.)', 'width' => '60px', 'classes' => ['class_1', 'class_2']],
             'notHWActive' => ['id' => 'not-hw-active-v','name' => 'virtual & analog<br>Phones(актив.)', 'width' => '60px', 'classes' => ['class_1', 'class_2']],
             'byPublishIp' => ['id' => 'pub','name' => 'Оборудование', 'width' => 65],
-            'byPublishIpActive' => ['id' => 'pub','name' => 'Оборудование','visible' => false],
+            'byPublishIpActive' => ['id' => 'pub-active','name' => 'Оборудование','visible' => false],
+            'byPublishIpActiveHW' => ['id' => 'pub-active-hw','name' => 'Оборудование','visible' => false],
         ];
         $sortTemplates = [
             'region' => ['region' => '', 'city' => '', 'office' => ''],
@@ -267,8 +269,24 @@ class TableConfigs extends Controller
         $pivotPreFilterActive = (new SqlFilter($className))
             ->setFilter('appType', 'eq', ['phone'])
             ->addFilter('appAge', 'lt', [$maxAge]);
+        $pivotPreFilterActiveHW = (new SqlFilter($className))
+            ->setFilter('appType', 'eq', ['phone'])
+            ->addFilter('appAge', 'lt', [$maxAge])
+            ->addFilter('isHW', 'eq', ['true']);
+
+        $HWPhonePreFilterActive = (new SqlFilter($className))
+            ->setFilter('appType', 'eq', ['phone'])
+            ->setFilter('isHW', 'eq', ['true'])
+            ->addFilter('appAge', 'lt', [$maxAge]);
+        $notHWPhonePreFilterActive = (new SqlFilter($className))
+            ->setFilter('appType', 'eq', ['phone'])
+            ->setFilter('isHW', 'eq', ['false'])
+            ->addFilter('appAge', 'lt', [$maxAge]);
+
         $pivotItemsSelectBy = ['lotusId'];
+
         $tab = (new PivotTableConfig($tableName, $className));
+
         foreach ($pivots as $alias => $col) {
             $tab->definePivotColumn($col['name'], $alias);
         }
@@ -277,16 +295,8 @@ class TableConfigs extends Controller
             $col['selectBy'] = isset($col['selectBy']) ? $col['selectBy'] : null;
             $tab->calculatedColumn($alias, $col['name'], $col['method'], $col['selectBy']);
         }
-        $HWPhonePreFilter = (new SqlFilter($className))
-            ->setFilter('appType', 'eq', ['phone'])
-            ->setFilter('isHW', 'eq', ['true'])
-            ->addFilter('appAge', 'lt', [$maxAge]);
-        $tab->calculatedColumnPreFilter('HWActive', $HWPhonePreFilter);
-        $notHWPhonePreFilter = (new SqlFilter($className))
-            ->setFilter('appType', 'eq', ['phone'])
-            ->setFilter('isHW', 'eq', ['false'])
-            ->addFilter('appAge', 'lt', [$maxAge]);
-        $tab->calculatedColumnPreFilter('notHWActive', $notHWPhonePreFilter);
+        $tab->calculatedColumnPreFilter('HWActive', $HWPhonePreFilterActive);
+        $tab->calculatedColumnPreFilter('notHWActive', $notHWPhonePreFilterActive);
 
         //=====================
         $tab->columns($columns, $extraColumns)
@@ -309,6 +319,9 @@ class TableConfigs extends Controller
             ->pivotItemsSelectBy('byPublishIpActive', $pivotItemsSelectBy)
             ->pivotPreFilter('byPublishIpActive', $pivotPreFilterActive)
 
+            ->pivotItemsSelectBy('byPublishIpActiveHW', $pivotItemsSelectBy)
+            ->pivotPreFilter('byPublishIpActiveHW', $pivotPreFilterActiveHW)
+
             ->pivotSortBy('byPublishIp', ['publisherIp'], 'desc')
             ->pivotWidthItems('byPublishIp', $pivotWidthItems)
             ->cssSetHeaderTableClasses(['bg-primary', 'table-bordered', 'table-header-rotated'])
@@ -320,11 +333,8 @@ class TableConfigs extends Controller
         echo '===============body footer table config===============';
         /*=============body footer table================*/
 
-        $columns = ['textField', 'appType', 'employees', 'phoneAmount', 'HWActive', 'notHWActive', 'byPublishIp', 'byPublishIpActive'];
-        $pivots = [
-            'byPublishIp' => ['name' => 'publisherIp'],
-            'byPublishIpActive' => ['name' => 'publisherIp']
-        ];
+        $columns = ['textField', 'appType', 'employees', 'phoneAmount', 'HWActive', 'notHWActive', 'byPublishIp', 'byPublishIpActive', 'byPublishIpActiveHW'];
+
         $pivotItemsSelectBy = ['appType'];
         $extraColumns = ['textField', 'employees'];
         $countedColumns = [
@@ -341,29 +351,31 @@ class TableConfigs extends Controller
             'notHWActive' => ['id' => 'not-hw-active-v','name' => 'virtual & analog<br>Phones(актив.)', 'width' => '60px', 'classes' => ['class_1', 'class_2']],
             'byPublishIp' => ['id' => 'pub','name' => 'Оборудование', 'width' => 65],
             'byPublishIpActive' => ['id' => 'pub','name' => 'Оборудование','visible' => false],
+            'byPublishIpActiveHW' => ['id' => 'pub-active-hw','name' => 'Оборудование','visible' => false]
         ];
         $sortTemplates = [
             'default' => [],
         ];
         /*======preFilters=============*/
-        $tablePreFilter = (new SqlFilter($className))
-            ->setFilter('appType', 'eq', ['phone']);
-        $pivotPreFilter = (new SqlFilter($className))
-            ->setFilter('appType', 'eq', ['phone']);
-        $pivotPreFilterActive = (new SqlFilter($className))
-            ->setFilter('appType', 'eq', ['phone'])
-            ->addFilter('appAge', 'lt', [$maxAge]);
+//        $tablePreFilter = (new SqlFilter($className))
+//            ->setFilter('appType', 'eq', ['phone']);
+//        $pivotPreFilter = (new SqlFilter($className))
+//            ->setFilter('appType', 'eq', ['phone']);
+//        $pivotPreFilterActive = (new SqlFilter($className))
+//            ->setFilter('appType', 'eq', ['phone'])
+//            ->addFilter('appAge', 'lt', [$maxAge]);
 
         /*=======make config================*/
         $tab = (new PivotTableConfig($tableNameBF, $className));
         foreach ($pivots as $alias => $col) {
             $tab->definePivotColumn($col['name'], $alias);
         }
+        //calculated columns
         foreach ($countedColumns as $alias => $col) {
             $tab->calculatedColumn($alias, $col['name'], $col['method']);
         }
-        $tab->calculatedColumnPreFilter('HWActive', $HWPhonePreFilter);
-        $tab->calculatedColumnPreFilter('notHWActive', $notHWPhonePreFilter);
+        $tab->calculatedColumnPreFilter('HWActive', $HWPhonePreFilterActive);
+        $tab->calculatedColumnPreFilter('notHWActive', $notHWPhonePreFilterActive);
 
         $tab->columns($columns, $extraColumns)
             ->sortOrderSets($sortTemplates)
@@ -382,6 +394,9 @@ class TableConfigs extends Controller
 
             ->pivotItemsSelectBy('byPublishIpActive', $pivotItemsSelectBy)
             ->pivotPreFilter('byPublishIpActive', $pivotPreFilterActive)
+
+            ->pivotItemsSelectBy('byPublishIpActiveHW', $pivotItemsSelectBy)
+            ->pivotPreFilter('byPublishIpActiveHW', $pivotPreFilterActiveHW)
 
             ->pivotSortBy('byPublishIp', ['publisherIp'], 'desc')
             ->pivotWidthItems('byPublishIp', $pivotWidthItems)
