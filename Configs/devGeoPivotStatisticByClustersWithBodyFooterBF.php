@@ -106,6 +106,18 @@ return [
       [
       ],
     ],
+    'byPublishIpActiveHW' =>
+    [
+      'id' => 'pub-active-hw',
+      'name' => 'Оборудование',
+      'width' => 0,
+      'sortable' => false,
+      'filterable' => false,
+      'visible' => false,
+      'classes' =>
+      [
+      ],
+    ],
   ],
   'calculated' =>
   [
@@ -296,6 +308,42 @@ return [
           'lt' =>
           [
             0 => 73,
+          ],
+        ],
+      ],
+      'selectBy' =>
+      [
+        0 => 'appType',
+      ],
+      'sortBy' =>
+      [
+      ],
+      'itemWidth' => 0,
+    ],
+    'byPublishIpActiveHW' =>
+    [
+      'column' => 'publisherIp',
+      'preFilter' =>
+      [
+        'appType' =>
+        [
+          'eq' =>
+          [
+            0 => 'phone',
+          ],
+        ],
+        'appAge' =>
+        [
+          'lt' =>
+          [
+            0 => 73,
+          ],
+        ],
+        'isHW' =>
+        [
+          'eq' =>
+          [
+            0 => 'true',
           ],
         ],
       ],

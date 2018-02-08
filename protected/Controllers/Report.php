@@ -241,14 +241,26 @@ class Report extends Controller
                         // ================concatenate data from pivot columns with glue '/' and unset array plTitleActive
                         $totalDevs = 'byPublishIp';
                         $activeDevs = 'byPublishIpActive';
-                        foreach ($tbData as $dataKey => $values) {
-                            if (! isset($values[$totalDevs])) {
-                                continue;
+
+                        array_walk($tbData, function (&$item, $key) use(&$tbData) {
+                            if (is_null($item['byPublishIpActive'])) {
+                                return;
                             }
-                            $tbData[$dataKey][$totalDevs] = $tbData[$dataKey][$activeDevs];
-                            unset($tbData[$dataKey][$activeDevs]);
-                            $tbData[$dataKey] = new RecordItem($tbData[$dataKey]);
+                            array_walk($item['byPublishIpActive'], function (&$item, $key2) use(&$tbData, $key) {
+                                $item = isset($tbData[$key]['byPublishIpActiveHW'][$key2]) ?
+                                    $item . '/' . $tbData[$key]['byPublishIpActiveHW'][$key2] :
+                                    $item . '/' . 0;
+                            });
+                        });
+
+                        foreach ($tbData as $dataKey => $values) {
+                        if (! isset($values[$totalDevs])) {
+                            continue;
                         }
+                        $tbData[$dataKey][$totalDevs] = $tbData[$dataKey][$activeDevs];
+                        unset($tbData[$dataKey][$activeDevs]);
+                        $tbData[$dataKey] = new RecordItem($tbData[$dataKey]);
+                    }
                         //==========end================
                         $data['data'] = $tbData;
                         $data['columns'] = $request->columns;
@@ -260,6 +272,18 @@ class Report extends Controller
                             $tbBF->addFilter($tabFilter, 'append');
                             $tbDataBF = $tbBF->getRecords();
                         }
+
+                        array_walk($tbDataBF, function (&$item, $key) use(&$tbDataBF) {
+                            if (is_null($item['byPublishIpActive'])) {
+                                return;
+                            }
+                            array_walk($item['byPublishIpActive'], function (&$item, $key2) use(&$tbDataBF, $key) {
+                                $item = isset($tbDataBF[$key]['byPublishIpActiveHW'][$key2]) ?
+                                    $item . '/' . $tbDataBF[$key]['byPublishIpActiveHW'][$key2] :
+                                    $item . '/' . 0;
+                            });
+                        });
+
                         foreach ($tbDataBF as $dataKey => $values) {
                             if (! isset($values[$totalDevs]) || is_null($values[$totalDevs])) {
                                 continue;

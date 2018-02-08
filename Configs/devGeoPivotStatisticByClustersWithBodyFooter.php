@@ -108,7 +108,7 @@ return [
     ],
     'byPublishIpActive' =>
     [
-      'id' => 'pub',
+      'id' => 'pub-active',
       'name' => 'Оборудование',
       'width' => 0,
       'sortable' => false,
@@ -118,11 +118,11 @@ return [
       [
       ],
     ],
-    'lotusId' =>
+    'byPublishIpActiveHW' =>
     [
-      'id' => 'lot_id',
-      'name' => 'ID',
-      'width' => '50px',
+      'id' => 'pub-active-hw',
+      'name' => 'Оборудование',
+      'width' => 0,
       'sortable' => false,
       'filterable' => false,
       'visible' => false,
@@ -335,6 +335,42 @@ return [
           'lt' =>
           [
             0 => 73,
+          ],
+        ],
+      ],
+      'selectBy' =>
+      [
+        0 => 'lotusId',
+      ],
+      'sortBy' =>
+      [
+      ],
+      'itemWidth' => 0,
+    ],
+    'byPublishIpActiveHW' =>
+    [
+      'column' => 'publisherIp',
+      'preFilter' =>
+      [
+        'appType' =>
+        [
+          'eq' =>
+          [
+            0 => 'phone',
+          ],
+        ],
+        'appAge' =>
+        [
+          'lt' =>
+          [
+            0 => 73,
+          ],
+        ],
+        'isHW' =>
+        [
+          'eq' =>
+          [
+            0 => 'true',
           ],
         ],
       ],
