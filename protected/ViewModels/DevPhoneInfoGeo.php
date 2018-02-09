@@ -12,7 +12,8 @@ class DevPhoneInfoGeo extends Model
 {
 
     protected static $schema = [
-        'table' => 'view.dev_phone_info_geo',
+        //'table' => 'view.dev_phone_info_geo',
+        'table' => 'view.dev_phone_info_geo_mat',
         'columns' => [
             'lotus_regCenter' => ['type' => 'string'],
             'region' => ['type' => 'string'],
