@@ -28,6 +28,7 @@ class Device extends Controller
     public function actionDevicesTable()
     {
         $maxAge = 73;
+
         $url = new Url('/device/info');
 //        $request = (new Request());
 //        if (0 == $request->get->count()) {
