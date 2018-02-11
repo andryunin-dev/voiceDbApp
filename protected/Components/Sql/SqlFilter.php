@@ -144,9 +144,13 @@ class SqlFilter extends Std implements SqlFilterInterface
         return $this;
     }
 
-    public function removeFilter(string $column, string $operator)
+    public function removeFilter(string $column, string $operator = null)
     {
         $this->validateColumnName($column);
+        if (is_null($operator)) {
+            unset($this->$column);
+            return $this;
+        }
         $this->validateOperatorName($operator);
         unset($this->$column->$operator);
         if (0 == $this->$column->count()) {
