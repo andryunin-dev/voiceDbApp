@@ -248,6 +248,8 @@ class SqlFilterTest extends \PHPUnit\Framework\TestCase
      */
     public function testBuildFilterStatement_oneColumn_twoValues($filter)
     {
+        SqlFilter::setParamsIndex(0);
+
         $filter->addFilter('columnOne', 'eq', ['val_2']);
         $expectedStatement = '("columnOne" = :columnOne_eq_0 OR "columnOne" = :columnOne_eq_1)';
         $this->assertEquals($expectedStatement, $filter->filterStatement);
@@ -264,12 +266,12 @@ class SqlFilterTest extends \PHPUnit\Framework\TestCase
     public function testBuildFilterStatement_twoColumn_threeValues($filter)
     {
         $filter->addFilter('columnTwo', 'eq', ['val_1']);
-        $expectedStatement = '("columnOne" = :columnOne_eq_0 OR "columnOne" = :columnOne_eq_1) AND "columnTwo" = :columnTwo_eq_0';
+        $expectedStatement = '("columnOne" = :columnOne_eq_2 OR "columnOne" = :columnOne_eq_3) AND "columnTwo" = :columnTwo_eq_4';
         $this->assertEquals($expectedStatement, $filter->filterStatement);
         $expectedParams = [
-            ':columnOne_eq_0' => 'val_1',
-            ':columnOne_eq_1' => 'val_2',
-            ':columnTwo_eq_0' => 'val_1',
+            ':columnOne_eq_2' => 'val_1',
+            ':columnOne_eq_3' => 'val_2',
+            ':columnTwo_eq_4' => 'val_1',
         ];
         $this->assertEquals($expectedParams, $filter->filterParams);
         return $filter;
@@ -280,13 +282,13 @@ class SqlFilterTest extends \PHPUnit\Framework\TestCase
     public function testBuildFilterStatement_twoColumn_fourValues($filter)
     {
         $filter->addFilter('columnTwo', 'eq', ['val_2']);
-        $expectedStatement = '("columnOne" = :columnOne_eq_0 OR "columnOne" = :columnOne_eq_1) AND ("columnTwo" = :columnTwo_eq_0 OR "columnTwo" = :columnTwo_eq_1)';
+        $expectedStatement = '("columnOne" = :columnOne_eq_5 OR "columnOne" = :columnOne_eq_6) AND ("columnTwo" = :columnTwo_eq_7 OR "columnTwo" = :columnTwo_eq_8)';
         $this->assertEquals($expectedStatement, $filter->filterStatement);
         $expectedParams = [
-            ':columnOne_eq_0' => 'val_1',
-            ':columnOne_eq_1' => 'val_2',
-            ':columnTwo_eq_0' => 'val_1',
-            ':columnTwo_eq_1' => 'val_2',
+            ':columnOne_eq_5' => 'val_1',
+            ':columnOne_eq_6' => 'val_2',
+            ':columnTwo_eq_7' => 'val_1',
+            ':columnTwo_eq_8' => 'val_2',
         ];
         $this->assertEquals($expectedParams, $filter->filterParams);
     }

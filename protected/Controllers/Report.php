@@ -242,7 +242,9 @@ class Report extends Controller
                             $filterSet = $request->tableFilter->toArray();
                             $tabFilter->setFilterFromArray($filterSet);
                         }
-                        $tb->addFilter($tabFilter, 'append');
+
+                        $tb
+                            ->addFilter($tabFilter, 'append');
                         $tb->paginationUpdate($request->pager->page, $request->pager->rowsOnPage);
                         $tbData = $tb->getRecordsByPage();
 

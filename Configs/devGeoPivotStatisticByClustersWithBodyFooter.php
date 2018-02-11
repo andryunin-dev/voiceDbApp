@@ -3,7 +3,7 @@
 return [
   'dataUrl' => '/report/PhoneStatsByClustersReportHandler.json',
   'connection' => '',
-  'className' => 'App\\ViewModels\\DevPhoneInfoGeo',
+  'className' => 'App\\ViewModels\\DevPhoneInfoGeoMat',
   'columns' =>
   [
     'region' =>

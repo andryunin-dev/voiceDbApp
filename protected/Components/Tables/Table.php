@@ -262,7 +262,7 @@ class Table extends Std
     /**
      * @param SqlFilter $filter
      * @param $appendMode - 'replace', 'append' or 'ignore'
-     * @return mixed
+     * @return self
      * add operation filter. It doesn't  save in config. and can't rewrite table's preFilter
      *
      */
