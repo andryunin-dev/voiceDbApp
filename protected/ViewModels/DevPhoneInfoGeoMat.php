@@ -5,15 +5,14 @@ use T4\Orm\Model;
 
 
 /**
- * Class DevPhoneInfoGeo
+ * Class DevPhoneInfoGeoMat
  * @package App\ViewModels
  */
-class DevPhoneInfoGeo extends Model
+class DevPhoneInfoGeoMat extends Model
 {
 
     protected static $schema = [
-        'table' => 'view.dev_phone_info_geo',
-        //'table' => 'view.dev_phone_info_geo_mat',
+        'table' => 'view.dev_phone_info_geo_mat',
         'columns' => [
             'lotus_regCenter' => ['type' => 'string'],
             'region' => ['type' => 'string'],

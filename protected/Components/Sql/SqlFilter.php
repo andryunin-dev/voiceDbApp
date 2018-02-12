@@ -49,14 +49,16 @@ class SqlFilter extends Std implements SqlFilterInterface
     protected $driver;
     protected $filter;
     protected $statementString = '';
+    protected $joinOperator;
     protected $params = [];
 
     /**
      * SqlFilter constructor.
      * @param string $className Class name for which will be created filter
+     * @param string $joiner
      * @throws Exception
      */
-    public function __construct(string $className)
+    public function __construct(string $className, string $joiner = 'AND')
     {
         parent::__construct();
         if (empty($className)) {
@@ -68,8 +70,16 @@ class SqlFilter extends Std implements SqlFilterInterface
         if (get_parent_class($className) != Model::class) {
             throw new Exception('Class for SqlFilter must extends Model class');
         }
+        if (strtolower($joiner) != 'and' && strtolower($joiner) != 'or') {
+            throw new Exception('operator for join can be "AND" or "OR" only');
+        }
         $this->class = $className;
+        $this->joinOperator = $joiner;
         $this->driver = $className::getDbDriver();
+    }
+
+    public static function setParamsIndex(int $val) {
+        self::$paramsIndex = $val;
     }
 
     protected function isFilterExists($column, $operator)
@@ -144,9 +154,13 @@ class SqlFilter extends Std implements SqlFilterInterface
         return $this;
     }
 
-    public function removeFilter(string $column, string $operator)
+    public function removeFilter(string $column, string $operator = null)
     {
         $this->validateColumnName($column);
+        if (is_null($operator)) {
+            unset($this->$column);
+            return $this;
+        }
         $this->validateOperatorName($operator);
         unset($this->$column->$operator);
         if (0 == $this->$column->count()) {
@@ -198,7 +212,7 @@ class SqlFilter extends Std implements SqlFilterInterface
                     array_pop($opStatement);
             }
         }
-        $this->statementString = implode(' AND ', $statementsByColumns);
+        $this->statementString = implode(' ' . $this->joinOperator . ' ', $statementsByColumns);
         return $this->statementString;
     }
     protected function setFilterStatement($val)

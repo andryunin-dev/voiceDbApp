@@ -226,6 +226,17 @@ class TableConfig extends Config implements TableConfigInterface
         return $this;
     }
 
+    public function filterableColumns()
+    {
+        $res = [];
+        foreach ($this->columns as $column) {
+            if ($this->isColumnFilterable($column)) {
+                $res[] = $column;
+            }
+        }
+        return $res;
+    }
+
     public function extraColumns()
     {
         return new Std($this->extraColumns->toArray());
@@ -484,6 +495,11 @@ class TableConfig extends Config implements TableConfigInterface
     public function isColumnSortable($column) :bool
     {
         return isset($this->columns->$column) && (true === $this->columns->$column->sortable);
+    }
+
+    public function isColumnFilterable($column) :bool
+    {
+        return isset($this->columns->$column) && (true === $this->columns->$column->filterable);
     }
 
     public function isColumnVisible($column) :bool

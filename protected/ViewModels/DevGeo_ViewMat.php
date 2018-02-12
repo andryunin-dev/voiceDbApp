@@ -1,19 +1,56 @@
 <?php
+
 namespace App\ViewModels;
 
 use T4\Orm\Model;
 
-
 /**
- * Class DevPhoneInfoGeo
+ * Class DevGeo_ViewMat
  * @package App\ViewModels
+ *
+ * @property string $region
+ * @property int $region_id
+ * @property string $city
+ * @property int $city_id
+ * @property string $office
+ * @property int $office_id
+ * @property int $lotusId
+ * @property int $appliance_id
+ * @property int $location_id
+ * @property string $appLastUpdate
+ * @property int $appAge
+ * @property bool $appInUse
+ * @property int $hostname
+ * @property string $appDetails
+ * @property string $appComment
+ * @property string $appType_id
+ * @property string $appType
+ * @property bool $isHW
+ * @property string $appSortOrder
+ * @property int $cluster_id
+ * @property string $clusterTitle
+ * @property string $clusterDetails
+ * @property string $clusterComment
+ * @property int $platformVendor_id
+ * @property int $platformVendor
+ * @property int $platformItem_id
+ * @property int $platformTitle
+ * @property int $platform_id
+ * @property string $platformSerial
+ * @property int $softwareVendor_id
+ * @property int $softwareVendor
+ * @property int $softwareItem_id
+ * @property int $softwareTitle
+ * @property int $softwareVersion
+ * @property string $managementIp
+ * @inheritdoc
  */
-class DevPhoneInfoGeo extends Model
+class DevGeo_ViewMat extends Model
 {
+    use PivotReportTrait;
 
     protected static $schema = [
-        'table' => 'view.dev_phone_info_geo',
-        //'table' => 'view.dev_phone_info_geo_mat',
+        'table' => 'view.dev_phone_info_geo_mat',
         'columns' => [
             'lotus_regCenter' => ['type' => 'string'],
             'region' => ['type' => 'string'],
@@ -34,6 +71,7 @@ class DevPhoneInfoGeo extends Model
             'lotus_employees' => ['type' => 'int'],
             'lotus_lastRefresh' => ['type' => 'datetime'],
             'appliance_id' => ['type' => 'int', 'length' => 'big'],
+            'location_id' => ['type' => 'int', 'length' => 'big'],
             'appLastUpdate' => ['type' => 'datetime'],
             'appAge' => ['type' => 'int'],
             'appInUse' => ['type' => 'boolean'],
@@ -52,47 +90,15 @@ class DevPhoneInfoGeo extends Model
             'platformTitle' => ['type' => 'string'],
             'isHW' => ['type' => 'boolean'],
             'platform_id' => ['type' => 'int', 'length' => 'big'],
-            'platformSerial' => ['type' => 'string'],
             'softwareVendor_id' => ['type' => 'int', 'length' => 'big'],
             'softwareVendor' => ['type' => 'string'],
             'softwareItem_id' => ['type' => 'int', 'length' => 'big'],
             'software_id' => ['type' => 'int', 'length' => 'big'],
             'softwareTitle' => ['type' => 'string'],
             'softwareVersion' => ['type' => 'string'],
-            'name' => ['type' => 'string'],
-            'model' => ['type' => 'string'],
-            'prefix' => ['type' => 'int'],
-            'phoneDN' => ['type' => 'int'],
-            'status' => ['type' => 'string'],
-            'phoneDescription' => ['type' => 'string'],
-            'css' => ['type' => 'string'],
-            'devicePool' => ['type' => 'string'],
-            'alertingName' => ['type' => 'string'],
-            'partition' => ['type' => 'string'],
-            'timezone' => ['type' => 'string'], //
-            'dhcpEnabled' => ['type' => 'boolean'],
-            'dhcpServer' => ['type' => 'string'],
-            'domainName' => ['type' => 'string'],
-            'tftpServer1' => ['type' => 'string'],
-            'tftpServer2' => ['type' => 'string'],
-            'defaultRouter' => ['type' => 'string'],
-            'dnsServer1' => ['type' => 'string'],
-            'dnsServer2' => ['type' => 'string'],
-            'callManager1' => ['type' => 'string'],
-            'callManager2' => ['type' => 'string'],
-            'callManager3' => ['type' => 'string'],
-            'callManager4' => ['type' => 'string'],
-            'vlanId' => ['type' => 'int'],
-            'userLocale' => ['type' => 'string'],
-            'cdpNeighborDeviceId' => ['type' => 'string'],
-            'cdpNeighborIP' => ['type' => 'string'],
-            'cdpNeighborPort' => ['type' => 'string'],
-            'publisherIp' => ['type' => 'string'],
-            'unknownLocation' => ['type' => 'boolean'],
-            'managementIp' => ['type' => 'string'],
+            'managementIp' => ['type' => 'string']
         ]
     ];
-
 
     protected function beforeSave()
     {
