@@ -50,8 +50,8 @@ class DevGeo_View extends Model
     use PivotReportTrait;
 
     protected static $schema = [
-        //'table' => 'view.dev_geo',
-        'table' => 'view.dev_phone_info_geo_mat',
+        'table' => 'view.dev_geo',
+        //'table' => 'view.dev_phone_info_geo_mat',
         'columns' => [
             'lotus_regCenter' => ['type' => 'string'],
             'region' => ['type' => 'string'],

@@ -177,6 +177,14 @@ class Report extends Controller
                         $tb = new PivotTable(new PivotTableConfig($request->tableName));
                         $filter = $request->headerFilter->filter;
                         $column = $filter->column;
+
+                        $tbFilter = new SqlFilter($tb->config->className());
+                        if (isset($request->headerFilter->tableFilter) && $request->headerFilter->tableFilter instanceof Std) {
+                            $tbFilter ->addFilterFromArray($request->headerFilter->tableFilter->toArray());
+                        }
+                        $tbFilter->removeFilter($column);
+                        $tb->addFilter($tbFilter, 'append');
+
                         $values[] = $filter->value . '%';
                         $sqlFilter = (new SqlFilter($tb->config->className()))
                             ->setFilter($filter->column, $filter->statement, $values);
@@ -234,7 +242,9 @@ class Report extends Controller
                             $filterSet = $request->tableFilter->toArray();
                             $tabFilter->setFilterFromArray($filterSet);
                         }
-                        $tb->addFilter($tabFilter, 'append');
+
+                        $tb
+                            ->addFilter($tabFilter, 'append');
                         $tb->paginationUpdate($request->pager->page, $request->pager->rowsOnPage);
                         $tbData = $tb->getRecordsByPage();
 
@@ -320,6 +330,14 @@ class Report extends Controller
                         $tb = new PivotTable(new PivotTableConfig($request->tableName));
                         $filter = $request->headerFilter->filter;
                         $column = $filter->column;
+
+                        $tbFilter = new SqlFilter($tb->config->className());
+                        if (isset($request->headerFilter->tableFilter) && $request->headerFilter->tableFilter instanceof Std) {
+                            $tbFilter ->addFilterFromArray($request->headerFilter->tableFilter->toArray());
+                        }
+                        $tbFilter->removeFilter($column);
+                        $tb->addFilter($tbFilter, 'append');
+
                         $values[] = $filter->value . '%';
                         $sqlFilter = (new SqlFilter($tb->config->className()))
                             ->setFilter($filter->column, $filter->statement, $values);

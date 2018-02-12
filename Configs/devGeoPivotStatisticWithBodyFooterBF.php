@@ -3,7 +3,7 @@
 return [
   'dataUrl' => '/report/PhoneStatsReportHandler.json',
   'connection' => '',
-  'className' => 'App\\ViewModels\\DevGeo_View',
+  'className' => 'App\\ViewModels\\DevGeo_ViewMat',
   'columns' =>
   [
     'textField' =>

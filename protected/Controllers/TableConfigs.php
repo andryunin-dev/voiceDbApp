@@ -7,7 +7,9 @@ use App\Components\Tables\PivotTableConfig;
 use App\Components\Tables\TableConfig;
 use App\Models\LotusLocation;
 use App\ViewModels\DevGeo_View;
+use App\ViewModels\DevGeo_ViewMat;
 use App\ViewModels\DevPhoneInfoGeo;
+use App\ViewModels\DevPhoneInfoGeoMat;
 use T4\Core\Std;
 use T4\Mvc\Controller;
 
@@ -51,7 +53,7 @@ class TableConfigs extends Controller
         $tableName = 'devGeoPivotStatisticWithBodyFooter';
         $tableNameBF = $tableName . 'BF';
         $ajaxHandlersURL = '/report/PhoneStatsReportHandler.json';
-        $className = DevGeo_View::class;
+        $className = DevGeo_ViewMat::class;
         $pivotWidthItems = '67px';
         $maxAge = 73;
 
@@ -229,7 +231,7 @@ class TableConfigs extends Controller
         $tableName = 'devGeoPivotStatisticByClustersWithBodyFooter';
         $tableNameBF = $tableName . 'BF';
         $ajaxHandlersURL = '/report/PhoneStatsByClustersReportHandler.json';
-        $className = DevPhoneInfoGeo::class;
+        $className = DevPhoneInfoGeoMat::class;
         $pivotWidthItems = '67px';
         $maxAge = 73;
 

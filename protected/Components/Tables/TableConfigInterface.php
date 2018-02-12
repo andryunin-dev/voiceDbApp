@@ -50,6 +50,7 @@ interface TableConfigInterface
      * @return mixed
      */
     public function columns(array $columns = null,  array $extraColumns = null);
+    public function filterableColumns();
 
     /**
      * @return Std all extraColumns (for main part of table and )
@@ -98,6 +99,7 @@ interface TableConfigInterface
 
     public function isColumnDefined($column) :bool;
     public function isColumnSortable($column) :bool;
+    public function isColumnFilterable($column) :bool;
     public function isColumnVisible($column) :bool;
 
     /**

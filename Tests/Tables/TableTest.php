@@ -200,7 +200,8 @@ TAG;
      */
     public function testSelectStatement($preFilterSet, $expectedQuery, $table)
     {
-        $this->markTestSkipped();
+        //$this->markTestSkipped();
+        SqlFilter::setParamsIndex(0);
 
         $preFilter = (new SqlFilter(ModelClass_1::class))->setFilterFromArray($preFilterSet);
         $table->config->tablePreFilter($preFilter);
@@ -237,7 +238,8 @@ TAG;
      */
     public function testCountStatement($preFilterSet, $expectedQuery, $table)
     {
-        $this->markTestSkipped();
+        //$this->markTestSkipped();
+        SqlFilter::setParamsIndex(0);
 
         $preFilter = (new SqlFilter(ModelClass_1::class))->setFilterFromArray($preFilterSet);
         $table->config->tablePreFilter($preFilter);
@@ -273,7 +275,8 @@ TAG;
      */
     public function testCountParams($preFilterSet, $expectedParams, $table)
     {
-        $this->markTestSkipped();
+        //$this->markTestSkipped();
+        SqlFilter::setParamsIndex(0);
 
         $preFilter = (new SqlFilter(ModelClass_1::class))->setFilterFromArray($preFilterSet);
         $table->config->tablePreFilter($preFilter);
