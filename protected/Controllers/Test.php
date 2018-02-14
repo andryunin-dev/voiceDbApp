@@ -31,38 +31,34 @@ use T4\Core\Exception;
 use T4\Core\Std;
 use T4\Core\Url;
 use T4\Dbal\Connection;
+use T4\Dbal\Query;
 use T4\Http\Request;
 use T4\Mvc\Controller;
 use T4\Orm\Model;
 
 class Test extends Controller
 {
-    public function actionDefault()
+    public function actionDeleteVeryOldAnalogPhones()
     {
-        $array = [
-            'active' => [
-                't1' => 'v1',
-                't2' => 'v2',
-                't3' => 'v3',
-            ],
-            'passive' => [
-                't1' => 'vp1',
-                't2' => 'vp2',
-                't3' => 'vp3',
-            ]
-        ];
-        $array2 = [
-            'passive' => [
-                'tp1' => 'vp1',
-                'tp2' => 'vp2',
-                'tp3' => 'vp3',
-            ]
-        ];
+        $query = (new Query())
+            ->select(['appliance_id', 'appAge', 'platformSerial'])
+            ->from(DevGeo_View::getTableName())
+            ->where('"appType" = :appType AND ("platformTitle" = :platform_title_1 OR "platformTitle" = :platform_title_2) AND "appAge" > 300')
+            ->params([
+                ':appType' => 'phone',
+                ':platform_title_1' => 'Analog Phone',
+                ':platform_title_2' => 'VGC Phone',
+            ]);
 
-        array_walk($array['active'], function (&$item, $key) use (&$array) {
-            $item .= '/' . $array['passive'][$key];
-        });
+        $res = DevGeo_View::findAllByQuery($query);
+        $counter = 0;
+        foreach ($res as $dev) {
+            $item = Appliance::findByPK($dev->appliance_id);
+            if ($item instanceof Appliance) {
+                $item->delete();
 
-        die;
+                echo ++$counter . ' - ' . $item->platform->platform->title . ' - has been deleted' . "\n";
+            }
+        }
     }
 }
