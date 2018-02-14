@@ -38,12 +38,12 @@ use T4\Orm\Model;
 
 class Test extends Controller
 {
-    public function actionDefault()
+    public function actionDeleteVeryOldAnalogPhones()
     {
         $query = (new Query())
-            ->select(['appliance_id', 'platformSerial'])
+            ->select(['appliance_id', 'appAge', 'platformSerial'])
             ->from(DevGeo_View::getTableName())
-            ->where('"appType" = :appType AND ("platformTitle" = :platform_title_1 OR "platformTitle" = :platform_title_2) AND "appAge" > 80')
+            ->where('"appType" = :appType AND ("platformTitle" = :platform_title_1 OR "platformTitle" = :platform_title_2) AND "appAge" > 300')
             ->params([
                 ':appType' => 'phone',
                 ':platform_title_1' => 'Analog Phone',
@@ -51,8 +51,14 @@ class Test extends Controller
             ]);
 
         $res = DevGeo_View::findAllByQuery($query);
-        var_dump($res->count());
+        $counter = 0;
+        foreach ($res as $dev) {
+            $item = Appliance::findByPK($dev->appliance_id);
+            if ($item instanceof Appliance) {
+                $item->delete();
 
-        die;
+                echo ++$counter . ' - ' . $item->platform->platform->title . ' - has been deleted' . "\n";
+            }
+        }
     }
 }
