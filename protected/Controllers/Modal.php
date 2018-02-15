@@ -173,6 +173,7 @@ class Modal extends Controller
     public function actionEditAppliance($id)
     {
         $this->data->current = Appliance::findByPK($id);
+        $this->data->current->modules;
         $this->data->offices = Office::findAll(['order' => 'title']);
         $this->data->vendors = Vendor::findAll(['order' => 'title']);
         $this->data->platforms = Platform::findAll(['order' => 'title']);
