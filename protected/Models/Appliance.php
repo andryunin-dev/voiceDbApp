@@ -19,7 +19,7 @@ use T4\Orm\Model;
  * @property Office $location
  * @property Cluster $cluster
  * @property Vendor $vendor
- * @property Platform $platform
+ * @property PlatformItem $platform
  * @property Software $software
  *
  * @property Collection|VoicePort[] $voicePorts

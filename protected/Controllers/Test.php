@@ -2,28 +2,63 @@
 
 namespace App\Controllers;
 
+
+
+
 use App\Components\ContentFilter;
-use App\Components\ContentFilters\HeaderFilter;
-use App\Components\TableFilterNew;
+use App\Components\Paginator;
+use App\Components\Reports\PivotReport;
+use App\Components\Sorter;
+use App\Components\Sql\SqlFilter;
+use App\Components\Tables\PivotTable;
+use App\Components\Tables\PivotTableConfig;
+use App\Components\Tables\RecordItem;
+use App\Components\Tables\Table;
+use App\Components\Tables\TableConfig;
+use App\Models\Appliance;
+use App\Models\DPortType;
+use App\Models\LotusLocation;
+use App\Models\Office;
+use App\ViewModels\DevGeo_View;
+use App\ViewModels\DevGeoPeople_1;
 use App\ViewModels\DevModulePortGeo;
-use App\ViewModels\Geo_View;
+use App\ViewModels\GeoDev_View;
 use App\ViewModels\GeoDevStat;
-use phpDocumentor\Reflection\DocBlock\Tags\Var_;
+use App\ViewModels\LotusDbData;
+use T4\Core\Collection;
+use T4\Core\Config;
+use T4\Core\Exception;
 use T4\Core\Std;
+use T4\Core\Url;
+use T4\Dbal\Connection;
+use T4\Dbal\Query;
+use T4\Http\Request;
 use T4\Mvc\Controller;
+use T4\Orm\Model;
 
 class Test extends Controller
 {
-    public function actionDefault()
+    public function actionDeleteVeryOldAnalogPhones()
     {
-        $var = GeoDevStat::findAll()->slice(0,3);
-        var_dump($var);
-//        foreach ($var as $office) {
-//            foreach ($office->devStatistics as $type) {
-//                var_dump($type->appType);
-//            }
-//        }
-        die;
+        $query = (new Query())
+            ->select(['appliance_id', 'appAge', 'platformSerial'])
+            ->from(DevGeo_View::getTableName())
+            ->where('"appType" = :appType AND ("platformTitle" = :platform_title_1 OR "platformTitle" = :platform_title_2) AND "appAge" > 300')
+            ->params([
+                ':appType' => 'phone',
+                ':platform_title_1' => 'Analog Phone',
+                ':platform_title_2' => 'VGC Phone',
+            ]);
 
+        $res = DevGeo_View::findAllByQuery($query);
+        $counter = 0;
+        foreach ($res as $dev) {
+            $item = Appliance::findByPK($dev->appliance_id);
+            if ($item instanceof Appliance) {
+                $item->delete();
+
+                echo ++$counter . ' - ' . $item->platform->platform->title . ' - has been deleted' . "\n";
+            }
+        }
     }
 }

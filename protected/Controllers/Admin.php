@@ -456,7 +456,7 @@ class Admin extends Controller
              * @var Office $office
              */
             $office = Office::findByLotusId($data->curLotusId);
-            $oldAddress = $office->address;
+            $address = $office->address;
             $city = City::findByPK($data->cityId);
             $status = OfficeStatus::findByPK($data->statusId);
             if ($office->lotusId != trim($data->lotusId) && false !== Office::findByColumn('lotusId', trim($data->lotusId))) {
@@ -465,20 +465,18 @@ class Admin extends Controller
             if ($office->title != trim($data->title) && false !== Office::findByColumn('title', trim($data->title))) {
                 throw new Exception('Офис с таким названием существует');
             }
-            if ($oldAddress->address != $data->address) {
-                $newAddress = (new Address())
-                    ->fill([
-                        'address' => $data->address,
-                        'city' => $city
-                    ])
-                    ->save();
-                $office->fill(['address' => $newAddress])->save();
-                $oldAddress->delete();
-            }
+            $address
+                ->fill([
+                    'address' => $data->address,
+                    'city' => $city
+                ])
+                ->save();
+
             //собираем офис с изменениями
             $office
                 ->fill([
                     'title' =>$data->title,
+                    'address' => $address,
                     'status' => $status,
                     'lotusId' => $data->lotusId,
                     'comment' => $data->comment
@@ -616,8 +614,9 @@ class Admin extends Controller
             }
             (new Platform())
                 ->fill([
+                    'vendor' => $vendor,
                     'title' => $platform->title,
-                    'vendor' => $vendor
+                    'isHW' => (bool) $platform->isHW,
                 ])
                 ->save();
             Platform::getDbConnection()->commitTransaction();
@@ -646,8 +645,9 @@ class Admin extends Controller
             }
             $updatedPlatform
                 ->fill([
+                    'vendor' => $vendor,
                     'title' => $platform->title,
-                    'vendor' => $vendor
+                    'isHW' => (bool) $platform->isHW,
                 ])
                 ->save();
 

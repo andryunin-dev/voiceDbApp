@@ -1,0 +1,17 @@
+{% spaceless %}
+    {% for record in data %}
+        <tr class="js-table-row ui-widget-content">
+        {% for colname, columnParams in columns %}
+            {% if columnParams.isPivot %}
+                {% set pivColumn = columnParams.pivotColumn  %}
+                {% set pivObj = record.getValue(pivColumn) %}
+
+                <td>{{ pivObj.getValue(colname) }}</td>
+            {% else %}
+                <td>{{ record.getValue(colname) }}</td>
+            {% endif %}
+        {% endfor %}
+        </tr>
+    {% endfor %}
+
+{% endspaceless %}

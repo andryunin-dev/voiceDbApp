@@ -35,9 +35,12 @@ use T4\Orm\Model;
  * @property int $softwareItem_id
  * @property int $softwareTitle
  * @property int $softwareVersion
+ * @inheritdoc
  */
-class GeoDev extends Model
+class GeoDev_View extends Model
 {
+    use PivotReportTrait;
+
     protected static $schema = [
         'table' => 'view.geo_dev',
         'columns' => [
@@ -50,6 +53,7 @@ class GeoDev extends Model
             'lotusId' => ['type' => 'int'],
             'officeComment' => ['type' => 'string'],
             'officeDetails' => ['type' => 'jsonb'],
+            'officeAddress' => ['type' => 'string'],
             'appliance_id' => ['type' => 'int', 'length' => 'big'],
             'location_id' => ['type' => 'int', 'length' => 'big'],
             'appLastUpdate' => ['type' => 'datetime'],

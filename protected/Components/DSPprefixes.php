@@ -45,7 +45,7 @@ class DSPprefixes extends Std
                 if (!empty($dataPortData->vrf_rd)) {
                     $dataPortVrf = Vrf::findByColumn('rd', $dataPortData->vrf_rd);
                 } else {
-                    $dataPortVrf = Vrf::findByColumn('name', $dataPortData->vrf_name);
+                    $dataPortVrf = Vrf::instanceGlobalVrf();
                 }
                 $foundDataPort = DataPort::findByIpVrf($dataPortIp, $dataPortVrf);
                 $foundDataPortMac = mb_strtolower(preg_replace('~[:|\-|.]~','',$foundDataPort->macAddress));
@@ -57,18 +57,17 @@ class DSPprefixes extends Std
                 }
                 DataPort::getDbConnection()->beginTransaction();
 
-                if (false !== $foundDataPort && $foundDataPortMac == $dataPortDataMac) {
-                    // Update found dataport
-                    $dataPort = $foundDataPort;
-                } else {
-                    // At the moment, we do not support the uniqueness of VRF within only one device,
-                    // so we'll delete the found dataport
-                    if (false !== $foundDataPort) {
+                if (false != $foundDataPort) {
+                    if ($foundDataPortMac == $dataPortDataMac) {
+                        $dataPort = $foundDataPort;
+                    } else {
                         $foundDataPort->delete();
+                        $dataPort = new DataPort();
                     }
-                    // Create dataport
+                } else {
                     $dataPort = new DataPort();
                 }
+
                 $dataPort->fill([
                     'appliance' => $appliance,
                     'portType' => DPortType::getEmpty(),
@@ -77,12 +76,18 @@ class DSPprefixes extends Std
                     'vrf' => $dataPortVrf,
                     'masklen' => $dataPortMasklen,
                     'isManagement' => ($dataPortIp == $managementDataPortIp) ? true : false,
-                    'details' => [
-                        'portName' => $dataPortData->interface,
-                        'description' => $dataPortData->description,
-                    ],
                     'lastUpdate'=> (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P'),
                 ]);
+                //todo - изменить afterSave() фреймворка (json -> Std) и удалить проверку !($dataPort->details instanceof Std)
+                if (is_null($dataPort->details) || !($dataPort->details instanceof Std)) {
+                    $dataPort->details = new Std([
+                        'portName' => $dataPortData->interface,
+                        'description' => $dataPortData->description,
+                    ]);
+                } else {
+                    $dataPort->details->portName = $dataPortData->interface;
+                    $dataPort->details->description = $dataPortData->description;
+                }
                 $dataPort->save();
 
                 // End transaction

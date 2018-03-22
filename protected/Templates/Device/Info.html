@@ -1,4 +1,4 @@
-{% extends 'IndexDev.html' %}
+{% extends 'Index.html' %}
 
 {% block main %}
     <div class="row">
@@ -36,9 +36,6 @@
                     {% if not user.readOnly %}
                     action: {id: 'action', name: 'Действия', width: '105px'}
                     {% endif %}
-                },
-                filters: {
-                    url: '/ajax/default.json'
                 }
             },
             pager: {

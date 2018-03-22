@@ -14,3 +14,55 @@
 .ui-filter-list {
     position: relative;
 }
+
+.verticalTableHeader {
+    text-align:center;
+    white-space:normal;
+    transform-origin:50% 50%;
+    transform: rotate(90deg);
+    height: 50px;
+}
+.verticalTableHeader:before {
+    content:'';
+    padding-top:110%;/* takes width as reference, + 10% for faking some extra padding */
+    display:inline-block;
+    vertical-align:middle;
+}
+.rotate-22 {
+    display: flex;
+    flex-direction: column;
+}
+
+.rotate-2 div {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+}
+.rotate-2 p{
+    position: absolute;
+
+    margin: 0;
+    width: 100px;
+    height: 50px;
+    bottom: -40px;
+
+    -moz-transform:rotate(-90deg);
+    -webkit-transform: rotate(-90deg);
+    -o-transform: rotate(-90deg);
+    transform: rotate(-90deg);
+    transform-origin: top left;
+    white-space: normal;
+
+    font-size: small;
+}
+.jqtable .jqt-bd-ft-table td {
+    text-align: center;
+    font-weight: 600;
+    color: #4c4c4c;
+}
+.jqtable .body-footer {
+    font-size: smaller;
+}

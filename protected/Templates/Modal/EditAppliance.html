@@ -160,11 +160,13 @@
                                 {#checkbox#}
                                 <div class="col-xs-2 custom-box checkbox-container">
                                     {% if (false == currentModuleItem.notFound) %}
-                                    {% if (false == currentModuleItem.inUse) %}
-                                    <input type="hidden" name="data[moduleItem][inUse][]" value="0">
-                                    {% endif %}
-                                    <input type="checkbox" id="item-id-{{ currentModuleItem.getPK }}" name="data[moduleItem][inUse][]" value="1" {% if (currentModuleItem.inUse) %}checked{% endif %}>
-                                    <label class="icon-check-off" for="item-id-{{ currentModuleItem.getPK }}">In use</label>
+                                        {% if (false == currentModuleItem.inUse) %}
+                                            <input type="hidden" name="data[moduleItem][inUse][]" value="0">
+                                        {% endif %}
+                                        <input type="checkbox" id="item-id-{{ currentModuleItem.getPK }}" name="data[moduleItem][inUse][]" value="1" {% if (currentModuleItem.inUse) %}checked{% endif %}>
+                                        <label class="icon-check-off" for="item-id-{{ currentModuleItem.getPK }}">In use</label>
+                                    {% else %}
+                                        <input type="hidden" name="data[moduleItem][inUse][]" value="{{ currentModuleItem.inUse ? 1 : 0 }}">
                                     {% endif %}
                                 </div>
                             </div>

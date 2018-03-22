@@ -19,16 +19,34 @@ use T4\Orm\Model;
  */
 class Platform extends Model
 {
+    public function __construct($data = null)
+    {
+        $this->isHW = true;
+        parent::__construct($data);
+    }
+
     protected static $schema = [
         'table' => 'equipment.platforms',
         'columns' => [
-            'title' => ['type' => 'string']
+            'title' => ['type' => 'string'],
+            'isHW' => ['type' => 'boolean'],
         ],
         'relations' => [
             'vendor' => ['type' => self::BELONGS_TO, 'model' => Vendor::class],
             'platformItems' => ['type' => self::HAS_MANY, 'model' => PlatformItem::class]
         ]
     ];
+
+    public function validateIsHW($val)
+    {
+        if (is_null($val)) {
+            throw new Exception('The value of isHW is undefined');
+        }
+        if (!is_bool($val)) {
+            throw new Exception('Invalid value of isHW ');
+        }
+        return true;
+    }
 
     public function validateTitle($val)
     {
@@ -64,12 +82,19 @@ class Platform extends Model
      * @return Platform|bool
      */
     public static function findByVendorTitle(Vendor $vendor, $title) {
-        return $vendor->platforms->filter(
+        $platform = $vendor->platforms->filter(
             function ($platform) use ($title) {
                 return $title == $platform->title;
             }
         )->first();
+
+        if (is_null($platform)) {
+            return false;
+        } else {
+            return $platform;
+        }
     }
+
     public static function getEmpty()
     {
         return self::findByColumn('title', '');

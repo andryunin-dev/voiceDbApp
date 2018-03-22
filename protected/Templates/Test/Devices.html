@@ -1,0 +1,91 @@
+{% extends 'IndexDev.html' %}
+
+{% block main %}
+    <div class="row">
+        <div class="col-xs-12">
+            <table id="dev_tab">
+                <thead>
+                <tr>
+                    <th></th>
+                </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+
+{% endblock %}
+
+
+
+{% block JS %}
+    <script>
+
+        jQuery(function ($) {
+            var tableName = "deviceInfoPivot";
+            var highlightRow = function (e) {
+                var ws = e.data;
+                ws.obj.$body.find(".js-table-row.ui-state-highlight").removeClass("ui-state-highlight");
+                $(e.target).closest(".js-table-row").addClass("ui-state-highlight");
+
+                console.log('click on row')
+            };
+            $.ajax({
+                url: '/test/tableSettings.json',
+                dataType: "json",
+                data: {
+                    tableName: tableName
+                }
+            })
+                .done(function(data) {
+                    console.log(data.config);
+                    var tableSettings = data.config;
+                    var devTable = $("#dev_tab");
+                    devTable.jqTable(tableSettings);
+                    devTable.jqTable('updateBodyContent', {}, window.location.href);
+                    devTable.jqTable('addBodyEventHandler', 'click', "", highlightRow);
+                });
+
+/*
+            var devTable = $("#dev_tab");
+            devTable.jqTable(tableSettings).jqTable('updateBodyContent', {}, window.location.href);
+            var toggleInnerTable = function (e) {
+                if ($(e.target).hasClass('toggler') || $(e.target).parents('.toggler').hasClass('toggler')) {
+                    $(e.target).closest("table").find("tbody tr td").slideToggle("fast");
+                    $(e.target).closest("table").find(".js-caret").toggleClass("caret-down");
+                }
+            };
+            devTable.jqTable('addBodyEventHandler', 'click', "", toggleInnerTable);
+            devTable.jqTable('addHeaderEventHandler', 'click', "", function (e) {
+                if ($(e.target).parent().hasClass('finder-icon') || $(e.target).hasClass('finder-icon')) {
+                    var ws = e.data;
+                    console.log('finder click');
+                    var $finder = $('<input/>', {type: 'text', class: 'finder-input'});
+                    ws.obj.$finder.blur(function (event) {
+                        console.log('focus out');
+                        ws.obj.$finder.remove();
+                    });
+                    ws.obj.$finder.css({position: 'absolute'});
+                    ws.obj.$finder.appendTo('.finder-icon').position({
+                        my: "right top",
+                        at: "center bottom+5",
+                        of: event.target
+                    }).focus()
+                }
+            })
+*/
+
+        });
+    </script>
+    <script>
+        var APP = APP || {};
+        if ("{{exportUrl}}") {
+            $("#excelExport").removeClass("hidden");
+            APP.setLink("#excelExport", "{{ exportUrl }}");
+        }
+        if ("{{eraseLogUrl}}") {
+        $("#eraseLog").removeClass("hidden");
+        APP.setLink("#eraseLog", "{{ eraseLogUrl }}");
+        }
+
+    </script>
+{% endblock %}

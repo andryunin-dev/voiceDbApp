@@ -1,7 +1,7 @@
 <?php
+
 namespace App\Components;
 
-use App\Exceptions\DblockException;
 use App\Models\Appliance;
 use App\Models\ApplianceType;
 use App\Models\Cluster;
@@ -35,365 +35,10 @@ class DSPphones extends Std
     private $dbLockFile;
 
 
-    /**
-     * @param Std $data
-     * @return bool
-     */
     public function process(Std $data)
     {
-        $phoneInfo = PhoneInfo::findByColumn('name', $data->name);
-        if (false === $phoneInfo) {
-            if ($this->isVGC($data->name)) {
-                if (!$this->createVGC($data)) {
-                    return false;
-                };
-            } else {
-                if (!$this->createPhone($data)) {
-                    return false;
-                };
-            }
-        } else {
-            if ($this->isVGC($data->name)) {
-                if (!$this->updateVGC($phoneInfo, $data)) {
-                    return false;
-                };
-            } else {
-                if (!$this->updatePhone($phoneInfo, $data)) {
-                    return false;
-                };
-            }
-        }
-        return true;
-    }
+        $logger = RLogger::getInstance('CUCM-' . $data->publisherIp, ROOT_PATH . DS . 'Logs' . DS . 'phones_' . preg_replace('~\.~', '_', $data->publisherIp) . '.log');
 
-
-    /**
-     * @param Std $data
-     * @return bool
-     * @throws Exception
-     */
-    protected function createPhone(Std $data)
-    {
-        $logger = RLogger::getInstance('PHONE', ROOT_PATH . DS . 'Logs' . DS . 'phones_' . preg_replace('~\.~', '_', $data->publisherIp) . '.log');
-
-        //// CREATE APPLIANCE
-        $masklen = (new IpTools($data->ipAddress, $data->subNetMask))->masklen;
-
-        $macAddress = ($data->macAddress) ?? substr($data->name, -12);
-        $macAddress = implode(':', str_split(mb_strtolower(preg_replace('~[:|\-|.]~','',$macAddress)), 2));
-
-        $modelPhone = mb_strtolower(preg_replace('~ ~','',$data->model));
-        $phoneType = (self::VIP30 == $modelPhone) ? self::VIP30 : self::PHONE;
-
-        // LOCATION for Ip Phone определяем по location defaultRouter телефона
-        $defaultRouterDataPort = DataPort::findByIpVrf($data->defaultRouter, Vrf::instanceGlobalVrf());
-        if (false !== $defaultRouterDataPort) {
-            $location = $defaultRouterDataPort->appliance->location;
-            $unknownLocation = false;
-        } else {
-            // Если defaultRouter телефона не определен, то офис определяем по location publisher,
-            // в лог записываем, что офис телефона не верный
-            $publisherIpDataPort = DataPort::findByIpVrf($data->publisherIp, Vrf::instanceGlobalVrf());
-            if (false !== $publisherIpDataPort) {
-                $location = $publisherIpDataPort->appliance->location;
-                $unknownLocation = true;
-                $logger->warning('PHONE CREATE: [message]=The office is not defined. Default router (' . $data->defaultRouter . ') is not defined; [name]=' . $data->name . '; [ip]=' . $data->ipAddress);
-            } else {
-                throw new Exception('PHONE CREATE: [message]=The office is not defined; [name]=' . $data->name . '; [ip]=' . $data->ipAddress);
-            }
-        }
-
-        $dataAppliance = (new Std())->fill([
-            'vendor' => self::VENDOR,
-            'name' => $data->name,
-            'ipAddress' => $data->ipAddress,
-            'version' => (1 == preg_match('~6921~', $data->model)) ? (($data->appLoadID) ?? '') : (($data->versionID) ?? ''),
-            'platformTitle' => ($data->modelNumber) ?? $data->model,
-            'serialNumber' => ($data->serialNumber) ?? $data->name,
-            'masklen' => (false === $masklen) ? null : $masklen,
-            'macAddress' => $macAddress,
-            'software' => self::PHONE_SOFT,
-            'applianceType' => self::PHONE,
-            'portType' => self::DEFAULT_DATA_PORT_TYPE,
-            'vrf' => Vrf::instanceGlobalVrf(),
-            'location' => $location,
-            'hostname' => $data->name,
-            'phoneType' => $phoneType,
-        ]);
-        $appliance = $this->createAppliance($dataAppliance);
-
-        //// CREATE PHONE INFO
-        $dhcpenable = mb_strtolower($data->dhcpEnabled);
-        $phoneInfo = (new PhoneInfo())->fill([
-            'phone' => $appliance,
-            'model' => $data->model,
-            'name' => $data->name,
-            'prefix' => preg_replace('~\..+~','',$data->prefix),
-            'phoneDN' => $data->phonedn,
-            'status' => $data->status,
-            'description' => $data->description,
-            'css' => $data->css,
-            'devicePool' => $data->devicepool,
-            'alertingName' => $data->alertingname,
-            'partition' => $data->partition,
-            'timezone' => $data->timezone,
-            'domainName' => ('Нет' == $data->domainName) ? null : $data->domainName,
-            'dhcpEnabled' => ('yes' == $dhcpenable || 1 == $dhcpenable || 'да' == $dhcpenable) ? true : false,
-            'dhcpServer' => (false === ($dhcpIp = (new IpTools(($data->dhcpServer) ?? ''))->address)) ? null : $dhcpIp,
-            'tftpServer1' => (false === ($tftp1Ip = (new IpTools(($data->tftpServer1) ?? ''))->address)) ? null : $tftp1Ip,
-            'tftpServer2' => (false === ($tftp2Ip = (new IpTools(($data->tftpServer2) ?? ''))->address)) ? null : $tftp2Ip,
-            'defaultRouter' => (false === ($routerIp = (new IpTools(($data->defaultRouter) ?? ''))->address)) ? null : $routerIp,
-            'dnsServer1' => (false === ($dns1Ip = (new IpTools(($data->dnsServer1) ?? ''))->address)) ? null : $dns1Ip,
-            'dnsServer2' => (false === ($dns2Ip = (new IpTools(($data->dnsServer2) ?? ''))->address)) ? null : $dns2Ip,
-            'callManager1' => (empty($callManager1 = preg_replace('~[ ]+~', ' ', $data->callManager1))) ? null : $callManager1,
-            'callManager2' => (empty($callManager2 = preg_replace('~[ ]+~', ' ', $data->callManager2))) ? null : $callManager2,
-            'callManager3' => (empty($callManager3 = preg_replace('~[ ]+~', ' ', $data->callManager3))) ? null : $callManager3,
-            'callManager4' => (empty($callManager4 = preg_replace('~[ ]+~', ' ', $data->callManager4))) ? null : $callManager4,
-            'vlanId' => (int)$data->vlanId,
-            'userLocale' => $data->userLocale,
-            'cdpNeighborDeviceId' => $data->cdpNeighborDeviceId,
-            'cdpNeighborIP' => (false === ($neighborIp = (new IpTools(($data->cdpNeighborIP) ?? ''))->address)) ? null : $neighborIp,
-            'cdpNeighborPort' => $data->cdpNeighborPort,
-            'publisherIp' => $data->publisherIp,
-            'unknownLocation' => $unknownLocation,
-        ]);
-        $phoneInfo->save();
-        return true;
-    }
-
-    /**
-     * @param PhoneInfo $phoneInfo
-     * @param Std $data
-     * @return bool
-     * @throws Exception
-     */
-    protected function updatePhone(PhoneInfo $phoneInfo, Std $data)
-    {
-        $logger = RLogger::getInstance('PHONE', ROOT_PATH . DS . 'Logs' . DS . 'phones_' . preg_replace('~\.~', '_', $data->publisherIp) . '.log');
-
-        //// UPDATE APPLIANCE
-        $masklen = (new IpTools($data->ipAddress, $data->subNetMask))->masklen;
-        $macAddress = ($data->macAddress) ?? substr($data->name, -12);
-
-        $modelPhone = mb_strtolower(preg_replace('~ ~','',$data->model));
-        $phoneType = (self::VIP30 == $modelPhone) ? self::VIP30 : self::PHONE;
-
-        // UPDATE LOCATION for Ip Phone - определяем по defaultRouter's location телефона
-        $defaultRouterDataPort = DataPort::findByIpVrf($data->defaultRouter, Vrf::instanceGlobalVrf());
-        if (false !== $defaultRouterDataPort) {
-            $location = $defaultRouterDataPort->appliance->location;
-            $unknownLocation = false;
-        } else {
-            // Если defaultRouter телефона не определен, то офис определяем по publisher's location,
-            // в лог записываем, что офис телефона не верный
-            $publisherIpDataPort = DataPort::findByIpVrf($data->publisherIp, Vrf::instanceGlobalVrf());
-            if (false !== $publisherIpDataPort) {
-                $location = $publisherIpDataPort->appliance->location;
-                $unknownLocation = true;
-                $logger->warning('PHONE UPDATE: [message]=The office is not defined. Default router (' . $data->defaultRouter . ') is not defined; [name]=' . $data->name . '; [ip]=' . $data->ipAddress);
-            } else {
-                throw new Exception('PHONE UPDATE: [message]=The office is not defined; [name]=' . $data->name . '; [ip]=' . $data->ipAddress);
-            }
-        }
-
-        $dataAppliance = (new Std())->fill([
-            'vendor' => self::VENDOR,
-            'software' => self::PHONE_SOFT,
-            'version' => (1 == preg_match('~6921~', $data->model)) ? (($data->appLoadID) ?? '') : (($data->versionID) ?? ''),
-            'portType' => self::DEFAULT_DATA_PORT_TYPE,
-            'macAddress' => $macAddress,
-            'vrf' => Vrf::instanceGlobalVrf(),
-            'ipAddress' => $data->ipAddress,
-            'masklen' => (false === $masklen) ? null : $masklen,
-            'location' => $location,
-            'hostname' => $data->name,
-            'phoneType' => $phoneType,
-        ]);
-        $this->updateAppliance($phoneInfo->phone, $dataAppliance);
-
-        //// UPDATE PHONE INFO
-        $dhcpenable = mb_strtolower($data->dhcpEnabled);
-        $phoneInfo->fill([
-            'prefix' => preg_replace('~\..+~','',$data->prefix),
-            'phoneDN' => $data->phonedn,
-            'status' => $data->status,
-            'description' => $data->description,
-            'css' => $data->css,
-            'devicePool' => $data->devicepool,
-            'alertingName' => $data->alertingname,
-            'partition' => $data->partition,
-            'timezone' => $data->timezone,
-            'domainName' => ('Нет' == $data->domainName) ? null : $data->domainName,
-            'dhcpEnabled' => ('yes' == $dhcpenable || 1 == $dhcpenable || 'да' == $dhcpenable) ? true : false,
-            'dhcpServer' => (false === ($dhcpIp = (new IpTools(($data->dhcpServer) ?? ''))->address)) ? null : $dhcpIp,
-            'tftpServer1' => (false === ($tftp1Ip = (new IpTools(($data->tftpServer1) ?? ''))->address)) ? null : $tftp1Ip,
-            'tftpServer2' => (false === ($tftp2Ip = (new IpTools(($data->tftpServer2) ?? ''))->address)) ? null : $tftp2Ip,
-            'defaultRouter' => (false === ($routerIp = (new IpTools(($data->defaultRouter) ?? ''))->address)) ? null : $routerIp,
-            'dnsServer1' => (false === ($dns1Ip = (new IpTools(($data->dnsServer1) ?? ''))->address)) ? null : $dns1Ip,
-            'dnsServer2' => (false === ($dns2Ip = (new IpTools(($data->dnsServer2) ?? ''))->address)) ? null : $dns2Ip,
-            'callManager1' => (empty($callManager1 = preg_replace('~[ ]+~', ' ', $data->callManager1))) ? null : $callManager1,
-            'callManager2' => (empty($callManager2 = preg_replace('~[ ]+~', ' ', $data->callManager2))) ? null : $callManager2,
-            'callManager3' => (empty($callManager3 = preg_replace('~[ ]+~', ' ', $data->callManager3))) ? null : $callManager3,
-            'callManager4' => (empty($callManager4 = preg_replace('~[ ]+~', ' ', $data->callManager4))) ? null : $callManager4,
-            'vlanId' => (int)$data->vlanId,
-            'userLocale' => $data->userLocale,
-            'cdpNeighborDeviceId' => $data->cdpNeighborDeviceId,
-            'cdpNeighborIP' => (false === ($neighborIp = (new IpTools(($data->cdpNeighborIP) ?? ''))->address)) ? null : $neighborIp,
-            'cdpNeighborPort' => $data->cdpNeighborPort,
-            'publisherIp' => $data->publisherIp,
-            'unknownLocation' => $unknownLocation,
-        ]);
-        $phoneInfo->save();
-        return true;
-    }
-
-
-    /**
-     * @param Std $data
-     * @return bool
-     * @throws Exception
-     */
-    protected function createVGC(Std $data)
-    {
-        //// CREATE APPLIANCE
-        // LOCATION for VGC PORT определяем по устройству VG
-        $vgDataPort = DataPort::findByIpVrf($data->ipAddress, Vrf::instanceGlobalVrf());
-        if (false === $vgDataPort) {
-            throw new Exception('VGC PORT CREATE: [message]=The office is not defined; [name]=' . $data->name . '; [ip]=' . $data->ipAddress);
-        }
-        $vg = $vgDataPort->appliance;
-        $unknownLocation = false;
-
-        // CLUSTER for VGC PORT определяем по устройству VG
-        $hostnameVG = $vg->details->hostname;
-        if (empty($hostnameVG)) {
-            throw new Exception('VGC PORT CREATE: [message]=The cluster is not defined; [name]=' . $data->name . '; [ip]=' . $data->ipAddress);
-        }
-        $cluster = $vg->cluster;
-        if (is_null($cluster)) {
-            $cluster = Cluster::findByColumn('title', $hostnameVG);
-            if (false === $cluster) {
-                $cluster = (new Cluster())->fill([
-                    'title' => $hostnameVG,
-                ]);
-                $cluster->save();
-            }
-            $vg->fill([
-                'cluster' => $cluster,
-            ]);
-            $vg->save();
-        }
-
-        $dataAppliance = (new Std())->fill([
-            'vendor' => self::VENDOR,
-            'software' => self::VGC_SOFT,
-            'version' => self::VGC_SOFT_VERSION,
-            'platformTitle' => $data->model,
-            'serialNumber' => $data->name,
-            'applianceType' => self::PHONE,
-            'location' => $vg->location,
-            'hostname' => $hostnameVG,
-            'cluster' => $cluster,
-            'phoneType' => self::VGC,
-        ]);
-        $appliance = $this->createAppliance($dataAppliance);
-
-        //// CREATE PHONE INFO
-        $phoneInfo = (new PhoneInfo())->fill([
-            'phone' => $appliance,
-            'model' => $data->model,
-            'name' => $data->name,
-            'prefix' => preg_replace('~\..+~','',$data->prefix),
-            'phoneDN' => $data->phonedn,
-            'status' => $data->status,
-            'description' => $data->description,
-            'css' => $data->css,
-            'devicePool' => $data->devicepool,
-            'alertingName' => $data->alertingname,
-            'partition' => $data->partition,
-            'publisherIp' => $data->publisherIp,
-            'dhcpEnabled' => false,
-            'unknownLocation' => $unknownLocation,
-        ]);
-        $phoneInfo->save();
-        return true;
-    }
-
-    /**
-     * @param PhoneInfo $phoneInfo
-     * @param Std $data
-     * @return bool
-     * @throws Exception
-     */
-    protected function updateVGC(PhoneInfo $phoneInfo, Std $data)
-    {
-        //// UPDATE APPLIANCE
-        // UPDATE LOCATION for VGC PORT - определяем по устройству VG
-        $vgDataPort = DataPort::findByIpVrf($data->ipAddress, Vrf::instanceGlobalVrf());
-        if (false === $vgDataPort) {
-            throw new Exception('VGC PORT CREATE: [message]=The office is not defined; [name]=' . $data->name . '; [ip]=' . $data->ipAddress);
-        }
-        $vg = $vgDataPort->appliance;
-        $unknownLocation = false;
-
-        // UPDATE CLUSTER for VGC PORT - определяем по устройству VG
-        $hostnameVG = $vg->details->hostname;
-        if (empty($hostnameVG)) {
-            throw new Exception('VGC PORT CREATE: [message]=The cluster is not defined; [name]=' . $data->name . '; [ip]=' . $data->ipAddress);
-        }
-        $cluster = $vg->cluster;
-        if (is_null($cluster)) {
-            $cluster = Cluster::findByColumn('title', $hostnameVG);
-            if (false === $cluster) {
-                $cluster = (new Cluster())->fill([
-                    'title' => $hostnameVG,
-                ]);
-                $cluster->save();
-            }
-            $vg->fill([
-                'cluster' => $cluster,
-            ]);
-            $vg->save();
-        }
-
-        $dataAppliance = (new Std())->fill([
-            'vendor' => self::VENDOR,
-            'software' => self::VGC_SOFT,
-            'version' => self::VGC_SOFT_VERSION,
-            'location' => $vg->location,
-            'hostname' => $hostnameVG,
-            'cluster' => $cluster,
-            'phoneType' => self::VGC,
-        ]);
-        $this->updateAppliance($phoneInfo->phone, $dataAppliance);
-
-        //// UPDATE PHONE INFO
-        $phoneInfo->fill([
-            'model' => $data->model,
-            'prefix' => preg_replace('~\..+~','',$data->prefix),
-            'phoneDN' => $data->phonedn,
-            'status' => $data->status,
-            'description' => $data->description,
-            'css' => $data->css,
-            'devicePool' => $data->devicepool,
-            'alertingName' => $data->alertingname,
-            'partition' => $data->partition,
-            'publisherIp' => $data->publisherIp,
-            'dhcpEnabled' => false,
-            'unknownLocation' => $unknownLocation,
-        ]);
-        $phoneInfo->save();
-        return true;
-    }
-
-
-    /**
-     * @param Std $data
-     * @return Appliance
-     * @throws Exception
-     */
-    protected function createAppliance(Std $data)
-    {
         // Block the dbLock file before start of the transaction
         if (false === $this->dbLock()) {
             throw new Exception('PHONE CREATE: Can not get the lock file');
@@ -403,227 +48,395 @@ class DSPphones extends Std
             // Start transaction
             Appliance::getDbConnection()->beginTransaction();
 
-            // create Appliance - define VENDOR
-            $vendor = Vendor::findByColumn('title', $data->vendor);
-            if (false === $vendor) {
-                $vendor = (new Vendor())->fill([
-                    'title' => $data->vendor,
-                ]);
-                $vendor->save();
+            // Defind PhoneInfo and Appliance
+            $phoneInfo = PhoneInfo::findByColumn('name', $data->name);
+            if (false !== $phoneInfo) {
+                $appliance = $phoneInfo->phone;
+            } else {
+                $phoneInfo = new PhoneInfo();
+                $appliance = new Appliance();
             }
 
-            // create Appliance - define SOFTWARE
-            $software = Software::findByColumn('title', $data->software);
-            if (false === $software) {
-                $software = (new Software())->fill([
-                    'vendor' => $vendor,
-                    'title' => $data->software,
+            // (VGC | Phone) - Location, cluster, softwareTitle, softwareVersion, phone's type
+            if ($this->isVGC($data->name)) {
+                // Phone's type
+                $phoneType = self::VGC;
+
+                // SoftwareTitle
+                $softwareTitle = self::VGC_SOFT;
+
+                // SoftwareVersion
+                $softwareVersion = self::VGC_SOFT_VERSION;
+
+                // Location for VGC PORT определяем по устройству VG
+                $vgDataPort = DataPort::findByIpVrf($data->ipAddress, Vrf::instanceGlobalVrf());
+                if (false === $vgDataPort) {
+                    throw new Exception('VGC PORT: [message]=The office is not defined; [name]=' . $data->name . '; [ip]=' . $data->ipAddress);
+                }
+                $vg = $vgDataPort->appliance;
+                $location = $vg->location;
+                $unknownLocation = false;
+
+                // Cluster for VGC PORT определяем по устройству VG
+                $vgHostname = $vg->details->hostname;
+                if (empty($vgHostname)) {
+                    throw new Exception('VGC PORT CREATE: [message]=The cluster is not defined; [name]=' . $data->name . '; [ip]=' . $data->ipAddress);
+                }
+                $cluster = $vg->cluster;
+                if (is_null($cluster)) {
+                    $cluster = Cluster::findByColumn('title', $vgHostname);
+                    if (false === $cluster) {
+                        $cluster = (new Cluster())->fill([
+                            'title' => $vgHostname,
+                        ]);
+                        $cluster->save();
+                    }
+                    $vg->fill([
+                        'cluster' => $cluster,
+                    ]);
+                    $vg->save();
+                }
+
+                $appliance->fill([
+                    'cluster' => $cluster,
                 ]);
-                $software->save();
+            } else {
+                // Phone's type
+                $modelPhone = mb_strtolower(preg_replace('~ ~','',$data->model));
+                $phoneType = (self::VIP30 == $modelPhone) ? self::VIP30 : self::PHONE;
+
+                // SoftwareTitle
+                $softwareTitle = self::PHONE_SOFT;
+
+                // SoftwareVersion
+                $softwareVersion = (1 == preg_match('~6921~', $data->model)) ? $data->appLoadID : $data->versionID;
+
+                // Location for Ip Phone определяем по location defaultRouter телефона
+                $defaultRouterDataPort = DataPort::findByIpVrf($data->defaultRouter, Vrf::instanceGlobalVrf());
+                if (false !== $defaultRouterDataPort) {
+                    $location = $defaultRouterDataPort->appliance->location;
+                    $unknownLocation = false;
+                } else {
+                    // Если defaultRouter телефона не определен, то офис определяем по location publisher,
+                    // в лог записываем, что офис телефона не верный
+                    $publisherIpDataPort = DataPort::findByIpVrf($data->publisherIp, Vrf::instanceGlobalVrf());
+                    if (false !== $publisherIpDataPort) {
+                        $location = $publisherIpDataPort->appliance->location;
+                        $unknownLocation = true;
+                        $logger->warning('PHONE CREATE: [message]=The office is not defined. Default router (' . $data->defaultRouter . ') is not defined; [name]=' . $data->name . '; [ip]=' . $data->ipAddress);
+                    } else {
+                        throw new Exception('PHONE CREATE: [message]=The office is not defined; [name]=' . $data->name . '; [ip]=' . $data->ipAddress);
+                    }
+                }
             }
 
-            // create Appliance - define SOFTWARE ITEM for Ip Phone
-            $softwareItem = (new SoftwareItem())->fill([
-                'software' => $software,
-                'version' => $data->version,
-            ]);
-            $softwareItem->save();
+            // Vendor
+            $vendor = Vendor::findByColumn('title', self::VENDOR);
 
-            // create Appliance - define PLATFORM
-            $platform = Platform::findByColumn('title', $data->platformTitle);
+            // Platform
+            $model = (!empty($data->modelNumber)) ? $data->modelNumber : $data->model;
+            preg_match('~\d+~', $model, $numericModelCode);
+            switch ($numericModelCode[0]) {
+                case '6921';
+                    $model = 'CP-6921';
+                    break;
+                case '7905';
+                    $model = 'CP-7905G';
+                    break;
+                case '7911';
+                    $model = 'CP-7911G';
+                    break;
+                case '7912';
+                    $model = 'CP-7912G';
+                    break;
+                case '7936';
+                    $model = 'CP-7936';
+                    break;
+                case '7937';
+                    $model = 'CP-7937';
+                    break;
+                case '7940';
+                    $model = 'CP-7940G';
+                    break;
+                case '7942';
+                    $model = 'CP-7942G';
+                    break;
+                case '7945';
+                    $model = 'CP-7945G';
+                    break;
+                case '7960';
+                    $model = 'CP-7960G';
+                    break;
+                case '7965';
+                    $model = 'CP-7965G';
+                    break;
+                case '7975';
+                    $model = 'CP-7975G';
+                    break;
+                case '8831';
+                    $model = 'CP-8831';
+                    break;
+                case '8865';
+                    $model = 'CP-8865';
+                    break;
+                case '8945';
+                    $model = 'CP-8945';
+                    break;
+                default:
+                    preg_match('~communicator~', mb_strtolower($model), $modelName);
+                    if ('communicator' == $modelName[0]) {
+                        $model = 'Communicator';
+                    } else {
+                        $model = trim(preg_replace('~Cisco|CISCO~', '', $model));
+                        $model = trim(preg_replace('~  +~', ' ', $model));
+                    }
+            }
+
+            $platform = Platform::findByVendorTitle($vendor, $model);
             if (false === $platform) {
                 $platform = (new Platform())->fill([
                     'vendor' => $vendor,
-                    'title' => $data->platformTitle,
+                    'title' => $model,
                 ]);
                 $platform->save();
             }
 
-            // create Appliance - define PLATFORM ITEM
-            $platformItem = (new PlatformItem())->fill([
-                'platform' => $platform,
-                'serialNumber' => $data->serialNumber,
-            ]);
-            $platformItem->save();
+            // PlatformItem
+            $platformItem = ($appliance->isNew()) ? new PlatformItem() : $appliance->platform;
+            $serialNumber = (!empty($data->serialNumber)) ? $data->serialNumber : $data->name;
+            if (
+                $appliance->isNew() ||
+                $serialNumber != $appliance->platform->serialNumber ||
+                $model != $appliance->platform->platform->title ||
+                $vendor->title != $appliance->vendor->title
+            ) {
+                $platformItem->fill([
+                    'platform' => $platform,
+                    'serialNumber' => $serialNumber,
+                ]);
+                $platformItem->save();
+            }
 
-            // create Appliance - define APPLIANCE TYPE
-            $applianceType = ApplianceType::findByColumn('type', $data->applianceType);
+            // Software
+            $software = Software::findByVendorTitle($vendor, $softwareTitle);
+            if (false === $software) {
+                $software = (new Software())->fill([
+                    'vendor' => $vendor,
+                    'title' => $softwareTitle,
+                ]);
+                $software->save();
+            }
+
+            // SoftwareItem
+            $softwareItem = ($appliance->isNew()) ? new SoftwareItem() : $appliance->software;
+            if (
+                $appliance->isNew() ||
+                $softwareVersion != $appliance->software->version ||
+                $softwareTitle != $appliance->software->software->title ||
+                $vendor->title != $appliance->vendor->title
+            ) {
+                $softwareItem->fill([
+                    'software' => $software,
+                    'version' => $softwareVersion,
+                ]);
+                $softwareItem->save();
+            }
+
+            // ApplianceType
+            $applianceType = ApplianceType::findByColumn('type', self::PHONE);
             if (false === $applianceType) {
                 $applianceType = (new ApplianceType())->fill([
-                    'type' => $data->applianceType,
+                    'type' => self::PHONE,
                 ]);
                 $applianceType->save();
             }
 
-            // create Appliance
-            $appliance = (new Appliance())->fill([
+            // Appliance
+            $appliance->fill([
                 'vendor' => $vendor,
                 'type' => $applianceType,
                 'platform' => $platformItem,
                 'software' => $softwareItem,
-                'location' => $data->location,
-                'cluster' => ($data->cluster) ?? null,
-                'details' => [
-                    'hostname' => $data->hostname,
-                ],
-                'inUse' => true,
+                'location' => $location,
                 'lastUpdate'=> (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P'),
             ]);
+            if ($appliance->isNew()) {
+                $appliance->fill([
+                    'inUse' => true,
+                ]);
+            }
+            if (is_null($appliance->details) || !($appliance->details instanceof Std)) {
+                $appliance->details = new Std(['hostname' => $data->name]);
+            } else {
+                $appliance->details->hostname = $data->name;
+            }
             $appliance->save();
 
-            // create DATA PORT for Appliance
-            if (self::VGC != $data->phoneType && self::VIP30 != $data->phoneType) {
-                $portType = DPortType::findByColumn('type', $data->portType);
-                if (false === $portType) {
-                    $portType = (new DPortType())->fill([
-                        'type' => $data->portType,
-                    ]);
-                    $portType->save();
-                }
-                $existDataPort = DataPort::findByIpVrf($data->ipAddress, $data->vrf);
-                if (false !== $existDataPort) {
-                    $existDataPort->delete();
-                }
-                $dataPort = (new DataPort())->fill([
-                    'appliance' => $appliance,
-                    'portType' => $portType,
-                    'macAddress' => $data->macAddress,
-                    'ipAddress' => $data->ipAddress,
-                    'vrf' => $data->vrf,
-                    'masklen' => $data->masklen,
-                    'isManagement' => true,
-                    'lastUpdate'=> (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P'),
-                ]);
-                $dataPort->save();
+            // Appliance's Management Data Port
+            if (is_null($data->ipAddress) && is_null($appliance->cluster)) {
+                throw new Exception('APPLIANCE UPDATE: [message]=Phone does not have the management ip; [data]=' . json_encode($data));
             }
+            if (!is_null($data->ipAddress)) {
+                if (self::VGC != $phoneType && self::VIP30 != $phoneType) {
+                    // IpAddress
+                    $ipAddress = (new IpTools($data->ipAddress))->address;
 
-            // End transaction
-            Appliance::getDbConnection()->commitTransaction();
-        } catch (Exception $e) {
-            Appliance::getDbConnection()->rollbackTransaction();
-            $this->dbUnLock();
-            throw new Exception($e->getMessage());
-        }
-        $this->dbUnLock();
-        return $appliance;
-    }
+                    // Vrf
+                    $vrf = Vrf::instanceGlobalVrf();
 
-    /**
-     * @param Appliance $appliance
-     * @param Std $data
-     * @return Appliance
-     * @throws Exception
-     */
-    protected function updateAppliance(Appliance $appliance, Std $data)
-    {
-        // Block the dbLock file before start of the transaction
-        if (false === $this->dbLock()) {
-            throw new Exception('PHONE CREATE: Can not get the lock file');
-        }
+                    // Masklen
+                    $masklen = (new IpTools($data->ipAddress, $data->subNetMask))->masklen;
+                    $masklen = (false === $masklen) ? null : $masklen;
 
-        try {
-            // Start transaction
-            Appliance::getDbConnection()->beginTransaction();
+                    // Macaddress
+                    if (is_null($data->macAddress)) {
+                        $macAddress = (1 == preg_match('~SEP~', mb_strtoupper($data->name))) ? substr($data->name, -12) : null;
+                    } else {
+                        $macAddress = $data->macAddress;
+                    }
+                    if (!is_null($macAddress)) {
+                        $macAddress = implode(':', str_split(mb_strtolower(preg_replace('~[:|\-|.]~', '', $macAddress)), 2));
+                    }
 
-            // UPDATE LOCATION
-            if ($data->location->lotusId != $appliance->location->lotusId) {
-                $appliance->fill([
-                    'location' => $data->location,
-                ]);
-            }
+                    // Dataport's type
+                    $portType = DPortType::findByColumn('type', self::DEFAULT_DATA_PORT_TYPE);
+                    if (false === $portType) {
+                        $portType = (new DPortType())->fill([
+                            'type' => self::DEFAULT_DATA_PORT_TYPE,
+                        ]);
+                        $portType->save();
+                    }
 
-            // UPDATE SOFTWARE
-            if ($data->software != $appliance->software->software->title) {
-                $software = Software::findByColumn('title', $data->software);
-                if (false === $software) {
-                    $software = (new Software())->fill([
-                        'vendor' => Vendor::findByColumn('title', $data->vendor),
-                        'title' => $data->software,
-                    ]);
-                    $software->save();
-                }
-                $appliance->software->fill([
-                    'software' => $software,
-                ]);
-                $appliance->software->save();
-            }
-
-            // UPDATE SOFTWARE ITEM
-            if ($data->version != $appliance->software->version) {
-                $appliance->software->fill([
-                    'version' => $data->version,
-                ]);
-                $appliance->software->save();
-            }
-
-            // UPDATE CLUSTER
-            if (self::VGC == $data->phoneType && $data->cluster->title != $appliance->cluster->title) {
-                $appliance->fill([
-                    'cluster' => $data->cluster,
-                ]);
-            }
-
-            // UPDATE APPLIANCE
-            $updateDetails = [
-                'hostname' => $data->hostname,
-            ];
-            $appliance->fill([
-                'details' => array_merge($updateDetails, $appliance->details->toArray()),
-                'lastUpdate'=> (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P'),
-            ]);
-            $appliance->save();
-
-            // UPDATE DATA PORT
-            if (self::VGC != $data->phoneType && self::VIP30 != $data->phoneType) {
-                $foundDataPort = DataPort::findByIpVrf($data->ipAddress, $data->vrf);
-                $foundDataPortMac = mb_strtolower(preg_replace('~[:|\-|.]~','',$foundDataPort->macAddress));
-                $dataPortDataMac = mb_strtolower(preg_replace('~[:|\-|.]~','',$data->macAddress));
-                if (false !== $foundDataPort && $foundDataPortMac == $dataPortDataMac) {
-                    $phoneDataPort = $foundDataPort;
-                } else {
+                    // Management dataport
+                    $foundDataPort = DataPort::findByIpVrf($ipAddress, $vrf);
                     if (false !== $foundDataPort) {
-                        $foundDataPort->delete();
+                        if ($foundDataPort->appliance->getPk() == $appliance->getPk()) {
+                            $managementDataPort = $foundDataPort;
+                        } else {
+                            $foundDataPort->delete();
+                            $managementDataPort = new DataPort();
+                        }
+                    } else {
+                        $managementDataPort = new DataPort();
                     }
-                    $phoneDataPort = $appliance->dataPorts->first();
-                    if (is_null($phoneDataPort)) {
-                        $phoneDataPort = new DataPort();
-                    }
-                }
-                $portType = DPortType::findByColumn('type', $data->portType);
-                if (false === $portType) {
-                    $portType = (new DPortType())->fill([
-                        'type' => $data->portType,
+                    $managementDataPort->fill([
+                        'appliance' => $appliance,
+                        'portType' => $portType,
+                        'macAddress' => $macAddress,
+                        'ipAddress' => $ipAddress,
+                        'vrf' => $vrf,
+                        'masklen' => $masklen,
+                        'isManagement' => true,
+                        'lastUpdate' => (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P'),
                     ]);
-                    $portType->save();
-                }
-                $phoneDataPort->fill([
-                    'appliance' => $appliance,
-                    'portType' => $portType,
-                    'macAddress' => implode(':', str_split($dataPortDataMac, 2)),
-                    'ipAddress' => $data->ipAddress,
-                    'vrf' => $data->vrf,
-                    'masklen' => $data->masklen,
-                    'isManagement' => true,
-                    'lastUpdate'=> (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P'),
-                ]);
-                $phoneDataPort->save();
-                if (1 < $appliance->dataPorts->count()) {
+                    $managementDataPort->save();
                     foreach ($appliance->dataPorts as $dataPort) {
-                        if ($dataPort->getPk() != $phoneDataPort->getPk()) {
+                        if ($dataPort->getPk() != $managementDataPort->getPk()) {
                             $dataPort->delete();
                         }
                     }
-                }
-            }
-            if (self::VGC == $data->phoneType || self::VIP30 == $data->phoneType) {
-                // У VGC PORT недолжно быть data ports, так как он должен быть в кластере
-                if (0 < $appliance->dataPorts->count()) {
+                } else {
+                    // У VGC PORT и Cisco 30 VIP недолжно быть data ports
                     foreach ($appliance->dataPorts as $dataPort) {
                         $dataPort->delete();
                     }
                 }
             }
 
+            // Domain name
+            $domainName = (empty($data->domainName) || 'Нет' == $data->domainName) ? null : $data->domainName;
+
+            // DHCP enable
+            $dhcpEnable = mb_strtolower($data->dhcpEnabled);
+            $dhcpEnable = ('yes' == $dhcpEnable || 1 == $dhcpEnable || 'да' == $dhcpEnable) ? true : false;
+
+            // DHCP server
+            $dhcpIp = (empty($data->dhcpServer)) ? '' : $data->dhcpServer;
+            $dhcpIp = (new IpTools($dhcpIp))->address;
+            $dhcpIp = (false === $dhcpIp) ? null : $dhcpIp;
+
+            // TFTP server 1
+            $tftpServer1 = (empty($data->tftpServer1)) ? '' : $data->tftpServer1;
+            $tftpServer1 = (new IpTools($tftpServer1))->address;
+            $tftpServer1 = (false === $tftpServer1) ? null : $tftpServer1;
+
+            // TFTP server 2
+            $tftpServer2 = (empty($data->tftpServer2)) ? '' : $data->tftpServer2;
+            $tftpServer2 = (new IpTools($tftpServer2))->address;
+            $tftpServer2 = (false === $tftpServer2) ? null : $tftpServer2;
+
+            // Default router
+            $defaultRouter = (empty($data->defaultRouter)) ? '' : $data->defaultRouter;
+            $defaultRouter = (new IpTools($defaultRouter))->address;
+            $defaultRouter = (false === $defaultRouter) ? null : $defaultRouter;
+
+            // DNS server 1
+            $dnsServer1 = (empty($data->dnsServer1)) ? '' : $data->dnsServer1;
+            $dnsServer1 = (new IpTools($dnsServer1))->address;
+            $dnsServer1 = (false === $dnsServer1) ? null : $dnsServer1;
+
+            // DNS server 2
+            $dnsServer2 = (empty($data->dnsServer2)) ? '' : $data->dnsServer2;
+            $dnsServer2 = (new IpTools($dnsServer2))->address;
+            $dnsServer2 = (false === $dnsServer2) ? null : $dnsServer2;
+
+            // CDP neighbor IP
+            $cdpNeighborIP = (empty($data->cdpNeighborIP)) ? '' : $data->cdpNeighborIP;
+            $cdpNeighborIP = (new IpTools($cdpNeighborIP))->address;
+            $cdpNeighborIP = (false === $cdpNeighborIP) ? null : $cdpNeighborIP;
+
+            // Call manager 1
+            $callManager1 = preg_replace('~[ ]+~', ' ', $data->callManager1);
+            $callManager1 = (empty($callManager1)) ? null : $callManager1;
+
+            // Call manager 2
+            $callManager2 = preg_replace('~[ ]+~', ' ', $data->callManager2);
+            $callManager2 = (empty($callManager2)) ? null : $callManager2;
+
+            // Call manager 3
+            $callManager3 = preg_replace('~[ ]+~', ' ', $data->callManager3);
+            $callManager3 = (empty($callManager3)) ? null : $callManager3;
+
+            // Call manager 4
+            $callManager4 = preg_replace('~[ ]+~', ' ', $data->callManager4);
+            $callManager4 = (empty($callManager4)) ? null : $callManager4;
+
+            // Phone Info
+            $phoneInfo->fill([
+                'phone' => $appliance,
+                'model' => $model,
+                'name' => $data->name,
+                'prefix' => preg_replace('~\..+~','',$data->prefix),
+                'phoneDN' => $data->phonedn,
+                'status' => $data->status,
+                'description' => $data->description,
+                'css' => $data->css,
+                'devicePool' => $data->devicepool,
+                'alertingName' => $data->alertingname,
+                'partition' => $data->partition,
+                'timezone' => $data->timezone,
+                'domainName' => $domainName,
+                'dhcpEnabled' => $dhcpEnable,
+                'dhcpServer' => $dhcpIp,
+                'tftpServer1' => $tftpServer1,
+                'tftpServer2' => $tftpServer2,
+                'defaultRouter' => $defaultRouter,
+                'dnsServer1' => $dnsServer1,
+                'dnsServer2' => $dnsServer2,
+                'callManager1' => $callManager1,
+                'callManager2' => $callManager2,
+                'callManager3' => $callManager3,
+                'callManager4' => $callManager4,
+                'vlanId' => (int)$data->vlanId,
+                'userLocale' => $data->userLocale,
+                'cdpNeighborDeviceId' => $data->cdpNeighborDeviceId,
+                'cdpNeighborIP' => $cdpNeighborIP,
+                'cdpNeighborPort' => $data->cdpNeighborPort,
+                'publisherIp' => $data->publisherIp,
+                'unknownLocation' => $unknownLocation,
+            ]);
+            $phoneInfo->save();
+
             // End transaction
             Appliance::getDbConnection()->commitTransaction();
         } catch (Exception $e) {
@@ -632,9 +445,8 @@ class DSPphones extends Std
             throw new Exception($e->getMessage());
         }
         $this->dbUnLock();
-        return $appliance;
+        return true;
     }
-
 
     /**
      * @param string $name
