@@ -38,6 +38,12 @@ use T4\Orm\Model;
 
 class Test extends Controller
 {
+    public function actionDefault()
+    {
+        $test = new Collection();
+        $test->append('123');
+        var_dump($test);die;
+    }
     public function actionDeleteVeryOldAnalogPhones()
     {
         $query = (new Query())
