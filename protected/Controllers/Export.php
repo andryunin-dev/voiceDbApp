@@ -101,9 +101,10 @@ class Export extends Controller
         $items = Dev_Module1C::findAllByQuery($query);
         $modules1C = [];
         foreach ($items as $item) {
-            $modules1C[$item->module_id]['invItem_inventoryNumber'] = $item->invItem_inventoryNumber;
-            $modules1C[$item->module_id]['mol_fio'] = $item->mol_fio;
-            $modules1C[$item->module_id]['mol_tabNumber'] = $item->mol_tabNumber;
+            $data['invItem_inventoryNumber'] = $item->invItem_inventoryNumber;
+            $data['mol_fio'] = $item->mol_fio;
+            $data['mol_tabNumber'] = $item->mol_tabNumber;
+            $modules1C[$item->module_id] = $data;
         }
 
         // Get all Appliances except Phones
