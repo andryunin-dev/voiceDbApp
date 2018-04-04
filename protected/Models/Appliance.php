@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Storage1CModels\Appliance1C;
 use T4\Core\Collection;
 use T4\Core\Exception;
 use T4\Orm\Model;
@@ -26,6 +27,7 @@ use T4\Orm\Model;
  * @property Collection|DataPort[] $dataPorts
  * @property Collection|ModuleItem[] $modules
  * @property PhoneInfo $phoneInfo
+ * @property Appliance1C $appliance1C
  */
 class Appliance extends Model
 {
@@ -48,6 +50,7 @@ class Appliance extends Model
             'dataPorts' => ['type' => self::HAS_MANY, 'model' => DataPort::class],
             'modules' => ['type' => self::HAS_MANY, 'model' => ModuleItem::class],
             'phoneInfo' => ['type' => self::HAS_ONE, 'model' => PhoneInfo::class],
+            'appliance1C' => ['type' => self::HAS_ONE, 'model' => Appliance1C::class, 'by' => '__voice_appliance_id'],
         ]
     ];
 
