@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Storage1CModels\Rooms1C;
 use T4\Core\Exception;
 use T4\Core\MultiException;
 use T4\Orm\Model;
@@ -20,6 +21,7 @@ use T4\Orm\Model;
  * @property Appliance $appliances
  *
  * @property int $people //кол-во сотрудников в офисе согласно Лотус базе
+ * @property Rooms1C $rooms1C   // помещение в базе 1С, соответствующее офису в Лотус базе
  */
 class Office extends Model
 {
@@ -34,7 +36,8 @@ class Office extends Model
         'relations' => [
             'address' => ['type' => self::BELONGS_TO, 'model' => Address::class],
             'status' => ['type' => self::BELONGS_TO, 'model' => OfficeStatus::class, 'on' => '__office_status_id'],
-            'appliances' => ['type' => self::HAS_MANY, 'model' => Appliance::class, 'by' => '__location_id']
+            'appliances' => ['type' => self::HAS_MANY, 'model' => Appliance::class, 'by' => '__location_id'],
+            'rooms1C' => ['type' => self::HAS_MANY, 'model' => Rooms1C::class, 'by' => '__voice_office_id'],
         ]
     ];
 
