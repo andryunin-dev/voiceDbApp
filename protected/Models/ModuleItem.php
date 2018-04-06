@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Storage1CModels\Module1C;
 use T4\Core\Exception;
 use T4\Orm\Model;
 
@@ -20,6 +21,7 @@ use T4\Orm\Model;
  * @property Module $module
  * @property Appliance $appliance
  * @property Office $location
+ * @property Module1C $module1C
  */
 class ModuleItem extends Model
 {
@@ -37,7 +39,8 @@ class ModuleItem extends Model
         'relations' => [
             'module' => ['type' => self::BELONGS_TO, 'model' => Module::class],
             'appliance' => ['type' => self::BELONGS_TO, 'model' => Appliance::class],
-            'location' => ['type' => self::BELONGS_TO, 'model' => Office::class, 'by' => '__location_id']
+            'location' => ['type' => self::BELONGS_TO, 'model' => Office::class, 'by' => '__location_id'],
+            'module1C' => ['type' => self::HAS_ONE, 'model' => Module1C::class, 'by' => '__voice_module_id'],
         ]
     ];
 
