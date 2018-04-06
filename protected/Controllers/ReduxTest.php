@@ -43,15 +43,15 @@ class ReduxTest extends Controller
     public function fillWithChildren($startParentIdx, $parentsAmount, $startChildrenIdx, $childrenAmount, $lvl) {
         $parentCounter = 0;
         $childrenCounter = 0;
-        $lastChildrenIdx = $startChildrenIdx;
+        $this->lastChildrenIdx = $startChildrenIdx;
         $this->lastParentIdx = $startParentIdx;
         $objArray = $this->objects->toArray();
 
-        while ($parentCounter < $parentsAmount && $lastChildrenIdx < self::NUMBER_OF_OBJECTS) {
+        while ($parentCounter < $parentsAmount && $this->lastChildrenIdx < self::NUMBER_OF_OBJECTS) {
             $obj = $objArray[$this->lastParentIdx];
-            while($childrenCounter < $childrenAmount && $lastChildrenIdx < self::NUMBER_OF_OBJECTS) {
-                $obj->children->append(strval($lastChildrenIdx));
-                $lastChildrenIdx += 1;
+            while($childrenCounter < $childrenAmount && $this->lastChildrenIdx < self::NUMBER_OF_OBJECTS) {
+                $obj->children->append(strval($this->lastChildrenIdx));
+                $this->lastChildrenIdx += 1;
                 $childrenCounter += 1;
             }
             $obj->ip = '0' . $lvl . '.' . $obj->ip;
@@ -60,7 +60,7 @@ class ReduxTest extends Controller
             $this->lastParentIdx +=1;
         }
         $this->objects = new Collection($objArray);
-        if ($lastChildrenIdx === self::NUMBER_OF_OBJECTS) {
+        if ($this->lastChildrenIdx === self::NUMBER_OF_OBJECTS) {
             echo 'Have reached NUMBER_OF_OBJECTS';
         }
     }
