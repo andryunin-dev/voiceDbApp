@@ -46,12 +46,13 @@ class InventoryItem1C extends Model
      */
     protected function validate(): bool
     {
-        if (!is_null($this->dateOfRegistration) && !($this->dateOfRegistration instanceof DateTime)) {
-            throw new Exception('Not a valid InventoryItem1C\'s dateOfRegistration type');
-        }
-        if (!($this->lastUpdate instanceof DateTime)) {
-            throw new Exception('Not a valid InventoryItem1C\'s lastUpdate type');
-        }
+//        if (!is_null($this->dateOfRegistration) && !($this->dateOfRegistration instanceof DateTime)) {
+//            throw new Exception('Not a valid InventoryItem1C\'s dateOfRegistration type');
+//        }
+//        if (!($this->lastUpdate instanceof DateTime)) {
+//            throw new Exception('Not a valid InventoryItem1C\'s lastUpdate type');
+//        }
+
         if (!($this->category instanceof InventoryItemCategory)) {
             throw new Exception('Not a valid InventoryItem1C\'s category type');
         }
