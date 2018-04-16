@@ -265,25 +265,67 @@ class TableConfigs extends Controller
             'city' => ['city' => '', 'office' => ''],
         ];
         $tablePreFilter = (new SqlFilter($className))
-            ->setFilter('appType', 'eq', ['phone']);
+            ->setFilter('appType', 'eq', ['phone'])
+            ->addFilter('publisherIp', 'eq', [
+                '10.99.120.226',
+                '10.30.30.70',
+                '10.30.30.21',
+                '10.101.19.100',
+                '10.101.15.10'
+            ]);
         $pivotPreFilter = (new SqlFilter($className))
-            ->setFilter('appType', 'eq', ['phone']);
+            ->setFilter('appType', 'eq', ['phone'])
+            ->addFilter('publisherIp', 'eq', [
+                '10.99.120.226',
+                '10.30.30.70',
+                '10.30.30.21',
+                '10.101.19.100',
+                '10.101.15.10'
+            ]);
         $pivotPreFilterActive = (new SqlFilter($className))
             ->setFilter('appType', 'eq', ['phone'])
-            ->addFilter('appAge', 'lt', [$maxAge]);
+            ->addFilter('appAge', 'lt', [$maxAge])
+            ->addFilter('publisherIp', 'eq', [
+                '10.99.120.226',
+                '10.30.30.70',
+                '10.30.30.21',
+                '10.101.19.100',
+                '10.101.15.10'
+            ]);
         $pivotPreFilterActiveHW = (new SqlFilter($className))
             ->setFilter('appType', 'eq', ['phone'])
             ->addFilter('appAge', 'lt', [$maxAge])
-            ->addFilter('isHW', 'eq', ['true']);
+            ->addFilter('isHW', 'eq', ['true'])
+            ->addFilter('publisherIp', 'eq', [
+                '10.99.120.226',
+                '10.30.30.70',
+                '10.30.30.21',
+                '10.101.19.100',
+                '10.101.15.10'
+            ]);
 
         $HWPhonePreFilterActive = (new SqlFilter($className))
             ->setFilter('appType', 'eq', ['phone'])
             ->setFilter('isHW', 'eq', ['true'])
-            ->addFilter('appAge', 'lt', [$maxAge]);
+            ->addFilter('appAge', 'lt', [$maxAge])
+            ->addFilter('publisherIp', 'eq', [
+                '10.99.120.226',
+                '10.30.30.70',
+                '10.30.30.21',
+                '10.101.19.100',
+                '10.101.15.10'
+            ]);
         $notHWPhonePreFilterActive = (new SqlFilter($className))
             ->setFilter('appType', 'eq', ['phone'])
             ->setFilter('isHW', 'eq', ['false'])
-            ->addFilter('appAge', 'lt', [$maxAge]);
+            ->addFilter('appAge', 'lt', [$maxAge])
+            ->addFilter('publisherIp', 'eq', [
+                '10.99.120.226',
+                '10.30.30.70',
+                '10.30.30.21',
+                '10.101.19.100',
+                '10.101.15.10'
+            ]);
 
         $pivotItemsSelectBy = ['lotusId'];
 
