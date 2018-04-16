@@ -5,9 +5,12 @@ namespace App\Controllers;
 
 
 use App\Components\Fixtures\ObjItem;
+use App\Models\DataPort;
+use App\Models\Network;
 use T4\Core\Collection;
 use T4\Core\Config;
 use T4\Core\Std;
+use T4\Dbal\Query;
 use T4\Mvc\Controller;
 
 class ReduxTest extends Controller
@@ -125,6 +128,73 @@ class ReduxTest extends Controller
         $this->data = $res;
     }
 
+    public function actionElementsById2($netIds = [], $hostIds = [], $sortDirection = 'asc', $delim = ',')
+    {
+        $connection = Network::getDbConnection();
+
+        $netIds = [
+            4039,2995,3274,3146,4093,4094,3334,3275,26127
+        ];
+        $netIds = $this->actionRootElements2();
+
+        $delim = '\'' . $delim . '\'';
+
+        //$netIds = explode($netIds, ',');
+        //$hostIds = explode($hostIds, ',');
+
+        $networksTable = Network::getTableName();
+        $netId = Network::PK;
+        $netAddress = 'address';
+        $netFields = [$netId, $netAddress];
+
+        $hostTable = 'equipment."dataPorts"';
+        $hostId = DataPort::PK;
+        $hostAddress = '"ipAddress"';
+        $hostMaskLen = 'masklen';
+        $hostFileds = [];
+
+        $joinExpression = 'SELECT '. array_pop($netIds) .' AS src_id';
+        foreach ($netIds as $id) {
+            $joinExpression .= "\n" . 'UNION SELECT ' . $id;
+        }
+
+
+        $netSql = '
+        SELECT '. implode($netFields, ', ') .',
+        (
+              SELECT string_agg(t_net.'. $netId .'::text, '. $delim .') FROM (
+                WITH all_children AS (
+                    SELECT '. $netId .', '. $netAddress .' FROM '. $networksTable .' WHERE
+                      '. $netAddress .' << t0.'. $netAddress .'
+                )
+                SELECT '. $netId .', '. $netAddress .' FROM all_children AS t1 WHERE
+                  NOT EXISTS(SELECT '. $netAddress .' FROM all_children AS t2 WHERE t2.'. $netAddress .' >> t1.'. $netAddress .')
+                ORDER BY '. $netAddress .' '. $sortDirection .'
+              ) AS t_net
+        ) AS net_children,
+        (
+          SELECT string_agg(host_t.'. $hostId .'::text, '. $delim .') 
+          FROM (
+          
+            SELECT '. $hostId .' FROM
+             (
+               SELECT * FROM '. $hostTable .'
+               WHERE t0.'. $netAddress .' >>= (abbrev('. $hostAddress .') || \'/\' || coalesce('. $hostMaskLen .', 32))::inet
+             ) AS t
+           WHERE (SELECT max('. $netAddress .') FROM '. $networksTable .' WHERE
+             address >>= (abbrev('. $hostAddress .') || \'/\' || coalesce('. $hostMaskLen .', 32))::inet AND
+             address != (abbrev('. $hostAddress .') || \'/\' || coalesce('. $hostMaskLen .', 32))::inet) = t0.'. $netAddress .'
+          ) AS host_t
+        ) AS host_children
+        FROM '. $networksTable .' AS t0
+        INNER JOIN (
+        '. $joinExpression .'
+        ) as subtable ON subtable.src_id = t0.'. $netId;
+
+//        $this->data->sql = $netSql;
+        $this->data->res = $res = $connection->query($netSql)->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
     /**
      * URL: voice.rs.ru/reduxTest/rootElements.json
      */
@@ -132,5 +202,32 @@ class ReduxTest extends Controller
     {
         $fromFile = new Config($this->path);
         $this->data = new Std($fromFile->rootElements->toArray());
+    }
+
+    public function actionRootElements2()
+    {
+        $networksTable = Network::getTableName();
+        $addressColumn = 'address';
+        $id = Network::PK;
+        $order = 'ASC';
+
+        $connection = Network::getDbConnection();
+
+        $sql = 'SELECT '. $id .' FROM '. $networksTable .' AS net1 WHERE
+            NOT EXISTS(SELECT '. $addressColumn .' from '. $networksTable .' AS net2 WHERE net2.'. $addressColumn .' >> net1.'. $addressColumn .')
+            ORDER BY '. $addressColumn .' '. $order;
+
+        $res = $connection->query($sql)->fetchAll(\PDO::FETCH_COLUMN, 0);
+        $this->data->rootIds = $res;
+        return $res;
+    }
+
+    public function actionTestApi()
+    {
+        $sql = '(SELECT string_agg(t::text, \',\') FROM (SELECT txt_column FROM testip WHERE
+    address >> \'10.0.0.0/16\' ORDER BY address) AS t)';
+        $query = new Query($sql);
+        $res = Network::findAllByQuery($query);
+        var_dump($res);
     }
 }
