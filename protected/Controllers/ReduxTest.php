@@ -194,6 +194,22 @@ class ReduxTest extends Controller
 //        $this->data->sql = $netSql;
         $this->data->res = $res = $connection->query($netSql)->fetchAll(\PDO::FETCH_ASSOC);
     }
+    public function actionElementsById3($netIds = [], $hostIds = [], $sortDirection = 'asc', $delim = ',')
+    {
+        $connection = Network::getDbConnection();
+
+        $netIds = [
+            4039,2995,3274,3146,4093,4094,3334,3275,26127
+        ];
+//        $netIds = $this->actionRootElements2();
+        $rootSql = 'SELECT * FROM root_ids_array()';
+        $netIds = $connection->query($rootSql)->fetchAll(\PDO::FETCH_ASSOC);
+        $netIds = '{' . implode(',', $netIds) .'}';
+
+        $netSql = 'SELECT * FROM children_id(:ids)';
+        $params = [':ids' => $netIds];
+        $this->data->res = $res = $connection->query($netSql, $params)->fetchAll(\PDO::FETCH_ASSOC);
+    }
 
     /**
      * URL: voice.rs.ru/reduxTest/rootElements.json
@@ -217,9 +233,14 @@ class ReduxTest extends Controller
             NOT EXISTS(SELECT '. $addressColumn .' from '. $networksTable .' AS net2 WHERE net2.'. $addressColumn .' >> net1.'. $addressColumn .')
             ORDER BY '. $addressColumn .' '. $order;
 
-        $res = $connection->query($sql)->fetchAll(\PDO::FETCH_COLUMN, 0);
+        $ids = [1,10,18];
+        $params = '{' . implode(',',$ids) . '}';
+        $sql = 'SELECT * FROM test(:ids )';
+
+        $res = $connection->query($sql, [':ids' => $params])->fetchAll(\PDO::FETCH_ASSOC);
+//        $res = $connection->query($sql)->fetchAll(\PDO::FETCH_COLUMN, 0);
         $this->data->rootIds = $res;
-        return $res;
+        //return $res;
     }
 
     public function actionTestApi()

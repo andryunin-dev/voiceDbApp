@@ -1,79 +1,112 @@
+-- ===================
+-- =========FUNCTION addNetworkAbility
+WITH all_children AS (
+    SELECT __id, address FROM testnetworks WHERE
+      address << (SELECT MAX(address) FROM testnetworks WHERE address >> '10.4.0.0/16')
+)
+SELECT __id, address FROM all_children AS t1 WHERE
+  NOT EXISTS(SELECT address FROM all_children AS t2 WHERE t2.address >> t1.address)
+ORDER BY address;
+
+
+-- =======================
+
 -- get hosts for subnet
-SELECT h_address FROM testhosts WHERE network(h_address) = '10.0.0.0/16';
+SELECT ipAddress FROM testhosts WHERE network(ipAddress) = '10.0.0.0/16';
 -- =========================================
 -- GET FULL PATH to root subnetwork
 -- host address
-SELECT net_address FROM testnetworks WHERE
-  net_address >>= network('10.0.0.1/16') AND
-  net_address != '10.0.0.1/16'
-ORDER BY net_address;
+SELECT address FROM testnetworks WHERE
+  address >>= network('10.0.0.1/16') AND
+  address != '10.0.0.1/16'
+ORDER BY address;
 
 -- subnet address
-SELECT net_address FROM testnetworks WHERE
-  net_address >>= network('10.0.0.0/16') AND
-  net_address != '10.0.0.0/16'
-ORDER BY net_address;
+SELECT address FROM testnetworks WHERE
+  address >>= network('10.0.0.0/16') AND
+  address != '10.0.0.0/16'
+ORDER BY address;
 
 -- concatenated into string
 -- example with host address
-SELECT string_agg(t.net_address::text, ',') AS children FROM (
-  SELECT net_address FROM testnetworks WHERE
-    net_address >>= network('10.0.0.1/16') AND
-    net_address != '10.0.0.1/16'
-  ORDER BY net_address
+SELECT string_agg(t.address::text, ',') AS children FROM (
+  SELECT address FROM testnetworks WHERE
+    address >>= network('10.0.0.1/16') AND
+    address != '10.0.0.1/16'
+  ORDER BY address
 ) AS t;
 
 -- example with subnet address
-SELECT string_agg(t.net_address::text, ',') AS children FROM (
-  SELECT net_address FROM testnetworks WHERE
-    net_address >>= network('10.0.0.0/16') AND
-    net_address != '10.0.0.0/16'
-  ORDER BY net_address
+SELECT string_agg(t.address::text, ',') AS children FROM (
+  SELECT address FROM testnetworks WHERE
+    address >>= network('10.0.0.0/16') AND
+    address != '10.0.0.0/16'
+  ORDER BY address
 ) AS t;
 
 -- ===================================================
 -- GET DIRECT PARENT
 
-SELECT max(net_address) FROM testnetworks WHERE
-  net_address >>= '10.0.0.0/16' AND
-  net_address != '10.0.0.0/16';
+SELECT max(address) FROM testnetworks WHERE
+  address >>= '10.0.0.0/16' AND
+  address != '10.0.0.0/16';
 
-SELECT max(net_address) FROM testnetworks WHERE
-  net_address >>= '10.0.0.1/16' AND
-  net_address != '10.0.0.1/16';
+
+
+SELECT max(address) FROM testnetworks WHERE
+  address >>= '10.0.0.1/16' AND
+  address != '10.0.0.1/16';
 
 -- get all root subnetworks
-SELECT net_address FROM testnetworks AS net1 WHERE
-    NOT EXISTS(SELECT net_address from testnetworks AS net2 WHERE net2.net_address >> net1.net_address)
-ORDER BY net_address;
+SELECT __id, address FROM testnetworks AS net1 WHERE
+    NOT EXISTS(SELECT address from testnetworks AS net2 WHERE net2.address >> net1.address)
+ORDER BY address;
+
+DROP FUNCTION root();
+CREATE OR REPLACE FUNCTION root() RETURNS TABLE(address inet) AS $$
+BEGIN
+  RETURN QUERY SELECT address FROM testnetworks AS net1 WHERE
+    NOT EXISTS(SELECT address from testnetworks AS net2 WHERE net2.address >> net1.address)
+               ORDER BY address;
+END
+$$ LANGUAGE plpgsql;
+
+DROP FUNCTION test();
+CREATE OR REPLACE FUNCTION test(ids INT[]) RETURNS TABLE(id INT) AS $$
+BEGIN
+  RETURN QUERY SELECT unnest(ids);
+END
+$$ LANGUAGE plpgsql;
+
+SELECT * FROM test(ARRAY [1,2,3]);
 
 
 
 -- ========================================
 -- select direct descendants for one address
-SELECT __id, net_address,
+SELECT __id, address,
   (
     SELECT string_agg(t_net.__id::text, ',') FROM (
                                                     WITH all_children AS (
-                                                        SELECT __id, net_address FROM testnetworks WHERE
-                                                          net_address << t0.net_address
+                                                        SELECT __id, address FROM testnetworks WHERE
+                                                          address << t0.address
                                                     )
-                                                    SELECT __id, net_address FROM all_children AS t1 WHERE
-                                                      NOT EXISTS(SELECT net_address FROM all_children AS t2 WHERE t2.net_address >> t1.net_address)
-                                                    ORDER BY net_address
+                                                    SELECT __id, address FROM all_children AS t1 WHERE
+                                                      NOT EXISTS(SELECT address FROM all_children AS t2 WHERE t2.address >> t1.address)
+                                                    ORDER BY address
                                                   ) AS t_net
   ) AS net_children,
   (
     SELECT string_agg(host_t.__id::text, ',')
     FROM (
-           SELECT __id, h_address, abbrev("h_address")::text, abbrev("h_address") || '/' || coalesce(maskl, 32) FROM
+           SELECT __id, ipAddress, abbrev(ipAddress)::text, abbrev(ipAddress) || '/' || coalesce(maskl, 32) FROM
              (
                SELECT * FROM testhosts
-               WHERE '10.3.0.0/24'::inet >>= "h_address"
+               WHERE '10.3.0.0/24'::inet >>= ipAddress
              ) AS t
-           WHERE (SELECT max(net_address) FROM testnetworks WHERE
-             net_address >>= (abbrev("h_address") || '/' || coalesce(maskl, 32))::inet AND
-             net_address != (abbrev("h_address") || '/' || coalesce(maskl, 32))::inet) = '10.3.0.0/24'::inet
+           WHERE (SELECT max(address) FROM testnetworks WHERE
+             address >>= (abbrev(ipAddress) || '/' || coalesce(maskl, 32))::inet AND
+             address != (abbrev(ipAddress) || '/' || coalesce(maskl, 32))::inet) = '10.3.0.0/24'::inet
          ) AS host_t
   ) AS host_children
 FROM testnetworks AS t0
@@ -84,7 +117,59 @@ FROM testnetworks AS t0
                -- union select '10.0.0.0/16'::inet
                -- union select '10.0.0.0/9'::inet
                --     union select '12.0.0.0/16'::inet
-             ) as subtable ON subtable.src_address = t0.net_address;
+             ) as subtable ON subtable.src_address = t0.address;
+
+-- =====================================
+DROP FUNCTION net(INT[]);
+CREATE OR REPLACE FUNCTION net(idArray INT[]) RETURNS TABLE(id INT, address inet, net_children text, host_children text ) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT __id, address,
+    (
+      SELECT string_agg(t_net.__id::text, ',') FROM (
+                                                      WITH all_children AS (
+                                                          SELECT __id, address FROM network.networks WHERE
+                                                            address << t0.address
+                                                      )
+                                                      SELECT __id, address FROM all_children AS t1 WHERE
+                                                        NOT EXISTS(SELECT address FROM all_children AS t2 WHERE t2.address >> t1.address)
+                                                      ORDER BY address
+                                                    ) AS t_net
+    ) AS net_children,
+    (
+      SELECT string_agg(host_t.__id::text, ',')
+      FROM (
+             SELECT __id, "ipAddress", abbrev("ipAddress")::text, abbrev("ipAddress") || '/' || coalesce(masklen, 32) FROM
+               (
+                 SELECT * FROM equipment."dataPorts"
+                 WHERE t0.address >>= "ipAddress"
+               ) AS t
+             WHERE (SELECT max(address) FROM network.networks WHERE
+               address >>= (abbrev("ipAddress") || '/' || coalesce(masklen, 32))::inet AND
+               address != (abbrev("ipAddress") || '/' || coalesce(masklen, 32))::inet) = t0.address
+           ) AS host_t
+    ) AS host_children
+  FROM network.networks AS t0
+    INNER JOIN (
+                 SELECT unnest(idArray) AS src_address
+               ) as subtable ON subtable.src_address = t0.__id;
+END
+$$ LANGUAGE plpgsql;
+
+
+DROP FUNCTION net(INT[]);
+CREATE OR REPLACE FUNCTION net(idArray INT[]) RETURNS TABLE(id INT, address cidr) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT __id, address
+  FROM network.networks AS t0
+    INNER JOIN (
+                 SELECT unnest(idArray) AS src_address
+               ) as subtable ON subtable.src_address = t0.__id;
+END
+$$ LANGUAGE plpgsql;
+
+SELECT * FROM net(ARRAY [4039, 2995, 3274]);
 
 
 
@@ -97,27 +182,27 @@ FROM testnetworks AS t0
 
 
 WITH all_children AS (
-    SELECT net_address FROM testnetworks WHERE
-      net_address << '11.0.0.0/8'
+    SELECT address FROM testnetworks WHERE
+      address << '11.0.0.0/8'
 )
-SELECT net_address FROM all_children AS t1 WHERE
+SELECT address FROM all_children AS t1 WHERE
   NOT EXISTS(
-      SELECT net_address FROM all_children AS t2 WHERE t2.net_address >> t1.net_address
+      SELECT address FROM all_children AS t2 WHERE t2.address >> t1.address
   );
 
 -- select addresses and its descendants concatenated in a string
-SELECT __id, net_address, (
-  SELECT string_agg(t.net_address::text, ',') AS children FROM (
+SELECT __id, address, (
+  SELECT string_agg(t.address::text, ',') AS children FROM (
     WITH all_children AS (
-        SELECT net_address FROM testnetworks WHERE
-          net_address << t0.net_address
+        SELECT address FROM testnetworks WHERE
+          address << t0.address
     )
-    SELECT net_address FROM all_children AS t1 WHERE
-      NOT EXISTS(SELECT net_address FROM all_children AS t2 WHERE t2.net_address >> t1.net_address)
-    ORDER BY net_address
+    SELECT address FROM all_children AS t1 WHERE
+      NOT EXISTS(SELECT address FROM all_children AS t2 WHERE t2.address >> t1.address)
+    ORDER BY address
   ) AS t
 )
-FROM testnetworks AS t0 WHERE net_address IN ('11.0.0.0/8', '10.0.0.0/8');
+FROM testnetworks AS t0 WHERE address IN ('11.0.0.0/8', '10.0.0.0/8');
 
 
 
@@ -238,24 +323,24 @@ select '10.1.6.32/29'::inet as src_address
 --     union select '12.0.0.0/16'::inet
 ) as subtable ON subtable.src_address = t0.address;
 
-SELECT __id, h_address, abbrev(h_address)::text, abbrev(h_address) || '/' || coalesce(maskl, 32) FROM testhosts
-WHERE (abbrev(h_address) || '/' || coalesce(maskl, 32))::inet <<= '10.3.0.0/16'::inet;
+SELECT __id, ipAddress, abbrev(ipAddress)::text, abbrev(ipAddress) || '/' || coalesce(maskl, 32) FROM testhosts
+WHERE (abbrev(ipAddress) || '/' || coalesce(maskl, 32))::inet <<= '10.3.0.0/16'::inet;
 -- ===================================
 EXPLAIN ANALYSE
-SELECT __id, h_address, abbrev(h_address)::text, abbrev(h_address) || '/' || coalesce(maskl, 32) FROM testhosts
-WHERE (SELECT max(net_address) FROM testnetworks WHERE
-  net_address >>= (abbrev(h_address) || '/' || coalesce(maskl, 32))::inet AND
-  net_address != (abbrev(h_address) || '/' || coalesce(maskl, 32))::inet) = '10.3.0.0/24'::inet;
+SELECT __id, ipAddress, abbrev(ipAddress)::text, abbrev(ipAddress) || '/' || coalesce(maskl, 32) FROM testhosts
+WHERE (SELECT max(address) FROM testnetworks WHERE
+  address >>= (abbrev(ipAddress) || '/' || coalesce(maskl, 32))::inet AND
+  address != (abbrev(ipAddress) || '/' || coalesce(maskl, 32))::inet) = '10.3.0.0/24'::inet;
 
 EXPLAIN ANALYSE
-SELECT __id, h_address, abbrev(h_address)::text, abbrev(h_address) || '/' || coalesce(maskl, 32) FROM
+SELECT __id, ipAddress, abbrev(ipAddress)::text, abbrev(ipAddress) || '/' || coalesce(maskl, 32) FROM
   (
     SELECT * FROM testhosts
-    WHERE '10.3.0.0/24'::inet >>= h_address
+    WHERE '10.3.0.0/24'::inet >>= ipAddress
   ) AS t
-WHERE (SELECT max(net_address) FROM testnetworks WHERE
-  net_address >>= (abbrev(h_address) || '/' || coalesce(maskl, 32))::inet AND
-  net_address != (abbrev(h_address) || '/' || coalesce(maskl, 32))::inet) = '10.3.0.0/24'::inet;
+WHERE (SELECT max(address) FROM testnetworks WHERE
+  address >>= (abbrev(ipAddress) || '/' || coalesce(maskl, 32))::inet AND
+  address != (abbrev(ipAddress) || '/' || coalesce(maskl, 32))::inet) = '10.3.0.0/24'::inet;
 -- ===================================================================================
 EXPLAIN ANALYSE
 SELECT __id, "ipAddress", abbrev("ipAddress")::text, abbrev("ipAddress") || '/' || coalesce(masklen, 32) FROM equipment."dataPorts"
@@ -288,14 +373,14 @@ SELECT * FROM equipment."dataPorts" WHERE "ipAddress" = '10.1.6.35'::inet;
 
 SELECT '10.0.0.0/16'::inet >>= '10.0.0.1/24'::inet;
 
-SELECT max(net_address) FROM testnetworks WHERE
-  net_address >>= '10.3.0.1/32' AND
-  net_address != '10.3.0.1/32';
+SELECT max(address) FROM testnetworks WHERE
+  address >>= '10.3.0.1/32' AND
+  address != '10.3.0.1/32';
 
-SELECT net_address FROM testnetworks WHERE
-  net_address >>= network('10.3.0.1/32') AND
-  net_address != '10.3.0.1/32'
-ORDER BY net_address;
+SELECT address FROM testnetworks WHERE
+  address >>= network('10.3.0.1/32') AND
+  address != '10.3.0.1/32'
+ORDER BY address;
 
 
 
