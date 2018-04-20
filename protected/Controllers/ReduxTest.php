@@ -203,11 +203,11 @@ class ReduxTest extends Controller
         ];
 //        $netIds = $this->actionRootElements2();
         $rootSql = 'SELECT * FROM root_ids_array()';
-        $netIds = $connection->query($rootSql)->fetchAll(\PDO::FETCH_ASSOC);
-        $netIds = '{' . implode(',', $netIds) .'}';
+        $netIds = $connection->query($rootSql)->fetch(\PDO::FETCH_ASSOC);
+        $netIds2 = '{' . implode(',', $netIds['rootNetId']) .'}';
 
         $netSql = 'SELECT * FROM children_id(:ids)';
-        $params = [':ids' => $netIds];
+        $params = [':ids' => $netIds['rootNetId']];
         $this->data->res = $res = $connection->query($netSql, $params)->fetchAll(\PDO::FETCH_ASSOC);
     }
 
@@ -216,8 +216,9 @@ class ReduxTest extends Controller
      */
     public function actionRootElements()
     {
-        $fromFile = new Config($this->path);
-        $this->data = new Std($fromFile->rootElements->toArray());
+        $connection = Network::getDbConnection();
+        $rootSql = 'SELECT * FROM root_ids_string()';
+        $this->data->ids = $connection->query($rootSql)->fetch(\PDO::FETCH_ASSOC);
     }
 
     public function actionRootElements2()
