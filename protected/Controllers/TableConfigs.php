@@ -267,7 +267,6 @@ class TableConfigs extends Controller
         $tablePreFilter = (new SqlFilter($className))
             ->setFilter('appType', 'eq', ['phone'])
             ->addFilter('publisherIp', 'eq', [
-                '10.99.120.226',
                 '10.30.30.70',
                 '10.30.30.21',
                 '10.101.19.100',
@@ -276,7 +275,6 @@ class TableConfigs extends Controller
         $pivotPreFilter = (new SqlFilter($className))
             ->setFilter('appType', 'eq', ['phone'])
             ->addFilter('publisherIp', 'eq', [
-                '10.99.120.226',
                 '10.30.30.70',
                 '10.30.30.21',
                 '10.101.19.100',
@@ -286,7 +284,6 @@ class TableConfigs extends Controller
             ->setFilter('appType', 'eq', ['phone'])
             ->addFilter('appAge', 'lt', [$maxAge])
             ->addFilter('publisherIp', 'eq', [
-                '10.99.120.226',
                 '10.30.30.70',
                 '10.30.30.21',
                 '10.101.19.100',
@@ -297,7 +294,6 @@ class TableConfigs extends Controller
             ->addFilter('appAge', 'lt', [$maxAge])
             ->addFilter('isHW', 'eq', ['true'])
             ->addFilter('publisherIp', 'eq', [
-                '10.99.120.226',
                 '10.30.30.70',
                 '10.30.30.21',
                 '10.101.19.100',
@@ -309,7 +305,6 @@ class TableConfigs extends Controller
             ->setFilter('isHW', 'eq', ['true'])
             ->addFilter('appAge', 'lt', [$maxAge])
             ->addFilter('publisherIp', 'eq', [
-                '10.99.120.226',
                 '10.30.30.70',
                 '10.30.30.21',
                 '10.101.19.100',
@@ -320,7 +315,6 @@ class TableConfigs extends Controller
             ->setFilter('isHW', 'eq', ['false'])
             ->addFilter('appAge', 'lt', [$maxAge])
             ->addFilter('publisherIp', 'eq', [
-                '10.99.120.226',
                 '10.30.30.70',
                 '10.30.30.21',
                 '10.101.19.100',
