@@ -211,6 +211,7 @@ class ReduxTest extends Controller
         $this->data->res = $res = $connection->query($netSql, $params)->fetchAll(\PDO::FETCH_ASSOC);
     }
 
+
     /**
      * URL: voice.rs.ru/reduxTest/rootElements.json
      */
@@ -221,35 +222,13 @@ class ReduxTest extends Controller
         $this->data->ids = $connection->query($rootSql)->fetch(\PDO::FETCH_ASSOC);
     }
 
-    public function actionRootElements2()
-    {
-        $networksTable = Network::getTableName();
-        $addressColumn = 'address';
-        $id = Network::PK;
-        $order = 'ASC';
-
-        $connection = Network::getDbConnection();
-
-        $sql = 'SELECT '. $id .' FROM '. $networksTable .' AS net1 WHERE
-            NOT EXISTS(SELECT '. $addressColumn .' from '. $networksTable .' AS net2 WHERE net2.'. $addressColumn .' >> net1.'. $addressColumn .')
-            ORDER BY '. $addressColumn .' '. $order;
-
-        $ids = [1,10,18];
-        $params = '{' . implode(',',$ids) . '}';
-        $sql = 'SELECT * FROM test(:ids )';
-
-        $res = $connection->query($sql, [':ids' => $params])->fetchAll(\PDO::FETCH_ASSOC);
-//        $res = $connection->query($sql)->fetchAll(\PDO::FETCH_COLUMN, 0);
-        $this->data->rootIds = $res;
-        //return $res;
-    }
 
     public function actionTestApi()
     {
-        $sql = '(SELECT string_agg(t::text, \',\') FROM (SELECT txt_column FROM testip WHERE
-    address >> \'10.0.0.0/16\' ORDER BY address) AS t)';
+        $sql = 'SELECT * FROM ';
         $query = new Query($sql);
         $res = Network::findAllByQuery($query);
         var_dump($res);
     }
+
 }

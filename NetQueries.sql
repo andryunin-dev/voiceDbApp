@@ -156,6 +156,8 @@ BEGIN
 END
 $$ LANGUAGE plpgsql;
 
+SELECT * FROM net(ARRAY [4039, 2995, 3274]);
+
 
 DROP FUNCTION net(INT[]);
 CREATE OR REPLACE FUNCTION net(idArray INT[]) RETURNS TABLE(id INT, address cidr) AS $$
