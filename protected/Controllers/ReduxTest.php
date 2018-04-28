@@ -222,6 +222,14 @@ class ReduxTest extends Controller
         $this->data->ids = $connection->query($rootSql)->fetch(\PDO::FETCH_ASSOC);
     }
 
+    public function actionNetElementsById(array $netIds = [])
+    {
+        $connection = Network::getDbConnection();
+        $idString = implode(',', $netIds);
+        $rootSql = 'SELECT ' . Network::PK . ', address, comment FROM ' . Network::getTableName() . ' WHERE __id IN ('. $idString .')';
+        $this->data->ids = $connection->query($rootSql)->fetch(\PDO::FETCH_ASSOC);
+    }
+
 
     public function actionTestApi()
     {
