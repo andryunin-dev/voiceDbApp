@@ -222,12 +222,18 @@ class ReduxTest extends Controller
         $this->data->ids = $connection->query($rootSql)->fetch(\PDO::FETCH_ASSOC);
     }
 
-    public function actionNetElementsById(array $netIds = [])
+    public function actionNetElementsById($nets)
     {
         $connection = Network::getDbConnection();
-        $idString = implode(',', $netIds);
-        $rootSql = 'SELECT ' . Network::PK . ', address, comment FROM ' . Network::getTableName() . ' WHERE __id IN ('. $idString .')';
-        $this->data->ids = $connection->query($rootSql)->fetch(\PDO::FETCH_ASSOC);
+        $sqlNetData = 'SELECT ' . Network::PK . ' AS id, address AS ip, comment AS title, net_children(__id) AS nets, host_children(__id) AS hosts FROM ' . Network::getTableName() . ' WHERE __id IN ('. $nets .')';
+        $this->data->netData = $connection->query($sqlNetData)->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    public function actionHostElementsById($hosts)
+    {
+        $connection = DataPort::getDbConnection();
+        $sqlHostData = 'SELECT ' . DataPort::PK . ' AS id, "ipAddress" AS address, comment FROM ' . DataPort::getTableName() . ' WHERE __id IN ('. $hosts .')';
+        $this->data->hostData = $connection->query($sqlHostData)->fetchAll(\PDO::FETCH_ASSOC);
     }
 
 
