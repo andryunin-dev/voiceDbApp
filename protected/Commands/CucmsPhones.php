@@ -244,4 +244,49 @@ class CucmsPhones extends Command
         }
         $this->writeLn('UPDATE NEIGHBORS - ok');
     }
+
+    /**
+     * @param string $name
+     */
+    public function actionGetPhoneByName(string $name)
+    {
+        $childsPid = [];
+        $query = (new Query())
+            ->select('"managementIp"')
+            ->from(DevModulePortGeo::getTableName())
+            ->where('"appType" = :publisher AND "managementIp" IS NOT NULL')
+            ->params([':publisher' => ApplianceType::CUCM_PUBLISHER]);
+        $publishers = DevModulePortGeo::findAllByQuery($query);
+        foreach ($publishers as $publisher) {
+            // Branch the currently running process
+            switch ($pid = pcntl_fork()) {
+                case -1:
+                    $this->writeln('Could not spawn child process');
+                    break;
+                case 0:
+                    // Child process - workhorse
+                    try {
+                        $phone = Phone::findByNameIntoCucm($name, $publisher->managementIp);
+                        if (false !== $phone) {
+                            $this->writeLn(json_encode($phone->getData()));
+                        }
+                    } catch (\SoapFault $e) {
+                        $this->writeLn(json_encode([
+                            'error' => $e->getMessage(),
+                            'cucm' => $publisher->managementIp,
+                        ]));
+                    }
+                    exit();
+                default:
+                    // Keep the pid of child processes in the parent process
+                    $childsPid[] = $pid;
+            }
+        }
+
+        // Wait for all child processes to complete
+        foreach ($childsPid as $childPid) {
+            pcntl_waitpid($childPid, $status);
+        }
+        exit();
+    }
 }
