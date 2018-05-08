@@ -74,7 +74,7 @@ class Export extends Controller
         ini_set('memory_limit', self::MEMORY_LIMIT);
 
         try {
-            $pFilename = ROOT_PATH . DS . 'tmp' . DS . 'tempAppliancesToExcel.xlsx';
+            $pFilename = ROOT_PATH . DS . 'Logs' . DS . 'tempAppliancesToExcel.xlsx';
 
             $zip = new ZipArchive();
             if (file_exists($pFilename)) {
