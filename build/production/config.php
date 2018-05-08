@@ -28,7 +28,7 @@ return [
             'host' => '{{db.cdr.host}}',
             'user' => '{{db.cdr.user}}',
             'password' => '{{db.cdr.password}}',
-            'dbname' => '{{db.cdr.DbName}}'
+            'dbname' => '{{db.cdr.dbname}}'
         ]
     ],
     'axl' => [
