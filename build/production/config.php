@@ -22,6 +22,13 @@ return [
             'user' => 'lotus',
             'password' => '{{db.lotusDB.password}}',
             'dbname' => '{{db.lotusDB.DbName}}'
+        ],
+        'cdr' => [
+            'driver' => 'pgsql',
+            'host' => '{{db.cdr.host}}',
+            'user' => '{{db.cdr.user}}',
+            'password' => '{{db.cdr.password}}',
+            'dbname' => '{{db.cdr.DbName}}'
         ]
     ],
     'axl' => [
