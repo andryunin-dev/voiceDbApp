@@ -22,7 +22,14 @@ return [
             'user' => 'postgres',
             'password' => '',
             'dbname' => 'LotusData'
-        ]
+        ],
+        'cdr' => [
+            'driver' => 'pgsql',
+            'host' => '',
+            'user' => '',
+            'password' => '',
+            'dbname' => ''
+        ],
     ],
     'axl' => [
         'username' => '',
