@@ -218,7 +218,7 @@ class ReduxTest extends Controller
     public function actionRootElements()
     {
         $connection = Network::getDbConnection();
-        $rootSql = 'SELECT * FROM root_ids_string()';
+        $rootSql = 'SELECT * FROM root_ids()';
         $this->data->ids = $connection->query($rootSql)->fetch(\PDO::FETCH_ASSOC);
     }
 
@@ -232,7 +232,9 @@ class ReduxTest extends Controller
     public function actionHostElementsById($hosts)
     {
         $connection = DataPort::getDbConnection();
-        $sqlHostData = 'SELECT ' . DataPort::PK . ' AS id, "ipAddress" AS address, comment FROM ' . DataPort::getTableName() . ' WHERE __id IN ('. $hosts .')';
+        $driver = DataPort::getDbDriver();
+
+        $sqlHostData = 'SELECT ' . DataPort::PK . ' AS id, "ipAddress" AS ip,  comment AS title FROM ' .  $driver->quoteName(DataPort::getTableName()) . ' WHERE __id IN ('. $hosts .')';
         $this->data->hostData = $connection->query($sqlHostData)->fetchAll(\PDO::FETCH_ASSOC);
     }
 
