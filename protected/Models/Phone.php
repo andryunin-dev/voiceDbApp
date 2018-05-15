@@ -42,6 +42,46 @@ class Phone extends Appliance
      */
     public static function findByNameIntoCucm($name, $cucmIp)
     {
+        $phoneData = [
+            'name' => '',
+            'description' => '',
+            'css' => '',
+            'devicepool' => '',
+            'phonedn' => '',
+            'alertingname' => '',
+            'model' => '',
+            'prefix' => '',
+            'partition' => '',
+            'publisherIp' => '',
+            'ipAddress' => '',
+            'status' => '',
+            'class' => '',
+            'macAddress' => '',
+            'serialNumber' => '',
+            'modelNumber' => '',
+            'versionID' => '',
+            'appLoadID' => '',
+            'timezone' => '',
+            'dhcpEnabled' => '',
+            'dhcpServer' => '',
+            'domainName' => '',
+            'subNetMask' => '',
+            'tftpServer1' => '',
+            'tftpServer2' => '',
+            'defaultRouter' => '',
+            'dnsServer1' => '',
+            'dnsServer2' => '',
+            'callManager1' => '',
+            'callManager2' => '',
+            'callManager3' => '',
+            'callManager4' => '',
+            'vlanId' => '',
+            'userLocale' => '',
+            'cdpNeighborDeviceId' => '',
+            'cdpNeighborIP' => '',
+            'cdpNeighborPort' => '',
+        ];
+
         //// Get phone's data from cucm's axl
         $axl = AxlClient::getInstance($cucmIp)->client;
         switch (AxlClient::getInstance($cucmIp)->schema) {
@@ -57,8 +97,9 @@ class Phone extends Appliance
             default:
                 $request = '';
         }
-        $phoneAxlData = $axl->ExecuteSQLQuery(['sql' => $request])->return->row;
-        if (!is_null($phoneAxlData)) {
+
+        $axlResult = $axl->ExecuteSQLQuery(['sql' => $request])->return->row;
+        if (!is_null($axlResult)) {
             switch ($cucmIp) {
                 case self::IP_CM_MOSKOW_CC_558:
                     $prefix = self::PREFIX_CM_MOSKOW_CC_558;
@@ -69,14 +110,14 @@ class Phone extends Appliance
                 default:
                     $prefix = null;
             }
-            if (!isset($phoneAxlData->prefix)) {
-                $phoneAxlData->prefix = $prefix ?? '';
+            if (!isset($axlResult->prefix)) {
+                $axlResult->prefix = $prefix ?? '';
             }
-            if (!isset($phoneAxlData->partition)) {
-                $phoneAxlData->partition = '';
+            if (!isset($axlResult->partition)) {
+                $axlResult->partition = '';
             }
-            $phoneAxlData->publisherIp = $cucmIp;
-            $phoneAxlData = get_object_vars($phoneAxlData);
+            $axlResult->publisherIp = $cucmIp;
+            $phoneData = array_merge($phoneData, get_object_vars($axlResult));
         }
 
         //// Get phone's data from cucm's ris
@@ -89,34 +130,34 @@ class Phone extends Appliance
             'SelectItems' => [['Item' => $name]],
         ]);
         // Если телефон не найден ни в Axl, ни в Ris, то возвращаем false
-        if (is_null($phoneAxlData) && 1 != $risResult['SelectCmDeviceResult']->TotalDevicesFound) {
+        if (is_null($axlResult) && 1 != $risResult['SelectCmDeviceResult']->TotalDevicesFound) {
             return false;
         }
-        $phoneRisData = [];
         foreach (($risResult['SelectCmDeviceResult'])->CmNodes as $cmNode) {
             if ('ok' == strtolower($cmNode->ReturnCode)) {
                 foreach ($cmNode->CmDevices as $cmDevice) {
-                    $phoneRisData['ipAddress'] = $cmDevice->IpAddress;
-                    $phoneRisData['status'] = $cmDevice->Status;
-                    $phoneRisData['class'] = $cmDevice->Class; // this is necessary for logging
+                    $phoneData['ipAddress'] = $cmDevice->IpAddress;
+                    $phoneData['status'] = $cmDevice->Status;
+                    $phoneData['class'] = $cmDevice->Class; // this is necessary for logging
                 }
             }
         }
 
         //// Get phone's data from WEB
-        $phoneData = array_merge($phoneAxlData, $phoneRisData);
-        $webDevInfo = self::getDataFromWebDevInfo($phoneRisData['ipAddress'], $phoneAxlData['model']);
-        if (!is_null($webDevInfo)) {
-            $phoneData = array_merge($phoneData, $webDevInfo);
+        if (!empty($phoneData['ipAddress'])) {
+            $webDevInfo = self::getDataFromWebDevInfo($phoneData['ipAddress'], $phoneData['model']);
+            if (!is_null($webDevInfo)) {
+                $phoneData = array_merge($phoneData, $webDevInfo);
 
-            $webNetConf = self::getDataFromWebNetConf($phoneRisData['ipAddress'], $phoneAxlData['model']);
-            if (!is_null($webNetConf)) {
-                $phoneData = array_merge($phoneData, $webNetConf);
-            }
+                $webNetConf = self::getDataFromWebNetConf($phoneData['ipAddress'], $phoneData['model']);
+                if (!is_null($webNetConf)) {
+                    $phoneData = array_merge($phoneData, $webNetConf);
+                }
 
-            $webPortInfo = self::getDataFromWebPortInfo($phoneRisData['ipAddress'], $phoneAxlData['model']);
-            if (!is_null($webPortInfo)) {
-                $phoneData = array_merge($phoneData, $webPortInfo);
+                $webPortInfo = self::getDataFromWebPortInfo($phoneData['ipAddress'], $phoneData['model']);
+                if (!is_null($webPortInfo)) {
+                    $phoneData = array_merge($phoneData, $webPortInfo);
+                }
             }
         }
 
