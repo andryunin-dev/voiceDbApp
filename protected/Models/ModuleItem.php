@@ -169,4 +169,13 @@ class ModuleItem extends Model
         return $this->lastUpdate ? ('last update: ' . ((new \DateTime($this->lastUpdate))->setTimezone(new \DateTimeZone('Europe/Moscow')))->format('d.m.Y H:i \M\S\K(P)')) : null;
     }
 
+
+    public function delete()
+    {
+        if (!is_null($this->module1C)) {
+            $this->module1C->voiceModule = null;
+            $this->module1C->save();
+        }
+        return parent::delete();
+    }
 }
