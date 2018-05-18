@@ -180,7 +180,7 @@ class Phone extends Appliance
 
                 $count = 0;
                 $webNetConf = self::getDataFromWebNetConf($phoneData['ipAddress'], $phoneData['model']);
-                while (is_null($webDevInfo) && $count < $countMAX) {
+                while (is_null($webNetConf) && $count < $countMAX) {
                     $webNetConf = self::getDataFromWebNetConf($phoneData['ipAddress'], $phoneData['model']);
                     $count++;
                 }
@@ -190,9 +190,7 @@ class Phone extends Appliance
 
                 $count = 0;
                 $webPortInfo = self::getDataFromWebPortInfo($phoneData['ipAddress'], $phoneData['model']);
-                var_dump($webPortInfo);
-                die;
-                while (is_null($webDevInfo) && $count < $countMAX) {
+                while (is_null($webPortInfo) && $count < $countMAX) {
                     $webPortInfo = self::getDataFromWebPortInfo($phoneData['ipAddress'], $phoneData['model']);
                     $count++;
                 }
@@ -666,14 +664,7 @@ class Phone extends Appliance
 
         // Чтение XML
         $phoneData = simplexml_load_file('http://' . $ipAddress . '/PortInformationX?1');
-
-        $phoneData = false;
-        var_dump($phoneData);
-
         if (false !== $phoneData) {
-
-            echo "XML ";
-
             preg_match('~\d+~', $phoneModel, $matches);
             switch ($matches[0]) {
                 case '7940':
@@ -694,16 +685,7 @@ class Phone extends Appliance
         } else {
             // Чтение HTML
             $dom = HtmlDomParser::str_get_html(file_get_contents('http://' . $ipAddress . '/PortInformation?1'));
-
-            $dom = false;
-            echo "Befor HTML";
-            var_dump($dom);
-
-
             if (false !== $dom) {
-
-                echo "HTML ";
-
                 // Define the phone's environment
                 preg_match('~\d+~', $phoneModel, $matches);
                 switch ($matches[0]) {
