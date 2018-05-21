@@ -31,16 +31,18 @@ class Phone extends Controller
         }
 
         // Find inventory number
-        $inventoryNumber = null;
-        if (!empty($phoneData) && isset($phoneData['serialNumber'])) {
-            $query = (new Query())
-                ->select('"inventoryNumber"')
-                ->from(InventoryItem1C::getTableName())
-                ->where('"serialNumber" LIKE :serialNumber')
-                ->params([':serialNumber' => '%'.mb_substr($phoneData['serialNumber'], 1)]);
-            $inventoryNumber = InventoryItem1C::findByQuery($query)->inventoryNumber;
+        if (!empty($phoneData)) {
+            $inventoryNumber = null;
+            if (isset($phoneData['serialNumber'])) {
+                $query = (new Query())
+                    ->select('"inventoryNumber"')
+                    ->from(InventoryItem1C::getTableName())
+                    ->where('"serialNumber" LIKE :serialNumber')
+                    ->params([':serialNumber' => '%'.mb_substr($phoneData['serialNumber'], 1)]);
+                $inventoryNumber = InventoryItem1C::findByQuery($query)->inventoryNumber;
+            }
+            $phoneData['inventoryNumber'] = (!is_null($inventoryNumber)) ? $inventoryNumber : '';
         }
-        $phoneData['inventoryNumber'] = (!is_null($inventoryNumber)) ? $inventoryNumber : '';
 
         // Return result
         $result = [
