@@ -25,7 +25,9 @@ class Phone extends Controller
             if (!empty($item['error'])) {
                 $errors = array_merge($errors, $item['error']);
             } else {
-                $phoneData = $item;
+                if ('Registered' == $item['status']) {
+                    $phoneData = $item;
+                }
             }
         }
 
