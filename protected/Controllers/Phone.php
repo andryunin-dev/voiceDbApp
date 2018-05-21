@@ -4,7 +4,6 @@ namespace App\Controllers;
 
 use App\Components\DSPphones;
 use App\Storage1CModels\InventoryItem1C;
-use App\ViewModels\DevPhoneInfoGeo;
 use T4\Core\Std;
 use T4\Dbal\Query;
 use T4\Mvc\Controller;
@@ -32,28 +31,16 @@ class Phone extends Controller
         }
 
         // Find inventory number
-        if (!empty($phoneData)) {
-            function findSerialNumberByPhoneName($name)
-            {
-                $query = (new Query())
-                    ->select('"platformSerial"')
-                    ->from(DevPhoneInfoGeo::getTableName())
-                    ->where('name = :name')
-                    ->params([':name' => $name]);
-                return DevPhoneInfoGeo::findByQuery($query)->platformSerial;
+        if (!empty($phoneData) && isset($phoneData['serialNumber'])) {
+            $query = (new Query())
+                ->select('"inventoryNumber"')
+                ->from(InventoryItem1C::getTableName())
+                ->where('"serialNumber" LIKE :serialNumber')
+                ->params([':serialNumber' => '%'.mb_substr($phoneData['serialNumber'], 1)]);
+            $inventoryNumber = InventoryItem1C::findByQuery($query)->inventoryNumber;
+            if (!is_null($inventoryNumber)) {
+                $phoneData['inventoryNumber'] = $inventoryNumber;
             }
-            function findInventoryNumberBySerialNumber($serialNumber)
-            {
-                $query = (new Query())
-                    ->select('"inventoryNumber"')
-                    ->from(InventoryItem1C::getTableName())
-                    ->where('"serialNumber" LIKE :serialNumber')
-                    ->params([':serialNumber' => '%'.mb_substr($serialNumber, 1)]);
-                $inventoryNumber = InventoryItem1C::findByQuery($query)->inventoryNumber;
-                return (!is_null($inventoryNumber)) ? $inventoryNumber : '';
-            }
-
-            $phoneData['inventoryNumber'] = (!is_null($serialNumber = findSerialNumberByPhoneName($name))) ? findInventoryNumberBySerialNumber($serialNumber) : '';
         }
 
         // Return result
