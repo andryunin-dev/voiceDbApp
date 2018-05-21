@@ -31,6 +31,10 @@ class Phone extends Appliance
     const PHONESOFT = 'Phone Soft';
     const VENDOR = 'CISCO'; // Todo - пока так
     const DATAPORTTYPE = 'Ethernet';
+    const ERROR_EXCEEDED_RATE = 'ns1:Server.RateControl';
+    const TIME_BETWEEN_RISPORT_POLLING_ATTEMPTS = 1;
+    const NUMBER_OF_ATTEMPTS_TO_REQUEST_PHONE = 6;
+    const TIME_BETWEEN_PHONE_POLLING_ATTEMPTS = 2;
 
     public $appliance;
     public $phoneInfo;
@@ -143,13 +147,24 @@ class Phone extends Appliance
             'class' => '',
         ];
         $ris = RisPortClient::getInstance($cucmIp);
-        $risResult = $ris->SelectCmDevice('',[
-            'Class' => self::RISPHONETYPE,
-            'Model' => self::ALLMODELS,
-            'Status' => self::PHONESTATUS_REGISTERED,
-            'SelectBy' => 'Name',
-            'SelectItems' => [['Item' => $name]],
-        ]);
+        $risResult = false;
+        do {
+            $error = false;
+            try {
+                $risResult = $ris->SelectCmDevice('',[
+                    'Class' => self::RISPHONETYPE,
+                    'Model' => self::ALLMODELS,
+                    'Status' => self::PHONESTATUS_REGISTERED,
+                    'SelectBy' => 'Name',
+                    'SelectItems' => [['Item' => $name]],
+                ]);
+            } catch (\SoapFault $e) {
+                if (self::ERROR_EXCEEDED_RATE == $e->faultcode) {
+                    $error = true;
+                    sleep(self::TIME_BETWEEN_RISPORT_POLLING_ATTEMPTS);
+                }
+            }
+        } while ($error);
         // Если телефон не найден ни в Axl, ни в Ris, то возвращаем false
         if (is_null($axlResult) && 1 != $risResult['SelectCmDeviceResult']->TotalDevicesFound) {
             return false;
@@ -168,31 +183,33 @@ class Phone extends Appliance
 
         //// Get phone's data from WEB
         if (!empty($phoneData['ipAddress'])) {
-            $countMAX = 6; // колличество попыток опроса телефона
-            $count = 0;
+            $attempt = 0;
             $webDevInfo = self::getDataFromWebDevInfo($phoneData['ipAddress'], $phoneData['model']);
-            while (is_null($webDevInfo) && $count < $countMAX) {
+            while (is_null($webDevInfo) && $attempt < self::NUMBER_OF_ATTEMPTS_TO_REQUEST_PHONE) {
+                sleep(self::TIME_BETWEEN_PHONE_POLLING_ATTEMPTS);
                 $webDevInfo = self::getDataFromWebDevInfo($phoneData['ipAddress'], $phoneData['model']);
-                $count++;
+                $attempt++;
             }
             if (!is_null($webDevInfo)) {
                 $phoneData = array_merge($phoneData, $webDevInfo);
 
-                $count = 0;
+                $attempt = 0;
                 $webNetConf = self::getDataFromWebNetConf($phoneData['ipAddress'], $phoneData['model']);
-                while (is_null($webNetConf) && $count < $countMAX) {
+                while (is_null($webNetConf) && $attempt < self::NUMBER_OF_ATTEMPTS_TO_REQUEST_PHONE) {
+                    sleep(self::TIME_BETWEEN_PHONE_POLLING_ATTEMPTS);
                     $webNetConf = self::getDataFromWebNetConf($phoneData['ipAddress'], $phoneData['model']);
-                    $count++;
+                    $attempt++;
                 }
                 if (!is_null($webNetConf)) {
                     $phoneData = array_merge($phoneData, $webNetConf);
                 }
 
-                $count = 0;
+                $attempt = 0;
                 $webPortInfo = self::getDataFromWebPortInfo($phoneData['ipAddress'], $phoneData['model']);
-                while (is_null($webPortInfo) && $count < $countMAX) {
+                while (is_null($webPortInfo) && $attempt < self::NUMBER_OF_ATTEMPTS_TO_REQUEST_PHONE) {
+                    sleep(self::TIME_BETWEEN_PHONE_POLLING_ATTEMPTS);
                     $webPortInfo = self::getDataFromWebPortInfo($phoneData['ipAddress'], $phoneData['model']);
-                    $count++;
+                    $attempt++;
                 }
                 if (!is_null($webPortInfo)) {
                     $phoneData = array_merge($phoneData, $webPortInfo);
