@@ -54,7 +54,7 @@
     </target>
 
     <target name="buildWithComposer">
-        <exec executable="composer" dir="../" />
+        <exec executable="composer install" dir="../" />
     </target>
 
     <target name="copyToTarget">
