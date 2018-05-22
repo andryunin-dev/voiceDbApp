@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <project name="voiceAppDev" default="build" >
 
-    <target name="build" depends="env, createConfig, buildWithComposer, copyToTarget, fixPermissions, createSymlink" />
+    <target name="build" depends="env, createConfig, buildWithComposer, copyToTarget, migrations, fixPermissions, createSymlink" />
 
     <target name="env">
         <tstamp>
@@ -69,6 +69,13 @@
         </move>
     </target>
 
+    <target name="migrations">
+        <exec executable="php" dir="${trg.dir}" failonerror="true">
+            <arg value="protected/t4.php" />
+            <arg value="/migrate" />
+        </exec>
+    </target>
+
     <target name="fixPermissions">
         <exec executable="chmod" dir="${www.baseDir}" failonerror="true">
             <arg value="-R" />
@@ -78,7 +85,7 @@
     </target>
 
     <target name="createSymlink">
-        <symlink link="${trg.symlink}" resource="${trg.dir}" overwrite="true" />
+        <symlink link="${trg.symlink}" resource="${trg.dir}" overwrite="true" failonerror="true" />
     </target>
 
 </project>
