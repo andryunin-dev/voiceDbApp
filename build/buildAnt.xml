@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <project name="voiceAppDev" default="build" >
 
-    <target name="build" depends="env, createConfig" />
+    <target name="build" depends="env, createConfig, copyToTarget" />
 
     <target name="env">
         <tstamp>
@@ -13,7 +13,7 @@
 
         <echo>***********************************************</echo>
         <echo>Config template location: ${src.configTemplate}</echo>
-        <echo>Target dir for artefact: ${trg.dir}</echo>
+        <echo>Target dir for built project: ${trg.dir}</echo>
         <echo>Target dir for config file: ${config.target.dir}</echo>
         <echo>Base dir: ${basedir}</echo>
         <echo>***********************************************</echo>
@@ -25,10 +25,27 @@
         <filter token="db.name" value="${db.name}" />
         <filter token="db.user" value="${db.user}" />
         <filter token="db.password" value="${db.password}" />
+
         <filter token="dbUnitTest.host" value="${dbUnitTest.host}" />
         <filter token="dbUnitTest.name" value="${dbUnitTest.name}" />
         <filter token="dbUnitTest.user" value="${dbUnitTest.user}" />
         <filter token="dbUnitTest.password" value="${dbUnitTest.password}" />
+
+        <filter token="lotusDb.host" value="${lotusDb.host}" />
+        <filter token="lotusDb.user" value="${lotusDb.user}" />
+        <filter token="lotusDb.password" value="${lotusDb.password}" />
+        <filter token="lotusDb.name" value="${lotusDb.name}" />
+
+        <filter token="cdrDb.host" value="${cdrDb.host}" />
+        <filter token="cdrDb.user" value="${cdrDb.user}" />
+        <filter token="cdrDb.password" value="${cdrDb.password}" />
+        <filter token="cdrDb.name" value="${cdrDb.name}" />
+
+        <filter token="axl.username" value="${axl.username}" />
+        <filter token="axl.password" value="${axl.password}" />
+
+        <filter token="ssh.login" value="${ssh.login}" />
+        <filter token="ssh.password" value="${ssh.password}" />
 
         <copy todir="${config.target.dir}" filtering="true" overwrite="true">
             <fileset file="${src.configTemplate}" />
@@ -38,8 +55,9 @@
     <target name="copyToTarget">
         <mkdir dir="${trg.dir}" />
         <move todir="${trg.dir}">
-            <fileset dir="./">
+            <fileset dir="../">
                 <include name="**" />
+                <exclude name="**/build/**" />
             </fileset>
         </move>
     </target>
