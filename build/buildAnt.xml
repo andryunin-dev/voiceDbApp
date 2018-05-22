@@ -30,7 +30,7 @@
         <filter token="dbUnitTest.user" value="${dbUnitTest.user}" />
         <filter token="dbUnitTest.password" value="${dbUnitTest.password}" />
 
-        <copy todir="${config.target.dir}" filtering="true">
+        <copy todir="${config.target.dir}" filtering="true" overwrite="true">
             <fileset file="${src.configTemplate}" />
         </copy>
     </target>
