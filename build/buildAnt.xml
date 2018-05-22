@@ -56,7 +56,7 @@
 
     <target name="buildWithComposer">
         <exec executable="composer" dir="../">
-            <env key="PATH" path="${env.PATH}:/usr/local/bin:/usr/local/sbinS" />
+            <env key="PATH" path="${env.PATH}:/usr/local/bin:/usr/local/sbin" />
         </exec>
     </target>
 
