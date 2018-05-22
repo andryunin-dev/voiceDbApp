@@ -7,7 +7,7 @@
         <tstamp>
             <format property="BUILD_TIME" pattern="yy-MM-dd-hh-mm-ss" locale="ru,RU"/>
         </tstamp>
-        <property name="src.configTemplate" location="build/configTemplate/config.php" />
+        <property name="src.configTemplate" location="configTemplate/config.php" />
         <property name="trg.dir" location="${www.baseDir}/${www.domainName}/${BUILD_TIME}" />
         <property name="config.target.dir" location="protected" />
 
