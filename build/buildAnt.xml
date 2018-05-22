@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <project name="voiceAppDev" default="build" >
 
-    <target name="build" depends="env, createConfig, buildWithComposer, copyToTarget" />
+    <target name="build" depends="env, createConfig, buildWithComposer, copyToTarget, fixPermissions" />
 
     <target name="env">
         <tstamp>
@@ -66,6 +66,14 @@
                 <exclude name="**/build/**" />
             </fileset>
         </move>
+    </target>
+
+    <target name="fixPermissions">
+        <exec executable="chmod" dir="${www.baseDir}" failonerror="true">
+            <arg value="-R" />
+            <arg value="777" />
+            <arg value="${trg.dir}" />
+        </exec>
     </target>
 
 </project>
