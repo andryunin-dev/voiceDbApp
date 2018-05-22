@@ -15,6 +15,7 @@
         <echo>Config template location: ${src.configTemplate}</echo>
         <echo>Target dir for artefact: ${trg.dir}</echo>
         <echo>Target dir for config file: ${config.target.dir}</echo>
+        <echo>pass: ${db.password}</echo>
         <echo>***********************************************</echo>
 
     </target>
@@ -24,7 +25,6 @@
         <filter token="db.name" value="${db.name}" />
         <filter token="db.user" value="${db.user}" />
         <filter token="db.password" value="${db.password}" />
-
         <filter token="dbUnitTest.host" value="${dbUnitTest.host}" />
         <filter token="dbUnitTest.name" value="${dbUnitTest.name}" />
         <filter token="dbUnitTest.user" value="${dbUnitTest.user}" />
