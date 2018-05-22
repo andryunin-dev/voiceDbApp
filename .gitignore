@@ -3,3 +3,4 @@ vendor
 protected/Cache
 public/Assets
 Tmp
+/composer.lock

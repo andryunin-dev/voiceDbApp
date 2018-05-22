@@ -18,7 +18,6 @@
         <echo>Base dir: ${basedir}</echo>
         <echo>PATH from env: ${env.PATH}</echo>
         <echo>***********************************************</echo>
-
     </target>
 
     <target name="createConfig">
