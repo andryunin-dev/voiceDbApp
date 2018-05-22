@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <project name="voiceAppDev" default="build" >
 
-    <target name="build" depends="env, createConfig, buildWithComposer,S copyToTarget" />
+    <target name="build" depends="env, createConfig, buildWithComposer, copyToTarget" />
 
     <target name="env">
         <tstamp>
@@ -10,7 +10,7 @@
         <property name="src.configTemplate" location="configTemplate/config.php" />
         <property name="trg.dir" location="${www.baseDir}/${www.domainName}/${BUILD_TIME}" />
         <property name="config.target.dir" location="../protected" />
-
+S
         <echo>***********************************************</echo>
         <echo>Config template location: ${src.configTemplate}</echo>
         <echo>Target dir for built project: ${trg.dir}</echo>
