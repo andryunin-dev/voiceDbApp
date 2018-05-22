@@ -55,7 +55,7 @@
     </target>
 
     <target name="buildWithComposer">
-        <exec executable="composer install" dir="../">
+        <exec executable="composer" dir="../">
             <env key="PATH" path="${env.PATH}" />
         </exec>
     </target>
