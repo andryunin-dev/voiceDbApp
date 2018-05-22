@@ -7,6 +7,7 @@
         <tstamp>
             <format property="BUILD_TIME" pattern="yy-MM-dd-hh-mm-ss" locale="ru,RU"/>
         </tstamp>
+        <property environment="env"/>
         <property name="src.configTemplate" location="configTemplate/config.php" />
         <property name="trg.dir" location="${www.baseDir}/${www.domainName}/${BUILD_TIME}" />
         <property name="config.target.dir" location="../protected" />
@@ -16,6 +17,7 @@
         <echo>Target dir for built project: ${trg.dir}</echo>
         <echo>Target dir for config file: ${config.target.dir}</echo>
         <echo>Base dir: ${basedir}</echo>
+        <echo>PATH from env: ${env.PATH}</echo>
         <echo>***********************************************</echo>
 
     </target>
@@ -53,7 +55,9 @@
     </target>
 
     <target name="buildWithComposer">
-        <exec executable="composer install" dir="../" />
+        <exec executable="composer install" dir="../">
+            <env key="PATH" path="${env.PATH}" />
+        </exec>
     </target>
 
     <target name="copyToTarget">
