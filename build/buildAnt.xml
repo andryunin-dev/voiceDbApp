@@ -78,7 +78,7 @@
     </target>
 
     <target name="createSymlink">
-        <symlink link="${trg.symlink}" resource="${trg.dir}"/>
+        <symlink link="${trg.symlink}" resource="${trg.dir}" overwrite="true" />
     </target>
 
 </project>
