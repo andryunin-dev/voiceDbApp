@@ -11,6 +11,7 @@
         <property name="src.configTemplate" location="configTemplate/config.php" />
         <property name="trg.dir" location="${www.baseDir}/${www.domainName}/${BUILD_TIME}" />
         <property name="config.target.dir" location="../protected" />
+        <property name="path.local.bin" location="/usr/local/bin" />
 
         <echo>***********************************************</echo>
         <echo>Config template location: ${src.configTemplate}</echo>
@@ -56,7 +57,7 @@
 
     <target name="buildWithComposer">
         <exec executable="composer" dir="../">
-            <env key="PATH" path="${env.PATH}:/usr/local/bin:/usr/local/sbin" />
+            <env key="PATH" path="${env.PATH}" />
         </exec>
     </target>
 
