@@ -60,7 +60,7 @@
 
     <target name="copyToTarget">
         <mkdir dir="${trg.dir}" />
-        <move todir="${trg.dir}">
+        <move todir="${trg.dir}" includeEmptyDirs="true">
             <fileset dir="../">
                 <include name="**" />
                 <exclude name="**/build/**" />
