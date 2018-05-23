@@ -272,8 +272,7 @@ class CucmsPhones extends Command
                         }
                     } catch (\SoapFault $e) {
                         $this->writeLn(json_encode([
-                            'error' => $e->getMessage(),
-                            'cucm' => $publisher->managementIp,
+                            'error' => [$publisher->managementIp => $e->getMessage()],
                         ]));
                     }
                     exit();
