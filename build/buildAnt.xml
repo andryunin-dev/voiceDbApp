@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <project name="voiceAppDev" default="build" >
 
-    <target name="build" depends="env, createConfig, buildWithComposer" />
+    <target name="build" depends="env, createConfig, buildWithComposer, copyToTarget, fixPermissions, createSymlink" />
 
     <target name="env">
         <tstamp>
