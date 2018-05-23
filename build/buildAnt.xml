@@ -1,18 +1,23 @@
 <?xml version="1.0"?>
 <project name="voiceAppDev" default="build" >
-
-    <target name="build" depends="env" />
+    <target name="build" depends="env, createConfig, buildWithComposer, copyToTarget, migrations, fixPermissions, createSymlink" />
 
     <target name="env">
         <tstamp>
             <format property="BUILD_TIME" pattern="yy-MM-dd-hh-mm-ss" locale="ru,RU"/>
         </tstamp>
         <property name="src.configTemplate" location="configTemplate/config.php" />
-        <property name="trg.dir" location="${www.baseDir}/${www.domainName}/BUILD_TIME" />
-        <property name="config.target.dir" location="protected" />
-        <echo>${src.configTemplate}</echo>
-        <echo>${trg.dir}</echo>
-        <echo>${config.target.dir}</echo>
+        <property name="trg.dir" location="${www.baseDir}/${www.domainName}/${BUILD_TIME}" />
+        <property name="trg.symlink" location="${www.baseDir}/${www.domainName}/current" />
+        <property name="config.target.dir" location="../protected" />
+
+        <echo>***********************************************</echo>
+        <echo>Config template location: ${src.configTemplate}</echo>
+        <echo>Target dir for built project: ${trg.dir}</echo>
+        <echo>Target dir for config file: ${config.target.dir}</echo>
+        <echo>Base dir: ${basedir}</echo>
+        <echo>PATH from env: ${env.PATH}</echo>
+        <echo>***********************************************</echo>
     </target>
 
     <target name="createConfig">
@@ -26,18 +31,59 @@
         <filter token="dbUnitTest.user" value="${dbUnitTest.user}" />
         <filter token="dbUnitTest.password" value="${dbUnitTest.password}" />
 
-        <copy todir="${config.target.dir}" filtering="true">
+        <filter token="lotusDb.host" value="${lotusDb.host}" />
+        <filter token="lotusDb.user" value="${lotusDb.user}" />
+        <filter token="lotusDb.password" value="${lotusDb.password}" />
+        <filter token="lotusDb.name" value="${lotusDb.name}" />
+
+        <filter token="cdrDb.host" value="${cdrDb.host}" />
+        <filter token="cdrDb.user" value="${cdrDb.user}" />
+        <filter token="cdrDb.password" value="${cdrDb.password}" />
+        <filter token="cdrDb.name" value="${cdrDb.name}" />
+
+        <filter token="axl.username" value="${axl.username}" />
+        <filter token="axl.password" value="${axl.password}" />
+
+        <filter token="ssh.login" value="${ssh.login}" />
+        <filter token="ssh.password" value="${ssh.password}" />
+
+        <copy todir="${config.target.dir}" filtering="true" overwrite="true">
             <fileset file="${src.configTemplate}" />
         </copy>
+    </target>
+
+    <target name="buildWithComposer">
+        <exec executable="composer" dir="../" failonerror="true">
+            <arg value="install" />
+        </exec>
     </target>
 
     <target name="copyToTarget">
         <mkdir dir="${trg.dir}" />
         <move todir="${trg.dir}">
-            <fileset dir="./">
+            <fileset dir="../">
                 <include name="**" />
+                <exclude name="**/build/**" />
             </fileset>
         </move>
     </target>
 
+    <target name="migrations">
+        <exec executable="php" dir="${trg.dir}" failonerror="true">
+            <arg value="protected/t4.php" />
+            <arg value="/migrate" />
+        </exec>
+    </target>
+
+    <target name="fixPermissions">
+        <exec executable="chmod" dir="${www.baseDir}" failonerror="true">
+            <arg value="-R" />
+            <arg value="777" />
+            <arg value="${trg.dir}" />
+        </exec>
+    </target>
+
+    <target name="createSymlink">
+        <symlink link="${trg.symlink}" resource="${trg.dir}" overwrite="true" failonerror="true" />
+    </target>
 </project>
