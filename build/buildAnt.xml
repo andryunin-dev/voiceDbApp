@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<project name="voiceAppDev" default="build" >
+
+    <target name="build" depends="env" />
+
+    <target name="env">
+        <tstamp>
+            <format property="BUILD_TIME" pattern="yy-MM-dd-hh-mm-ss" locale="ru,RU"/>
+        </tstamp>
+        <property name="src.configTemplate" location="configTemplate/config.php" />
+        <property name="trg.dir" location="${www.baseDir}/${www.domainName}/BUILD_TIME" />
+        <property name="config.target.dir" location="protected" />
+        <echo>${src.configTemplate}</echo>
+        <echo>${trg.dir}</echo>
+        <echo>${config.target.dir}</echo>
+    </target>
+
+    <target name="createConfig">
+        <filter token="db.host" value="${db.host}" />
+        <filter token="db.name" value="${db.name}" />
+        <filter token="db.user" value="${db.user}" />
+        <filter token="db.password" value="${db.password}" />
+
+        <filter token="dbUnitTest.host" value="${dbUnitTest.host}" />
+        <filter token="dbUnitTest.name" value="${dbUnitTest.name}" />
+        <filter token="dbUnitTest.user" value="${dbUnitTest.user}" />
+        <filter token="dbUnitTest.password" value="${dbUnitTest.password}" />
+
+        <copy todir="${config.target.dir}" filtering="true">
+            <fileset file="${src.configTemplate}" />
+        </copy>
+    </target>
+
+    <target name="copyToTarget">
+        <mkdir dir="${trg.dir}" />
+        <move todir="${trg.dir}">
+            <fileset dir="./">
+                <include name="**" />
+            </fileset>
+        </move>
+    </target>
+
+</project>
