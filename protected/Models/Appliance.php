@@ -212,6 +212,10 @@ class Appliance extends Model
         if (! empty($phoneInfo = $this->phoneInfo)) {
             $phoneInfo->delete();
         }
+        if (!is_null($this->appliance1C)) {
+            $this->appliance1C->voiceAppliance = null;
+            $this->appliance1C->save();
+        }
         $result = parent::delete();
         $this->software->delete();
         $this->platform->delete();
