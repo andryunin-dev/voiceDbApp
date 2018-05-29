@@ -112,7 +112,7 @@ class DSPphones extends Std
                 $softwareVersion = (1 == preg_match('~6921~', $data->model)) ? $data->appLoadID : $data->versionID;
 
                 // Location for Ip Phone определяем по location defaultRouter телефона
-                $defaultRouterDataPort = (!empty($defaultRouter)) ? DataPort::findByIpVrf($defaultRouter, Vrf::instanceGlobalVrf()) : false;
+                $defaultRouterDataPort = (!empty($data->defaultRouter)) ? DataPort::findByIpVrf($data->defaultRouter, Vrf::instanceGlobalVrf()) : false;
                 if (false !== $defaultRouterDataPort) {
                     $location = $defaultRouterDataPort->appliance->location;
                     $unknownLocation = false;
