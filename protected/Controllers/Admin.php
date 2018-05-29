@@ -1397,9 +1397,9 @@ class Admin extends Controller
             if (!empty($data->newDataport->portId)) {
                 foreach ($data->newDataport->portId as $key => $value) {
                     //IE возвращает пустой массив
-                    if (!is_numeric($value)) {
-                        continue;
-                    }
+//                    if (!is_numeric($value)) {
+//                        continue;
+//                    }
                     if (!is_numeric($data->newDataport->vrfId->$key)) {
                         throw new Exception('VRF не выбран');
                     }

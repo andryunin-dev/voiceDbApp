@@ -112,7 +112,7 @@ class DSPphones extends Std
                 $softwareVersion = (1 == preg_match('~6921~', $data->model)) ? $data->appLoadID : $data->versionID;
 
                 // Location for Ip Phone определяем по location defaultRouter телефона
-                $defaultRouterDataPort = DataPort::findByIpVrf($data->defaultRouter, Vrf::instanceGlobalVrf());
+                $defaultRouterDataPort = (!empty($defaultRouter)) ? DataPort::findByIpVrf($defaultRouter, Vrf::instanceGlobalVrf()) : false;
                 if (false !== $defaultRouterDataPort) {
                     $location = $defaultRouterDataPort->appliance->location;
                     $unknownLocation = false;
@@ -439,7 +439,7 @@ class DSPphones extends Std
 
             // End transaction
             Appliance::getDbConnection()->commitTransaction();
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             Appliance::getDbConnection()->rollbackTransaction();
             $this->dbUnLock();
             throw new Exception($e->getMessage());
@@ -452,7 +452,7 @@ class DSPphones extends Std
      * @param string $name
      * @return bool
      */
-    protected function isVGC(string $name)
+    private function isVGC(string $name)
     {
         return (1 == preg_match('~^vgc|an~', mb_strtolower($name))) ? true : false;
     }
@@ -463,7 +463,7 @@ class DSPphones extends Std
      * @return bool
      * @throws Exception
      */
-    protected function dbLock()
+    private function dbLock()
     {
         $this->dbLockFile = fopen(self::DB_LOCK_FILE, 'w');
         if (false === $this->dbLockFile) {
@@ -487,10 +487,140 @@ class DSPphones extends Std
      *
      * @return bool
      */
-    protected function dbUnLock()
+    private function dbUnLock()
     {
         flock($this->dbLockFile, LOCK_UN);
         fclose($this->dbLockFile);
         return true;
+    }
+
+    /**
+     * @param $data
+     * @throws \Exception
+     */
+    private function verifyData(Std $data)
+    {
+        if (!isset($data->name)) {
+            throw new \Exception('No value: name');
+        }
+        if (!isset($data->description)) {
+            throw new \Exception('No value: description');
+        }
+        if (!isset($data->css)) {
+            throw new \Exception('No value: css');
+        }
+        if (!isset($data->devicepool)) {
+            throw new \Exception('No value: devicepool');
+        }
+        if (!isset($data->phonedn)) {
+            throw new \Exception('No value: phonedn');
+        }
+        if (!isset($data->alertingname)) {
+            throw new \Exception('No value: alertingname');
+        }
+        if (!isset($data->model)) {
+            throw new \Exception('No value: model');
+        }
+        if (!isset($data->prefix)) {
+            throw new \Exception('No value: prefix');
+        }
+        if (!isset($data->partition)) {
+            throw new \Exception('No value: partition');
+        }
+        if (!isset($data->publisherIp)) {
+            throw new \Exception('No value: publisherIp');
+        }
+        if (!isset($data->ipAddress)) {
+            throw new \Exception('No value: ipAddress');
+        }
+        if (!isset($data->status)) {
+            throw new \Exception('No value: status');
+        }
+        if (!isset($data->class)) {
+            throw new \Exception('No value: class');
+        }
+        if (!isset($data->macAddress)) {
+            throw new \Exception('No value: macAddress');
+        }
+        if (!isset($data->serialNumber)) {
+            throw new \Exception('No value: serialNumber');
+        }
+        if (!isset($data->modelNumber)) {
+            throw new \Exception('No value: modelNumber');
+        }
+        if (!isset($data->versionID)) {
+            throw new \Exception('No value: versionID');
+        }
+        if (!isset($data->appLoadID)) {
+            throw new \Exception('No value: appLoadID');
+        }
+        if (!isset($data->timezone)) {
+            throw new \Exception('No value: timezone');
+        }
+        if (!isset($data->dhcpEnabled)) {
+            throw new \Exception('No value: dhcpEnabled');
+        }
+        if (!isset($data->dhcpServer)) {
+            throw new \Exception('No value: dhcpServer');
+        }
+        if (!isset($data->domainName)) {
+            throw new \Exception('No value: domainName');
+        }
+        if (!isset($data->subNetMask)) {
+            throw new \Exception('No value: subNetMask');
+        }
+        if (!isset($data->tftpServer1)) {
+            throw new \Exception('No value: tftpServer1');
+        }
+        if (!isset($data->tftpServer2)) {
+            throw new \Exception('No value: tftpServer2');
+        }
+        if (!isset($data->defaultRouter)) {
+            throw new \Exception('No value: defaultRouter');
+        }
+        if (!isset($data->dnsServer1)) {
+            throw new \Exception('No value: dnsServer1');
+        }
+        if (!isset($data->dnsServer2)) {
+            throw new \Exception('No value: dnsServer2');
+        }
+        if (!isset($data->callManager1)) {
+            throw new \Exception('No value: callManager1');
+        }
+        if (!isset($data->callManager2)) {
+            throw new \Exception('No value: callManager2');
+        }
+        if (!isset($data->callManager3)) {
+            throw new \Exception('No value: callManager3');
+        }
+        if (!isset($data->callManager4)) {
+            throw new \Exception('No value: callManager4');
+        }
+        if (!isset($data->vlanId)) {
+            throw new \Exception('No value: vlanId');
+        }
+        if (!isset($data->userLocale)) {
+            throw new \Exception('No value: userLocale');
+        }
+        if (!isset($data->cdpNeighborDeviceId)) {
+            throw new \Exception('No value: cdpNeighborDeviceId');
+        }
+        if (!isset($data->cdpNeighborIP)) {
+            throw new \Exception('No value: cdpNeighborIP');
+        }
+        if (!isset($data->cdpNeighborPort)) {
+            throw new \Exception('No value: cdpNeighborPort');
+        }
+    }
+
+    /**
+     * @param Std $data
+     * @return bool
+     * @throws Exception
+     */
+    public function persist(Std $data): bool
+    {
+        $this->verifyData($data);
+        return $this->process($data);
     }
 }

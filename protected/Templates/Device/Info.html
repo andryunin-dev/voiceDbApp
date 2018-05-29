@@ -67,6 +67,7 @@
                     $(e.target).closest("table").find(".js-caret").toggleClass("caret-down");
                 }
             };
+
             devTable.jqTable('addBodyEventHandler', 'click', "", toggleInnerTable);
             devTable.jqTable('addHeaderEventHandler', 'click', "", function (e) {
                 if ($(e.target).parent().hasClass('finder-icon') || $(e.target).hasClass('finder-icon')) {

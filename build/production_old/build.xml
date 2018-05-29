@@ -54,6 +54,10 @@
                     <token key="axl.password" value="${axl.password}" />
                     <token key="ssh.login" value="${ssh.login}" />
                     <token key="ssh.password" value="${ssh.password}" />
+                    <token key="db.cdr.host" value="${db.cdr.host}" />
+                    <token key="db.cdr.user" value="${db.cdr.user}" />
+                    <token key="db.cdr.password" value="${db.cdr.password}" />
+                    <token key="db.cdr.dbname" value="${db.cdr.dbname}" />
                 </replacetokens>
             </filterchain>
         </copy>
