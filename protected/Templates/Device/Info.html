@@ -21,7 +21,7 @@
     <script>
         tableSettings = {
             dataUrl: "/device/devicesTable.json",
-            width: '100',
+            width: '115',
             header: {
                 tableClasses: "bg-primary table-bordered",
                 columns: {
@@ -33,6 +33,9 @@
                     softwareAndVersion: {id: 'soft', name: 'ПО', width: 15, sortable: true, filterable: true},
                     module: {id: 'module', name: 'Модуль', width: 10, sortable: false, filterable: false},
                     data_port: {id: 'dport', name: 'Интерфейсы', width: 15, filterable: false},
+                    platformSerial: {id: 'sn', name: 'SN', width: '110px', filterable: true},
+                    inventoryNumber: {id: 'inv-num', name: 'Инв.', width: '100px', filterable: true},
+                    responsiblePerson: {id: 'resp-person', name: 'МОЛ', width: '100px', filterable: true},
                     {% if not user.readOnly %}
                     action: {id: 'action', name: 'Действия', width: '105px'}
                     {% endif %}

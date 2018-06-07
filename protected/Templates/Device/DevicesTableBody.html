@@ -93,7 +93,7 @@
                         {% set noMngmnt = dev.noManagementPorts %}
                         {% if noMngmnt.count > 0 %}
                             <tr>
-                                <th class="toggler btn btn-xs btn-grey"><span class=" js-caret caret-right"></span> другие интерфейсы ({{ noMngmnt.count }})</th>
+                                <th class="toggler btn btn-xs btn-grey"><span class=" js-caret caret-right"></span> др. интерфейсы({{ noMngmnt.count }})</th>
                             </tr>
                         {% endif %}
                         </thead>
@@ -105,6 +105,18 @@
                         {% endfor %}
                         </tbody>
                     </table>
+                </td>
+                {#SN#}
+                <td title="{{ dev.platformSerial }}">
+                    {{ dev.platformSerial }}
+                </td>
+                {#InventoryNumber#}
+                <td title="{{ dev.inventoryNumber }}">
+                    {{ dev.inventoryNumber }}
+                </td>
+                {#responsiblePerson#}
+                <td title="{{ dev.responsiblePerson }}">
+                    {{ dev.responsiblePerson }}
                 </td>
                 {#Action#}
                 <td class="text-center">
