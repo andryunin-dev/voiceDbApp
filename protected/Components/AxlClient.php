@@ -26,7 +26,7 @@ class AxlClient
             'ssl' => [
                 'verify_peer' => false,
                 'verify_peer_name' => false,
-                'ciphers' => 'HIGH',
+                'ciphers' => 'AES256-SHA',
             ]
         ]);
 

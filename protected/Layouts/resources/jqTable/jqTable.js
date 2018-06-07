@@ -1671,7 +1671,14 @@ jqTable.workSetTmpl = {
                     function (e) {
                         var column = $(this).data('column');
                         ws.obj.$headerBox.find('[id^="' + ws.model.hdFilter.selectors.boxPrefix.slice(1) + '"]:visible').hide();
-                        ws.obj.$headerBox.find(ws.model.hdFilter.selectors.boxPrefix + column).show().find('input').focus();
+                        var box = ws.obj.$headerBox.find(ws.model.hdFilter.selectors.boxPrefix + column);
+                        box.show().position({
+                            of: e.currentTarget,
+                            my: 'right+5 top',
+                            at: 'right bottom'
+                        }).find('input').focus();
+                        //ws.obj.$headerBox.find(ws.model.hdFilter.selectors.boxPrefix + column).show().find('input').focus();
+                        //box.show().find('input').focus();
                     }
                 );
                 //удаление элемента фильтра

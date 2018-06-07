@@ -102,7 +102,9 @@ class DevModulePortGeo extends Model
             'softwareAndVersion' => ['type' => 'string'],
             'moduleInfo' => ['type' => 'jsonb'],
             'portInfo' => ['type' => 'jsonb'],
-            'managementIp' => ['type' => 'string']
+            'managementIp' => ['type' => 'string'],
+            'inventoryNumber' => ['type' => 'string'],
+            'responsiblePerson' => ['type' => 'string']
         ]
     ];
     public static $columnMap = [
