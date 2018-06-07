@@ -8,7 +8,7 @@ class PhoneLastCall extends Model
 {
     protected static $schema = [
         'db' => 'cdr',
-        'table' => 'cdr_call_activ.dev_nd',
+        'table' => 'cdr_call_activ.dev_nd_quan',
         'columns' => [
             'dev' => ['type' => 'string'],
             'date' => ['type' => 'date']
