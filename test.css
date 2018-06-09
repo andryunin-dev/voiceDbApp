@@ -1,5 +1,6 @@
 body {
     font: 18px Verdana sans-serif;
+    height: 400px;
 }
 div {
     box-sizing: border-box;
@@ -7,15 +8,15 @@ div {
 
 .table {
     width: 60%;
-    height: 300px;
+    height: 80%;
 
     display: grid;
     grid-template-columns: 1fr;
-    grid-template-rows: minmax(200px, 100%);
+    grid-template-rows: minmax(200px, 1fr);
 }
 .hd-bd-container {
-    overflow-x: auto;
-    height: 300px;
+    overflow-x: scroll;
+    height: 320px;
 }
 
 .body-box {
@@ -23,7 +24,7 @@ div {
     grid-template-columns: minmax(500px, 50%) minmax(500px, 50%);
     overflow-y: scroll;
     min-width: 1017px;
-    height: 200px;
+    height: 100%;
 }
 
 .body-cell {
