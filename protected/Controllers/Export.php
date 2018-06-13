@@ -151,11 +151,11 @@ class Export extends Controller
                 }
             }
 
-            // Подготовим массив значений PhoneName => LastCall
-            $phoneLastCall = [];
-            foreach (PhoneLastCall::findAll() as $item) {
-                $phoneLastCall[$item->dev] = $item->date;
-            }
+            // Подготовим массив значений PhoneName => LastCall // todo - переделать после утверждения бизнес логики
+//            $phoneLastCall = [];
+//            foreach (PhoneLastCall::findAll() as $item) {
+//                $phoneLastCall[$item->dev] = $item->date;
+//            }
 
 
 // ------ Worksheet - 'Appliances' ----------------------
@@ -492,7 +492,8 @@ class Export extends Controller
                 $hostname = (!is_null($appDetails) && !empty($appDetails->hostname)) ? $appDetails->hostname : '';
 
                 // define last call
-                $lastCall = array_key_exists($phone->name, $phoneLastCall) ? $phoneLastCall[$phone->name] : '';
+//                $lastCall = array_key_exists($phone->name, $phoneLastCall) ? $phoneLastCall[$phone->name] : ''; // todo - переделать после утверждения бизнес логики
+                $lastCall = '';
 
 
                 $sheet3_rows .= '<row r="' . $currentRowSheet3 . '" spans="1:' . $rowSpansSheet3 . '" x14ac:dyDescent="0.25">';
