@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 
 use App\Components\Reports\ApplianceTypeReport;
+use App\Components\Reports\ApplianceTypeWithoutInventoryReport;
 use App\Components\Reports\PlatformReport;
 use App\Components\Reports\SoftReport;
 use App\Components\Reports\VendorReport;
@@ -27,6 +28,8 @@ use T4\Mvc\Controller;
 
 class Report extends Controller
 {
+    private const APP_TYPES = [ApplianceType::PHONE, ApplianceType::ROUTER, ApplianceType::SWITCH]; // список типов устройств для которых высчитывается процент устройств без инвентарного номера
+
     use DebugTrait;
 
     public function actionDefault()
@@ -60,6 +63,8 @@ class Report extends Controller
 
         $this->data->settings->activeTab = (Helpers::issetCookie('netcmdb_report_tab')) ? Helpers::getCookie('netcmdb_report_tab') : 'platforms';
         $this->data->activeLink->reportNew = true;
+
+        $this->data->typesHasNotInventory = ApplianceTypeWithoutInventoryReport::getAppliancesPercents(self::APP_TYPES);
     }
 
     /*====Обработка Ajax запроса конфигурации таблицы ====*/
