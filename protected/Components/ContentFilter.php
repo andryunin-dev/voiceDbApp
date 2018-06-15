@@ -28,7 +28,7 @@ class ContentFilter extends Std
     const HREF_PROPERTY_EMPTY_VALUE = '';
     const COLUMN_NAME_KEY = 'column';
     const PREDICATE_NAME_KEY = 'predicate';
-    const PREDICATES = ['eq', 'ne', 'lt', 'le', 'gt', 'ge', 'like'];
+    const PREDICATES = ['eq', 'ne', 'lt', 'le', 'gt', 'ge', 'like', 'is'];
     const PREDICATE_REPLACEMENT = [
         'eq' => '=',
         'ne' => '!=',

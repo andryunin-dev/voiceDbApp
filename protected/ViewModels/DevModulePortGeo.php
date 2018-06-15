@@ -126,7 +126,8 @@ class DevModulePortGeo extends Model
         'noActiveAge' => ['column' => 'appAge', 'predicate' => 'ge'],
         'activeAge' => ['column' => 'appAge', 'predicate' => 'lt'],
         'age_null' => ['column' => 'appAge', 'predicate' => 'is'],
-        'inUse' => ['column' => 'appInUse', 'predicate' => 'is']
+        'inUse' => ['column' => 'appInUse', 'predicate' => 'is'],
+        'inv_null' => ['column' => 'inventoryNumber', 'predicate' => 'is']
     ];
     public static $applianceTypeMap = [
         'switch' => 'SW',
