@@ -18,10 +18,10 @@ return [
         ],
         'lotusData' => [
             'driver' => 'pgsql',
-            'host' => '127.0.0.1',
-            'user' => 'postgres',
+            'host' => '',
+            'user' => '',
             'password' => '',
-            'dbname' => 'LotusData'
+            'dbname' => ''
         ],
         'cdr' => [
             'driver' => 'pgsql',
