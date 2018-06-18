@@ -61,10 +61,18 @@
                                                     </a>
                                                     {% for appTypeHasNotInventory in typesHasNotInventory %}
                                                         {% if appType.appType == appTypeHasNotInventory.appType %}
-                                                            /
-                                                            <a href="{{ devsUrl.cloneToShortUrl.addQuery({'ven_id': appType.platformVendor_id, 'type_id': appType.appType_id, 'inv_null': 'null'}) }}">
-                                                                {{ appTypeHasNotInventory.percent }} %
-                                                            </a>
+                                                            {% if appTypeHasNotInventory.appType == 'phone' %}
+                                                                /
+                                                                <br>
+                                                                <a href="{{ devsUrl.cloneToShortUrl.addQuery({'ven_id': appType.platformVendor_id, 'type_id': appType.appType_id, 'inv_null': 'null', 'isHW': true}) }}">
+                                                                    ({{ appTypeHasNotInventory.percent }} % hw-phone)
+                                                                </a>
+                                                            {% else %}
+                                                                /
+                                                                <a href="{{ devsUrl.cloneToShortUrl.addQuery({'ven_id': appType.platformVendor_id, 'type_id': appType.appType_id, 'inv_null': 'null'}) }}">
+                                                                    {{ appTypeHasNotInventory.percent }} %
+                                                                </a>
+                                                            {% endif %}
                                                         {% endif %}
                                                     {% endfor %}
                                                 </td>
