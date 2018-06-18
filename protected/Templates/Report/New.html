@@ -37,7 +37,7 @@
                                             <tr>
                                                 <th class="bg-primary">Тип(роль)</th>
                                                 <th class="bg-primary col-15">Производитель</th>
-                                                <th class="bg-primary col-10">Всего устройств</th>
+                                                <th class="bg-primary col-10">Всего устройств /<br> без инв. ном. %</th>
                                                 <th class="bg-primary col-10">Активных</th>
                                                 <th class="bg-primary col-10">Активных<br>(not InUse)</th>
                                                 <th class="bg-primary col-10">Неактивных</th>
@@ -59,6 +59,22 @@
                                                     <a href="{{ devsUrl.cloneToShortUrl.addQuery({'ven_id': appType.platformVendor_id, 'type_id': appType.appType_id}) }}">
                                                         {{ appType.total }}
                                                     </a>
+                                                    {% for appTypeHasNotInventory in typesHasNotInventory %}
+                                                        {% if appType.appType == appTypeHasNotInventory.appType %}
+                                                            {% if appTypeHasNotInventory.appType == 'phone' %}
+                                                                /
+                                                                <br>
+                                                                <a title="Hardware-phones без инвентарного номера" href="{{ devsUrl.cloneToShortUrl.addQuery({'ven_id': appType.platformVendor_id, 'type_id': appType.appType_id, 'inv_null': 'null', 'isHW': true}) }}">
+                                                                    ({{ appTypeHasNotInventory.percent }} % hw-phone)
+                                                                </a>
+                                                            {% else %}
+                                                                /
+                                                                <a title="Устройств без инвентарного номера" href="{{ devsUrl.cloneToShortUrl.addQuery({'ven_id': appType.platformVendor_id, 'type_id': appType.appType_id, 'inv_null': 'null'}) }}">
+                                                                    {{ appTypeHasNotInventory.percent }} %
+                                                                </a>
+                                                            {% endif %}
+                                                        {% endif %}
+                                                    {% endfor %}
                                                 </td>
                                                 <td title="Активных">
                                                     <a href="{{ devsUrl.cloneToShortUrl.addQuery({'ven_id': appType.platformVendor_id, 'type_id': appType.appType_id, 'activeAge': appType.age}) }}">

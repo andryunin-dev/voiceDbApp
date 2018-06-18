@@ -38,6 +38,7 @@ use T4\Orm\Model;
  * @property int $platformVendor_id
  * @property int $platformVendor
  * @property int $platformItem_id
+ * @property bool $isHW
  * @property int $platformTitle
  * @property int $softwareVendor_id
  * @property int $softwareVendor
@@ -92,6 +93,7 @@ class DevModulePortGeo extends Model
             'platformItem_id' => ['type' => 'int', 'length' => 'big'],
             'platformSerial' => ['type' => 'string'],
             'platformTitle' => ['type' => 'string'],
+            'isHW' => ['type' => 'boolean'],
             'platform_id' => ['type' => 'int', 'length' => 'big'],
             'softwareVendor_id' => ['type' => 'int', 'length' => 'big'],
             'softwareVendor' => ['type' => 'string'],
@@ -126,7 +128,8 @@ class DevModulePortGeo extends Model
         'noActiveAge' => ['column' => 'appAge', 'predicate' => 'ge'],
         'activeAge' => ['column' => 'appAge', 'predicate' => 'lt'],
         'age_null' => ['column' => 'appAge', 'predicate' => 'is'],
-        'inUse' => ['column' => 'appInUse', 'predicate' => 'is']
+        'inUse' => ['column' => 'appInUse', 'predicate' => 'is'],
+        'inv_null' => ['column' => 'inventoryNumber', 'predicate' => 'is']
     ];
     public static $applianceTypeMap = [
         'switch' => 'SW',

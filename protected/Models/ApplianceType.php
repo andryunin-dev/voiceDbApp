@@ -18,6 +18,9 @@ use T4\Orm\Model;
 class ApplianceType extends Model
 {
     const CUCM_PUBLISHER = 'cmp';
+    const PHONE = 'phone';
+    const ROUTER = 'router';
+    const SWITCH = 'switch';
 
     protected static $schema = [
         'table' => 'equipment.applianceTypes',
