@@ -64,12 +64,12 @@
                                                             {% if appTypeHasNotInventory.appType == 'phone' %}
                                                                 /
                                                                 <br>
-                                                                <a href="{{ devsUrl.cloneToShortUrl.addQuery({'ven_id': appType.platformVendor_id, 'type_id': appType.appType_id, 'inv_null': 'null', 'isHW': true}) }}">
+                                                                <a title="Hardware-phones без инвентарного номера" href="{{ devsUrl.cloneToShortUrl.addQuery({'ven_id': appType.platformVendor_id, 'type_id': appType.appType_id, 'inv_null': 'null', 'isHW': true}) }}">
                                                                     ({{ appTypeHasNotInventory.percent }} % hw-phone)
                                                                 </a>
                                                             {% else %}
                                                                 /
-                                                                <a href="{{ devsUrl.cloneToShortUrl.addQuery({'ven_id': appType.platformVendor_id, 'type_id': appType.appType_id, 'inv_null': 'null'}) }}">
+                                                                <a title="Устройств без инвентарного номера" href="{{ devsUrl.cloneToShortUrl.addQuery({'ven_id': appType.platformVendor_id, 'type_id': appType.appType_id, 'inv_null': 'null'}) }}">
                                                                     {{ appTypeHasNotInventory.percent }} %
                                                                 </a>
                                                             {% endif %}
