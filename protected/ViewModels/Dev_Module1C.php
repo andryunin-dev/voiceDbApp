@@ -28,6 +28,7 @@ use T4\Orm\Model;
  * @property int $rooms1C_id
  * @property string $rooms1C_roomsCode
  * @property string $rooms1C_address
+ * @property string $rooms1C_title
  * @property int $office_id
  * @property int $office_lotusId
  * @property int $roomsTypes_id
@@ -62,6 +63,7 @@ class Dev_Module1C extends Model
             'rooms1C_id' => ['type' => 'int', 'length' => 'big'],
             'rooms1C_roomsCode' => ['type' => 'string'],
             'rooms1C_address' => ['type' => 'text'],
+            'rooms1C_title' => ['type' => 'text'],
             'office_id' => ['type' => 'int', 'length' => 'big'],
             'office_lotusId' => ['type' => 'int'],
             'roomsTypes_id' => ['type' => 'int', 'length' => 'big'],
