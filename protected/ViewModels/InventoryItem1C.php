@@ -28,12 +28,6 @@ use T4\Orm\Model;
  * @property string $rooms1C_title
  * @property int $office_id
  * @property int $office_lotusId
- * @property int $roomsTypes_id
- * @property string $roomsTypes_type
- * @property int $city1C_id
- * @property string $city1C_title
- * @property int $region1C_id
- * @property string $region1C_title
  */
 class InventoryItem1C extends Model
 {
@@ -60,12 +54,6 @@ class InventoryItem1C extends Model
             'rooms1C_title' => ['type' => 'text'],
             'office_id' => ['type' => 'int', 'length' => 'big'],
             'office_lotusId' => ['type' => 'int'],
-            'roomsTypes_id' => ['type' => 'int', 'length' => 'big'],
-            'roomsTypes_type' => ['type' => 'string'],
-            'city1C_id' => ['type' => 'int', 'length' => 'big'],
-            'city1C_title' => ['type' => 'string'],
-            'region1C_id' => ['type' => 'int', 'length' => 'big'],
-            'region1C_title' => ['type' => 'string'],
         ]
     ];
 
