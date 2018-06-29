@@ -85,9 +85,15 @@
                         <thead>
                         {% if dev.managementIp is not empty %}
                             <tr>
-                                <th>
-                                    <a href="ssh://{{ dev.managementIp }}" >{{ dev.managementIp }}</a>
-                                </th>
+                                {% if phoneType == dev.appType %}
+                                    <th>
+                                        <a href="http://{{ dev.managementIp }}" >{{ dev.managementIp }}</a>
+                                    </th>
+                                {% else %}
+                                    <th>
+                                        <a href="ssh://{{ dev.managementIp }}" >{{ dev.managementIp }}</a>
+                                    </th>
+                                {% endif %}
                             </tr>
                         {% endif %}
                         {% set noMngmnt = dev.noManagementPorts %}
