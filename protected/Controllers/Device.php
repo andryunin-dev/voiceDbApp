@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Components\ContentFilter;
 use App\Components\Paginator;
 use App\Components\Sorter;
+use App\Models\ApplianceType;
 use App\Models\LotusLocation;
 use App\ViewModels\DevModulePortGeo;
 use function foo\func;
@@ -78,6 +79,7 @@ class Device extends Controller
                     $twigData->maxAge = $maxAge;
                     $lotusIdList = DevModulePortGeo::officeIdListByQuery($query, 'lotusId');
                     $peoples = LotusLocation::countPeoples($lotusIdList);
+                    $twigData->phoneType = ApplianceType::PHONE;
 
                     $this->data->body->html = $this->view->render('DevicesTableBody.html', $twigData);
                     $this->data->body->hrefFilter = $hrefFilter;
