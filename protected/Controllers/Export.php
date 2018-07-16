@@ -5,7 +5,6 @@ namespace App\Controllers;
 use App\Components\RLogger;
 use App\ViewModels\Dev_Appliance1C;
 use App\ViewModels\Dev_Module1C;
-use App\ViewModels\DevCallStats;
 use App\ViewModels\DevModulePortGeo;
 use App\ViewModels\DevPhoneInfoGeo;
 use T4\Core\Exception;
@@ -152,9 +151,26 @@ class Export extends Controller
             }
 
             // Подготовим массив значений PhoneName => Phone calls statistics
+            $sql = '
+            SELECT
+              dev,
+              max(date) AS last_call_day,
+              sum(call_quan) FILTER (WHERE date = current_date) AS d0_calls_amount,
+              sum(call_quan) FILTER (WHERE date_trunc(\'month\', date) = :current_month) AS m0_calls_amount,
+              sum(call_quan) FILTER (WHERE date_trunc(\'month\', date) = :last_month) AS m1_calls_amount,
+              sum(call_quan) FILTER (WHERE date_trunc(\'month\', date) = :before_last_month) AS m2_calls_amount
+            FROM cdr_call_activ.dev_nd_quan
+            GROUP BY dev;';
+            $params = [
+                ':current_month' => date('Y-m-d', mktime(0, 0, 0, date('m'), 1, date('Y'))),
+                ':last_month' => date('Y-m-d', mktime(0, 0, 0, date('m')-1, 1, date('Y'))),
+                ':before_last_month' => date('Y-m-d', mktime(0, 0, 0, date('m')-2, 1, date('Y'))),
+            ];
+            $items = $this->app->db->cdr->query($sql, $params)->fetchAll(\PDO::FETCH_ASSOC);
+
             $phonesCallsStats = [];
-            foreach (DevCallStats::findAll() as $item) {
-                $phonesCallsStats[$item->appliance] = $item;
+            foreach ($items as $item) {
+                $phonesCallsStats[$item['dev']] = $item;
             }
 
 // ------ Worksheet - 'Appliances' ----------------------
@@ -498,11 +514,21 @@ class Export extends Controller
                 $callQuantitiesBeforeLastMonth = '';
                 $phoneCallsStats = array_key_exists($phone->name, $phonesCallsStats) ? $phonesCallsStats[$phone->name] : '';
                 if (!is_null($phoneCallsStats)) {
-                    $lastCall = $phoneCallsStats->last_call;
-                    $callQuantitiesCurrentDay = $phoneCallsStats->call_quantities_current_day;
-                    $callQuantitiesCurrentMonth = $phoneCallsStats->call_quantities_current_month;
-                    $callQuantitiesLastMonth = $phoneCallsStats->call_quantities_last_month;
-                    $callQuantitiesBeforeLastMonth = $phoneCallsStats->call_quantities_before_last_month;
+                    if (!is_null($phoneCallsStats['last_call_day'])) {
+                        $lastCall = $phoneCallsStats['last_call_day'];
+                    }
+                    if (!is_null($phoneCallsStats['d0_calls_amount'])) {
+                        $callQuantitiesCurrentDay = $phoneCallsStats['d0_calls_amount'];
+                    }
+                    if (!is_null($phoneCallsStats['m0_calls_amount'])) {
+                        $callQuantitiesCurrentMonth = $phoneCallsStats['m0_calls_amount'];
+                    }
+                    if (!is_null($phoneCallsStats['m1_calls_amount'])) {
+                        $callQuantitiesLastMonth = $phoneCallsStats['m1_calls_amount'];
+                    }
+                    if (!is_null($phoneCallsStats['m2_calls_amount'])) {
+                        $callQuantitiesBeforeLastMonth = $phoneCallsStats['m2_calls_amount'];
+                    }
                 }
 
 
