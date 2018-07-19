@@ -87,6 +87,10 @@ class Report extends Controller
     {
         $this->data->activeLink->phonesReports = true;
     }
+    public function actionPhoneStatsReportTest()
+    {
+        $this->data->activeLink->phonesReports = true;
+    }
 
     /**
      *
@@ -124,6 +128,7 @@ class Report extends Controller
                         $activeDevs = 'plTitleActive';
                         foreach ($tbData as $dataKey => $values) {
                             if (! isset($values[$totalDevs])) {
+                                $tbData[$dataKey] = new RecordItem($tbData[$dataKey]);
                                 continue;
                             }
                             array_walk($values[$totalDevs], function (&$counter, $platform) use($values, $totalDevs, $activeDevs) {
@@ -147,6 +152,123 @@ class Report extends Controller
                         }
                         foreach ($tbDataBF as $dataKey => $values) {
                             if (! isset($values[$totalDevs]) || is_null($values[$totalDevs])) {
+                                $tbDataBF[$dataKey] = new RecordItem($tbDataBF[$dataKey]);
+                                continue;
+                            }
+                            array_walk($values[$totalDevs], function(&$counter, $platform) use($values, $totalDevs, $activeDevs){
+                                $counter = (isset($values[$activeDevs][$platform])) ? $counter . '/' . $values[$activeDevs][$platform] : $counter . '/0';
+                            });
+                            $tbDataBF[$dataKey][$totalDevs] = $values[$totalDevs];
+                            unset($tbDataBF[$dataKey][$activeDevs]);
+                            $tbDataBF[$dataKey] = new RecordItem($tbDataBF[$dataKey]);
+                        }
+                        $data['dataBF'] = $tbDataBF;
+
+                        //общее кол-во сотрудников
+                        $tbPeopleConf = Table::getTableConfig('devGeoEmployeesLotusIdDistinct');
+                        $tbPeople = Table::getTable($tbPeopleConf);
+                        $tbPeople->addFilter($tabFilter, 'append');
+                        $people = $tbPeople->getRecords(null,null,null,true);
+                        $people = array_reduce($people, function ($acc, $item) {
+                            return $acc += $item['lotus_employees'];
+                        });
+                        $data['lotusEmployeesTotal'] = $people;
+                        //=============render templates=============
+                        $this->data->body->html = $this->view->render($bodyTemplate, $data);
+                        $this->data->bodyFooter->html = $this->view->render($bodyFooterTemplate, $data);
+                        $this->data->body->tableFilter = $tabFilter;
+                        $this->data->body->pager = $request->pager;
+                        $this->data->body->pager->page = $tb->currentPage();
+                        $this->data->body->pager->pages = $tb->numberOfPages();
+                        $this->data->body->pager->records = $tb->numberOfRecords();
+                        $info[] = 'Записей: ' . $tb->numberOfRecords();
+                        $this->data->body->info = $info;
+                        break;
+                    case 'headerFilter':
+                        $tb = new PivotTable(new PivotTableConfig($request->tableName));
+                        $filter = $request->headerFilter->filter;
+                        $column = $filter->column;
+
+                        $tbFilter = new SqlFilter($tb->config->className());
+                        if (isset($request->headerFilter->tableFilter) && $request->headerFilter->tableFilter instanceof Std) {
+                            $tbFilter ->addFilterFromArray($request->headerFilter->tableFilter->toArray());
+                        }
+                        $tbFilter->removeFilter($column);
+                        $tb->addFilter($tbFilter, 'append');
+
+                        $values[] = $filter->value . '%';
+                        $sqlFilter = (new SqlFilter($tb->config->className()))
+                            ->setFilter($filter->column, $filter->statement, $values);
+                        $tb->addFilter($sqlFilter, 'append');
+                        $this->data->result = $tb->distinctColumnValues($column);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        } catch (\Exception $e) {
+            $this->data->exception = $e->getMessage();
+        }
+
+    }
+    public function actionPhoneStatsReportHandlerTest()
+    {
+        try {
+            $headerTemplate = 'PhoneStatsReportByModelsHeaderTest.html';
+            $bodyTemplate = 'PhoneStatsReportByModelsBodyTest.html';
+            $bodyFooterTemplate = 'PhoneStatsReportByModelsBodyFooterTest.html';
+            $request = (new Request());
+            $request = (0 == $request->get->count()) ? $request = $request->post : $request->get;
+            foreach ($request as $key => $value ) {
+                switch ($key) {
+                    case 'header':
+                        $data['columns'] = $value->columns->toArrayRecursive();
+                        $data['user'] = $this->data->user;
+                        $this->data->header->html = $this->view->render($headerTemplate, $data);
+                        break;
+                    case 'body':
+                        $request = $request->body;
+                        $tbConf = Table::getTableConfig($request->tableName);
+                        $tb = Table::getTable($tbConf);
+                        $tabFilter = new SqlFilter($tbConf->className());
+                        if (isset($request->tableFilter)) {
+                            $filterSet = $request->tableFilter->toArray();
+                            $tabFilter->setFilterFromArray($filterSet);
+                        }
+                        $tb->addFilter($tabFilter, 'append');
+                        $tb->paginationUpdate($request->pager->page, $request->pager->rowsOnPage);
+                        $tbData = $tb->getRecordsByPage();
+
+                        // ================concatenate data from pivot columns with glue '/' and unset array plTitleActive
+                        $totalDevs = 'plTitle';
+                        $activeDevs = 'plTitleActive';
+                        foreach ($tbData as $dataKey => $values) {
+                            if (! isset($values[$totalDevs])) {
+                                $tbData[$dataKey] = new RecordItem($tbData[$dataKey]);
+                                continue;
+                            }
+                            array_walk($values[$totalDevs], function (&$counter, $platform) use($values, $totalDevs, $activeDevs) {
+                                $counter = (isset($values[$activeDevs][$platform])) ? $counter . '/' . $values[$activeDevs][$platform] : $counter . '/0';
+                            });
+                            $tbData[$dataKey][$totalDevs] = $values[$totalDevs];
+                            unset($tbData[$dataKey][$activeDevs]);
+                            $tbData[$dataKey] = new RecordItem($tbData[$dataKey]);
+                        }
+
+                        //==========end================
+                        $data['data'] = $tbData;
+                        $data['columns'] = $request->columns;
+                        $data['columnsBF'] = $request->bodyFooter;
+                        //============get body footer data==============
+                        $tbBF = $tb->getBodyFooterTable();
+                        $tbDataBF = [];
+                        if (false !== $tbBF) {
+                            $tbBF->addFilter($tabFilter, 'append');
+                            $tbDataBF = $tbBF->getRecords();
+                        }
+                        foreach ($tbDataBF as $dataKey => $values) {
+                            if (! isset($values[$totalDevs]) || is_null($values[$totalDevs])) {
+                                $tbDataBF[$dataKey] = new RecordItem($tbDataBF[$dataKey]);
                                 continue;
                             }
                             array_walk($values[$totalDevs], function(&$counter, $platform) use($values, $totalDevs, $activeDevs){
