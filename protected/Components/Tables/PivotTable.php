@@ -259,15 +259,16 @@ class PivotTable extends Table implements PivotTableInterface
     {
         $params = [];
         $params = array_merge($params, $this->mergedFilter->filterParams);
+        foreach ($this->calculatedColumnFilters as $filter) {
+            $params = array_merge($params, $filter->filterParams);
+        }
         if (empty($this->pivPrefilters)) {
             return $params;
         }
         foreach ($this->pivPrefilters as $preFilter) {
             $params = array_merge($params, $preFilter->filterParams);
         }
-        foreach ($this->calculatedColumnFilters as $filter) {
-            $params = array_merge($params, $filter->filterParams);
-        }
+
         return $params;
     }
 
