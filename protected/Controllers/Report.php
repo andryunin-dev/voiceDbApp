@@ -124,6 +124,7 @@ class Report extends Controller
                         $activeDevs = 'plTitleActive';
                         foreach ($tbData as $dataKey => $values) {
                             if (! isset($values[$totalDevs])) {
+                                $tbData[$dataKey] = new RecordItem($tbData[$dataKey]);
                                 continue;
                             }
                             array_walk($values[$totalDevs], function (&$counter, $platform) use($values, $totalDevs, $activeDevs) {
@@ -147,6 +148,7 @@ class Report extends Controller
                         }
                         foreach ($tbDataBF as $dataKey => $values) {
                             if (! isset($values[$totalDevs]) || is_null($values[$totalDevs])) {
+                                $tbDataBF[$dataKey] = new RecordItem($tbDataBF[$dataKey]);
                                 continue;
                             }
                             array_walk($values[$totalDevs], function(&$counter, $platform) use($values, $totalDevs, $activeDevs){
