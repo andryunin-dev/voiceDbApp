@@ -48,6 +48,165 @@ class TableConfigs extends Controller
         var_dump($tab);die;
 
     }
+
+
+
+    public function actionPhoneStatsByCallsWithBodyFooter()
+    {
+        $tableName = 'devGeoStatisticByNotUsedWithBodyFooter';
+        $tableNameBF = $tableName . 'BF';
+        $ajaxHandlersURL = '/report/PhoneStatsByNotUsedReportHandler.json';
+        $className = DevGeo_ViewMat::class;
+        $maxAge = 73;
+
+        $columns = ['region', 'city', 'office', 'lotus_employees', 'phoneAmount', 'HWActive', 'HWNotActive', 'notHWActive', 'lotusId', 'office_id', 'd0_amountOfNonCallingHwDev', 'm0_amountOfNonCallingHwDev', 'm1_amountOfNonCallingHwDev', 'm2_amountOfNonCallingHwDev', 'd0_amountOfNonCallingAnDev', 'm0_amountOfNonCallingAnDev', 'm1_amountOfNonCallingAnDev', 'm2_amountOfNonCallingAnDev'];
+
+        $extraColumns = ['d0_amountOfNonCallingHwDev', 'm0_amountOfNonCallingHwDev', 'm1_amountOfNonCallingHwDev', 'm2_amountOfNonCallingHwDev', 'd0_amountOfNonCallingAnDev', 'm0_amountOfNonCallingAnDev', 'm1_amountOfNonCallingAnDev', 'm2_amountOfNonCallingAnDev'];
+
+        $countedColumns = [
+            'phoneAmount' => ['name' => 'appliance_id', 'method' => 'count'],
+            'HWActive' => ['name' => 'appType', 'method' => 'count', 'selectBy' => ['lotusId']],
+            'HWNotActive' => ['name' => 'appType', 'method' => 'count', 'selectBy' => ['lotusId']],
+            'notHWActive' => ['name' => 'appType', 'method' => 'count', 'selectBy' => ['lotusId']]
+        ];
+        $confColumns = [
+            'lotusId' => ['id' => 'lot_id','name' => 'ID', 'width' => '50px', 'visible' => false],
+            'office_id' => ['id' => 'officeId','name' => 'office-id', 'width' => '50px', 'visible' => false],
+            'region' => ['id' => 'region','name' => 'Регион', 'width' => 13, 'sortable' => true, 'filterable' => true],
+            'city' => ['id' => 'city','name' => 'Город', 'width' => 13, 'sortable' => true, 'filterable' => true],
+            'office' => ['id' => 'office','name' => 'Офис', 'width' =>15, 'sortable' => true, 'filterable' => true],
+            'lotus_employees' => ['id' => 'people-v','name' => 'Сотрудников', 'width' => '60px'],
+            'phoneAmount' => ['id' => 'phone-count','name' => 'кол-во тел.', 'width' => '60px'],
+            'HWActive' => ['id' => 'hw-active-v','name' => 'HW Phones<br>(актив.)', 'width' => '60px', 'classes' => ['class_1', 'class_2']],
+            'HWNotActive' => ['id' => 'hw-not-active-v','name' => 'HW Phones<br>(не актив.)', 'width' => '60px', 'classes' => ['class_1', 'class_2']],
+            'notHWActive' => ['id' => 'not-hw-active-v','name' => 'virtual & analog<br>Phones(актив.)', 'width' => '60px', 'classes' => ['class_1', 'class_2']],
+
+            'd0_amountOfNonCallingHwDev' => ['id' => 'd0-amount-OfNonCallingHwDev-v','name' => 'Phones HW<br>not used<br>ДЕНЬ тек.', 'width' => '60px', 'classes' => ['class_1', 'class_2']],
+            'm0_amountOfNonCallingHwDev' => ['id' => 'm0-amount-OfNonCallingHwDev-v','name' => 'Phones HW<br>not used<br>МЕСЯЦ тек.', 'width' => '60px', 'classes' => ['class_1', 'class_2']],
+            'm1_amountOfNonCallingHwDev' => ['id' => 'm1-amount-OfNonCallingHwDev-v','name' => 'Phones HW<br>not used<br>1 МЕС. назад', 'width' => '60px', 'classes' => ['class_1', 'class_2']],
+            'm2_amountOfNonCallingHwDev' => ['id' => 'm2-amount-OfNonCallingHwDev-v','name' => 'Phones HW<br>not used<br>2 МЕС. назад', 'width' => '60px', 'classes' => ['class_1', 'class_2']],
+
+            'd0_amountOfNonCallingAnDev' => ['id' => 'd0-amount-OfNonCallingAnalogDev-v','name' => 'Phones AN<br>not used<br>ДЕНЬ тек.', 'width' => '60px', 'classes' => ['class_1', 'class_2']],
+            'm0_amountOfNonCallingAnDev' => ['id' => 'm0-amount-OfNonCallingAnalogDev-v','name' => 'Phones AN<br>not used<br>МЕСЯЦ тек.', 'width' => '60px', 'classes' => ['class_1', 'class_2']],
+            'm1_amountOfNonCallingAnDev' => ['id' => 'm1-amount-OfNonCallingAnalogDev-v','name' => 'Phones AN<br>not used<br>1 МЕС. назад', 'width' => '60px', 'classes' => ['class_1', 'class_2']],
+            'm2_amountOfNonCallingAnDev' => ['id' => 'm2-amount-OfNonCallingAnalogDev-v','name' => 'Phones AN<br>not used<br>2 МЕС. назад', 'width' => '60px', 'classes' => ['class_1', 'class_2']],
+        ];
+        $sortTemplates = [
+            'region' => ['region' => '', 'city' => '', 'office' => ''],
+            'city' => ['city' => '', 'office' => ''],
+        ];
+        $tablePreFilter = (new SqlFilter($className))
+            ->setFilter('appType', 'eq', ['phone']);
+        $tab = (new PivotTableConfig($tableName, $className));
+        //calculated columns
+        foreach ($countedColumns as $alias => $col) {
+            $col['selectBy'] = isset($col['selectBy']) ? $col['selectBy'] : null;
+            $tab->calculatedColumn($alias, $col['name'], $col['method'], $col['selectBy']);
+        }
+        $HWActivePhonePreFilter = (new SqlFilter($className))
+            ->setFilter('appType', 'eq', ['phone'])
+            ->setFilter('isHW', 'eq', ['true'])
+            ->addFilter('appAge', 'lt', [$maxAge]);
+        $tab->calculatedColumnPreFilter('HWActive', $HWActivePhonePreFilter);
+        $HWNotActivePhonePreFilter = (new SqlFilter($className))
+            ->setFilter('appType', 'eq', ['phone'])
+            ->setFilter('isHW', 'eq', ['true'])
+            ->addFilter('appAge', 'ge', [$maxAge]);
+        $tab->calculatedColumnPreFilter('HWNotActive', $HWNotActivePhonePreFilter);
+        $notHWPhonePreFilter = (new SqlFilter($className))
+            ->setFilter('appType', 'eq', ['phone'])
+            ->setFilter('isHW', 'eq', ['false'])
+            ->addFilter('appAge', 'lt', [$maxAge]);
+        $tab->calculatedColumnPreFilter('notHWActive', $notHWPhonePreFilter);
+
+        //=====================
+        $tab->columns($columns, $extraColumns)
+            ->sortOrderSets($sortTemplates)
+            ->sortBy('region');
+        foreach ($confColumns as $col => $conf)
+        {
+            $tab->columnConfig($col, new Std($conf));
+        }
+
+        $tab
+            ->dataUrl($ajaxHandlersURL)
+            ->tableWidth(100)
+
+            ->bodyFooterTableName($tableNameBF)
+            ->cssSetHeaderTableClasses(['bg-primary', 'table-bordered', 'table-header-rotated'])
+            ->cssSetBodyTableClasses(["table", "cell-bordered", "cust-table-striped"])
+            ->rowsOnPageList([10,50,100,200,500,'все'])
+            ->tablePreFilter($tablePreFilter)
+            ->save();
+        var_dump($tab);
+        echo '===============body footer table config===============';
+        /*=============body footer table================*/
+
+        $columns = ['textField', 'appType', 'employees', 'phoneAmount', 'HWActive', 'HWNotActive', 'notHWActive', 'd0_totalAmountOfNonCallingHwDev', 'm0_totalAmountOfNonCallingHwDev', 'm1_totalAmountOfNonCallingHwDev', 'm2_totalAmountOfNonCallingHwDev', 'd0_totalAmountOfNonCallingAnDev', 'm0_totalAmountOfNonCallingAnDev', 'm1_totalAmountOfNonCallingAnDev', 'm2_totalAmountOfNonCallingAnDev'];
+
+        $extraColumns = ['textField', 'employees', 'd0_totalAmountOfNonCallingHwDev', 'm0_totalAmountOfNonCallingHwDev', 'm1_totalAmountOfNonCallingHwDev', 'm2_totalAmountOfNonCallingHwDev', 'd0_totalAmountOfNonCallingAnDev', 'm0_totalAmountOfNonCallingAnDev', 'm1_totalAmountOfNonCallingAnDev', 'm2_totalAmountOfNonCallingAnDev'];
+        $confColumns = [
+            'textField' => ['id' => 'txt_field','name' => 'ИТОГО:', 'width' => 31, 'visible' => true],
+            'appType' => ['id' => 'app_type','name' => 'appType', 'width' => 10, 'visible' => false],
+            'employees' => ['id' => 'people-v','name' => 'Сотр.', 'width' => '60px'],
+            'phoneAmount' => ['id' => 'phone-count','name' => 'кол-во тел.', 'width' => '60px'],
+            'HWActive' => ['id' => 'hw-active','name' => 'HW Phones', 'width' => '60px'],
+            'HWNotActive' => ['id' => 'hw-not-active','name' => 'HW not active Phones', 'width' => '60px'],
+            'notHWActive' => ['id' => 'not-hw-active-v','name' => 'not HW Phones', 'width' => '60px'],
+
+            'd0_totalAmountOfNonCallingHwDev' => ['id' => 'd0-amount-OfNonCallingHwDev-v', 'width' => '60px'],
+            'm0_totalAmountOfNonCallingHwDev' => ['id' => 'm0-amount-OfNonCallingHwDev-v', 'width' => '60px'],
+            'm1_totalAmountOfNonCallingHwDev' => ['id' => 'm1-amount-OfNonCallingHwDev-v', 'width' => '60px'],
+            'm2_totalAmountOfNonCallingHwDev' => ['id' => 'm2-amount-OfNonCallingHwDev-v', 'width' => '60px'],
+
+            'd0_totalAmountOfNonCallingAnDev' => ['id' => 'd0-amount-OfNonCallingAnalogDev-v', 'width' => '60px'],
+            'm0_totalAmountOfNonCallingAnDev' => ['id' => 'm0-amount-OfNonCallingAnalogDev-v', 'width' => '60px'],
+            'm1_totalAmountOfNonCallingAnDev' => ['id' => 'm1-amount-OfNonCallingAnalogDev-v', 'width' => '60px'],
+            'm2_totalAmountOfNonCallingAnDev' => ['id' => 'm2-amount-OfNonCallingAnalogDev-v', 'width' => '60px'],
+        ];
+        $countedColumns = [
+            'phoneAmount' => ['name' => 'appliance_id', 'method' => 'count'],
+            'HWActive' => ['name' => 'appType', 'method' => 'count'],
+            'HWNotActive' => ['name' => 'appType', 'method' => 'count'],
+            'notHWActive' => ['name' => 'appType', 'method' => 'count']
+        ];
+        $sortTemplates = [
+            'default' => [],
+        ];
+        /*======preFilters=============*/
+        $tablePreFilter = (new SqlFilter($className))
+            ->setFilter('appType', 'eq', ['phone']);
+
+        /*=======make config================*/
+        $tab = (new PivotTableConfig($tableNameBF, $className));
+        foreach ($countedColumns as $alias => $col) {
+            $tab->calculatedColumn($alias, $col['name'], $col['method']);
+        }
+        $tab->calculatedColumnPreFilter('HWActive', $HWActivePhonePreFilter);
+        $tab->calculatedColumnPreFilter('HWNotActive', $HWNotActivePhonePreFilter);
+        $tab->calculatedColumnPreFilter('notHWActive', $notHWPhonePreFilter);
+
+        $tab->columns($columns, $extraColumns)
+            ->sortOrderSets($sortTemplates)
+            ->sortBy('default');
+        foreach ($confColumns as $col => $conf)
+        {
+            $tab->columnConfig($col, new Std($conf));
+        }
+
+        $tab
+            ->dataUrl($ajaxHandlersURL)
+            ->tableWidth(100)
+            ->cssSetBodyTableClasses(["table", "bg-success", "table-bordered", "body-footer"])
+            ->rowsOnPageList([10,50,100,200,'все'])
+            ->tablePreFilter($tablePreFilter)
+            ->save();
+        var_dump($tab);
+        die;
+    }
+
+
+
     public function actionPhoneStatsByModelsWithBodyFooter()
     {
         $tableName = 'devGeoPivotStatisticWithBodyFooter';
@@ -226,6 +385,8 @@ class TableConfigs extends Controller
         var_dump($tab);
         die;
     }
+
+
     public function actionPhoneStatsByClustersWithBodyFooter()
     {
         $tableName = 'devGeoPivotStatisticByClustersWithBodyFooter';

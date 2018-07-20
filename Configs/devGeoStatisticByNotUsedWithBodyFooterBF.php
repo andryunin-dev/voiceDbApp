@@ -1,7 +1,7 @@
 <?php
 
 return [
-  'dataUrl' => '/report/PhoneStatsReportHandler.json',
+  'dataUrl' => '/report/PhoneStatsByNotUsedReportHandler.json',
   'connection' => '',
   'className' => 'App\\ViewModels\\DevGeo_ViewMat',
   'columns' =>
@@ -10,7 +10,7 @@ return [
     [
       'id' => 'txt_field',
       'name' => 'ИТОГО:',
-      'width' => 35,
+      'width' => 31,
       'sortable' => false,
       'filterable' => false,
       'visible' => true,
@@ -90,11 +90,11 @@ return [
       [
       ],
     ],
-    'plTitle' =>
+    'd0_totalAmountOfNonCallingHwDev' =>
     [
-      'id' => 'pl',
-      'name' => 'Оборудование',
-      'width' => 65,
+      'id' => 'd0-amount-OfNonCallingHwDev-v',
+      'name' => '',
+      'width' => '60px',
       'sortable' => false,
       'filterable' => false,
       'visible' => true,
@@ -102,14 +102,86 @@ return [
       [
       ],
     ],
-    'plTitleActive' =>
+    'm0_totalAmountOfNonCallingHwDev' =>
     [
-      'id' => 'pl_active',
+      'id' => 'm0-amount-OfNonCallingHwDev-v',
       'name' => '',
-      'width' => 0,
+      'width' => '60px',
       'sortable' => false,
       'filterable' => false,
-      'visible' => false,
+      'visible' => true,
+      'classes' =>
+      [
+      ],
+    ],
+    'm1_totalAmountOfNonCallingHwDev' =>
+    [
+      'id' => 'm1-amount-OfNonCallingHwDev-v',
+      'name' => '',
+      'width' => '60px',
+      'sortable' => false,
+      'filterable' => false,
+      'visible' => true,
+      'classes' =>
+      [
+      ],
+    ],
+    'm2_totalAmountOfNonCallingHwDev' =>
+    [
+      'id' => 'm2-amount-OfNonCallingHwDev-v',
+      'name' => '',
+      'width' => '60px',
+      'sortable' => false,
+      'filterable' => false,
+      'visible' => true,
+      'classes' =>
+      [
+      ],
+    ],
+    'd0_totalAmountOfNonCallingAnDev' =>
+    [
+      'id' => 'd0-amount-OfNonCallingAnalogDev-v',
+      'name' => '',
+      'width' => '60px',
+      'sortable' => false,
+      'filterable' => false,
+      'visible' => true,
+      'classes' =>
+      [
+      ],
+    ],
+    'm0_totalAmountOfNonCallingAnDev' =>
+    [
+      'id' => 'm0-amount-OfNonCallingAnalogDev-v',
+      'name' => '',
+      'width' => '60px',
+      'sortable' => false,
+      'filterable' => false,
+      'visible' => true,
+      'classes' =>
+      [
+      ],
+    ],
+    'm1_totalAmountOfNonCallingAnDev' =>
+    [
+      'id' => 'm1-amount-OfNonCallingAnalogDev-v',
+      'name' => '',
+      'width' => '60px',
+      'sortable' => false,
+      'filterable' => false,
+      'visible' => true,
+      'classes' =>
+      [
+      ],
+    ],
+    'm2_totalAmountOfNonCallingAnDev' =>
+    [
+      'id' => 'm2-amount-OfNonCallingAnalogDev-v',
+      'name' => '',
+      'width' => '60px',
+      'sortable' => false,
+      'filterable' => false,
+      'visible' => true,
       'classes' =>
       [
       ],
@@ -232,6 +304,14 @@ return [
   [
     0 => 'textField',
     1 => 'employees',
+    2 => 'd0_totalAmountOfNonCallingHwDev',
+    3 => 'm0_totalAmountOfNonCallingHwDev',
+    4 => 'm1_totalAmountOfNonCallingHwDev',
+    5 => 'm2_totalAmountOfNonCallingHwDev',
+    6 => 'd0_totalAmountOfNonCallingAnDev',
+    7 => 'm0_totalAmountOfNonCallingAnDev',
+    8 => 'm1_totalAmountOfNonCallingAnDev',
+    9 => 'm2_totalAmountOfNonCallingAnDev',
   ],
   'bodyFooterTable' => '',
   'sortOrderSets' =>
@@ -296,57 +376,5 @@ return [
   ],
   'pivot' =>
   [
-    'plTitle' =>
-    [
-      'column' => 'platformTitle',
-      'preFilter' =>
-      [
-        'appType' =>
-        [
-          'eq' =>
-          [
-            0 => 'phone',
-          ],
-        ],
-      ],
-      'selectBy' =>
-      [
-        0 => 'appType',
-      ],
-      'sortBy' =>
-      [
-        'platformTitle' => 'asc',
-      ],
-      'itemWidth' => '67px',
-    ],
-    'plTitleActive' =>
-    [
-      'column' => 'platformTitle',
-      'preFilter' =>
-      [
-        'appType' =>
-        [
-          'eq' =>
-          [
-            0 => 'phone',
-          ],
-        ],
-        'appAge' =>
-        [
-          'lt' =>
-          [
-            0 => 73,
-          ],
-        ],
-      ],
-      'selectBy' =>
-      [
-        0 => 'appType',
-      ],
-      'sortBy' =>
-      [
-      ],
-      'itemWidth' => 0,
-    ],
   ],
 ];

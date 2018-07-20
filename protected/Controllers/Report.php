@@ -13,15 +13,14 @@ use App\Components\Tables\PivotTable;
 use App\Components\Tables\PivotTableConfig;
 use App\Components\Tables\RecordItem;
 use App\Components\Tables\Table;
-use App\Components\Tables\TableConfig;
 use App\Components\UrlExt;
 use App\Models\ApplianceType;
 use App\Models\Module;
 use App\Models\Software;
 use App\Models\Vendor;
+use App\ViewModels\DevCallsStats;
 use T4\Core\Exception;
 use T4\Core\Std;
-use T4\Core\Url;
 use T4\Http\Helpers;
 use T4\Http\Request;
 use T4\Mvc\Controller;
@@ -363,20 +362,17 @@ class Report extends Controller
 
 
 
-
-    // -------------------------------------------------------
-
-    public function actionPhoneStatsByCallsReport()
+    public function actionPhoneStatsByNotUsedReport()
     {
         $this->data->activeLink->phonesReports = true;
     }
 
-    public function actionPhoneStatsByCallsReportHandler()
+    public function actionPhoneStatsByNotUsedReportHandler()
     {
         try {
-            $headerTemplate = 'PhoneStatsReportByCallsHeader.html';
-            $bodyTemplate = 'PhoneStatsReportByCallsBody.html';
-            $bodyFooterTemplate = 'PhoneStatsReportByCallsBodyFooter.html';
+            $headerTemplate = 'PhoneStatsReportByNotUsedHeader.html';
+            $bodyTemplate = 'PhoneStatsReportByNotUsedBody.html';
+            $bodyFooterTemplate = 'PhoneStatsReportByNotUsedBodyFooter.html';
             $request = (new Request());
             $request = (0 == $request->get->count()) ? $request = $request->post : $request->get;
             foreach ($request as $key => $value ) {
@@ -399,18 +395,17 @@ class Report extends Controller
                         $tb->paginationUpdate($request->pager->page, $request->pager->rowsOnPage);
                         $tbData = $tb->getRecordsByPage();
 
-                        // ================concatenate data from pivot columns with glue '/' and unset array plTitleActive
-                        $totalDevs = 'plTitle';
-                        $activeDevs = 'plTitleActive';
-                        foreach ($tbData as $dataKey => $values) {
-                            if (! isset($values[$totalDevs])) {
-                                continue;
+                        //========== concatenate data from non calling dev statictics================
+                        $nonCallingDevicesByOffices = DevCallsStats::getAmountOfNonCallingDevicesByOffices();
+                        foreach ($tbData as $k => $item) {
+                            $officeNonCallingStats = $nonCallingDevicesByOffices['offices'][$item['office_id']];
+                            if (!is_null($officeNonCallingStats)) {
+                                foreach ($officeNonCallingStats as $kindStats => $valueStats) {
+                                    $tbData[$k][$kindStats] = $valueStats;
+                                }
                             }
-                            array_walk($values[$totalDevs], function (&$counter, $platform) use($values, $totalDevs, $activeDevs) {
-                                $counter = (isset($values[$activeDevs][$platform])) ? $counter . '/' . $values[$activeDevs][$platform] : $counter . '/0';
-                            });
-                            $tbData[$dataKey][$totalDevs] = $values[$totalDevs];
-                            unset($tbData[$dataKey][$activeDevs]);
+                        }
+                        foreach ($tbData as $dataKey => $values) {
                             $tbData[$dataKey] = new RecordItem($tbData[$dataKey]);
                         }
 
@@ -425,15 +420,11 @@ class Report extends Controller
                             $tbBF->addFilter($tabFilter, 'append');
                             $tbDataBF = $tbBF->getRecords();
                         }
+                        //========== concatenate data from non calling dev statictics for body footer ================
+                        foreach ($nonCallingDevicesByOffices['total'] as $kindStats => $valueStats) {
+                            $tbDataBF[0][$kindStats] = $valueStats;
+                        }
                         foreach ($tbDataBF as $dataKey => $values) {
-                            if (! isset($values[$totalDevs]) || is_null($values[$totalDevs])) {
-                                continue;
-                            }
-                            array_walk($values[$totalDevs], function(&$counter, $platform) use($values, $totalDevs, $activeDevs){
-                                $counter = (isset($values[$activeDevs][$platform])) ? $counter . '/' . $values[$activeDevs][$platform] : $counter . '/0';
-                            });
-                            $tbDataBF[$dataKey][$totalDevs] = $values[$totalDevs];
-                            unset($tbDataBF[$dataKey][$activeDevs]);
                             $tbDataBF[$dataKey] = new RecordItem($tbDataBF[$dataKey]);
                         }
                         $data['dataBF'] = $tbDataBF;
@@ -483,8 +474,5 @@ class Report extends Controller
         } catch (\Exception $e) {
             $this->data->exception = $e->getMessage();
         }
-
     }
-
-
 }

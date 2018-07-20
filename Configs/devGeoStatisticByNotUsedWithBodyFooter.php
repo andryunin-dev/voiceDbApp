@@ -1,7 +1,7 @@
 <?php
 
 return [
-  'dataUrl' => '/report/PhoneStatsByCallsReportHandler.json',
+  'dataUrl' => '/report/PhoneStatsByNotUsedReportHandler.json',
   'connection' => '',
   'className' => 'App\\ViewModels\\DevGeo_ViewMat',
   'columns' =>
@@ -10,7 +10,7 @@ return [
     [
       'id' => 'region',
       'name' => 'Регион',
-      'width' => 10,
+      'width' => 13,
       'sortable' => true,
       'filterable' => true,
       'visible' => true,
@@ -22,7 +22,7 @@ return [
     [
       'id' => 'city',
       'name' => 'Город',
-      'width' => 10,
+      'width' => 13,
       'sortable' => true,
       'filterable' => true,
       'visible' => true,
@@ -108,30 +108,6 @@ return [
         1 => 'class_2',
       ],
     ],
-    'plTitle' =>
-    [
-      'id' => 'pl',
-      'name' => 'Оборудование',
-      'width' => 65,
-      'sortable' => false,
-      'filterable' => false,
-      'visible' => true,
-      'classes' =>
-      [
-      ],
-    ],
-    'plTitleActive' =>
-    [
-      'id' => 'pl_active',
-      'name' => '',
-      'width' => 0,
-      'sortable' => false,
-      'filterable' => false,
-      'visible' => false,
-      'classes' =>
-      [
-      ],
-    ],
     'lotusId' =>
     [
       'id' => 'lot_id',
@@ -142,6 +118,130 @@ return [
       'visible' => false,
       'classes' =>
       [
+      ],
+    ],
+    'office_id' =>
+    [
+      'id' => 'officeId',
+      'name' => 'office-id',
+      'width' => '50px',
+      'sortable' => false,
+      'filterable' => false,
+      'visible' => false,
+      'classes' =>
+      [
+      ],
+    ],
+    'd0_amountOfNonCallingHwDev' =>
+    [
+      'id' => 'd0-amount-OfNonCallingHwDev-v',
+      'name' => 'Phones HW<br>not used<br>ДЕНЬ тек.',
+      'width' => '60px',
+      'sortable' => false,
+      'filterable' => false,
+      'visible' => true,
+      'classes' =>
+      [
+        0 => 'class_1',
+        1 => 'class_2',
+      ],
+    ],
+    'm0_amountOfNonCallingHwDev' =>
+    [
+      'id' => 'm0-amount-OfNonCallingHwDev-v',
+      'name' => 'Phones HW<br>not used<br>МЕСЯЦ тек.',
+      'width' => '60px',
+      'sortable' => false,
+      'filterable' => false,
+      'visible' => true,
+      'classes' =>
+      [
+        0 => 'class_1',
+        1 => 'class_2',
+      ],
+    ],
+    'm1_amountOfNonCallingHwDev' =>
+    [
+      'id' => 'm1-amount-OfNonCallingHwDev-v',
+      'name' => 'Phones HW<br>not used<br>1 МЕС. назад',
+      'width' => '60px',
+      'sortable' => false,
+      'filterable' => false,
+      'visible' => true,
+      'classes' =>
+      [
+        0 => 'class_1',
+        1 => 'class_2',
+      ],
+    ],
+    'm2_amountOfNonCallingHwDev' =>
+    [
+      'id' => 'm2-amount-OfNonCallingHwDev-v',
+      'name' => 'Phones HW<br>not used<br>2 МЕС. назад',
+      'width' => '60px',
+      'sortable' => false,
+      'filterable' => false,
+      'visible' => true,
+      'classes' =>
+      [
+        0 => 'class_1',
+        1 => 'class_2',
+      ],
+    ],
+    'd0_amountOfNonCallingAnDev' =>
+    [
+      'id' => 'd0-amount-OfNonCallingAnalogDev-v',
+      'name' => 'Phones AN<br>not used<br>ДЕНЬ тек.',
+      'width' => '60px',
+      'sortable' => false,
+      'filterable' => false,
+      'visible' => true,
+      'classes' =>
+      [
+        0 => 'class_1',
+        1 => 'class_2',
+      ],
+    ],
+    'm0_amountOfNonCallingAnDev' =>
+    [
+      'id' => 'm0-amount-OfNonCallingAnalogDev-v',
+      'name' => 'Phones AN<br>not used<br>МЕСЯЦ тек.',
+      'width' => '60px',
+      'sortable' => false,
+      'filterable' => false,
+      'visible' => true,
+      'classes' =>
+      [
+        0 => 'class_1',
+        1 => 'class_2',
+      ],
+    ],
+    'm1_amountOfNonCallingAnDev' =>
+    [
+      'id' => 'm1-amount-OfNonCallingAnalogDev-v',
+      'name' => 'Phones AN<br>not used<br>1 МЕС. назад',
+      'width' => '60px',
+      'sortable' => false,
+      'filterable' => false,
+      'visible' => true,
+      'classes' =>
+      [
+        0 => 'class_1',
+        1 => 'class_2',
+      ],
+    ],
+    'm2_amountOfNonCallingAnDev' =>
+    [
+      'id' => 'm2-amount-OfNonCallingAnalogDev-v',
+      'name' => 'Phones AN<br>not used<br>2 МЕС. назад',
+      'width' => '60px',
+      'sortable' => false,
+      'filterable' => false,
+      'visible' => true,
+      'classes' =>
+      [
+        0 => 'class_1',
+        1 => 'class_2',
       ],
     ],
   ],
@@ -263,8 +363,16 @@ return [
   ],
   'extraColumns' =>
   [
+    0 => 'd0_amountOfNonCallingHwDev',
+    1 => 'm0_amountOfNonCallingHwDev',
+    2 => 'm1_amountOfNonCallingHwDev',
+    3 => 'm2_amountOfNonCallingHwDev',
+    4 => 'd0_amountOfNonCallingAnDev',
+    5 => 'm0_amountOfNonCallingAnDev',
+    6 => 'm1_amountOfNonCallingAnDev',
+    7 => 'm2_amountOfNonCallingAnDev',
   ],
-  'bodyFooterTable' => 'devGeoPivotStatisticByCallsWithBodyFooterBF',
+  'bodyFooterTable' => 'devGeoStatisticByNotUsedWithBodyFooterBF',
   'sortOrderSets' =>
   [
     'region' =>
@@ -341,57 +449,5 @@ return [
   ],
   'pivot' =>
   [
-    'plTitle' =>
-    [
-      'column' => 'platformTitle',
-      'preFilter' =>
-      [
-        'appType' =>
-        [
-          'eq' =>
-          [
-            0 => 'phone',
-          ],
-        ],
-      ],
-      'selectBy' =>
-      [
-        0 => 'lotusId',
-      ],
-      'sortBy' =>
-      [
-        'platformTitle' => 'asc',
-      ],
-      'itemWidth' => '67px',
-    ],
-    'plTitleActive' =>
-    [
-      'column' => 'platformTitle',
-      'preFilter' =>
-      [
-        'appType' =>
-        [
-          'eq' =>
-          [
-            0 => 'phone',
-          ],
-        ],
-        'appAge' =>
-        [
-          'lt' =>
-          [
-            0 => 73,
-          ],
-        ],
-      ],
-      'selectBy' =>
-      [
-        0 => 'lotusId',
-      ],
-      'sortBy' =>
-      [
-      ],
-      'itemWidth' => 0,
-    ],
   ],
 ];
