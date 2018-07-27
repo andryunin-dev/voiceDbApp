@@ -31,4 +31,17 @@ class UpdateMatViews extends Command
             $res = $conn->execute($sql);
         }
     }
+
+    public function actionDevCallsStats()
+    {
+        $sql = 'REFRESH MATERIALIZED VIEW view.dev_calls_stats';
+
+        $dbList = [
+            'default',
+        ];
+        foreach ($dbList as $db) {
+            $conn = $this->app->db->$db;
+            $res = $conn->execute($sql);
+        }
+    }
 }
