@@ -132,7 +132,7 @@ return [
       [
       ],
     ],
-    'd0_amountOfNonCallingHwDev' =>
+    'd0Hw_nonCallingDevAmount' =>
     [
       'id' => 'd0-amount-OfNonCallingHwDev-v',
       'name' => 'Phones HW<br>not used<br>ДЕНЬ тек.',
@@ -146,7 +146,7 @@ return [
         1 => 'class_2',
       ],
     ],
-    'm0_amountOfNonCallingHwDev' =>
+    'm0Hw_nonCallingDevAmount' =>
     [
       'id' => 'm0-amount-OfNonCallingHwDev-v',
       'name' => 'Phones HW<br>not used<br>МЕСЯЦ тек.',
@@ -160,7 +160,7 @@ return [
         1 => 'class_2',
       ],
     ],
-    'm1_amountOfNonCallingHwDev' =>
+    'm1Hw_nonCallingDevAmount' =>
     [
       'id' => 'm1-amount-OfNonCallingHwDev-v',
       'name' => 'Phones HW<br>not used<br>1 МЕС. назад',
@@ -174,7 +174,7 @@ return [
         1 => 'class_2',
       ],
     ],
-    'm2_amountOfNonCallingHwDev' =>
+    'm2Hw_nonCallingDevAmount' =>
     [
       'id' => 'm2-amount-OfNonCallingHwDev-v',
       'name' => 'Phones HW<br>not used<br>2 МЕС. назад',
@@ -188,7 +188,7 @@ return [
         1 => 'class_2',
       ],
     ],
-    'd0_amountOfNonCallingAnDev' =>
+    'd0An_nonCallingDevAmount' =>
     [
       'id' => 'd0-amount-OfNonCallingAnalogDev-v',
       'name' => 'Phones AN<br>not used<br>ДЕНЬ тек.',
@@ -202,7 +202,7 @@ return [
         1 => 'class_2',
       ],
     ],
-    'm0_amountOfNonCallingAnDev' =>
+    'm0An_nonCallingDevAmount' =>
     [
       'id' => 'm0-amount-OfNonCallingAnalogDev-v',
       'name' => 'Phones AN<br>not used<br>МЕСЯЦ тек.',
@@ -216,7 +216,7 @@ return [
         1 => 'class_2',
       ],
     ],
-    'm1_amountOfNonCallingAnDev' =>
+    'm1An_nonCallingDevAmount' =>
     [
       'id' => 'm1-amount-OfNonCallingAnalogDev-v',
       'name' => 'Phones AN<br>not used<br>1 МЕС. назад',
@@ -230,7 +230,7 @@ return [
         1 => 'class_2',
       ],
     ],
-    'm2_amountOfNonCallingAnDev' =>
+    'm2An_nonCallingDevAmount' =>
     [
       'id' => 'm2-amount-OfNonCallingAnalogDev-v',
       'name' => 'Phones AN<br>not used<br>2 МЕС. назад',
@@ -242,6 +242,18 @@ return [
       [
         0 => 'class_1',
         1 => 'class_2',
+      ],
+    ],
+    'appType_id' =>
+    [
+      'id' => 'appTypeId',
+      'name' => 'appType-id',
+      'width' => '50px',
+      'sortable' => false,
+      'filterable' => false,
+      'visible' => false,
+      'classes' =>
+      [
       ],
     ],
   ],
@@ -363,14 +375,14 @@ return [
   ],
   'extraColumns' =>
   [
-    0 => 'd0_amountOfNonCallingHwDev',
-    1 => 'm0_amountOfNonCallingHwDev',
-    2 => 'm1_amountOfNonCallingHwDev',
-    3 => 'm2_amountOfNonCallingHwDev',
-    4 => 'd0_amountOfNonCallingAnDev',
-    5 => 'm0_amountOfNonCallingAnDev',
-    6 => 'm1_amountOfNonCallingAnDev',
-    7 => 'm2_amountOfNonCallingAnDev',
+    0 => 'd0Hw_nonCallingDevAmount',
+    1 => 'm0Hw_nonCallingDevAmount',
+    2 => 'm1Hw_nonCallingDevAmount',
+    3 => 'm2Hw_nonCallingDevAmount',
+    4 => 'd0An_nonCallingDevAmount',
+    5 => 'm0An_nonCallingDevAmount',
+    6 => 'm1An_nonCallingDevAmount',
+    7 => 'm2An_nonCallingDevAmount',
   ],
   'bodyFooterTable' => 'devGeoStatisticByNotUsedWithBodyFooterBF',
   'sortOrderSets' =>

@@ -21,6 +21,7 @@ use App\Models\Vendor;
 use App\ViewModels\DevCallsStats;
 use T4\Core\Exception;
 use T4\Core\Std;
+use T4\Core\Url;
 use T4\Http\Helpers;
 use T4\Http\Request;
 use T4\Mvc\Controller;
@@ -370,6 +371,8 @@ class Report extends Controller
     public function actionPhoneStatsByNotUsedReportHandler()
     {
         try {
+            $notUsedPhonesUrl = new Url('/device/info');
+
             $headerTemplate = 'PhoneStatsReportByNotUsedHeader.html';
             $bodyTemplate = 'PhoneStatsReportByNotUsedBody.html';
             $bodyFooterTemplate = 'PhoneStatsReportByNotUsedBodyFooter.html';
@@ -413,6 +416,7 @@ class Report extends Controller
                         $data['data'] = $tbData;
                         $data['columns'] = $request->columns;
                         $data['columnsBF'] = $request->bodyFooter;
+                        $data['notUsedPhonesUrl'] = $notUsedPhonesUrl;
                         //============get body footer data==============
                         $tbBF = $tb->getBodyFooterTable();
                         $tbDataBF = [];

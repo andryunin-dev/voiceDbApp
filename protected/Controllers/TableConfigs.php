@@ -59,9 +59,9 @@ class TableConfigs extends Controller
         $className = DevGeo_ViewMat::class;
         $maxAge = 73;
 
-        $columns = ['region', 'city', 'office', 'lotus_employees', 'phoneAmount', 'HWActive', 'HWNotActive', 'notHWActive', 'lotusId', 'office_id', 'd0_amountOfNonCallingHwDev', 'm0_amountOfNonCallingHwDev', 'm1_amountOfNonCallingHwDev', 'm2_amountOfNonCallingHwDev', 'd0_amountOfNonCallingAnDev', 'm0_amountOfNonCallingAnDev', 'm1_amountOfNonCallingAnDev', 'm2_amountOfNonCallingAnDev'];
+        $columns = ['region', 'city', 'office', 'lotus_employees', 'phoneAmount', 'HWActive', 'HWNotActive', 'notHWActive', 'lotusId', 'office_id', 'd0Hw_nonCallingDevAmount', 'm0Hw_nonCallingDevAmount', 'm1Hw_nonCallingDevAmount', 'm2Hw_nonCallingDevAmount', 'd0An_nonCallingDevAmount', 'm0An_nonCallingDevAmount', 'm1An_nonCallingDevAmount', 'm2An_nonCallingDevAmount', 'appType_id'];
 
-        $extraColumns = ['d0_amountOfNonCallingHwDev', 'm0_amountOfNonCallingHwDev', 'm1_amountOfNonCallingHwDev', 'm2_amountOfNonCallingHwDev', 'd0_amountOfNonCallingAnDev', 'm0_amountOfNonCallingAnDev', 'm1_amountOfNonCallingAnDev', 'm2_amountOfNonCallingAnDev'];
+        $extraColumns = ['d0Hw_nonCallingDevAmount', 'm0Hw_nonCallingDevAmount', 'm1Hw_nonCallingDevAmount', 'm2Hw_nonCallingDevAmount', 'd0An_nonCallingDevAmount', 'm0An_nonCallingDevAmount', 'm1An_nonCallingDevAmount', 'm2An_nonCallingDevAmount'];
 
         $countedColumns = [
             'phoneAmount' => ['name' => 'appliance_id', 'method' => 'count'],
@@ -72,6 +72,7 @@ class TableConfigs extends Controller
         $confColumns = [
             'lotusId' => ['id' => 'lot_id','name' => 'ID', 'width' => '50px', 'visible' => false],
             'office_id' => ['id' => 'officeId','name' => 'office-id', 'width' => '50px', 'visible' => false],
+            'appType_id' => ['id' => 'appTypeId','name' => 'appType-id', 'width' => '50px', 'visible' => false],
             'region' => ['id' => 'region','name' => 'Регион', 'width' => 13, 'sortable' => true, 'filterable' => true],
             'city' => ['id' => 'city','name' => 'Город', 'width' => 13, 'sortable' => true, 'filterable' => true],
             'office' => ['id' => 'office','name' => 'Офис', 'width' =>15, 'sortable' => true, 'filterable' => true],
@@ -81,15 +82,15 @@ class TableConfigs extends Controller
             'HWNotActive' => ['id' => 'hw-not-active-v','name' => 'HW Phones<br>(не актив.)', 'width' => '60px', 'classes' => ['class_1', 'class_2']],
             'notHWActive' => ['id' => 'not-hw-active-v','name' => 'virtual & analog<br>Phones(актив.)', 'width' => '60px', 'classes' => ['class_1', 'class_2']],
 
-            'd0_amountOfNonCallingHwDev' => ['id' => 'd0-amount-OfNonCallingHwDev-v','name' => 'Phones HW<br>not used<br>ДЕНЬ тек.', 'width' => '60px', 'classes' => ['class_1', 'class_2']],
-            'm0_amountOfNonCallingHwDev' => ['id' => 'm0-amount-OfNonCallingHwDev-v','name' => 'Phones HW<br>not used<br>МЕСЯЦ тек.', 'width' => '60px', 'classes' => ['class_1', 'class_2']],
-            'm1_amountOfNonCallingHwDev' => ['id' => 'm1-amount-OfNonCallingHwDev-v','name' => 'Phones HW<br>not used<br>1 МЕС. назад', 'width' => '60px', 'classes' => ['class_1', 'class_2']],
-            'm2_amountOfNonCallingHwDev' => ['id' => 'm2-amount-OfNonCallingHwDev-v','name' => 'Phones HW<br>not used<br>2 МЕС. назад', 'width' => '60px', 'classes' => ['class_1', 'class_2']],
+            'd0Hw_nonCallingDevAmount' => ['id' => 'd0-amount-OfNonCallingHwDev-v','name' => 'Phones HW<br>not used<br>ДЕНЬ тек.', 'width' => '60px', 'classes' => ['class_1', 'class_2']],
+            'm0Hw_nonCallingDevAmount' => ['id' => 'm0-amount-OfNonCallingHwDev-v','name' => 'Phones HW<br>not used<br>МЕСЯЦ тек.', 'width' => '60px', 'classes' => ['class_1', 'class_2']],
+            'm1Hw_nonCallingDevAmount' => ['id' => 'm1-amount-OfNonCallingHwDev-v','name' => 'Phones HW<br>not used<br>1 МЕС. назад', 'width' => '60px', 'classes' => ['class_1', 'class_2']],
+            'm2Hw_nonCallingDevAmount' => ['id' => 'm2-amount-OfNonCallingHwDev-v','name' => 'Phones HW<br>not used<br>2 МЕС. назад', 'width' => '60px', 'classes' => ['class_1', 'class_2']],
 
-            'd0_amountOfNonCallingAnDev' => ['id' => 'd0-amount-OfNonCallingAnalogDev-v','name' => 'Phones AN<br>not used<br>ДЕНЬ тек.', 'width' => '60px', 'classes' => ['class_1', 'class_2']],
-            'm0_amountOfNonCallingAnDev' => ['id' => 'm0-amount-OfNonCallingAnalogDev-v','name' => 'Phones AN<br>not used<br>МЕСЯЦ тек.', 'width' => '60px', 'classes' => ['class_1', 'class_2']],
-            'm1_amountOfNonCallingAnDev' => ['id' => 'm1-amount-OfNonCallingAnalogDev-v','name' => 'Phones AN<br>not used<br>1 МЕС. назад', 'width' => '60px', 'classes' => ['class_1', 'class_2']],
-            'm2_amountOfNonCallingAnDev' => ['id' => 'm2-amount-OfNonCallingAnalogDev-v','name' => 'Phones AN<br>not used<br>2 МЕС. назад', 'width' => '60px', 'classes' => ['class_1', 'class_2']],
+            'd0An_nonCallingDevAmount' => ['id' => 'd0-amount-OfNonCallingAnalogDev-v','name' => 'Phones AN<br>not used<br>ДЕНЬ тек.', 'width' => '60px', 'classes' => ['class_1', 'class_2']],
+            'm0An_nonCallingDevAmount' => ['id' => 'm0-amount-OfNonCallingAnalogDev-v','name' => 'Phones AN<br>not used<br>МЕСЯЦ тек.', 'width' => '60px', 'classes' => ['class_1', 'class_2']],
+            'm1An_nonCallingDevAmount' => ['id' => 'm1-amount-OfNonCallingAnalogDev-v','name' => 'Phones AN<br>not used<br>1 МЕС. назад', 'width' => '60px', 'classes' => ['class_1', 'class_2']],
+            'm2An_nonCallingDevAmount' => ['id' => 'm2-amount-OfNonCallingAnalogDev-v','name' => 'Phones AN<br>not used<br>2 МЕС. назад', 'width' => '60px', 'classes' => ['class_1', 'class_2']],
         ];
         $sortTemplates = [
             'region' => ['region' => '', 'city' => '', 'office' => ''],
@@ -142,9 +143,9 @@ class TableConfigs extends Controller
         echo '===============body footer table config===============';
         /*=============body footer table================*/
 
-        $columns = ['textField', 'appType', 'employees', 'phoneAmount', 'HWActive', 'HWNotActive', 'notHWActive', 'd0_totalAmountOfNonCallingHwDev', 'm0_totalAmountOfNonCallingHwDev', 'm1_totalAmountOfNonCallingHwDev', 'm2_totalAmountOfNonCallingHwDev', 'd0_totalAmountOfNonCallingAnDev', 'm0_totalAmountOfNonCallingAnDev', 'm1_totalAmountOfNonCallingAnDev', 'm2_totalAmountOfNonCallingAnDev'];
+        $columns = ['textField', 'appType', 'employees', 'phoneAmount', 'HWActive', 'HWNotActive', 'notHWActive', 'd0Hw_total_nonCallingDevAmount', 'm0Hw_total_nonCallingDevAmount', 'm1Hw_total_nonCallingDevAmount', 'm2Hw_total_nonCallingDevAmount', 'd0An_total_nonCallingDevAmount', 'm0An_total_nonCallingDevAmount', 'm1An_total_nonCallingDevAmount', 'm2An_total_nonCallingDevAmount'];
 
-        $extraColumns = ['textField', 'employees', 'd0_totalAmountOfNonCallingHwDev', 'm0_totalAmountOfNonCallingHwDev', 'm1_totalAmountOfNonCallingHwDev', 'm2_totalAmountOfNonCallingHwDev', 'd0_totalAmountOfNonCallingAnDev', 'm0_totalAmountOfNonCallingAnDev', 'm1_totalAmountOfNonCallingAnDev', 'm2_totalAmountOfNonCallingAnDev'];
+        $extraColumns = ['textField', 'employees', 'd0Hw_total_nonCallingDevAmount', 'm0Hw_total_nonCallingDevAmount', 'm1Hw_total_nonCallingDevAmount', 'm2Hw_total_nonCallingDevAmount', 'd0An_total_nonCallingDevAmount', 'm0An_total_nonCallingDevAmount', 'm1An_total_nonCallingDevAmount', 'm2An_total_nonCallingDevAmount'];
         $confColumns = [
             'textField' => ['id' => 'txt_field','name' => 'ИТОГО:', 'width' => 31, 'visible' => true],
             'appType' => ['id' => 'app_type','name' => 'appType', 'width' => 10, 'visible' => false],
@@ -154,15 +155,15 @@ class TableConfigs extends Controller
             'HWNotActive' => ['id' => 'hw-not-active','name' => 'HW not active Phones', 'width' => '60px'],
             'notHWActive' => ['id' => 'not-hw-active-v','name' => 'not HW Phones', 'width' => '60px'],
 
-            'd0_totalAmountOfNonCallingHwDev' => ['id' => 'd0-amount-OfNonCallingHwDev-v', 'width' => '60px'],
-            'm0_totalAmountOfNonCallingHwDev' => ['id' => 'm0-amount-OfNonCallingHwDev-v', 'width' => '60px'],
-            'm1_totalAmountOfNonCallingHwDev' => ['id' => 'm1-amount-OfNonCallingHwDev-v', 'width' => '60px'],
-            'm2_totalAmountOfNonCallingHwDev' => ['id' => 'm2-amount-OfNonCallingHwDev-v', 'width' => '60px'],
+            'd0Hw_total_nonCallingDevAmount' => ['id' => 'd0-amount-OfNonCallingHwDev-v', 'width' => '60px'],
+            'm0Hw_total_nonCallingDevAmount' => ['id' => 'm0-amount-OfNonCallingHwDev-v', 'width' => '60px'],
+            'm1Hw_total_nonCallingDevAmount' => ['id' => 'm1-amount-OfNonCallingHwDev-v', 'width' => '60px'],
+            'm2Hw_total_nonCallingDevAmount' => ['id' => 'm2-amount-OfNonCallingHwDev-v', 'width' => '60px'],
 
-            'd0_totalAmountOfNonCallingAnDev' => ['id' => 'd0-amount-OfNonCallingAnalogDev-v', 'width' => '60px'],
-            'm0_totalAmountOfNonCallingAnDev' => ['id' => 'm0-amount-OfNonCallingAnalogDev-v', 'width' => '60px'],
-            'm1_totalAmountOfNonCallingAnDev' => ['id' => 'm1-amount-OfNonCallingAnalogDev-v', 'width' => '60px'],
-            'm2_totalAmountOfNonCallingAnDev' => ['id' => 'm2-amount-OfNonCallingAnalogDev-v', 'width' => '60px'],
+            'd0An_total_nonCallingDevAmount' => ['id' => 'd0-amount-OfNonCallingAnalogDev-v', 'width' => '60px'],
+            'm0An_total_nonCallingDevAmount' => ['id' => 'm0-amount-OfNonCallingAnalogDev-v', 'width' => '60px'],
+            'm1An_total_nonCallingDevAmount' => ['id' => 'm1-amount-OfNonCallingAnalogDev-v', 'width' => '60px'],
+            'm2An_total_nonCallingDevAmount' => ['id' => 'm2-amount-OfNonCallingAnalogDev-v', 'width' => '60px'],
         ];
         $countedColumns = [
             'phoneAmount' => ['name' => 'appliance_id', 'method' => 'count'],

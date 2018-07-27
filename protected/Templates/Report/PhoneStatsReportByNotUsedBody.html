@@ -12,7 +12,30 @@
                 {% if (columnParams.id == 'not-hw-active-v' or columnParams.id == 'hw-active-v' or columnParams.id == 'hw-not-active-v') and val == 0 %}
                     <td></td>
                 {% else %}
-                    <td>{{ val }}</td>
+                    <td>
+                        {% if val != 0 or val != null %}
+                            {% if colname == 'd0Hw_nonCallingDevAmount' %}
+                                <a href="{{ notUsedPhonesUrl.path }}?loc_id={{ record.getValue('office_id') }}&appType_id={{ record.getValue('appType_id') }}&isHW=true&d0stats=null">{{ val }}</a>
+                            {% elseif colname == 'm0Hw_nonCallingDevAmount' %}
+                                <a href="{{ notUsedPhonesUrl.path }}?loc_id={{ record.getValue('office_id') }}&appType_id={{ record.getValue('appType_id') }}&isHW=true&m0stats=null">{{ val }}</a>
+                            {% elseif colname == 'm1Hw_nonCallingDevAmount' %}
+                                <a href="{{ notUsedPhonesUrl.path }}?loc_id={{ record.getValue('office_id') }}&appType_id={{ record.getValue('appType_id') }}&isHW=true&m1stats=null">{{ val }}</a>
+                            {% elseif colname == 'm2Hw_nonCallingDevAmount' %}
+                                <a href="{{ notUsedPhonesUrl.path }}?loc_id={{ record.getValue('office_id') }}&appType_id={{ record.getValue('appType_id') }}&isHW=true&m2stats=null">{{ val }}</a>
+
+                            {% elseif colname == 'd0An_nonCallingDevAmount' %}
+                                <a href="{{ notUsedPhonesUrl.path }}?loc_id={{ record.getValue('office_id') }}&appType_id={{ record.getValue('appType_id') }}&isHW=false&d0stats=null">{{ val }}</a>
+                            {% elseif colname == 'm0An_nonCallingDevAmount' %}
+                                <a href="{{ notUsedPhonesUrl.path }}?loc_id={{ record.getValue('office_id') }}&appType_id={{ record.getValue('appType_id') }}&isHW=false&m0stats=null">{{ val }}</a>
+                            {% elseif colname == 'm1An_nonCallingDevAmount' %}
+                                <a href="{{ notUsedPhonesUrl.path }}?loc_id={{ record.getValue('office_id') }}&appType_id={{ record.getValue('appType_id') }}&isHW=false&m1stats=null">{{ val }}</a>
+                            {% elseif colname == 'm2An_nonCallingDevAmount' %}
+                                <a href="{{ notUsedPhonesUrl.path }}?loc_id={{ record.getValue('office_id') }}&appType_id={{ record.getValue('appType_id') }}&isHW=false&m2stats=null">{{ val }}</a>
+                            {% else %}
+                                {{ val }}
+                            {% endif %}
+                        {% endif %}
+                    </td>
                 {% endif %}
             {% endif %}
         {% endfor %}

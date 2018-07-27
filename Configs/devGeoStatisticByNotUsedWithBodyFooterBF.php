@@ -90,7 +90,7 @@ return [
       [
       ],
     ],
-    'd0_totalAmountOfNonCallingHwDev' =>
+    'd0Hw_total_nonCallingDevAmount' =>
     [
       'id' => 'd0-amount-OfNonCallingHwDev-v',
       'name' => '',
@@ -102,7 +102,7 @@ return [
       [
       ],
     ],
-    'm0_totalAmountOfNonCallingHwDev' =>
+    'm0Hw_total_nonCallingDevAmount' =>
     [
       'id' => 'm0-amount-OfNonCallingHwDev-v',
       'name' => '',
@@ -114,7 +114,7 @@ return [
       [
       ],
     ],
-    'm1_totalAmountOfNonCallingHwDev' =>
+    'm1Hw_total_nonCallingDevAmount' =>
     [
       'id' => 'm1-amount-OfNonCallingHwDev-v',
       'name' => '',
@@ -126,7 +126,7 @@ return [
       [
       ],
     ],
-    'm2_totalAmountOfNonCallingHwDev' =>
+    'm2Hw_total_nonCallingDevAmount' =>
     [
       'id' => 'm2-amount-OfNonCallingHwDev-v',
       'name' => '',
@@ -138,7 +138,7 @@ return [
       [
       ],
     ],
-    'd0_totalAmountOfNonCallingAnDev' =>
+    'd0An_total_nonCallingDevAmount' =>
     [
       'id' => 'd0-amount-OfNonCallingAnalogDev-v',
       'name' => '',
@@ -150,7 +150,7 @@ return [
       [
       ],
     ],
-    'm0_totalAmountOfNonCallingAnDev' =>
+    'm0An_total_nonCallingDevAmount' =>
     [
       'id' => 'm0-amount-OfNonCallingAnalogDev-v',
       'name' => '',
@@ -162,7 +162,7 @@ return [
       [
       ],
     ],
-    'm1_totalAmountOfNonCallingAnDev' =>
+    'm1An_total_nonCallingDevAmount' =>
     [
       'id' => 'm1-amount-OfNonCallingAnalogDev-v',
       'name' => '',
@@ -174,7 +174,7 @@ return [
       [
       ],
     ],
-    'm2_totalAmountOfNonCallingAnDev' =>
+    'm2An_total_nonCallingDevAmount' =>
     [
       'id' => 'm2-amount-OfNonCallingAnalogDev-v',
       'name' => '',
@@ -304,14 +304,14 @@ return [
   [
     0 => 'textField',
     1 => 'employees',
-    2 => 'd0_totalAmountOfNonCallingHwDev',
-    3 => 'm0_totalAmountOfNonCallingHwDev',
-    4 => 'm1_totalAmountOfNonCallingHwDev',
-    5 => 'm2_totalAmountOfNonCallingHwDev',
-    6 => 'd0_totalAmountOfNonCallingAnDev',
-    7 => 'm0_totalAmountOfNonCallingAnDev',
-    8 => 'm1_totalAmountOfNonCallingAnDev',
-    9 => 'm2_totalAmountOfNonCallingAnDev',
+    2 => 'd0Hw_total_nonCallingDevAmount',
+    3 => 'm0Hw_total_nonCallingDevAmount',
+    4 => 'm1Hw_total_nonCallingDevAmount',
+    5 => 'm2Hw_total_nonCallingDevAmount',
+    6 => 'd0An_total_nonCallingDevAmount',
+    7 => 'm0An_total_nonCallingDevAmount',
+    8 => 'm1An_total_nonCallingDevAmount',
+    9 => 'm2An_total_nonCallingDevAmount',
   ],
   'bodyFooterTable' => '',
   'sortOrderSets' =>
