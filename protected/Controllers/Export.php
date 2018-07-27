@@ -5,7 +5,7 @@ namespace App\Controllers;
 use App\Components\RLogger;
 use App\ViewModels\Dev_Appliance1C;
 use App\ViewModels\Dev_Module1C;
-use App\ViewModels\DevCallStats;
+use App\ViewModels\DevCallsStats;
 use App\ViewModels\DevModulePortGeo;
 use App\ViewModels\DevPhoneInfoGeo;
 use T4\Core\Exception;
@@ -151,11 +151,8 @@ class Export extends Controller
                 }
             }
 
-            // Подготовим массив значений PhoneName => Phone calls statistics
-            $phonesCallsStats = [];
-            foreach (DevCallStats::findAll() as $item) {
-                $phonesCallsStats[$item->appliance] = $item;
-            }
+            // Статистика звонков по телефонам
+            $phonesCallsStats = DevCallsStats::getDeviceCallStatisticsForLastThreeMonth();
 
 // ------ Worksheet - 'Appliances' ----------------------
 
@@ -496,13 +493,23 @@ class Export extends Controller
                 $callQuantitiesCurrentMonth = '';
                 $callQuantitiesLastMonth = '';
                 $callQuantitiesBeforeLastMonth = '';
-                $phoneCallsStats = array_key_exists($phone->name, $phonesCallsStats) ? $phonesCallsStats[$phone->name] : '';
+                $phoneCallsStats = array_key_exists($phone->appliance_id, $phonesCallsStats) ? $phonesCallsStats[$phone->appliance_id] : '';
                 if (!is_null($phoneCallsStats)) {
-                    $lastCall = $phoneCallsStats->last_call;
-                    $callQuantitiesCurrentDay = $phoneCallsStats->call_quantities_current_day;
-                    $callQuantitiesCurrentMonth = $phoneCallsStats->call_quantities_current_month;
-                    $callQuantitiesLastMonth = $phoneCallsStats->call_quantities_last_month;
-                    $callQuantitiesBeforeLastMonth = $phoneCallsStats->call_quantities_before_last_month;
+                    if (!is_null($phoneCallsStats['last_call_day'])) {
+                        $lastCall = $phoneCallsStats['last_call_day'];
+                    }
+                    if (!is_null($phoneCallsStats['d0_calls_amount'])) {
+                        $callQuantitiesCurrentDay = $phoneCallsStats['d0_calls_amount'];
+                    }
+                    if (!is_null($phoneCallsStats['m0_calls_amount'])) {
+                        $callQuantitiesCurrentMonth = $phoneCallsStats['m0_calls_amount'];
+                    }
+                    if (!is_null($phoneCallsStats['m1_calls_amount'])) {
+                        $callQuantitiesLastMonth = $phoneCallsStats['m1_calls_amount'];
+                    }
+                    if (!is_null($phoneCallsStats['m2_calls_amount'])) {
+                        $callQuantitiesBeforeLastMonth = $phoneCallsStats['m2_calls_amount'];
+                    }
                 }
 
 

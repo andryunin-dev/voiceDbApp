@@ -1,0 +1,41 @@
+{% spaceless %}
+    {% for record in dataBF %}
+        <tr class="js-table-row">
+        {% for colname, columnParams in columnsBF %}
+            {% if columnParams.isPivot %}
+                {% set pivColumn = columnParams.pivotColumn  %}
+                {% set pivObj = record.getValue(pivColumn) %}
+
+                <td>{{ pivObj.getValue(colname) }}</td>
+            {% elseif columnParams.id == 'txt_field' %}
+                <td>{{ columnParams.name }}</td>
+            {% elseif colname == 'employees' %}
+                <td>{{ lotusEmployeesTotal }}</td>
+            {% else %}
+                {% set value = record.getValue(colname) %}
+                <td>{% if value != 0 %}{{ value }}{% endif %}</td>
+            {% endif %}
+        {% endfor %}
+        </tr>
+    {% endfor %}
+
+{% endspaceless %}
+{#{% spaceless %}
+    #}{#{% for record in data %}#}{#
+    <tr class="js-table-row">
+        {% for colname, columnParams in columnsBF %}
+            {% if columnParams.isPivot %}
+                {% set pivColumn = columnParams.pivotColumn  %}
+                {% set pivObj = record.getValue(pivColumn) %}
+
+                #}{#<td>{{ pivObj.getValue(colname) }}</td>#}{#
+                <td>test</td>
+            {% else %}
+                #}{#<td>{{ record.getValue(colname) }}</td>#}{#
+                <td>test2</td>
+            {% endif %}
+        {% endfor %}
+    </tr>
+    #}{#{% endfor %}#}{#
+
+{% endspaceless %}#}
