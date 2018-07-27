@@ -95,15 +95,17 @@ class DevCallsStats extends Model
         return $nonCallingDevicesStatsByOffices;
     }
 
+
     /**
      * @return array [
-     *    dev => [
-     *      'dev' => 'SEP............',         // Device's name
-     *      'last_call_day' => '2018-07-16',    // дата последнего звонка
-     *      'd0_calls_amount' => null,          // колличество звонков за текущий день
-     *      'm0_calls_amount' => 19,            // колличество звонков за текущий месяц
-     *      'm1_calls_amount' => 1,             // колличество звонков за прошлый месяц
-     *      'm2_calls_amount' => 1,             // колличество звонков за позапрошлый месяц
+     *    appliance_id => [
+     *      'appliance_id' => '1',                  // Appliance Id
+     *      'device_name' => 'SEP............',     // Device's name
+     *      'last_call_day' => '2018-07-16',        // дата последнего звонка
+     *      'd0_calls_amount' => null,              // колличество звонков за текущий день
+     *      'm0_calls_amount' => 19,                // колличество звонков за текущий месяц
+     *      'm1_calls_amount' => 1,                 // колличество звонков за прошлый месяц
+     *      'm2_calls_amount' => 1,                 // колличество звонков за позапрошлый месяц
      *    ]
      * ]
      */
@@ -111,26 +113,12 @@ class DevCallsStats extends Model
     {
         $app = Application::instance();
 
-        $sql = '
-            SELECT
-              dev,
-              max(date) AS last_call_day,
-              sum(call_quan) FILTER (WHERE date = current_date) AS d0_calls_amount,
-              sum(call_quan) FILTER (WHERE date_trunc(\'month\', date) = :current_month) AS m0_calls_amount,
-              sum(call_quan) FILTER (WHERE date_trunc(\'month\', date) = :last_month) AS m1_calls_amount,
-              sum(call_quan) FILTER (WHERE date_trunc(\'month\', date) = :before_last_month) AS m2_calls_amount
-            FROM cdr_call_activ.dev_nd_quan
-            GROUP BY dev;';
-        $params = [
-            ':current_month' => date('Y-m-d', mktime(0, 0, 0, date('m'), 1, date('Y'))),
-            ':last_month' => date('Y-m-d', mktime(0, 0, 0, date('m')-1, 1, date('Y'))),
-            ':before_last_month' => date('Y-m-d', mktime(0, 0, 0, date('m')-2, 1, date('Y'))),
-        ];
-        $items = $app->db->cdr->query($sql, $params)->fetchAll(\PDO::FETCH_ASSOC);
+        $sql = 'SELECT * FROM view.dev_calls_stats';
+        $items = $app->db->default->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
 
         $phonesCallsStats = [];
         foreach ($items as $item) {
-            $phonesCallsStats[$item['dev']] = $item;
+            $phonesCallsStats[$item['appliance_id']] = $item;
         }
         return $phonesCallsStats;
     }

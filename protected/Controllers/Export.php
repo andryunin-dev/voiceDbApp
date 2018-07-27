@@ -493,7 +493,7 @@ class Export extends Controller
                 $callQuantitiesCurrentMonth = '';
                 $callQuantitiesLastMonth = '';
                 $callQuantitiesBeforeLastMonth = '';
-                $phoneCallsStats = array_key_exists($phone->name, $phonesCallsStats) ? $phonesCallsStats[$phone->name] : '';
+                $phoneCallsStats = array_key_exists($phone->appliance_id, $phonesCallsStats) ? $phonesCallsStats[$phone->appliance_id] : '';
                 if (!is_null($phoneCallsStats)) {
                     if (!is_null($phoneCallsStats['last_call_day'])) {
                         $lastCall = $phoneCallsStats['last_call_day'];
