@@ -47,8 +47,14 @@ use T4\Orm\Model;
  * @property int $softwareVersion
  * @property string $moduleInfo
  * @property string $portInfo
- *
  * @property string $managementIp
+ * @property string $inventoryNumber
+ * @property string $responsiblePerson
+ * @property string $last_call_day
+ * @property int $d0_calls_amount
+ * @property int $m0_calls_amount
+ * @property int $m1_calls_amount
+ * @property int $m2_calls_amount
  *
  * @property Collection|ModuleItem_View[] $modules
  * @property Collection|DataPort_View[] $dataPorts
@@ -106,7 +112,12 @@ class DevModulePortGeo extends Model
             'portInfo' => ['type' => 'jsonb'],
             'managementIp' => ['type' => 'string'],
             'inventoryNumber' => ['type' => 'string'],
-            'responsiblePerson' => ['type' => 'string']
+            'responsiblePerson' => ['type' => 'string'],
+            'last_call_day' => ['type' => 'string'],
+            'd0_calls_amount' => ['type' => 'int'],
+            'm0_calls_amount' => ['type' => 'int'],
+            'm1_calls_amount' => ['type' => 'int'],
+            'm2_calls_amount' => ['type' => 'int'],
         ]
     ];
     public static $columnMap = [
@@ -129,7 +140,11 @@ class DevModulePortGeo extends Model
         'activeAge' => ['column' => 'appAge', 'predicate' => 'lt'],
         'age_null' => ['column' => 'appAge', 'predicate' => 'is'],
         'inUse' => ['column' => 'appInUse', 'predicate' => 'is'],
-        'inv_null' => ['column' => 'inventoryNumber', 'predicate' => 'is']
+        'inv_null' => ['column' => 'inventoryNumber', 'predicate' => 'is'],
+        'd0stats' => ['column' => 'd0_calls_amount', 'predicate' => 'is'],
+        'm0stats' => ['column' => 'm0_calls_amount', 'predicate' => 'is'],
+        'm1stats' => ['column' => 'm1_calls_amount', 'predicate' => 'is'],
+        'm2stats' => ['column' => 'm2_calls_amount', 'predicate' => 'is'],
     ];
     public static $applianceTypeMap = [
         'switch' => 'SW',

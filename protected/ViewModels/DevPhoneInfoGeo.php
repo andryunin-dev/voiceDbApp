@@ -90,6 +90,13 @@ class DevPhoneInfoGeo extends Model
             'publisherIp' => ['type' => 'string'],
             'unknownLocation' => ['type' => 'boolean'],
             'managementIp' => ['type' => 'string'],
+            'inventoryNumber' => ['type' => 'string'],
+            'last_call_day' => ['type' => 'string'],
+            'd0_calls_amount' => ['type' => 'int'],
+            'm0_calls_amount' => ['type' => 'int'],
+            'm1_calls_amount' => ['type' => 'int'],
+            'm2_calls_amount' => ['type' => 'int'],
+            'responsiblePerson' => ['type' => 'string'],
         ]
     ];
 
