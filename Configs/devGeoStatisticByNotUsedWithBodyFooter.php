@@ -445,6 +445,7 @@ return [
         0 => 'table',
         1 => 'cell-bordered',
         2 => 'cust-table-striped',
+        3 => 'links-style',
       ],
     ],
     'footer' =>
