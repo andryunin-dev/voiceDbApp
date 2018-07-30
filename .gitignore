@@ -1,6 +1,5 @@
 .idea
 vendor
-protected/config.php
 protected/Cache
 public/Assets
-Tmp
+protected/config.php
