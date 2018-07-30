@@ -2,4 +2,4 @@
 vendor
 protected/Cache
 public/Assets
-Tmp
+protected/config.php
