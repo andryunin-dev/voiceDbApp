@@ -14,6 +14,7 @@ class Test extends Controller
         $name = '';
         $cmd = 'php '.ROOT_PATH.DS.'protected'.DS.'t4.php cucmsPhones'.DS.'getPhoneByName --name='. $name;
         exec($cmd, $result);
+
         var_dump($result);
 
         die;
