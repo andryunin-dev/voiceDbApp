@@ -57,19 +57,20 @@ class DevCallsStats extends Model
     public static function getAmountOfNonCallingDevicesByOffices()
     {
         $app = Application::instance();
+        $maxAge = $app->config->appParams->maxAge;
 
         $sql = '
             SELECT
                 office_id,
-                count(*) FILTER (WHERE "isHW" = TRUE AND d0_calls_amount ISNULL) AS "d0Hw_nonCallingDevAmount",
-                count(*) FILTER (WHERE "isHW" = TRUE AND m0_calls_amount ISNULL) AS "m0Hw_nonCallingDevAmount",
-                count(*) FILTER (WHERE "isHW" = TRUE AND m1_calls_amount ISNULL) AS "m1Hw_nonCallingDevAmount",
-                count(*) FILTER (WHERE "isHW" = TRUE AND m2_calls_amount ISNULL) AS "m2Hw_nonCallingDevAmount",
-                
-                count(*) FILTER (WHERE "isHW" = FALSE AND d0_calls_amount ISNULL) AS "d0An_nonCallingDevAmount",
-                count(*) FILTER (WHERE "isHW" = FALSE AND m0_calls_amount ISNULL) AS "m0An_nonCallingDevAmount",
-                count(*) FILTER (WHERE "isHW" = FALSE AND m1_calls_amount ISNULL) AS "m1An_nonCallingDevAmount",
-                count(*) FILTER (WHERE "isHW" = FALSE AND m2_calls_amount ISNULL) AS "m2An_nonCallingDevAmount"
+                count(*) FILTER (WHERE "isHW" = TRUE AND "appAge" < '.$maxAge.' AND d0_calls_amount ISNULL) AS "d0Hw_nonCallingDevAmount",
+                count(*) FILTER (WHERE "isHW" = TRUE AND "appAge" < '.$maxAge.' AND m0_calls_amount ISNULL) AS "m0Hw_nonCallingDevAmount",
+                count(*) FILTER (WHERE "isHW" = TRUE AND "appAge" < '.$maxAge.' AND m1_calls_amount ISNULL) AS "m1Hw_nonCallingDevAmount",
+                count(*) FILTER (WHERE "isHW" = TRUE AND "appAge" < '.$maxAge.' AND m2_calls_amount ISNULL) AS "m2Hw_nonCallingDevAmount",
+
+                count(*) FILTER (WHERE "isHW" = FALSE AND "appAge" < '.$maxAge.' AND d0_calls_amount ISNULL) AS "d0An_nonCallingDevAmount",
+                count(*) FILTER (WHERE "isHW" = FALSE AND "appAge" < '.$maxAge.' AND m0_calls_amount ISNULL) AS "m0An_nonCallingDevAmount",
+                count(*) FILTER (WHERE "isHW" = FALSE AND "appAge" < '.$maxAge.' AND m1_calls_amount ISNULL) AS "m1An_nonCallingDevAmount",
+                count(*) FILTER (WHERE "isHW" = FALSE AND "appAge" < '.$maxAge.' AND m2_calls_amount ISNULL) AS "m2An_nonCallingDevAmount"
             FROM view.dev_phone_info_geo
             WHERE "appType" = \'phone\' AND (d0_calls_amount ISNULL OR m0_calls_amount ISNULL OR m1_calls_amount ISNULL OR m2_calls_amount ISNULL)
             GROUP BY office_id';

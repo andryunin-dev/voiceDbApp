@@ -73,9 +73,9 @@ class TableConfigs extends Controller
             'lotusId' => ['id' => 'lot_id','name' => 'ID', 'width' => '50px', 'visible' => false],
             'office_id' => ['id' => 'officeId','name' => 'office-id', 'width' => '50px', 'visible' => false],
             'appType_id' => ['id' => 'appTypeId','name' => 'appType-id', 'width' => '50px', 'visible' => false],
-            'region' => ['id' => 'region','name' => 'Регион', 'width' => 13, 'sortable' => true, 'filterable' => true],
-            'city' => ['id' => 'city','name' => 'Город', 'width' => 13, 'sortable' => true, 'filterable' => true],
-            'office' => ['id' => 'office','name' => 'Офис', 'width' =>15, 'sortable' => true, 'filterable' => true],
+            'region' => ['id' => 'region','name' => 'Регион', 'width' => 24, 'sortable' => true, 'filterable' => true],
+            'city' => ['id' => 'city','name' => 'Город', 'width' => 24, 'sortable' => true, 'filterable' => true],
+            'office' => ['id' => 'office','name' => 'Офис', 'width' =>29, 'sortable' => true, 'filterable' => true],
             'lotus_employees' => ['id' => 'people-v','name' => 'Сотрудников', 'width' => '60px'],
             'phoneAmount' => ['id' => 'phone-count','name' => 'кол-во тел.', 'width' => '60px'],
             'HWActive' => ['id' => 'hw-active-v','name' => 'HW Phones<br>(актив.)', 'width' => '60px', 'classes' => ['class_1', 'class_2']],
@@ -135,7 +135,7 @@ class TableConfigs extends Controller
 
             ->bodyFooterTableName($tableNameBF)
             ->cssSetHeaderTableClasses(['bg-primary', 'table-bordered', 'table-header-rotated'])
-            ->cssSetBodyTableClasses(["table", "cell-bordered", "cust-table-striped"])
+            ->cssSetBodyTableClasses(["table", "cell-bordered", "cust-table-striped", "links-style"])
             ->rowsOnPageList([10,50,100,200,500,'все'])
             ->tablePreFilter($tablePreFilter)
             ->save();

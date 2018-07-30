@@ -38,5 +38,8 @@ return [
     'ssh' => [
         'login' => '@ssh.login@',
         'password' => '@ssh.password@',
+    ],
+    'appParams' => [
+        'maxAge' => 73,
     ]
 ];

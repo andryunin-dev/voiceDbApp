@@ -10,7 +10,7 @@ return [
     [
       'id' => 'region',
       'name' => 'Регион',
-      'width' => 13,
+      'width' => 24,
       'sortable' => true,
       'filterable' => true,
       'visible' => true,
@@ -22,7 +22,7 @@ return [
     [
       'id' => 'city',
       'name' => 'Город',
-      'width' => 13,
+      'width' => 24,
       'sortable' => true,
       'filterable' => true,
       'visible' => true,
@@ -34,7 +34,7 @@ return [
     [
       'id' => 'office',
       'name' => 'Офис',
-      'width' => 15,
+      'width' => 29,
       'sortable' => true,
       'filterable' => true,
       'visible' => true,
@@ -445,6 +445,7 @@ return [
         0 => 'table',
         1 => 'cell-bordered',
         2 => 'cust-table-striped',
+        3 => 'links-style',
       ],
     ],
     'footer' =>

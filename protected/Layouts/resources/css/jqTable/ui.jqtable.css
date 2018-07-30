@@ -35,6 +35,11 @@
     white-space: normal;
     word-wrap: break-word;
 }
+
+/*set color for links in table*/
+.jqtable .links-style tbody a{
+    color: #337ab7;
+}
 /* bodyFooter */
 .jqtable .jqt-bd-ft-table {
     margin:0;
