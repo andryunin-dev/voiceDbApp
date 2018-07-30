@@ -25,7 +25,7 @@ return [
         ],
         'cdr' => [
             'driver' => 'pgsql',
-            'host' => '',
+            'host' => 'test',
             'user' => '',
             'password' => '',
             'dbname' => ''
