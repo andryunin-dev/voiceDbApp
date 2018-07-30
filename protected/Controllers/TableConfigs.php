@@ -135,7 +135,7 @@ class TableConfigs extends Controller
 
             ->bodyFooterTableName($tableNameBF)
             ->cssSetHeaderTableClasses(['bg-primary', 'table-bordered', 'table-header-rotated'])
-            ->cssSetBodyTableClasses(["table", "cell-bordered", "cust-table-striped"])
+            ->cssSetBodyTableClasses(["table", "cell-bordered", "cust-table-striped", "links-style"])
             ->rowsOnPageList([10,50,100,200,500,'все'])
             ->tablePreFilter($tablePreFilter)
             ->save();
