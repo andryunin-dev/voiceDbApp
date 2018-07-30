@@ -417,6 +417,7 @@ class Report extends Controller
                         $data['columns'] = $request->columns;
                         $data['columnsBF'] = $request->bodyFooter;
                         $data['notUsedPhonesUrl'] = $notUsedPhonesUrl;
+                        $data['maxAge'] = $this->app->config->appParams->maxAge;
                         //============get body footer data==============
                         $tbBF = $tb->getBodyFooterTable();
                         $tbDataBF = [];
