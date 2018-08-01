@@ -61,6 +61,29 @@ class Export extends Controller
     }
 
 
+    public function actionPhonesErrorsLogs()
+    {
+        $errorLogFile = ROOT_PATH.DS.'Logs'.DS.Logs::PHONES_ERRORS_LOG_FILE_NAME;
+
+        if (!file_exists($errorLogFile)) {
+            throw new Exception("No errors logs file found");
+        }
+
+        if (ob_get_level()) {
+            ob_end_clean();
+        }
+
+        header('Content-Description: File Transfer');
+        header('Content-Type: application/octet-stream');
+        header('Content-Disposition: attachment; filename=' . Logs::PHONES_ERRORS_LOG_FILE_NAME);
+        header('Content-Transfer-Encoding: binary');
+        header('Expires: 0');
+        header('Cache-Control: no-cache');
+        header('Content-Length: ' . filesize($errorLogFile));
+        readfile($errorLogFile);
+        die;
+    }
+
 
     /**
      * @throws Exception

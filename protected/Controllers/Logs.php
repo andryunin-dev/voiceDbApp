@@ -7,6 +7,7 @@ use T4\Mvc\Controller;
 class Logs extends Controller
 {
     const LOGFILE = ROOT_PATH . '/Logs/surveyOfAppliances.log';
+    const PHONES_ERRORS_LOG_FILE_NAME = 'phoneErrors.txt';
 
     public function actionDefault()
     {
@@ -39,6 +40,9 @@ class Logs extends Controller
 
     public function actionPhones()
     {
+        $this->data->phonesErrorsLogs = '/export/phonesErrorsLogs';
+        $errorLogFile = ROOT_PATH.DS.'Logs'.DS.self::PHONES_ERRORS_LOG_FILE_NAME;
+
         // Фильтруем логи
         $logFiles = scandir(ROOT_PATH . DS . 'Logs');
         $filteredLogs = [];
@@ -67,6 +71,9 @@ class Logs extends Controller
                 }
             }
         }
+
+        // for export phones errors logs
+        file_put_contents($errorLogFile, implode(PHP_EOL, $filteredLogs));
 
         $logTemplates = [
             'message' => '\[message\]=',
