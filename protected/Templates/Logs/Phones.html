@@ -23,4 +23,12 @@
             </table>
         </div>
     </div>
+
+    <script>
+        var APP = APP || {};
+        if ("{{ phonesErrorsLogs }}") {
+            $("#phonesErrorsExport").removeClass("hidden");
+            APP.setLink("#phonesErrorsExport", "{{ phonesErrorsLogs }}");
+        }
+    </script>
 {% endblock %}
