@@ -66,14 +66,15 @@ class InventoryItem1C extends Model
             throw new Exception('Not a valid InventoryItem1C\'s rooms1C type');
         }
 
-        $dyplicateByInventoryNumber = self::findByColumn('inventoryNumber', $this->inventoryNumber);
+//        $dyplicateByInventoryNumber = self::findByColumn('inventoryNumber', $this->inventoryNumber);
+//
+//        if (true === $this->isNew() && false !== $dyplicateByInventoryNumber) {
+//            throw new Exception('A InventoryItem1C with this inventoryNumber exists');
+//        }
+//        if (false === $this->isNew() && false !== $dyplicateByInventoryNumber && $dyplicateByInventoryNumber->getPk() != $this->getPk()) {
+//            throw new Exception('A InventoryItem1C with this inventoryNumber exists');
+//        }
 
-        if (true === $this->isNew() && false !== $dyplicateByInventoryNumber) {
-            throw new Exception('A InventoryItem1C with this inventoryNumber exists');
-        }
-        if (false === $this->isNew() && false !== $dyplicateByInventoryNumber && $dyplicateByInventoryNumber->getPk() != $this->getPk()) {
-            throw new Exception('A InventoryItem1C with this inventoryNumber exists');
-        }
         return true;
     }
 
