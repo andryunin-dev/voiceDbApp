@@ -15,6 +15,81 @@ use T4\Mvc\Controller;
 
 class ReduxTest extends Controller
 {
+    /**
+     * URL: voice.rs.ru/reduxTest/rootElements.json
+     * return object like {rootElementsId: {netsId: "nets id as a string", hostsId: "hosts id as a string"}}
+     */
+    public function actionRootElements()
+    {
+        $connection = Network::getDbConnection();
+        $rootSql = 'SELECT * FROM root_ids()';
+        $this->data->rootElementsId = $connection->query($rootSql)->fetch(\PDO::FETCH_ASSOC);
+//        sleep(2);
+    }
+
+    /**
+     * @param string $netsId nets ids
+     * @param string $sortDirection
+     * return json object like:
+     * {data: [
+     * {__id, address, comment, net_children, host_children},
+     * ...
+     * ]}
+     */
+    public function actionNetElementsById($netsId = '', $sortDirection = 'asc')
+    {
+        /**
+         * for test only!!!
+         */
+//        $netsIds = ' 4039,2995 ,3274,3146,4093,4094,3334,3275,26127';
+
+        $netsId = array_map('trim', explode(',', $netsId));
+        $connection = Network::getDbConnection();
+        $netTable = Network::getTableName();
+        $address = 'address';
+        $idField = Network::PK;
+        $selectedFields = [Network::PK, $address, 'comment'];
+        $joinedNetsIds = 'SELECT '. array_pop($netsId) .' AS src_id';
+        foreach ($netsId as $id) {
+            $joinedNetsIds .= "\n" . 'UNION SELECT ' . $id;
+        }
+        $sql = 'SELECT ' . implode(', ', $selectedFields) . ', ' . 'net_children(' . $idField . ') as net_children, host_children(' . $idField . ') as host_children' . "\n" .
+            'FROM ' . $netTable . "\n" .
+            'JOIN (' . $joinedNetsIds .
+            ') as subtable ON subtable.src_id = ' . $idField .
+            ' ORDER BY ' . $address . ' ' . $sortDirection;
+
+        $this->data->networksData = $res = $connection->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+//        sleep(1);
+
+    }
+
+
+//    ======================================= NOT READY TO USE =============
+    public function actionRootElements2()
+    {
+        $connection = Network::getDbConnection();
+        $rootSql = 'SELECT * FROM root_ids_array()';
+        $this->data->ids = $connection->query($rootSql)->fetch(\PDO::FETCH_ASSOC);
+    }
+
+    public function getRootElements()
+    {
+        $connection = Network::getDbConnection();
+        $rootSql = 'SELECT * FROM root_ids_array()';
+        $res = $connection->query($rootSql)->fetch(\PDO::FETCH_ASSOC);
+        return $res;
+    }
+
+
+
+
+
+
+
+
+
+
     const NUMBER_OF_OBJECTS = 5000;
 
     protected  $idx = 0;
@@ -102,11 +177,6 @@ class ReduxTest extends Controller
 
     }
 
-    /**
-     * @param string $id
-     *
-     * return objects by id
-     */
     public function actionElementsById($id = '')
     {
         $ids = explode(',', $id);
@@ -128,6 +198,7 @@ class ReduxTest extends Controller
         $this->data = $res;
     }
 
+
     public function actionElementsById2($netIds = [], $hostIds = [], $sortDirection = 'asc', $delim = ',')
     {
         $connection = Network::getDbConnection();
@@ -135,7 +206,8 @@ class ReduxTest extends Controller
         $netIds = [
             4039,2995,3274,3146,4093,4094,3334,3275,26127
         ];
-        $netIds = $this->actionRootElements2();
+
+//        $rootIds = $this->getRootElements();
 
         $delim = '\'' . $delim . '\'';
 
@@ -204,30 +276,20 @@ class ReduxTest extends Controller
 //        $netIds = $this->actionRootElements2();
         $rootSql = 'SELECT * FROM root_ids_array()';
         $netIds = $connection->query($rootSql)->fetch(\PDO::FETCH_ASSOC);
-        $netIds2 = '{' . implode(',', $netIds['rootNetId']) .'}';
+//        $netIds2 = '{' . implode(',', $netIds['rootNetId']) .'}';
 
         $netSql = 'SELECT * FROM children_id(:ids)';
-        $params = [':ids' => $netIds['rootNetId']];
+        $params = [':ids' => $netIds['netId']];
         $this->data->res = $res = $connection->query($netSql, $params)->fetchAll(\PDO::FETCH_ASSOC);
     }
 
 
-    /**
-     * URL: voice.rs.ru/reduxTest/rootElements.json
-     */
-    public function actionRootElements()
-    {
-        $connection = Network::getDbConnection();
-        $rootSql = 'SELECT * FROM root_ids()';
-        $this->data->ids = $connection->query($rootSql)->fetch(\PDO::FETCH_ASSOC);
-    }
-
-    public function actionNetElementsById($nets)
-    {
-        $connection = Network::getDbConnection();
-        $sqlNetData = 'SELECT ' . Network::PK . ' AS id, address AS ip, comment AS title, net_children(__id) AS nets, host_children(__id) AS hosts FROM ' . Network::getTableName() . ' WHERE __id IN ('. $nets .')';
-        $this->data->netData = $connection->query($sqlNetData)->fetchAll(\PDO::FETCH_ASSOC);
-    }
+//    public function actionNetElementsById($nets)
+//    {
+//        $connection = Network::getDbConnection();
+//        $sqlNetData = 'SELECT ' . Network::PK . ' AS id, address AS ip, comment AS title, net_children(__id) AS nets, host_children(__id) AS hosts FROM ' . Network::getTableName() . ' WHERE __id IN ('. $nets .')';
+//        $this->data->netData = $connection->query($sqlNetData)->fetchAll(\PDO::FETCH_ASSOC);
+//    }
 
     public function actionHostElementsById($hosts)
     {
