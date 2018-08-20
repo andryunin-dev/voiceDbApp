@@ -24,7 +24,8 @@ class ReduxTest extends Controller
         $connection = Network::getDbConnection();
         $rootSql = 'SELECT * FROM root_ids()';
         $this->data->rootElementsId = $connection->query($rootSql)->fetch(\PDO::FETCH_ASSOC);
-//        sleep(2);
+//        $mock = ['netsId'=> '4039', 'hostsId' => '369387'];
+//        $this->data->rootElementsId = $mock;
     }
 
     /**
@@ -45,26 +46,51 @@ class ReduxTest extends Controller
 
         $netsId = array_map('trim', explode(',', $netsId));
         $connection = Network::getDbConnection();
-        $netTable = Network::getTableName();
+        $table = Network::getTableName();
         $address = 'address';
         $idField = Network::PK;
-        $selectedFields = [Network::PK, $address, 'comment'];
-        $joinedNetsIds = 'SELECT '. array_pop($netsId) .' AS src_id';
+        $selectedFields = [$idField, $address, 'comment'];
+        $joinSelect = 'SELECT '. array_pop($netsId) .' AS src_id';
         foreach ($netsId as $id) {
-            $joinedNetsIds .= "\n" . 'UNION SELECT ' . $id;
+            $joinSelect .= "\n" . 'UNION SELECT ' . $id;
         }
         $sql = 'SELECT ' . implode(', ', $selectedFields) . ', ' . 'net_children(' . $idField . ') as net_children, host_children(' . $idField . ') as host_children' . "\n" .
-            'FROM ' . $netTable . "\n" .
-            'JOIN (' . $joinedNetsIds .
+            'FROM ' . $table . "\n" .
+            'JOIN (' . $joinSelect .
             ') as subtable ON subtable.src_id = ' . $idField .
             ' ORDER BY ' . $address . ' ' . $sortDirection;
 
-        $this->data->networksData = $res = $connection->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
-//        sleep(1);
-
+        try {
+            $this->data->networksData = $res = $connection->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            $this->data->error = $e->getMessage();
+        }
     }
 
 
+    public function actionHostElementsById($hostsId='', $sortDirection = 'asc')
+    {
+        $hostsId = array_map('trim', explode(',', $hostsId));
+        $connection = DataPort::getDbConnection();
+        $table = 'equipment."dataPorts"';
+        $orderedField = '"ipAddress"';
+        $idField = DataPort::PK;
+        $selectedFields = [$idField, '"ipAddress"', 'comment', '"macAddress"'];
+        $joinSelect = 'SELECT '. array_pop($hostsId) .' AS src_id';
+        foreach ($hostsId as $id) {
+            $joinSelect .= "\n" . 'UNION SELECT ' . $id;
+        }
+        $sql = 'SELECT ' . implode(', ', $selectedFields) . "\n" .
+            'FROM ' . $table . "\n" .
+            'JOIN (' . $joinSelect .
+            ') as subtable ON subtable.src_id = ' . $idField .
+            ' ORDER BY ' . $orderedField . ' ' . $sortDirection;
+        try {
+            $this->data->hostsData = $res = $connection->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            $this->data->error = $e->getMessage();
+        }
+    }
 //    ======================================= NOT READY TO USE =============
     public function actionRootElements2()
     {
@@ -291,14 +317,14 @@ class ReduxTest extends Controller
 //        $this->data->netData = $connection->query($sqlNetData)->fetchAll(\PDO::FETCH_ASSOC);
 //    }
 
-    public function actionHostElementsById($hosts)
-    {
-        $connection = DataPort::getDbConnection();
-        $driver = DataPort::getDbDriver();
-
-        $sqlHostData = 'SELECT ' . DataPort::PK . ' AS id, "ipAddress" AS ip,  comment AS title FROM ' .  $driver->quoteName(DataPort::getTableName()) . ' WHERE __id IN ('. $hosts .')';
-        $this->data->hostData = $connection->query($sqlHostData)->fetchAll(\PDO::FETCH_ASSOC);
-    }
+//    public function actionHostElementsById($hosts)
+//    {
+//        $connection = DataPort::getDbConnection();
+//        $driver = DataPort::getDbDriver();
+//
+//        $sqlHostData = 'SELECT ' . DataPort::PK . ' AS id, "ipAddress" AS ip,  comment AS title FROM ' .  $driver->quoteName(DataPort::getTableName()) . ' WHERE __id IN ('. $hosts .')';
+//        $this->data->hostData = $connection->query($sqlHostData)->fetchAll(\PDO::FETCH_ASSOC);
+//    }
 
 
     public function actionTestApi()
