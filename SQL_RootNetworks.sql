@@ -80,7 +80,7 @@ SELECT
 DROP FUNCTION IF EXISTS root_ids();
 SELECT * FROM root_ids();
 
-CREATE OR REPLACE FUNCTION root_ids() RETURNS TABLE("netsId" text, "hostsId" text) AS $$
+CREATE OR REPLACE FUNCTION root_ids() RETURNS TABLE("netIds" text, "hostIds" text) AS $$
 BEGIN
   RETURN QUERY WITH all_roots AS (
       SELECT __id AS id, address AS net_address FROM network.networks AS net_table WHERE

@@ -23,13 +23,12 @@ class ReduxTest extends Controller
     {
         $connection = Network::getDbConnection();
         $rootSql = 'SELECT * FROM root_ids()';
-        $this->data->rootElementsId = $connection->query($rootSql)->fetch(\PDO::FETCH_ASSOC);
-//        $mock = ['netsId'=> '4039', 'hostsId' => '369387'];
-//        $this->data->rootElementsId = $mock;
+        $this->data->rootElementsIds = $connection->query($rootSql)->fetch(\PDO::FETCH_ASSOC);
+
     }
 
     /**
-     * @param string $netsId nets ids
+     * @param string $netsIds nets ids
      * @param string $sortDirection
      * return json object like:
      * {data: [
@@ -37,21 +36,21 @@ class ReduxTest extends Controller
      * ...
      * ]}
      */
-    public function actionNetElementsById($netsId = '', $sortDirection = 'asc')
+    public function actionNetElementsByIds($netsIds = '', $sortDirection = 'asc')
     {
         /**
          * for test only!!!
          */
 //        $netsIds = ' 4039,2995 ,3274,3146,4093,4094,3334,3275,26127';
 
-        $netsId = array_map('trim', explode(',', $netsId));
+        $netsIds = array_map('trim', explode(',', $netsIds));
         $connection = Network::getDbConnection();
         $table = Network::getTableName();
         $address = 'address';
         $idField = Network::PK;
         $selectedFields = [$idField, $address, 'comment'];
-        $joinSelect = 'SELECT '. array_pop($netsId) .' AS src_id';
-        foreach ($netsId as $id) {
+        $joinSelect = 'SELECT '. array_pop($netsIds) .' AS src_id';
+        foreach ($netsIds as $id) {
             $joinSelect .= "\n" . 'UNION SELECT ' . $id;
         }
         $sql = 'SELECT ' . implode(', ', $selectedFields) . ', ' . 'net_children(' . $idField . ') as net_children, host_children(' . $idField . ') as host_children' . "\n" .
@@ -68,16 +67,16 @@ class ReduxTest extends Controller
     }
 
 
-    public function actionHostElementsById($hostsId='', $sortDirection = 'asc')
+    public function actionHostElementsByIds($hostsIds='', $sortDirection = 'asc')
     {
-        $hostsId = array_map('trim', explode(',', $hostsId));
+        $hostsIds = array_map('trim', explode(',', $hostsIds));
         $connection = DataPort::getDbConnection();
         $table = 'equipment."dataPorts"';
         $orderedField = '"ipAddress"';
         $idField = DataPort::PK;
         $selectedFields = [$idField, '"ipAddress"', 'comment', '"macAddress"'];
-        $joinSelect = 'SELECT '. array_pop($hostsId) .' AS src_id';
-        foreach ($hostsId as $id) {
+        $joinSelect = 'SELECT '. array_pop($hostsIds) .' AS src_id';
+        foreach ($hostsIds as $id) {
             $joinSelect .= "\n" . 'UNION SELECT ' . $id;
         }
         $sql = 'SELECT ' . implode(', ', $selectedFields) . "\n" .
