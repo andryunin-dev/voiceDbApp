@@ -72,7 +72,7 @@ class Networks extends Controller
         $table = 'equipment."dataPorts"';
         $orderedField = '"ipAddress"';
         $idField = DataPort::PK;
-        $selectedFields = [$idField, '"ipAddress"', 'comment', '"macAddress"'];
+        $selectedFields = [$idField, '"ipAddress"', 'details->>\'description\' as comment', '"macAddress"'];
         $joinSelect = 'SELECT '. array_pop($hostsIds) .' AS src_id';
         foreach ($hostsIds as $id) {
             $joinSelect .= "\n" . 'UNION SELECT ' . $id;
