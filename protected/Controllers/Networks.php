@@ -5,6 +5,7 @@ namespace App\Controllers;
 
 use App\Models\DataPort;
 use App\Models\Network;
+use App\ViewModels\NetworksView;
 use T4\Mvc\Controller;
 
 class Networks extends Controller
@@ -34,28 +35,26 @@ class Networks extends Controller
      * ...
      * ]}
      */
-    public function actionNetElementsByIds($netsIds = '', $sortDirection = 'asc')
+    public function actionNetElementsByIds($netsIds = '')
     {
         /**
          * for test only!!!
          */
-//        $netsIds = ' 4039,2995 ,3274,3146,4093,4094,3334,3275,26127';
+        $netsIds = ' 4039,2995 ,3274,3146,4093,4094,3334,3275,26127';
 
         $netsIds = array_map('trim', explode(',', $netsIds));
-        $connection = Network::getDbConnection();
-        $table = Network::getTableName();
-        $address = 'address';
-        $idField = Network::PK;
-        $selectedFields = [$idField, $address, 'comment'];
+        $connection = NetworksView::getDbConnection();
+        $table = NetworksView::getTableName();
+        $idField = '"' . NetworksView::PK . '"';
+        $selectedFields = [$idField, 'address', 'netmask', 'comment', '"vrfId"', '"vrfName"', '"vrfRd"', 'network_locations(' . $idField . ') as "netLocations"'];
         $joinSelect = 'SELECT '. array_pop($netsIds) .' AS src_id';
         foreach ($netsIds as $id) {
             $joinSelect .= "\n" . 'UNION SELECT ' . $id;
         }
-        $sql = 'SELECT ' . implode(', ', $selectedFields) . ', ' . 'net_children(' . $idField . ') as net_children, host_children(' . $idField . ') as host_children' . "\n" .
+        $sql = 'SELECT ' . implode(', ', $selectedFields) . "\n" .
             'FROM ' . $table . "\n" .
-            'JOIN (' . $joinSelect .
-            ') as subtable ON subtable.src_id = ' . $idField .
-            ' ORDER BY ' . $address . ' ' . $sortDirection;
+                'JOIN (' . $joinSelect .
+                ') as subtable ON subtable.src_id = ' . $idField;
 
         try {
             $this->data->networksData = $res = $connection->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
@@ -65,7 +64,7 @@ class Networks extends Controller
     }
 
 
-    public function actionHostElementsByIds($hostsIds='', $sortDirection = 'asc')
+    public function actionHostElementsByIds($hostsIds='')
     {
         $hostsIds = array_map('trim', explode(',', $hostsIds));
         $connection = DataPort::getDbConnection();
@@ -81,7 +80,7 @@ class Networks extends Controller
             'FROM ' . $table . "\n" .
             'JOIN (' . $joinSelect .
             ') as subtable ON subtable.src_id = ' . $idField .
-            ' ORDER BY ' . $orderedField . ' ' . $sortDirection;
+            ' ORDER BY ' . $orderedField;
         try {
             $this->data->hostsData = $res = $connection->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\Exception $e) {
