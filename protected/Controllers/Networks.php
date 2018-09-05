@@ -40,13 +40,24 @@ class Networks extends Controller
         /**
          * for test only!!!
          */
-        $netsIds = ' 4039,2995 ,3274,3146,4093,4094,3334,3275,26127';
+//        $netsIds = ' 4039,2995 ,3274,3146,4093,4094,3334,3275,26127';
 
         $netsIds = array_map('trim', explode(',', $netsIds));
         $connection = NetworksView::getDbConnection();
         $table = NetworksView::getTableName();
         $idField = '"' . NetworksView::PK . '"';
-        $selectedFields = [$idField, 'address', 'netmask', 'comment', '"vrfId"', '"vrfName"', '"vrfRd"', 'network_locations(' . $idField . ') as "netLocations"'];
+        $selectedFields = [
+            $idField,
+            'address',
+            'netmask',
+            'comment',
+            '"vrfId"',
+            '"vrfName"',
+            '"vrfRd"',
+            'network_locations(' . $idField . ') as "netLocations"',
+            'net_children(' . $idField . ')',
+            'host_children(' . $idField . ')',
+        ];
         $joinSelect = 'SELECT '. array_pop($netsIds) .' AS src_id';
         foreach ($netsIds as $id) {
             $joinSelect .= "\n" . 'UNION SELECT ' . $id;
@@ -71,7 +82,12 @@ class Networks extends Controller
         $table = 'equipment."dataPorts"';
         $orderedField = '"ipAddress"';
         $idField = DataPort::PK;
-        $selectedFields = [$idField, '"ipAddress"', 'details->>\'description\' as comment', '"macAddress"'];
+        $selectedFields = [
+            $idField,
+            '"ipAddress"',
+            'details->>\'description\' as comment',
+            '"macAddress"'
+        ];
         $joinSelect = 'SELECT '. array_pop($hostsIds) .' AS src_id';
         foreach ($hostsIds as $id) {
             $joinSelect .= "\n" . 'UNION SELECT ' . $id;
