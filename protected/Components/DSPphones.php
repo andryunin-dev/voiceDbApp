@@ -203,7 +203,18 @@ class DSPphones extends Std
 
             // PlatformItem
             $platformItem = ($appliance->isNew()) ? new PlatformItem() : $appliance->platform;
-            $serialNumber = (!empty($data->serialNumber)) ? $data->serialNumber : $data->name;
+            // для телефонов у которых при опросе недоступен серийный номер, сохраняем вместо него альтернативу
+            $alternateSerialNumber = $data->name;
+            switch ($model) {
+                case 'CP-7936':
+                    $alternateSerialNumber = (!empty($data->macAddress)) ? $data->macAddress : substr($data->name, -12);
+                    break;
+                case 'CP-7937':
+                    $alternateSerialNumber = (!empty($data->macAddress)) ? $data->macAddress : substr($data->name, -12);
+                    break;
+            }
+            $serialNumber = (!empty($data->serialNumber)) ? $data->serialNumber : $alternateSerialNumber;
+
             if (
                 $appliance->isNew() ||
                 $serialNumber != $appliance->platform->serialNumber ||
