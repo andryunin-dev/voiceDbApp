@@ -213,8 +213,7 @@ class Appliance extends Model
             $phoneInfo->delete();
         }
         if (!is_null($this->appliance1C)) {
-            $this->appliance1C->voiceAppliance = null;
-            $this->appliance1C->save();
+            $this->appliance1C->delete();
         }
         $result = parent::delete();
         $this->software->delete();
