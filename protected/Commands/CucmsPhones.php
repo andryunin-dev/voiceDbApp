@@ -6,6 +6,7 @@ use App\Components\DSPphones;
 use App\Components\RLogger;
 use App\Models\Appliance;
 use App\Models\ApplianceType;
+use App\Models\Office;
 use App\Models\Phone;
 use App\Models\PhoneInfo;
 use App\ViewModels\DevModulePortGeo;
@@ -198,45 +199,73 @@ class CucmsPhones extends Command
                 if (1 == preg_match('~SEP.{12}~', $item, $phoneName)) {
                     $phoneInfo = PhoneInfo::findByColumn('name', $phoneName[0]);
                     if (false !== $phoneInfo) {
-                        // define the cdpNeighborPort
-                        preg_match('~SEP.{12}\s+\S+\s+\S+~', $item, $cdpNeighborPort);
-                        $cdpNeighborPort = trim(preg_replace('~SEP.{12}~', '', $cdpNeighborPort[0]));
-                        preg_match('~\S+~', $cdpNeighborPort, $portType);
-                        switch ($portType[0]) {
-                            case self::FASTETHERNET_SHORT_NAME:
-                                $cdpNeighborPort = preg_replace('~\S+\s+~', self::FASTETHERNET_FULL_NAME, $cdpNeighborPort);
-                                break;
-                            case self::GIGABITETHERNET_SHORT_NAME:
-                                $cdpNeighborPort = preg_replace('~\S+\s+~', self::GIGABITETHERNET_FULL_NAME, $cdpNeighborPort);
-                                break;
-                        }
-                        // define the cdpNeighborDeviceId
-                        $cdpNeighborDeviceId = $switch->hostname;
-                        // define the cdpNeighborIP
-                        $cdpNeighborIP = $switch->managementIp;
-                        if ($cdpNeighborDeviceId != $phoneInfo->cdpNeighborDeviceId || $cdpNeighborIP != $phoneInfo->cdpNeighborIP || $cdpNeighborPort != $phoneInfo->cdpNeighborPort) {
-                            try {
+                        try {
+
+                            // Phone Location check
+                            $phone = $phoneInfo->phone;
+                            $switchData = DevModulePortGeo::findByColumn('managementIp', $switch->managementIp);
+                            if ($phone->location->getPk() != $switchData->office_id) {
+                                $phone->fill(['location' => Office::findByPK($switchData->office_id)]);
+                                if (is_null($phone->details) || !($phone->details instanceof Std)) {
+                                    $phone->details = new Std();
+                                }
+                                $phone->details->switchLocationLastUpdate = (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P');
+                            }
+                            $phone->save();
+
+                            // define the cdpNeighborPort
+                            preg_match('~SEP.{12}\s+\S+\s+\S+~', $item, $cdpNeighborPort);
+                            $cdpNeighborPort = trim(preg_replace('~SEP.{12}~', '', $cdpNeighborPort[0]));
+                            preg_match('~\S+~', $cdpNeighborPort, $portType);
+                            switch ($portType[0]) {
+                                case self::FASTETHERNET_SHORT_NAME:
+                                    $cdpNeighborPort = preg_replace('~\S+\s+~', self::FASTETHERNET_FULL_NAME, $cdpNeighborPort);
+                                    break;
+                                case self::GIGABITETHERNET_SHORT_NAME:
+                                    $cdpNeighborPort = preg_replace('~\S+\s+~', self::GIGABITETHERNET_FULL_NAME, $cdpNeighborPort);
+                                    break;
+                            }
+                            // define the cdpNeighborDeviceId
+                            $cdpNeighborDeviceId = $switch->hostname;
+                            // define the cdpNeighborIP
+                            $cdpNeighborIP = $switch->managementIp;
+
+                            // cdpNeighborDeviceId check
+                            if (!is_null($cdpNeighborDeviceId) && $cdpNeighborDeviceId != $phoneInfo->cdpNeighborDeviceId) {
                                 $phoneInfo->fill([
                                     'cdpNeighborDeviceId' => $cdpNeighborDeviceId,
-                                    'cdpNeighborIP' => $cdpNeighborIP,
-                                    'cdpNeighborPort' => $cdpNeighborPort,
                                 ]);
-                                $phoneInfo->save();
-                            } catch (MultiException $errs) {
-                                foreach ($errs as $e) {
-                                    $logger->error('UPDATE NEIGHBORS: [message]=' . ($e->getMessage() ?? '""'));
-                                }
-                            } catch (\Throwable $e) {
+                            }
+
+                            // cdpNeighborIP check
+                            if (!is_null($cdpNeighborIP) && $cdpNeighborIP != $phoneInfo->cdpNeighborIP) {
+                                $phoneInfo->fill([
+                                    'cdpNeighborDeviceId' => $cdpNeighborIP,
+                                ]);
+                            }
+
+                            // cdpNeighborPort check
+                            if (!is_null($cdpNeighborPort) && $cdpNeighborPort != $phoneInfo->cdpNeighborPort) {
+                                $phoneInfo->fill([
+                                    'cdpNeighborDeviceId' => $cdpNeighborPort,
+                                ]);
+                            }
+
+                            $phoneInfo->save();
+
+                            // Если порт подключения телефона не 'Port 1', сообщить об ошибке
+                            preg_match('~PORT\s+\d+~', $item, $port);
+                            preg_match('~\d+~', $port[0], $phonePort);
+                            if (1 != (int)$phonePort[0]) {
+                                $logger->error('UPDATE NEIGHBORS: [message]=Phone is connected by Port ' . (int)$phonePort[0] . '; [model]=' . $phoneInfo->model . '; [name]=' . $phoneInfo->name . '; [ip]=' . $phoneInfo->phone->dataPorts->first()->ipAddress . '; [number]=' . $phoneInfo->prefix . '-' . $phoneInfo->phoneDN . '; [office]=' . $phoneInfo->phone->location->title . '; [city]=' . $phoneInfo->phone->location->address->city->title . '; [address]=' . $phoneInfo->phone->location->address->address);
+                            }
+
+                        } catch (MultiException $errs) {
+                            foreach ($errs as $e) {
                                 $logger->error('UPDATE NEIGHBORS: [message]=' . ($e->getMessage() ?? '""'));
                             }
-                            $this->writeLn($phoneInfo->name . ': ' . $cdpNeighborDeviceId . ' - ' . $cdpNeighborIP . ' - ' . $cdpNeighborPort);
-                        }
-
-                        // Если порт подключения телефона не 'Port 1', сообщить об ошибке
-                        preg_match('~PORT\s+\d+~', $item, $port);
-                        preg_match('~\d+~', $port[0], $phonePort);
-                        if (1 != (int)$phonePort[0]) {
-                            $logger->error('UPDATE NEIGHBORS: [message]=Phone is connected by Port ' . (int)$phonePort[0] . '; [model]=' . $phoneInfo->model . '; [name]=' . $phoneInfo->name . '; [ip]=' . $phoneInfo->phone->dataPorts->first()->ipAddress . '; [number]=' . $phoneInfo->prefix . '-' . $phoneInfo->phoneDN . '; [office]=' . $phoneInfo->phone->location->title . '; [city]=' . $phoneInfo->phone->location->address->city->title . '; [address]=' . $phoneInfo->phone->location->address->address);
+                        } catch (\Throwable $e) {
+                            $logger->error('UPDATE NEIGHBORS: [message]=' . ($e->getMessage() ?? '""'));
                         }
                     }
                 }
@@ -247,6 +276,7 @@ class CucmsPhones extends Command
 
     /**
      * @param string $name
+     * @throws \T4\Core\Exception
      */
     public function actionGetPhoneByName(string $name)
     {
