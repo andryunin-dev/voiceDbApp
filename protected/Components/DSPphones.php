@@ -7,6 +7,7 @@ use App\Models\ApplianceType;
 use App\Models\Cluster;
 use App\Models\DataPort;
 use App\Models\DPortType;
+use App\Models\Office;
 use App\Models\PhoneInfo;
 use App\Models\Platform;
 use App\Models\PlatformItem;
@@ -31,6 +32,11 @@ class DSPphones extends Std
     const SLEEP_TIME = 500; // микросекунды
     const ITERATIONS = 6000000; // Колличество попыток получить доступ к db.lock файлу
     const DB_LOCK_FILE = ROOT_PATH_PROTECTED . '/db.lock';
+    const UNKNOWN_LOCATION = 'Неизвестный';
+    const VIRTUAL_APP_LOCATION = 'Виртуальные устройства';
+    const VIRTUAL_APP_COMMUNICATOR = 'Communicator';
+    const VIRTUAL_APP_VIP30 = '30 VIP';
+    const VIRTUAL_APP_UNIFIED_CLIENT = 'Unified Client Services Framework';
 
     private $dbLockFile;
 
@@ -111,21 +117,23 @@ class DSPphones extends Std
                 // SoftwareVersion
                 $softwareVersion = (1 == preg_match('~6921~', $data->model)) ? $data->appLoadID : $data->versionID;
 
-                // Location for Ip Phone определяем по location defaultRouter телефона
-                $defaultRouterDataPort = (!empty($data->defaultRouter)) ? DataPort::findByIpVrf($data->defaultRouter, Vrf::instanceGlobalVrf()) : false;
-                if (false !== $defaultRouterDataPort) {
-                    $location = $defaultRouterDataPort->appliance->location;
-                    $unknownLocation = false;
-                } else {
-                    // Если defaultRouter телефона не определен, то офис определяем по location publisher,
-                    // в лог записываем, что офис телефона не верный
-                    $publisherIpDataPort = DataPort::findByIpVrf($data->publisherIp, Vrf::instanceGlobalVrf());
-                    if (false !== $publisherIpDataPort) {
-                        $location = $publisherIpDataPort->appliance->location;
-                        $unknownLocation = true;
-                        $logger->warning('PHONE CREATE: [message]=The office is not defined. Default router (' . $data->defaultRouter . ') is not defined; [name]=' . $data->name . '; [ip]=' . $data->ipAddress);
+                // Location for Ip Phone определяем по location defaultRouter телефона, если нет то оставляем предыдущие данные
+                $unknownLocation = false; // todo - delete ???
+                if (is_null($appliance->details) || !($appliance->details instanceof Std)) {
+                    $appliance->details = new Std();
+                }
+                if ($appliance->isNew()) {
+                    if (!empty($data->defaultRouter)) {
+                        $location = DataPort::findByIpVrf($data->defaultRouter, Vrf::instanceGlobalVrf())->appliance->location;
+                        $appliance->details->defaultRouterLocationLastUpdate = (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P');
                     } else {
-                        throw new Exception('PHONE CREATE: [message]=The office is not defined; [name]=' . $data->name . '; [ip]=' . $data->ipAddress);
+                        $location = Office::findByColumn('title', self::UNKNOWN_LOCATION);
+                    }
+                } elseif (!empty($data->defaultRouter)) {
+                    $defaultRouterLocation = DataPort::findByIpVrf($data->defaultRouter, Vrf::instanceGlobalVrf())->appliance->location;
+                    if ($appliance->location->getPk() != $defaultRouterLocation->getPk()) {
+                        $location = $defaultRouterLocation;
+                        $appliance->details->defaultRouterLocationLastUpdate = (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P');
                     }
                 }
             }
@@ -191,7 +199,6 @@ class DSPphones extends Std
                         $model = trim(preg_replace('~  +~', ' ', $model));
                     }
             }
-
             $platform = Platform::findByVendorTitle($vendor, $model);
             if (false === $platform) {
                 $platform = (new Platform())->fill([
@@ -203,29 +210,22 @@ class DSPphones extends Std
 
             // PlatformItem
             $platformItem = ($appliance->isNew()) ? new PlatformItem() : $appliance->platform;
-            // для телефонов у которых при опросе недоступен серийный номер, сохраняем вместо него альтернативу
-            $alternateSerialNumber = $data->name;
-            switch ($model) {
-                case 'CP-7936':
-                    $alternateSerialNumber = (!empty($data->macAddress)) ? $data->macAddress : substr($data->name, -12);
-                    break;
-                case 'CP-7937':
-                    $alternateSerialNumber = (!empty($data->macAddress)) ? $data->macAddress : substr($data->name, -12);
-                    break;
-            }
-            $serialNumber = (!empty($data->serialNumber)) ? $data->serialNumber : $alternateSerialNumber;
-
-            if (
-                $appliance->isNew() ||
-                $serialNumber != $appliance->platform->serialNumber ||
-                $model != $appliance->platform->platform->title ||
-                $vendor->title != $appliance->vendor->title
-            ) {
+            if ($appliance->isNew()) {
+                // при создании телефона присваиваем серийный номер, тот который есть (null|serialNumber)
                 $platformItem->fill([
                     'platform' => $platform,
-                    'serialNumber' => $serialNumber,
+                    'serialNumber' => $data->serialNumber,
                 ]);
                 $platformItem->save();
+            } elseif (!empty($data->serialNumber)) {
+                // для телефонов у которых при опросе недоступен серийный номер или данные не изменились, данные не изменять
+                if ($data->serialNumber != $appliance->platform->serialNumber || $model != $appliance->platform->platform->title || $vendor->title != $appliance->vendor->title) {
+                    $platformItem->fill([
+                        'platform' => $platform,
+                        'serialNumber' => $data->serialNumber,
+                    ]);
+                    $platformItem->save();
+                }
             }
 
             // Software
@@ -262,6 +262,11 @@ class DSPphones extends Std
                 $applianceType->save();
             }
 
+            // Location for Virtual Appliance
+            if ($model == self::VIRTUAL_APP_VIP30 || $model == self::VIRTUAL_APP_COMMUNICATOR || $model == self::VIRTUAL_APP_UNIFIED_CLIENT) {
+                $location = Office::findByColumn('title', self::VIRTUAL_APP_LOCATION);
+            }
+
             // Appliance
             $appliance->fill([
                 'vendor' => $vendor,
@@ -277,10 +282,9 @@ class DSPphones extends Std
                 ]);
             }
             if (is_null($appliance->details) || !($appliance->details instanceof Std)) {
-                $appliance->details = new Std(['hostname' => $data->name]);
-            } else {
-                $appliance->details->hostname = $data->name;
+                $appliance->details = new Std();
             }
+            $appliance->details->hostname = $data->name;
             $appliance->save();
 
             // Appliance's Management Data Port
@@ -465,6 +469,7 @@ class DSPphones extends Std
      */
     private function isVGC(string $name)
     {
+        //todo - preg_match replace on mb_.....
         return (1 == preg_match('~^vgc|an~', mb_strtolower($name))) ? true : false;
     }
 
