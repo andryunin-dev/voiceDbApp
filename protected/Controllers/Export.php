@@ -141,13 +141,9 @@ class Export extends Controller
             }
 
             // Get all Appliances except Phones
-            $tableColumns = ['appliance_id', 'region', 'city', 'office', 'platformVendor', 'platformSerial', 'appDetails', 'appType', 'platformTitle', 'softwareTitle', 'softwareVersion', 'appLastUpdate', 'appComment', 'appInUse', 'moduleInfo', 'managementIp', 'appAge'];
-            $query = (new Query())
-                ->select($tableColumns)
-                ->from(DevModulePortGeo::getTableName())
-                ->where('"appType" != :phone')
-                ->params([':phone' => self::PHONE]);
-            $appliances = DevModulePortGeo::findAllByQuery($query);
+            $sql = 'SELECT (SELECT geo."lotus_regCenter" FROM view.dev_geo AS geo WHERE geo.appliance_id = app.appliance_id), app.appliance_id, app.region, app.city, app.office, app."lotusId", app."platformVendor", app."platformSerial", app."appDetails", app."appType", app."platformTitle", app."softwareTitle", app."softwareVersion", app."appLastUpdate", app."appComment", app."appInUse", app."moduleInfo", app."managementIp", app."appAge" FROM view.dev_module_port_geo AS app WHERE app."appType" = :phone';
+            $params = [':phone' => self::PHONE];
+            $appliances = DevModulePortGeo::findAllByQuery(new Query($sql), $params);
 
             // Get all Phones
             $tableColumns = ['appliance_id', 'region', 'city', 'office', 'publisherIp', 'platformVendor', 'platformTitle', 'name', 'managementIp', 'partition', 'css', 'prefix', 'phoneDN', 'status', 'platformSerial', 'softwareTitle', 'softwareVersion', 'appLastUpdate', 'appComment', 'phoneDescription', 'devicePool', 'alertingName', 'timezone', 'dhcpEnabled', 'dhcpServer', 'domainName', 'tftpServer1', 'tftpServer2', 'defaultRouter', 'dnsServer1', 'dnsServer2', 'callManager1', 'callManager2', 'callManager3', 'callManager4', 'vlanId', 'userLocale', 'cdpNeighborDeviceId', 'cdpNeighborIP', 'cdpNeighborPort', 'appDetails', 'clusterTitle', 'appType', 'unknownLocation', 'appInUse', 'appAge'];
@@ -180,8 +176,8 @@ class Export extends Controller
 // ------ Worksheet - 'Appliances' ----------------------
 
             // Header sheet 1
-            $headerSheet1 = ['№п/п', 'Регион', 'Город', 'Офис', 'Hostname', 'Management Ip', 'Type', 'Device', 'Device ser', 'Inv. Number', 'Mol', 'Mol\'s TabNumber', 'Software', 'Software ver.', 'Appl. last update', 'Comment'];
-            $columnsSheet1 = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P'];
+            $headerSheet1 = ['№п/п', 'Рег. центр', 'Регион', 'Город', 'Офис', 'LotusId', 'Hostname', 'Management Ip', 'Type', 'Device', 'Device ser', 'Inv. Number', 'Mol', 'Mol\'s TabNumber', 'Software', 'Software ver.', 'Appl. last update', 'Comment'];
+            $columnsSheet1 = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R'];
             $rowSpansSheet1 = count($columnsSheet1);
 
             $currentRowSheet1 = 1;
@@ -231,36 +227,40 @@ class Export extends Controller
                 $sheet1_rows .= '<row r="' . $currentRowSheet1 . '" spans="1:' . $rowSpansSheet1 . '" x14ac:dyDescent="0.25">';
 
                 $sheet1_rows .= '<c r="A' . $currentRowSheet1 . '" s="' . $styleType . '"><v>' . ($currentRowSheet1 - 1) . '</v></c>';
-                $sharedStringsSI .= '<si><t>' . $appliance->region . '</t></si>';
+                $sharedStringsSI .= '<si><t>' . $appliance->lotus_regCenter . '</t></si>';
                 $sheet1_rows .= '<c r="B' . $currentRowSheet1 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
-                $sharedStringsSI .= '<si><t>' . $appliance->city . '</t></si>';
+                $sharedStringsSI .= '<si><t>' . $appliance->region . '</t></si>';
                 $sheet1_rows .= '<c r="C' . $currentRowSheet1 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
-                $sharedStringsSI .= '<si><t>' . $appliance->office . '</t></si>';
+                $sharedStringsSI .= '<si><t>' . $appliance->city . '</t></si>';
                 $sheet1_rows .= '<c r="D' . $currentRowSheet1 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
-                $sharedStringsSI .= '<si><t>' . $hostname . '</t></si>';
+                $sharedStringsSI .= '<si><t>' . $appliance->office . '</t></si>';
                 $sheet1_rows .= '<c r="E' . $currentRowSheet1 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
-                $sharedStringsSI .= '<si><t>' . $appliance->managementIp . '</t></si>';
+                $sharedStringsSI .= '<si><t>' . $appliance->lotusId . '</t></si>';
                 $sheet1_rows .= '<c r="F' . $currentRowSheet1 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
-                $sharedStringsSI .= '<si><t>' . $appliance->appType . '</t></si>';
+                $sharedStringsSI .= '<si><t>' . $hostname . '</t></si>';
                 $sheet1_rows .= '<c r="G' . $currentRowSheet1 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
-                $sharedStringsSI .= '<si><t>' . $appliance->platformVendor . ' ' . $appliance->platformTitle . '</t></si>';
+                $sharedStringsSI .= '<si><t>' . $appliance->managementIp . '</t></si>';
                 $sheet1_rows .= '<c r="H' . $currentRowSheet1 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
-                $sharedStringsSI .= '<si><t>' . $appliance->platformSerial . '</t></si>';
+                $sharedStringsSI .= '<si><t>' . $appliance->appType . '</t></si>';
                 $sheet1_rows .= '<c r="I' . $currentRowSheet1 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
-                $sharedStringsSI .= '<si><t>' . $inventoryNumber . '</t></si>';
+                $sharedStringsSI .= '<si><t>' . $appliance->platformVendor . ' ' . $appliance->platformTitle . '</t></si>';
                 $sheet1_rows .= '<c r="J' . $currentRowSheet1 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
-                $sharedStringsSI .= '<si><t>' . $molFio . '</t></si>';
+                $sharedStringsSI .= '<si><t>' . $appliance->platformSerial . '</t></si>';
                 $sheet1_rows .= '<c r="K' . $currentRowSheet1 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
-                $sharedStringsSI .= '<si><t>' . $molTabNumber . '</t></si>';
+                $sharedStringsSI .= '<si><t>' . $inventoryNumber . '</t></si>';
                 $sheet1_rows .= '<c r="L' . $currentRowSheet1 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
-                $sharedStringsSI .= '<si><t>' . $appliance->softwareTitle . '</t></si>';
+                $sharedStringsSI .= '<si><t>' . $molFio . '</t></si>';
                 $sheet1_rows .= '<c r="M' . $currentRowSheet1 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
-                $sharedStringsSI .= '<si><t>' . $appliance->softwareVersion . '</t></si>';
+                $sharedStringsSI .= '<si><t>' . $molTabNumber . '</t></si>';
                 $sheet1_rows .= '<c r="N' . $currentRowSheet1 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
-                $sharedStringsSI .= '<si><t>' . $appliance->appLastUpdate . '</t></si>';
+                $sharedStringsSI .= '<si><t>' . $appliance->softwareTitle . '</t></si>';
                 $sheet1_rows .= '<c r="O' . $currentRowSheet1 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
-                $sharedStringsSI .= '<si><t>' . $appliance->appComment . '</t></si>';
+                $sharedStringsSI .= '<si><t>' . $appliance->softwareVersion . '</t></si>';
                 $sheet1_rows .= '<c r="P' . $currentRowSheet1 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
+                $sharedStringsSI .= '<si><t>' . $appliance->appLastUpdate . '</t></si>';
+                $sheet1_rows .= '<c r="Q' . $currentRowSheet1 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
+                $sharedStringsSI .= '<si><t>' . $appliance->appComment . '</t></si>';
+                $sheet1_rows .= '<c r="R' . $currentRowSheet1 . '" s="' . $styleType . '" t="s"><v>' . $charPosition++ . '</v></c>';
 
                 $sheet1_rows .= '</row>';
                 $currentRowSheet1++;
