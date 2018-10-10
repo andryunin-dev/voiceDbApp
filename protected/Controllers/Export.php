@@ -141,7 +141,7 @@ class Export extends Controller
             }
 
             // Get all Appliances except Phones
-            $sql = 'SELECT (SELECT geo."lotus_regCenter" FROM view.dev_geo AS geo WHERE geo.appliance_id = app.appliance_id), app.appliance_id, app.region, app.city, app.office, app."lotusId", app."platformVendor", app."platformSerial", app."appDetails", app."appType", app."platformTitle", app."softwareTitle", app."softwareVersion", app."appLastUpdate", app."appComment", app."appInUse", app."moduleInfo", app."managementIp", app."appAge" FROM view.dev_module_port_geo AS app WHERE app."appType" = :phone';
+            $sql = 'SELECT (SELECT geo."lotus_regCenter" FROM view.dev_geo AS geo WHERE geo.appliance_id = app.appliance_id), app.appliance_id, app.region, app.city, app.office, app."lotusId", app."platformVendor", app."platformSerial", app."appDetails", app."appType", app."platformTitle", app."softwareTitle", app."softwareVersion", app."appLastUpdate", app."appComment", app."appInUse", app."moduleInfo", app."managementIp", app."appAge" FROM view.dev_module_port_geo AS app WHERE app."appType" != :phone';
             $params = [':phone' => self::PHONE];
             $appliances = DevModulePortGeo::findAllByQuery(new Query($sql), $params);
 
@@ -580,7 +580,7 @@ class Export extends Controller
                 $sharedStringsSI .= '<si><t>' . $molTabNumber . '</t></si>';
                 $sheet3_rows .= '<c r="W' . $currentRowSheet3 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
                 $sharedStringsSI .= '<si><t>' . $phone->softwareTitle . '</t></si>';
-                $sheet3_rows .= '<c r="V' . $currentRowSheet3 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
+                $sheet3_rows .= '<c r="X' . $currentRowSheet3 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
                 $sharedStringsSI .= '<si><t>' . $phone->softwareVersion . '</t></si>';
                 $sheet3_rows .= '<c r="Y' . $currentRowSheet3 . '" s="' . $styleTypeAppliance . '" t="s"><v>' . $charPosition++ . '</v></c>';
                 $sharedStringsSI .= '<si><t>' . $phone->appLastUpdate . '</t></si>';
