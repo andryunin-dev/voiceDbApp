@@ -519,6 +519,10 @@ class Phone extends Appliance
                         $rows = $dom->find('table tr');
                         $item = 2;
                         break;
+                    case '7960':
+                        $rows = $dom->find('table tr');
+                        $item = 2;
+                        break;
                     default:
                         $rows = [];
                 }
@@ -612,6 +616,10 @@ class Phone extends Appliance
                         $item = 1;
                         break;
                     case '7940':
+                        $rows = $dom->find('table tr');
+                        $item = 2;
+                        break;
+                    case '7960':
                         $rows = $dom->find('table tr');
                         $item = 2;
                         break;
@@ -723,6 +731,10 @@ class Phone extends Appliance
                         $item = 2;
                         break;
                     case '7940':
+                        $rows = $dom->find('table tr');
+                        $item = 2;
+                        break;
+                    case '7960':
                         $rows = $dom->find('table tr');
                         $item = 2;
                         break;
