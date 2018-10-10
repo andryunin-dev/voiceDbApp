@@ -9,6 +9,29 @@ use T4\Mvc\Controller;
 
 class Test extends Controller
 {
+    public function actionJson()
+    {
+
+        $jstring = '
+        {  
+            "Person":[  
+               "name",
+               "age"
+            ],
+            "Device":{  
+               "Platform":[  
+                  "sn",
+                  "inv"
+               ],
+               "Software":[  
+                  "ver"
+               ]
+        }
+}
+        ';
+        echo $jstring;
+        var_dump(json_decode($jstring));die;
+    }
     public function actionGetPhone()
     {
 
