@@ -122,20 +122,14 @@ class DSPphones extends Std
                 if (is_null($appliance->details) || !($appliance->details instanceof Std)) {
                     $appliance->details = new Std();
                 }
-                if ($appliance->isNew()) {
-                    if (!empty($data->defaultRouter)) {
-                        $location = DataPort::findByIpVrf($data->defaultRouter, Vrf::instanceGlobalVrf())->appliance->location;
-                        $appliance->details->defaultRouterLocationLastUpdate = (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P');
-                    } else {
-                        $location = Office::findByColumn('title', self::UNKNOWN_LOCATION);
-                    }
-                } elseif (!empty($data->defaultRouter)) {
-                    $defaultRouterLocation = DataPort::findByIpVrf($data->defaultRouter, Vrf::instanceGlobalVrf())->appliance->location;
-                    if ($appliance->location->getPk() != $defaultRouterLocation->getPk()) {
-                        $location = $defaultRouterLocation;
-                        $appliance->details->defaultRouterLocationLastUpdate = (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P');
-                    }
+                $location = $appliance->location;
+                if (!empty($data->defaultRouter)) {
+                    $location = DataPort::findByIpVrf($data->defaultRouter, Vrf::instanceGlobalVrf())->appliance->location;
+                    $appliance->details->defaultRouterLocationLastUpdate = (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P');
+                } elseif ($appliance->isNew()) {
+                    $location = Office::findByColumn('title', self::UNKNOWN_LOCATION);
                 }
+
             }
 
             // Vendor
