@@ -13,7 +13,8 @@ class RLogger
     /**
      * RLogger constructor.
      * @param string $name
-     * @param string $logfile
+     * @param string|null $logfile
+     * @throws \Exception
      */
     protected function __construct(string $name, string $logfile = null)
     {
@@ -26,7 +27,9 @@ class RLogger
 
     /**
      * @param string $name
+     * @param string|null $logfile
      * @return mixed
+     * @throws \Exception
      */
     public static function getInstance(string $name, string $logfile = null)
     {
