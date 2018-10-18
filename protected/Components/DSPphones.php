@@ -438,12 +438,18 @@ class DSPphones extends Std
                 'callManager4' => $callManager4,
                 'vlanId' => (int)$data->vlanId,
                 'userLocale' => $data->userLocale,
-                'cdpNeighborDeviceId' => $data->cdpNeighborDeviceId,
-                'cdpNeighborIP' => $cdpNeighborIP,
-                'cdpNeighborPort' => $data->cdpNeighborPort,
                 'publisherIp' => $data->publisherIp,
                 'unknownLocation' => $unknownLocation,
             ]);
+            if (!empty($data->cdpNeighborDeviceId)) {
+                $phoneInfo->fill(['cdpNeighborDeviceId' => $data->cdpNeighborDeviceId]);
+            }
+            if (!empty($cdpNeighborIP)) {
+                $phoneInfo->fill(['cdpNeighborIP' => $cdpNeighborIP]);
+            }
+            if (!empty($data->cdpNeighborPort)) {
+                $phoneInfo->fill(['cdpNeighborPort' => $data->cdpNeighborPort]);
+            }
             $phoneInfo->save();
 
             // End transaction
