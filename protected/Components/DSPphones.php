@@ -441,15 +441,6 @@ class DSPphones extends Std
                 'publisherIp' => $data->publisherIp,
                 'unknownLocation' => $unknownLocation,
             ]);
-            if (!empty($data->cdpNeighborDeviceId)) {
-                $phoneInfo->fill(['cdpNeighborDeviceId' => $data->cdpNeighborDeviceId]);
-            }
-            if (!empty($cdpNeighborIP)) {
-                $phoneInfo->fill(['cdpNeighborIP' => $cdpNeighborIP]);
-            }
-            if (!empty($data->cdpNeighborPort)) {
-                $phoneInfo->fill(['cdpNeighborPort' => $data->cdpNeighborPort]);
-            }
             $phoneInfo->save();
 
             // End transaction
