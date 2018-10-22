@@ -168,7 +168,7 @@ class CucmsPhones extends Command
         $password = $this->app->config->ssh->password;
         $sshConnectionHandler = new SshConnectionHandler($login, $password);
 
-        // Import Phone neighbors from switches
+        // Import Phone neighbors from switches by ssh
         (new PhonesCdpNeighborsFromSwitchesBySsh($sshConnectionHandler, $logger))->importNeighbors();
 
         $this->writeLn('UPDATE NEIGHBORS - ok');
