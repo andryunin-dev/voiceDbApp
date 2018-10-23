@@ -3,6 +3,7 @@
 namespace App\Components\Connection\ConnectionImpl;
 
 use App\Components\Connection\Connection;
+use T4\Orm\Exception;
 
 class SshConnectionHandler implements Connection
 {
@@ -23,18 +24,19 @@ class SshConnectionHandler implements Connection
      * Establish a connection
      *
      * @param $ip
-     * @return bool|resource
+     * @return resource
+     * @throws Exception
      */
     public function getConnect($ip)
     {
         $connection = ssh2_connect($ip, self::SSH_PORT);
         if (false === $connection) {
-            return false;
+            throw new Exception('UNABLE TO CONNECT to '.$ip.' on port '.self::SSH_PORT);
         }
 
         $authorization = ssh2_auth_password($connection, $this->login, $this->password);
         if (false === $authorization) {
-            return false;
+            throw new Exception('AUTHENTICATION FAILED on connect to '.$ip);
         }
 
         return $connection;
