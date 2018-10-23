@@ -161,7 +161,7 @@ class CucmsPhones extends Command
         // Define logger
         $logFile = ROOT_PATH . DS . 'Logs' . DS . 'switchesNeighborsBySsh.log';
         file_put_contents($logFile, '');
-        $logger = RLogger::getInstance('PHONE', $logFile);
+        $logger = RLogger::getInstance('CDP_NEIGHBORS', $logFile);
 
         // Define Ssh connection handler
         $login = $this->app->config->ssh->login;
@@ -171,7 +171,7 @@ class CucmsPhones extends Command
         // Import Phone neighbors from switches by ssh
         (new PhonesCdpNeighborsFromSwitchesBySsh($sshConnectionHandler, $logger))->importNeighbors();
 
-        $this->writeLn('UPDATE NEIGHBORS - ok');
+        $this->writeLn('UPDATE CDP_NEIGHBORS - ok');
     }
 
     /**

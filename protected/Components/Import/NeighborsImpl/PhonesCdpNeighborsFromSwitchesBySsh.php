@@ -58,8 +58,11 @@ class PhonesCdpNeighborsFromSwitchesBySsh implements Neighbors
                     // Import phone neighbor
                     $this->importPhoneNeighbor($neighbor, $switch);
                 }
+
+                // Info
+                $this->logger->info('Polling the switch to '.$switch->managementIp.' end in SUCCESS');
             } catch (\Throwable $e) {
-                $this->logger->error('UPDATE NEIGHBORS: [message]=' . ($e->getMessage() ?? '""'));
+                $this->logger->error($e->getMessage());
             }
         }
     }
@@ -101,9 +104,6 @@ class PhonesCdpNeighborsFromSwitchesBySsh implements Neighbors
     {
         // Establish the connection
         $connection = $this->sshConnectionHandler->getConnect($switch->managementIp);
-        if (false == $connection) {
-            throw new Exception('Connection to the switch(' . $switch->managementIp . ') is not established');
-        }
 
         // Execute the command
         $stream = ssh2_exec($connection, self::COMMAND_CDP_NEIGHBORS);
@@ -139,10 +139,10 @@ class PhonesCdpNeighborsFromSwitchesBySsh implements Neighbors
             }
         } catch (MultiException $errs) {
             foreach ($errs as $e) {
-                $this->logger->error('UPDATE NEIGHBORS: [message]=' . ($e->getMessage() ?? '""'));
+                $this->logger->error($e->getMessage());
             }
         } catch (\Throwable $e) {
-            $this->logger->error('UPDATE NEIGHBORS: [message]=' . ($e->getMessage() ?? '""'));
+            $this->logger->error($e->getMessage());
         }
     }
 
