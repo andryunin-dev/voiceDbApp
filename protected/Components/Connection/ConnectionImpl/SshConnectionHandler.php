@@ -28,10 +28,15 @@ class SshConnectionHandler implements Connection
     public function getConnect($ip)
     {
         $connection = ssh2_connect($ip, self::SSH_PORT);
-        $authorization = ssh2_auth_password($connection, $this->login, $this->password);
-        if (false === $connection || !$authorization) {
+        if (false === $connection) {
             return false;
         }
+
+        $authorization = ssh2_auth_password($connection, $this->login, $this->password);
+        if (false === $authorization) {
+            return false;
+        }
+
         return $connection;
     }
 
