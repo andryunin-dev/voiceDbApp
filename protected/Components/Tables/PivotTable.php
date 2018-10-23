@@ -84,7 +84,7 @@ class PivotTable extends Table implements PivotTableInterface
         $tbConf->width = $this->config->tableWidth();
 
         $tbConf->header = new Std();
-        $tbConf->header->tableClasses = implode(', ', $this->config->headerCssClasses->toArray());
+//        $tbConf->header->tableClasses = implode(', ', $this->config->headerCssClasses->toArray());
         $tbConf->header->pivotColumnsWidth = $pivotWidth;
         $tbConf->header->columns = $columnsConf;
 

@@ -438,9 +438,6 @@ class DSPphones extends Std
                 'callManager4' => $callManager4,
                 'vlanId' => (int)$data->vlanId,
                 'userLocale' => $data->userLocale,
-                'cdpNeighborDeviceId' => $data->cdpNeighborDeviceId,
-                'cdpNeighborIP' => $cdpNeighborIP,
-                'cdpNeighborPort' => $data->cdpNeighborPort,
                 'publisherIp' => $data->publisherIp,
                 'unknownLocation' => $unknownLocation,
             ]);
