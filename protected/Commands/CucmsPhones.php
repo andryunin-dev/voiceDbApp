@@ -2,10 +2,13 @@
 
 namespace App\Commands;
 
+use App\Components\Connection\ConnectionImpl\SshConnectionHandler;
 use App\Components\DSPphones;
+use App\Components\Import\NeighborsImpl\PhonesCdpNeighborsFromSwitchesBySsh;
 use App\Components\RLogger;
 use App\Models\Appliance;
 use App\Models\ApplianceType;
+use App\Models\Office;
 use App\Models\Phone;
 use App\Models\PhoneInfo;
 use App\ViewModels\DevModulePortGeo;
@@ -148,105 +151,32 @@ class CucmsPhones extends Command
         $this->writeLn('UPDATE NEIGHBORS - ok');
     }
 
-    public function actionGetNeighborsBySsh()
+    /**
+     * Update phone CDP neighbors from switches by ssh
+     *
+     * @throws \Exception
+     */
+    public function actionUpdateCdpNeighborsFromSwitchesBySsh()
     {
-        $logFile = ROOT_PATH . DS . 'Logs' . DS . 'phones_neighbors.log';
+        // Define logger
+        $logFile = ROOT_PATH . DS . 'Logs' . DS . 'switchesNeighborsBySsh.log';
         file_put_contents($logFile, '');
-        $logger = RLogger::getInstance('PHONE', $logFile);
+        $logger = RLogger::getInstance('CDP_NEIGHBORS', $logFile);
 
-        $app = Application::instance();
-        $login = $app->config->ssh->login;
-        $password =$app->config->ssh->password;
+        // Define Ssh connection handler
+        $login = $this->app->config->ssh->login;
+        $password = $this->app->config->ssh->password;
+        $sshConnectionHandler = new SshConnectionHandler($login, $password);
 
-        $query = (new Query())
-            ->select('"managementIp", hostname')
-            ->from(DevModulePortGeo::getTableName())
-            ->where('"appType" = :switch AND "managementIp" IS NOT NULL AND "platformTitle" NOT IN (:title1, :title2, :title3, :title4, :title5, :title6, :title7, :title8)')
-            ->params([
-                ':switch' => 'switch',
-                ':title1' => 'WS-C4948',
-                ':title2' => 'WS-C4948-10GE',
-                ':title3' => 'WS-C4948E',
-                ':title4' => 'WS-C6509-E',
-                ':title5' => 'WS-C6513',
-                ':title6' => 'N2K-C2232PP',
-                ':title7' => 'N5K-C5548P',
-                ':title8' => 'WS-CBS3110G-S-I',
-            ])
-        ;
-        $switches = DevModulePortGeo::findAllByQuery($query);
-        foreach ($switches as $switch) {
-            // establish a connection
-            $connection = ssh2_connect($switch->managementIp, self::SSH_PORT);
-            $authorization = ssh2_auth_password($connection, $login, $password);
-            if (false === $connection || !$authorization) {
-                $logger->warning('UPDATE NEIGHBORS: [message]=Connection to the switch(' . $switch->managementIp . ') is not established');
-                continue;
-            }
+        // Import Phone neighbors from switches by ssh
+        (new PhonesCdpNeighborsFromSwitchesBySsh($sshConnectionHandler, $logger))->importNeighbors();
 
-            // execute the command
-            $stream = ssh2_exec($connection, self::COMMAND_CDP_NEIGHBORS);
-
-            // get the output of the command
-            stream_set_blocking($stream, true);
-            $result = stream_get_contents($stream, self::MAX_LENGTH);
-            $items = explode("\n", $result);
-
-            // find in the output of the console command phones by name and update their neighbors
-            foreach ($items as $item) {
-                $item = mb_strtoupper($item);
-                if (1 == preg_match('~SEP.{12}~', $item, $phoneName)) {
-                    $phoneInfo = PhoneInfo::findByColumn('name', $phoneName[0]);
-                    if (false !== $phoneInfo) {
-                        // define the cdpNeighborPort
-                        preg_match('~SEP.{12}\s+\S+\s+\S+~', $item, $cdpNeighborPort);
-                        $cdpNeighborPort = trim(preg_replace('~SEP.{12}~', '', $cdpNeighborPort[0]));
-                        preg_match('~\S+~', $cdpNeighborPort, $portType);
-                        switch ($portType[0]) {
-                            case self::FASTETHERNET_SHORT_NAME:
-                                $cdpNeighborPort = preg_replace('~\S+\s+~', self::FASTETHERNET_FULL_NAME, $cdpNeighborPort);
-                                break;
-                            case self::GIGABITETHERNET_SHORT_NAME:
-                                $cdpNeighborPort = preg_replace('~\S+\s+~', self::GIGABITETHERNET_FULL_NAME, $cdpNeighborPort);
-                                break;
-                        }
-                        // define the cdpNeighborDeviceId
-                        $cdpNeighborDeviceId = $switch->hostname;
-                        // define the cdpNeighborIP
-                        $cdpNeighborIP = $switch->managementIp;
-                        if ($cdpNeighborDeviceId != $phoneInfo->cdpNeighborDeviceId || $cdpNeighborIP != $phoneInfo->cdpNeighborIP || $cdpNeighborPort != $phoneInfo->cdpNeighborPort) {
-                            try {
-                                $phoneInfo->fill([
-                                    'cdpNeighborDeviceId' => $cdpNeighborDeviceId,
-                                    'cdpNeighborIP' => $cdpNeighborIP,
-                                    'cdpNeighborPort' => $cdpNeighborPort,
-                                ]);
-                                $phoneInfo->save();
-                            } catch (MultiException $errs) {
-                                foreach ($errs as $e) {
-                                    $logger->error('UPDATE NEIGHBORS: [message]=' . ($e->getMessage() ?? '""'));
-                                }
-                            } catch (\Throwable $e) {
-                                $logger->error('UPDATE NEIGHBORS: [message]=' . ($e->getMessage() ?? '""'));
-                            }
-                            $this->writeLn($phoneInfo->name . ': ' . $cdpNeighborDeviceId . ' - ' . $cdpNeighborIP . ' - ' . $cdpNeighborPort);
-                        }
-
-                        // Если порт подключения телефона не 'Port 1', сообщить об ошибке
-                        preg_match('~PORT\s+\d+~', $item, $port);
-                        preg_match('~\d+~', $port[0], $phonePort);
-                        if (1 != (int)$phonePort[0]) {
-                            $logger->error('UPDATE NEIGHBORS: [message]=Phone is connected by Port ' . (int)$phonePort[0] . '; [model]=' . $phoneInfo->model . '; [name]=' . $phoneInfo->name . '; [ip]=' . $phoneInfo->phone->dataPorts->first()->ipAddress . '; [number]=' . $phoneInfo->prefix . '-' . $phoneInfo->phoneDN . '; [office]=' . $phoneInfo->phone->location->title . '; [city]=' . $phoneInfo->phone->location->address->city->title . '; [address]=' . $phoneInfo->phone->location->address->address);
-                        }
-                    }
-                }
-            }
-        }
-        $this->writeLn('UPDATE NEIGHBORS - ok');
+        $this->writeLn('UPDATE CDP_NEIGHBORS - ok');
     }
 
     /**
      * @param string $name
+     * @throws \T4\Core\Exception
      */
     public function actionGetPhoneByName(string $name)
     {
