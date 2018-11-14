@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>Net CMDB</title>
+    {{ publish('/Layouts/resources') }}
+    {{ publishCss() }}
+    <link rel="stylesheet" href="{{ asset('/Layouts/resources/bootstrap/css/bootstrap.css') }}">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!--js-->
+    {{ publishJs() }}
+    <script src="{{ asset('/Layouts/resources/jquery-ui-1.12.1.base/external/jquery/jquery.js') }}"></script>
+    <script src="{{ asset('/Layouts/resources/jquery-ui-1.12.1.base/jquery-ui.js') }}"></script>
+
+    {#<script src="{{ asset('/Layouts/resources/JQGrid/js/i18n/grid.locale-en.js') }}"></script>#}
+    {#<script src="{{ asset('/Layouts/resources/JQGrid/js/jquery.jqGrid.min.js') }}"></script>#}
+    <script src="{{ asset('/Layouts/resources/js/js.cookie.js') }}"></script>
+    <script src="{{ asset('/Layouts/resources/js/jquery.cookie.js') }}"></script>
+    <script src="{{ asset('/Layouts/resources/bootstrap/js/dropdown.js') }}"></script>
+    {#<script src="{{ asset('/Layouts/resources/ajaxTable/main.js') }}"></script>#}
+    <script src="{{ asset('/Layouts/resources/jqTable/jqTable.js') }}"></script>
+    {#<script src="{{ asset('/Layouts/resources/jsRender/jsrender.js') }}"></script>#}
+    <script src="{{ asset('/Layouts/resources/js/script.js') }}"></script>
+    {% block headerScript %}
+    {% endblock %}
+</head>
+<body>
+{% block main %}
+{% endblock %}
+</body>
+</html>
