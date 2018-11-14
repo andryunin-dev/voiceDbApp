@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\Appliance;
 use App\ViewModels\DevGeo_View;
+use App\ViewModels\MappedLocations;
 use T4\Dbal\Query;
 use T4\Mvc\Controller;
 
@@ -20,6 +21,8 @@ class Test extends Controller
 
         die;
     }
+    
+
 
 
     public function actionDeleteVeryOldAnalogPhones()
