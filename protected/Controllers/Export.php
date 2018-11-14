@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Components\Export\ApplianceToExcel;
 use App\Components\RLogger;
 use App\ViewModels\DevModulePortGeo;
+use App\ViewModels\MappedLocations;
 use T4\Core\Exception;
 use T4\Dbal\Query;
 use T4\Mvc\Controller;
@@ -98,5 +99,31 @@ class Export extends Controller
         } catch (\Throwable $e) {
             $logger->error($e->getMessage() ?? '""');
         }
+    }
+    
+    public function actionGetMappedLocations()
+    {
+        $filename = 'export.csv';
+        $delimeter = ';';
+        $f = fopen('php://memory', 'w');
+        
+        $result = MappedLocations::findAll();
+        $headerRow = array_keys(MappedLocations::getColumns());
+//        write header row
+        fputcsv($f, $headerRow, $delimeter);
+        
+        foreach ($result as $location) {
+            if (! empty($location->Comment)) {
+                $location->Comment = preg_replace('/[\r\n]+/',' ', $location->Comment);
+            }
+            $locationArray = $location->toArray();
+            fputcsv($f, array_values($locationArray), $delimeter);
+        }
+        
+        fseek($f, 0);
+        header('Content-Type: application/csv');
+        header('Content-Disposition: attachment; filename="'.$filename.'";');
+        fpassthru($f);
+        die;
     }
 }
