@@ -17,20 +17,32 @@ class Export extends Controller
     private const VG = 'vg';
 
 
-    public function actionIpAppliances()
+    public function actionIpAppliances($ip = null)
     {
         $tableColumns = ['hostname','portInfo','lotusId'];
 
-        $query = (new Query())
-            ->select($tableColumns)
-            ->from(DevModulePortGeo::getTableName())
-            ->where('"appType" IN (:switch, :router, :vg)')
-            ->params([
-                ':switch' => self::SWITCH,
-                ':router' => self::ROUTER,
-                ':vg' => self::VG,
-            ])
-        ;
+        if (!is_null($ip)) {
+            $query = (new Query())
+                ->select($tableColumns)
+                ->from(DevModulePortGeo::getTableName())
+                ->where('"managementIp" = :ip AND "appType" IN (:switch, :router, :vg)')
+                ->params([
+                    ':ip' => $ip,
+                    ':switch' => self::SWITCH,
+                    ':router' => self::ROUTER,
+                    ':vg' => self::VG,
+                ]);
+        } else {
+            $query = (new Query())
+                ->select($tableColumns)
+                ->from(DevModulePortGeo::getTableName())
+                ->where('"appType" IN (:switch, :router, :vg)')
+                ->params([
+                    ':switch' => self::SWITCH,
+                    ':router' => self::ROUTER,
+                    ':vg' => self::VG,
+                ]);
+        }
         $appliances = DevModulePortGeo::findAllByQuery($query);
 
         // Semicolon format
@@ -46,7 +58,6 @@ class Export extends Controller
             }
         }
         echo $outputData;
-
         die;
     }
 
