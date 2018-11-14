@@ -3,15 +3,60 @@
 namespace App\Controllers;
 
 
+use App\Components\Sql\SqlSearcher;
 use App\Models\DataPort;
 use App\Models\Network;
+use App\ViewModels\DevGeoNetMat;
 use App\ViewModels\NetworksView;
+use T4\Core\Std;
+use T4\Dbal\Query;
 use T4\Mvc\Controller;
 
 class Networks extends Controller
 {
-    public function actionIpam() {
-
+    public function actionFilteredSearch() {
+        // respond to preflights
+        if($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+            exit;
+        }
+        $filters = json_decode(file_get_contents('php://input'));
+        $searcher = new SqlSearcher($filters);
+        $expression = $searcher->expression;
+        $parameters = $searcher->parameters;
+        
+        $queryNet = new Query();
+        $queryNet
+            ->select('net_id', 'net_ip')
+            ->distinct()
+            ->from(DevGeoNetMat::getTableName())
+            ->where($expression)
+            ->order('net_ip')
+            ->params($parameters);
+        $queryRes = DevGeoNetMat::findAllByQuery($queryNet);
+        $nets = array_reduce($queryRes->toArrayRecursive(), function ($res, $item) {
+            if (! empty($item['net_id'])) {
+                $res[] = $item['net_id'];
+            }
+            return $res;
+        }, []);
+        
+        $queryHost = new Query();
+        $queryHost
+            ->select('port_id', 'port_ip')
+            ->distinct()
+            ->from(DevGeoNetMat::getTableName())
+            ->where($expression)
+            ->order('port_ip')
+            ->params($parameters);
+        $queryRes = DevGeoNetMat::findAllByQuery($queryHost);
+        $hosts = array_reduce($queryRes->toArrayRecursive(), function ($res, $item) {
+            if (! empty($item['port_id'])) {
+                $res[] = $item['port_id'];
+            }
+            return $res;
+        }, []);
+        
+        $this->data->result = ['nets' => $nets, 'hosts' => $hosts];
     }
 
     /**
@@ -103,6 +148,4 @@ class Networks extends Controller
             $this->data->error = $e->getMessage();
         }
     }
-
-
 }
