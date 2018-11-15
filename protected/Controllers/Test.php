@@ -4,7 +4,7 @@ namespace App\Controllers;
 
 use App\Models\Appliance;
 use App\ViewModels\DevGeo_View;
-use App\ViewModels\MappedLocations;
+use App\ViewModels\MappedLocations_View;
 use T4\Dbal\Query;
 use T4\Mvc\Controller;
 
