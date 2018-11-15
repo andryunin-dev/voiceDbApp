@@ -9,14 +9,21 @@
 namespace App\Controllers;
 
 
-use App\ViewModels\MappedLocations;
+use App\ViewModels\MappedLocations_View;
+use App\ViewModels\MappedLotusLocations_1CLocations_View;
 use T4\Mvc\Controller;
 
 class MappingTables extends Controller
 {
     public function actionLocationMapping()
     {
-        $this->data->locations = MappedLocations::findAll();
+        $this->data->locations = MappedLocations_View::findAll();
+        
+    }
+    
+    public function actionLotusAnd1CLocations()
+    {
+        $this->data->locations = MappedLotusLocations_1CLocations_View::findAll();
         
     }
     

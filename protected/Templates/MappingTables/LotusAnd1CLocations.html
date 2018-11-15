@@ -3,27 +3,25 @@
     <table class="table table-bordered">
         <thead>
             <tr>
+                <th>Помещение Код</th>
                 <th>Lotus_id</th>
-                <th>City</th>
+                <th>Помещение</th>
                 <th>РЦ</th>
                 <th>Регион</th>
-                <th>Office</th>
-                <th>Comment</th>
-                <th>Address</th>
-                <th>People</th>
+                <th>Город</th>
+                <th>Офис</th>
             </tr>
         </thead>
         <tbody>
             {% for loc in locations %}
             <tr>
+                <td>{{ loc.flatCode }}</td>
                 <td>{{ loc.lotus_id }}</td>
-                <td>{{ loc.city }}</td>
+                <td>{{ loc.flatAddress }}</td>
                 <td>{{ loc.regCenter }}</td>
                 <td>{{ loc.region }}</td>
+                <td>{{ loc.city }}</td>
                 <td>{{ loc.office }}</td>
-                <td>{{ loc.comment }}</td>
-                <td>{{ loc.address }}</td>
-                <td>{{ loc.people }}</td>
             </tr>
             {% endfor %}
         </tbody>
