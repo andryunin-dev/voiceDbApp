@@ -9,6 +9,7 @@
 namespace App\Controllers;
 
 
+use App\MappingModels\RoutersSwitches;
 use App\ViewModels\MappedLocations_View;
 use App\ViewModels\MappedLotusLocations_1CLocations_View;
 use T4\Mvc\Controller;
@@ -25,6 +26,10 @@ class MappingTables extends Controller
     {
         $this->data->locations = MappedLotusLocations_1CLocations_View::findAll();
         
+    }
+    public function actionRoutersSwitches()
+    {
+        $this->data->devs = RoutersSwitches::findAll();
     }
     
 }
