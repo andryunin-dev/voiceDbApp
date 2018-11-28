@@ -71,6 +71,7 @@
                                             <th class="bg-primary">Платформа <a class="btn btn-success btn-xs pull-right" href="/modal/addPlatform" role="button" data-action="get-popup"><span class="glyphicon glyphicon-plus" aria-hidden="true" title="добавить"></span></a>
                                             </th>
                                             <th class="bg-primary col-15">Производитель</th>
+                                            <th class="bg-primary col-5">Units</th>
                                             <th class="bg-primary col-10">Действия</th>
                                         </tr>
                                         </thead>
@@ -82,6 +83,7 @@
                                                     {#<a href="{{ devsUrl.cloneToShortUrl.addQuery({'pl': platform.getPk}) }}"><span class="pull-right">({{ platform.platformItems.count }} items)</span></a>#}
                                                 </td>
                                                 <td>{{ platform.vendor.title }}</td>
+                                                <td>{{ platform.details.units }}</td>
                                                 <td class="text-center">
                                                     <a class="btn btn-success btn-xs" href="/modal/editPlatform?id={{ platform.getPk }}" role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать"></span></a>
                                                     <a class="btn btn-danger btn-xs" href="/admin/delPlatform?id={{ platform.getPk }}" role="button"  data-action="delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" title="удалить"></span></a>
