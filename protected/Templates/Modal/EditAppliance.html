@@ -334,19 +334,18 @@
                             <div class="form-group">
                                 <label class="col-sm-2 control-label"  for="in-site-rack-side">Сторона стойки</label>
                                 <div class="col-sm-9">
+                                    {% set rackSides = ['', 'Front', 'Back'] %}
                                     <select name="data[site][rackSide]" id="in-site-rack-side" class="form-control" title="Сторона стойки на которой установлено устройство">
-                                        {% if (current.details.site.rackSide) %}
-                                            <option value="{{ current.details.site.rackSide }}" selected>{{ current.details.site.rackSide }}</option>
-                                            <option value="" disabled>Сторона стойки на которой установлено устройство</option>
-                                        {% else %}
-                                            <option value="" disabled selected>Сторона стойки на которой установлено устройство</option>
-                                        {% endif %}
-                                        <option value="Front">Front</option>
-                                        <option value="Back">Back</option>
+                                        {% for rackSide in rackSides %}
+                                            {% if (current.details.site.rackSide) %}
+                                                 <option value="{{ rackSide }}" {% if rackSide == current.details.site.rackSide %} selected {% endif %}>{{ rackSide }}</option>
+                                            {% else %}
+                                                <option value="{{ rackSide }}" {% if rackSide == '' %} selected {% endif %}>{{ rackSide }}</option>
+                                            {% endif %}
+                                        {% endfor %}
                                     </select>
                                 </div>
                             </div>
-
                         </div>
                     </div>
 

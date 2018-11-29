@@ -79,6 +79,10 @@ class Device extends Controller
                             $details = json_decode($device->appDetails, true);
                             $device->appDetails = $details;
                         }
+                        if (!is_null($device->platformDetails)) {
+                            $details = json_decode($device->platformDetails, true);
+                            $device->platformDetails = $details;
+                        }
                         $devices[] = $device;
                     }
                     $twigData->devices = $devices;
