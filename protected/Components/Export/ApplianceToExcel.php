@@ -155,8 +155,10 @@ class ApplianceToExcel
             app."appType" AS "app_type",
             (app."platformVendor" || \' \' || app."platformTitle")  AS "app_title",
             app."platformSerial" AS "app_serialNumber",
+            app."platformDetails" AS "app_platformDetails",
             app."softwareTitle" AS "app_softwareTitle",
             app."softwareVersion" AS "app_softwareVersion",
+            app."appDetails" AS "app_details",
             app."appLastUpdate" AS "app_lastUpdate",
             app."appComment" AS "app_comment",
             app."appInUse" AS "app_inUse",
@@ -174,10 +176,10 @@ class ApplianceToExcel
         // Init worksheet data
         $sheet = 'sheet1';
         $currentRow = 1;
-        $columns = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q'];
+        $columns = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W'];
 
         // Add Header to the worksheet
-        $header = ['№п/п', 'Рег. центр', 'Регион', 'Город', 'Офис', 'LotusId', 'Hostname', 'Management Ip', 'Type', 'Device', 'Device ser', 'Inv. Number', 'Mol', 'Software', 'Software ver.', 'Appl. last update', 'Comment'];
+        $header = ['№п/п', 'Рег. центр', 'Регион', 'Город', 'Офис', 'LotusId', 'Hostname', 'Management Ip', 'Type', 'Device', 'Device ser', 'Inv. Number', 'Mol', 'Software', 'Software ver.', 'Appl. last update', 'Comment', 'Этаж', 'Ряд', 'Стойка', 'Сторона стойки', 'Unit', 'Высота Unit'];
         $rows = '<row r="' . $currentRow . '" spans="1:' . count($columns) . '" x14ac:dyDescent="0.25">';
         for ($i = 0; $i < count($columns); $i++) {
             $sharedStringsSI .= '<si><t>' . $header[$i] . '</t></si>';
@@ -191,6 +193,12 @@ class ApplianceToExcel
 
             // define sell style type for the appliance
             $styleType = $this->getApplianceSellStyleType($appliance);
+
+            // Cast Appliance Details
+            $applianceDetails = json_decode($appliance->app_details);
+
+            // Cast Platform Details
+            $platformDetails = json_decode($appliance->app_platformDetails);
 
             // define appliance columns
             $applianceColumns = [
@@ -210,6 +218,12 @@ class ApplianceToExcel
                 $appliance->app_softwareVersion,
                 $appliance->app_lastUpdate,
                 $appliance->app_comment,
+                $applianceDetails->site->floor,
+                $applianceDetails->site->row,
+                $applianceDetails->site->rack,
+                $applianceDetails->site->rackSide,
+                $applianceDetails->site->unit,
+                $platformDetails->units,
             ];
 
             // Open row for the appliance to the worksheet

@@ -15,6 +15,10 @@
                    value="{{ platform.title }}">
         </div>
         <div class="form-group">
+            <label for="id-platform-details-units">Units</label>
+            <input type="text" class="form-control" name="platform[details][units]" id="id-platform-details-units" value="{{ platform.details.units }}" title="Высота оборудования в units">
+        </div>
+        <div class="form-group">
             <div class="custom-box checkbox-container">
                 {% if (false == platform.isHW) %}
                     <input type="hidden" name="platform[isHW]" value="0">

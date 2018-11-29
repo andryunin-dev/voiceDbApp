@@ -48,16 +48,18 @@
                     {#platform - type, serial number#}
                     <div class="form-group">
                         <label for="id-platform" class="col-sm-2 control-label">Платформа</label>
-                        <div class="col-sm-5">
+                        <div class="col-sm-3 ">
                                 <select name="data[platformId]" id="id-platform" class="form-control">
                                     {% for platform in platforms %}
                                         <option value="{{ platform.getPK }}"{% if platform.getPK == current.platform.platform.getPk %} selected {% endif %}>{{ platform.title }}</option>
                                     {% endfor %}
                                 </select>
                         </div>
-                        <div class="col-sm-4 input-group">
-                            <span class="input-group-addon" id="hw-sn">S/N</span>
-                            <input type="text" class="form-control" name="data[platformSn]" value="{{ current.platform.serialNumber }}" aria-describedby="hw-sn">
+                        <div class="input-group col-sm-6">
+                            <span class="input-group-addon" id="hw-sn">S/N main</span>
+                            <input type="text" class="form-control" name="data[platformSnMain]" value="{{ current.platform.serialNumber }}" aria-describedby="hw-sn" title="Серийный номер оборудования">
+                            <span class="input-group-addon" id="hw-sn2">S/N alternative</span>
+                            <input type="text" class="form-control" name="data[platformSnAlt]" value="{{ current.platform.serialNumberAlt }}" aria-describedby="hw-sn2" title="Используется если серийный номер на корпусе оборудования не совпадает с серийным номером оборудования">
                         </div>
                     </div>
                     {#software - type, version#}
@@ -136,8 +138,11 @@
                                 {% endif %}
                             </a>
                         </li>
+                        <li aria-controls="tabs-3" role="tab">
+                            <a href="#tabs-3">Details</a>
+                        </li>
                     </ul>
-                    {#MODULES AND PORTS#}
+                    {#MODULES AND PORTS AND DETAILS#}
                     <div class="tab-content cust-tab-content">
                         <div class="tab-pane active" role="tabpanel" id="tabs-1">
                             {% for currentModuleItem in current.modules %}
@@ -290,6 +295,56 @@
                                     </div>
                                 </div>
                             </template>
+                        </div>
+                        <div class="tab-pane" role="tabpanel" id="tabs-3">
+
+                            {#floor#}
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label"  for="in-site-floor">Этаж</label>
+                                <div class="col-sm-9">
+                                    <input type="text" id="in-site-floor" class="form-control" name="data[site][floor]" value="{{ current.details.site.floor }}" placeholder="Этаж установки устройства" title="Этаж установки устройства">
+                                </div>
+                            </div>
+
+                            {#row#}
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label"  for="in-site-row">Ряд</label>
+                                <div class="col-sm-9">
+                                    <input type="text" id="in-site-row" class="form-control" name="data[site][row]" value="{{ current.details.site.row }}" placeholder="Номер ряда стоек" title="Номер ряда стоек">
+                                </div>
+                            </div>
+
+                            {#rack#}
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label"  for="in-site-rack">Стойка</label>
+                                <div class="col-sm-9">
+                                    <input type="text" id="in-site-rack" class="form-control" name="data[site][rack]" value="{{ current.details.site.rack }}" placeholder="Номер стойки" title="Номер стойки">
+                                </div>
+                            </div>
+
+                            {#unit#}
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label"  for="in-site-unit">Unit</label>
+                                <div class="col-sm-9">
+                                    <input type="text" id="in-site-unit" class="form-control" name="data[site][unit]" value="{{ current.details.site.unit }}" placeholder="Номер юнита в стойке занимаемого устройством" title="Номер юнита в стойке занимаемого устройством">
+                                </div>
+                            </div>
+
+                            {#rack orientation#}
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label"  for="in-site-rack-side">Сторона стойки</label>
+                                <div class="col-sm-9">
+                                    <select name="data[site][rackSide]" id="in-site-rack-side" class="form-control" title="Сторона стойки на которой установлено устройство">
+                                        {% for rackSide in rackSides %}
+                                            {% if (current.details.site.rackSide) %}
+                                                 <option value="{{ rackSide }}" {% if rackSide == current.details.site.rackSide %} selected {% endif %}>{{ rackSide }}</option>
+                                            {% else %}
+                                                <option value="{{ rackSide }}" {% if rackSide == '' %} selected {% endif %}>{{ rackSide }}</option>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                     </div>
 

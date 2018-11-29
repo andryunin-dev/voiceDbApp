@@ -99,6 +99,7 @@ class DevModulePortGeo extends Model
             'platformItem_id' => ['type' => 'int', 'length' => 'big'],
             'platformSerial' => ['type' => 'string'],
             'platformTitle' => ['type' => 'string'],
+            'platformDetails' => ['type' => 'jsonb'],
             'isHW' => ['type' => 'boolean'],
             'platform_id' => ['type' => 'int', 'length' => 'big'],
             'softwareVendor_id' => ['type' => 'int', 'length' => 'big'],

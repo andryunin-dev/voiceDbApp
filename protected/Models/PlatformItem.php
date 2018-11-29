@@ -26,6 +26,7 @@ class PlatformItem extends Model
         'table' => 'equipment.platformItems',
         'columns' => [
             'serialNumber' => ['type' => 'string'],
+            'serialNumberAlt' => ['type' => 'string'],
             'inventoryNumber' => ['type' => 'string'],
             'version' => ['type' => 'string'],
             'details' => ['type' => 'json'],
