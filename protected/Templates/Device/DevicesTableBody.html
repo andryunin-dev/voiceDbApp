@@ -47,9 +47,16 @@
                     {#</b>#}
                 </td>
                 {#Platform#}
-                <td {% if false == dev.appInUse %}class="item-not-use" {% endif %}><a href="{{ url.path }}?pl_id={{ dev.platform_id }}" {% if dev.appDetails.site %} {% set site = dev.appDetails.site %} title="Этаж - {{ site.floor }}{{ "\n" }}Ряд - {{ site.row }}{{ "\n" }}Стойка - {{ site.rack }}{{ "\n" }}Unit - {{ site.unit }}{{ "\n" }}Сторона стойки - {{ site.rackSide }}" {% endif %}>
-                        {{ dev.platformVendor }} {{ dev.platformTitle }}</a> {% if not dev.appComment is empty %}<span id="{{ dev.appliance_id }}" class="glyphicon glyphicon-info-sign" aria-hidden="true" title="{{ dev.appComment }}"></span>{% endif %}
+                <td {% if false == dev.appInUse %}class="item-not-use" {% endif %}>
+                    <a href="{{ url.path }}?pl_id={{ dev.platform_id }}">{{ dev.platformVendor }} {{ dev.platformTitle }}</a>
+                    {% if not dev.appComment is empty %}<span id="{{ dev.appliance_id }}" class="glyphicon glyphicon-info-sign" aria-hidden="true" title="{{ dev.appComment }}"></span>{% endif %}
                     <span class="lastUpdate {% if dev.appAge is null or dev.appAge >= maxAge %} stale {% endif %}" data-last-update="{{ dev.lastUpdateDateTime }}" title="{{ dev.lastUpdateDateTime }}">{{ dev.lastUpdateDate }}</span>
+                </td>
+                {#U#}}
+                <td style="text-align:center">
+                    <span {% if dev.appDetails.site %} {% set site = dev.appDetails.site %} title="Этаж - {{ site.floor }}{{ "\n" }}Ряд - {{ site.row }}{{ "\n" }}Стойка - {{ site.rack }}{{ "\n" }}Unit - {{ site.unit }}{{ "\n" }}Высота Unit - {{ dev.platformDetails.units }}{{ "\n" }}Сторона стойки - {{ site.rackSide }}" {% endif %}>
+                        <b>{% if dev.appDetails.site %}U{% endif %}</b>
+                    </span>
                 </td>
                 {#Software#}
                 <td title="{{ dev.softwareAndVersion }}">
