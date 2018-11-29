@@ -334,7 +334,6 @@
                             <div class="form-group">
                                 <label class="col-sm-2 control-label"  for="in-site-rack-side">Сторона стойки</label>
                                 <div class="col-sm-9">
-                                    {% set rackSides = ['', 'Front', 'Back'] %}
                                     <select name="data[site][rackSide]" id="in-site-rack-side" class="form-control" title="Сторона стойки на которой установлено устройство">
                                         {% for rackSide in rackSides %}
                                             {% if (current.details.site.rackSide) %}
