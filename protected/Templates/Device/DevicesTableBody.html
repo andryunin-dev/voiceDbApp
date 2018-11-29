@@ -54,9 +54,20 @@
                 </td>
                 {#U#}}
                 <td style="text-align:center">
-                    <span {% if dev.appDetails.site %} {% set site = dev.appDetails.site %} title="Этаж - {{ site.floor }}{{ "\n" }}Ряд - {{ site.row }}{{ "\n" }}Стойка - {{ site.rack }}{{ "\n" }}Unit - {{ site.unit }}{{ "\n" }}Высота Unit - {{ dev.platformDetails.units }}{{ "\n" }}Сторона стойки - {{ site.rackSide }}" {% endif %}>
-                        <b>{% if dev.appDetails.site %}U{% endif %}</b>
-                    </span>
+                    {% if dev.appDetails.site %}
+                        {% set site = dev.appDetails.site %}
+                        {% set siteIsNotEmpty = false %}
+                        {% for item in site %}
+                            {% if item is not empty %}
+                                {% set siteIsNotEmpty = true %}
+                            {% endif %}
+                        {% endfor %}
+                        {% if siteIsNotEmpty == true %}
+                            <span title="Этаж - {{ site.floor }}{{ "\n" }}Ряд - {{ site.row }}{{ "\n" }}Стойка - {{ site.rack }}{{ "\n" }}Unit - {{ site.unit }}{{ "\n" }}Высота Unit - {{ dev.platformDetails.units }}{{ "\n" }}Сторона стойки - {{ site.rackSide }}">
+                                <b>U</b>
+                            </span>
+                        {% endif %}
+                    {% endif %}
                 </td>
                 {#Software#}
                 <td title="{{ dev.softwareAndVersion }}">
