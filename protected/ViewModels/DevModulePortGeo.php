@@ -120,6 +120,8 @@ class DevModulePortGeo extends Model
             'm0_calls_amount' => ['type' => 'int'],
             'm1_calls_amount' => ['type' => 'int'],
             'm2_calls_amount' => ['type' => 'int'],
+            'invUserFio' => ['type' => 'string'],
+            'invUserTabNumber' => ['type' => 'string'],
         ]
     ];
     public static $columnMap = [
