@@ -34,7 +34,7 @@ class Test extends Controller
         
         $locationMap = $this->createLocationMapArray();
         $params = [':list_number' => 1];
-        $sql = 'SELECT * FROM view.consolidation_excel_table_src t1 WHERE t1."listNumber_1c" = :list_number OR t1."listNumber_voice" = :list_number ORDER BY "invNumber"';
+        $sql = 'SELECT * FROM view.consolidation_excel_table_src t1 WHERE t1."listNumber_1c" = :list_number OR t1."listNumber_voice" = :list_number ORDER BY "invNumber",  "lotusId_voice"';
         $res = ConsolidationTable_1::getDbConnection()->query($sql, $params)->fetchAll(\PDO::FETCH_ASSOC);
         
         foreach ($res as $key => $item ) {
@@ -43,6 +43,8 @@ class Test extends Controller
             $writtenOff = empty($item['molTabNumber_1c']) && empty($item['roomCode_1c']);
             $registeredInVoice = !empty($item['dev_id']);
             $active = $registeredInVoice && $item['dev_age'] < $MAX_AGE;
+            $sn = empty($item['invNumber']) ? $item['serialNumber'] : $item['serialNumber_1c'];
+            $res[$key]['res_sn'] = $sn;
 //          if device active, get location data via lotusId_voice
 //          if device isn't active, get location data via lotusId_1c
             $lotusId = ($item['dev_age'] < $MAX_AGE) ? $item['lotusId_voice'] : $item['lotusId_1c'];
