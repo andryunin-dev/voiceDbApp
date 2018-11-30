@@ -11,6 +11,20 @@ namespace App\ViewModels;
 
 use T4\Orm\Model;
 
+/**
+ * Class MappedLocations_View
+ * @package App\ViewModels
+ *
+ * @property int $lotus_id
+ * @property string $city
+ * @property string $regCenter
+ * @property string $region
+ * @property string $office
+ * @property string $comment
+ * @property string $address
+ * @property string $people
+ */
+
 class MappedLocations_View extends Model
 {
     protected static $schema = [
