@@ -86,6 +86,7 @@ class DevModulePortGeo extends Model
             'hostname' => ['type' => 'string'],
             'hostname_dn' => ['type' => 'string'],
             'appDetails' => ['type' => 'jsonb'],
+            'appRoomLocation' => ['type' => 'string'],
             'appComment' => ['type' => 'string'],
             'appType_id' => ['type' => 'int', 'length' => 'big'],
             'appType' => ['type' => 'string'],
