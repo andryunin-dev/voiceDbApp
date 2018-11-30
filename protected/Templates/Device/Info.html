@@ -21,7 +21,7 @@
     <script>
         tableSettings = {
             dataUrl: "/device/devicesTable.json",
-            width: '115',
+            width: '125',
             // width: '125',
             header: {
                 tableClasses: "bg-primary table-bordered",
@@ -37,7 +37,8 @@
                     data_port: {id: 'dport', name: 'Интерфейсы', width: 15, filterable: false},
                     platformSerial: {id: 'sn', name: 'SN', width: '110px', filterable: true},
                     inventoryNumber: {id: 'inv-num', name: 'Инв.', width: '100px', filterable: true},
-                    responsiblePerson: {id: 'resp-person', name: 'МОЛ', width: '100px', filterable: true},
+                    invUserFio: {id: 'inv-user', name: 'Пользователь', width: '140px', filterable: true},
+                    responsiblePerson: {id: 'resp-person', name: 'МОЛ', width: '140px', filterable: true},
                     {% if not user.readOnly %}
                     action: {id: 'action', name: 'Действия', width: '105px'}
                     {% endif %}
