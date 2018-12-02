@@ -47,7 +47,7 @@ class Test extends Controller
             $res[$key]['res_sn'] = $sn;
 //          if device active, get location data via lotusId_voice
 //          if device isn't active, get location data via lotusId_1c
-            $lotusId = ($item['dev_age'] < $MAX_AGE) ? $item['lotusId_voice'] : $item['lotusId_1c'];
+            $lotusId = (!empty($item['dev_age']) && $item['dev_age'] < $MAX_AGE) ? $item['lotusId_voice'] : $item['lotusId_1c'];
 //            filling result of comparison lotus IDs
             if (empty($item['lotusId_voice']) || empty($item['lotusId_1c'])) {
                 $res[$key]['compareLotusId'] = null;
