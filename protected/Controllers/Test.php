@@ -76,7 +76,7 @@ class Test extends Controller
                 if ($writtenOff) {
 //                    is written-off
 //                    but is registered in voice DB
-                    $res[$key]['status'] = empty($item['dev_id']) ? null : $WORKING;
+                    $res[$key]['status'] = empty($item['dev_id']) ? null : ($active ? $WORKING : null);
                 } else {
                     //                    isn't written-off
                     if (empty($item['serialNumber_1c']) || empty($item['dev_id']) || $item['dev_age'] >= $MAX_AGE) {
