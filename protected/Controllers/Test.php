@@ -68,9 +68,6 @@ class Test extends Controller
                 $res[$key]['office'] = null;
             }
 //            filling соответствие Инв. номера и SN
-            if ($item['serialNumber'] == 'FOC10243KV1') {
-                $test = 1;
-            }
             if (!$item['invNumber']) {
                 if ($registeredInVoice) {
                     $res[$key]['status'] = $active ? $WORKING : ($emptyAge ? '' : $WAS_WORKING);
@@ -84,7 +81,7 @@ class Test extends Controller
                     $res[$key]['status'] = empty($item['dev_id']) ? null : ($active ? $WORKING : null);
                 } else {
                     //                    isn't written-off
-                    if (empty($item['serialNumber_1c']) || empty($item['dev_id']) || $item['dev_age'] >= $MAX_AGE) {
+                    if (empty($item['serialNumber_1c']) || empty($item['dev_id']) || $emptyAge || $item['dev_age'] >= $MAX_AGE) {
                         $res[$key]['status'] = $SHOULD_BE_RETURNED;
                     } else {
                         $res[$key]['status'] = $WORKING;
