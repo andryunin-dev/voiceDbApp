@@ -27,7 +27,7 @@ class Test extends Controller
         $INV_AND_SN = 'Инв. и S/N';
         $INV_WO_SN = 'Инв без S/N';
         $SN_WO_INV = 'S/N без Инв';
-        $WO_SN_WO_INV = '??без инв и сер';
+        $WO_SN_WO_INV = ''; //??без инв и сер
         $COMPARED = 'совпадает';
         $NOT_COMPARED = 'не совпадает';
         $ON_BALANCE = 'на балансе';
@@ -76,7 +76,7 @@ class Test extends Controller
                 if ($writtenOff) {
 //                    is written-off
 //                    but is registered in voice DB
-                    $res[$key]['status'] = empty($item['dev_id']) ? null : $WORKING;
+                    $res[$key]['status'] = empty($item['dev_id']) ? null : ($active ? $WORKING : null);
                 } else {
                     //                    isn't written-off
                     if (empty($item['serialNumber_1c']) || empty($item['dev_id']) || $item['dev_age'] >= $MAX_AGE) {
