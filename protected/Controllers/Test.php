@@ -20,17 +20,17 @@ class Test extends Controller
     public function actionConsolidationSource()
     {
         $MAX_AGE = 400;
-        $WORKING = 'в работе';
-        $WAS_WORKING = 'был в работе';
-        $SHOULD_BE_RETURNED = 'к возврату';
-        $WRITTEN_OFF = 'списан';
-        $INV_AND_SN = 'Инв. и S/N';
+        $WORKING = 'В работе';
+        $WAS_WORKING = 'Был в работе';
+        $SHOULD_BE_RETURNED = 'К возврату';
+        $WRITTEN_OFF = 'Списан';
+        $INV_AND_SN = 'Инв и S/N';
         $INV_WO_SN = 'Инв без S/N';
         $SN_WO_INV = 'S/N без Инв';
         $WO_SN_WO_INV = ''; //??без инв и сер
         $COMPARED = 'совпадает';
         $NOT_COMPARED = 'не совпадает';
-        $ON_BALANCE = 'на балансе';
+        $ON_BALANCE = 'На балансе';
         
         $locationMap = $this->createLocationMapArray();
         $params = [':list_number' => 1];
