@@ -42,7 +42,8 @@ class Test extends Controller
             $res[$key]['molTabNumber_1c'] = $item['molTabNumber_1c'];
             $writtenOff = empty($item['molTabNumber_1c']) && empty($item['roomCode_1c']);
             $registeredInVoice = !empty($item['dev_id']);
-            $active = $registeredInVoice && $item['dev_age'] < $MAX_AGE;
+            $emptyAge = empty($item['dev_age']);
+            $active = $registeredInVoice && !$emptyAge && $item['dev_age'] < $MAX_AGE;
             $sn = empty($item['invNumber']) ? $item['serialNumber'] : $item['serialNumber_1c'];
             $res[$key]['res_sn'] = $sn;
 //          if device active, get location data via lotusId_voice
@@ -67,9 +68,12 @@ class Test extends Controller
                 $res[$key]['office'] = null;
             }
 //            filling соответствие Инв. номера и SN
+            if ($item['serialNumber'] == 'CAT1017Z2ET') {
+                $test = 1;
+            }
             if (!$item['invNumber']) {
                 if ($registeredInVoice) {
-                    $res[$key]['status'] = $active ? $WORKING : ($item['dev_age'] > 0 ? $WAS_WORKING : '');
+                    $res[$key]['status'] = $active ? $WORKING : ($emptyAge ? '' : $WAS_WORKING);
                 } else {
                     $res[$key]['status'] = null;
                 }
