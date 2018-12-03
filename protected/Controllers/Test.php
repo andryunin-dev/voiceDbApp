@@ -69,7 +69,7 @@ class Test extends Controller
 //            filling соответствие Инв. номера и SN
             if (!$item['invNumber']) {
                 if ($registeredInVoice) {
-                    $res[$key]['status'] = $active ? $WORKING : $WAS_WORKING;
+                    $res[$key]['status'] = $active ? $WORKING : ($item['dev_age'] > 0 ? $WAS_WORKING : '');
                 } else {
                     $res[$key]['status'] = null;
                 }
