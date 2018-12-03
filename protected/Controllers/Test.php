@@ -70,8 +70,9 @@ class Test extends Controller
             if (!$item['invNumber']) {
                 if ($registeredInVoice) {
                     $res[$key]['status'] = $active ? $WORKING : $WAS_WORKING;
+                } else {
+                    $res[$key]['status'] = null;
                 }
-                $res[$key]['status'] = null;
             } else {
                 if ($writtenOff) {
 //                    is written-off
