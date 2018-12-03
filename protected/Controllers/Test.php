@@ -19,7 +19,7 @@ class Test extends Controller
 
     public function actionConsolidationSource()
     {
-        $MAX_AGE = 400;
+        $MAX_AGE = 73;
         $WORKING = 'В работе';
         $WAS_WORKING = 'Был в работе';
         $SHOULD_BE_RETURNED = 'К возврату';
