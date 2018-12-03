@@ -68,7 +68,7 @@ class Test extends Controller
                 $res[$key]['office'] = null;
             }
 //            filling соответствие Инв. номера и SN
-            if ($item['serialNumber'] == 'CAT1017Z2ET') {
+            if ($item['serialNumber'] == 'FOC10243KV1') {
                 $test = 1;
             }
             if (!$item['invNumber']) {
@@ -94,7 +94,7 @@ class Test extends Controller
 //            filling "списан" and "соотв. Инв. и SN"
             if (empty($item['invNumber'])) {
                 $res[$key]['writtenOff'] = null;
-                $res[$key]['invNum_SN'] = empty($item['serialNumber_1c']) ? $WO_SN_WO_INV : $SN_WO_INV;
+                $res[$key]['invNum_SN'] = empty($item['serialNumber']) ? $WO_SN_WO_INV : $SN_WO_INV;
             } else {
                 $res[$key]['writtenOff'] = $writtenOff ? $WRITTEN_OFF : $ON_BALANCE;
                 $res[$key]['invNum_SN'] = empty($item['serialNumber_1c']) ? $INV_WO_SN : $INV_AND_SN;
