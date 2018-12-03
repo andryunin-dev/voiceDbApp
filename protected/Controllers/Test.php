@@ -27,7 +27,7 @@ class Test extends Controller
         $INV_AND_SN = 'Инв. и S/N';
         $INV_WO_SN = 'Инв без S/N';
         $SN_WO_INV = 'S/N без Инв';
-        $WO_SN_WO_INV = '??без инв и сер';
+        $WO_SN_WO_INV = ''; //??без инв и сер
         $COMPARED = 'совпадает';
         $NOT_COMPARED = 'не совпадает';
         $ON_BALANCE = 'на балансе';
