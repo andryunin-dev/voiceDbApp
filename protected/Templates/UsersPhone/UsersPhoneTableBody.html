@@ -1,0 +1,42 @@
+{% spaceless %}
+        {% for dev in devices %}
+            <tr>
+                {#Region#}
+                <td>{{ dev.region }}</td>
+                {#Office#}
+                <td>{{ dev.office }}</td>
+                {#LotusUser#}
+                <td>{{ dev.lotusUser }}</td>
+                {#LotusUserPosition#}
+                <td>{{ dev.lotusUserPosition }}</td>
+                {#DN#}
+                <td>{{ dev.dn }}</td>
+                {#LotusUserMobilePhone#}
+                <td>{{ dev.lotusUserMobilePhone }}</td>
+                {#Model#}
+                <td>{{ dev.model }}</td>
+                {#SerialNumber#}
+                <td>{{ dev.serialNumber }}</td>
+                {#InventoryNumber#}
+                <td>{{ dev.inventoryNumber }}</td>
+                {#IpAddress#}
+                <td>{{ dev.ipAddress }}</td>
+                {#SwitchPort#}
+                <td>{{ dev.switchPort }}</td>
+                {#switchPlatform#}
+                <td>{{ dev.switchPlatform }}</td>
+                {#switchIp#}
+                <td>{{ dev.switchIp }}</td>
+                {#switchInventoryNumber#}
+                <td>{{ dev.switchInventoryNumber }}</td>
+                {#alertingName#}
+                <td>{{ dev.alertingName }}</td>
+                {#inventoryUser#}
+                <td>{{ dev.inventoryUser }}</td>
+                {#mol#}
+                <td>{{ dev.mol }}</td>
+                {#lotusUserDivision#}
+                <td>{{ dev.lotusUserDivision }}</td>
+            </tr>
+        {% endfor %}
+{% endspaceless %}
