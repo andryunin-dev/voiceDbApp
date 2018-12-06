@@ -27,10 +27,12 @@ class UsersPhoneView extends Model
             'lotusUserPosition' => ['type' => 'string'],
             'lotusUserDivision' => ['type' => 'string'],
             'lotusUserMobilePhone' => ['type' => 'string'],
+            'lotusUserWorkEmail' => ['type' => 'string'],
             'switchPlatform' => ['type' => 'string'],
             'switchIp' => ['type' => 'string'],
             'switchPort' => ['type' => 'string'],
             'switchInventoryNumber' => ['type' => 'string'],
+            'isActive' => ['type' => 'string'],
         ]
     ];
 
