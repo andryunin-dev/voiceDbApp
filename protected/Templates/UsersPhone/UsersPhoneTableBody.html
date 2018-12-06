@@ -5,14 +5,30 @@
                 <td>{{ dev.region }}</td>
                 {#Office#}
                 <td>{{ dev.office }}</td>
+
                 {#LotusUser#}
-                <td>{{ dev.lotusUser }}</td>
+                <td>
+                    {% if dev.lotusUserWorkEmail %}
+                        <a href="mailto:{{ dev.lotusUserWorkEmail }}">{{ dev.lotusUser }}</a>
+                    {% else %}
+                        {{ dev.lotusUser }}
+                    {% endif %}
+                </td>
+
                 {#LotusUserPosition#}
                 <td>{{ dev.lotusUserPosition }}</td>
                 {#DN#}
                 <td>{{ dev.dn }}</td>
                 {#LotusUserMobilePhone#}
                 <td>{{ dev.lotusUserMobilePhone }}</td>
+
+                {#IsActive#}
+                <td align="center" style="color:MediumSeaGreen">
+                    {% if dev.isActive == 'да' %}
+                        <b>A</b>
+                    {% endif %}
+                </td>
+
                 {#Model#}
                 <td>{{ dev.model }}</td>
                 {#SerialNumber#}
