@@ -90,7 +90,7 @@ class ApplianceToExcel
     private function getApplianceSellStyleType($appliance)
     {
         $styleType = self::SELL_STYLE_TYPE_DEFAULT;
-        if ($appliance->app_age > self::MAX_APP_AGE) {
+        if ($appliance->app_age > self::MAX_APP_AGE || is_null($appliance->app_age)) {
             $styleType = self::SELL_STYLE_TYPE_APPLIANCE_MAX_AGE;
         } elseif (false === $appliance->app_inUse) {
             $styleType = self::SELL_STYLE_TYPE_APPLIANCE_NOT_IN_USE;
