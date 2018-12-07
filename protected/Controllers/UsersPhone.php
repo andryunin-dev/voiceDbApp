@@ -21,8 +21,8 @@ class UsersPhone extends Controller
 
     public function actionUsersPhoneTable()
     {
-
         $request = (new Request());
+        $baseUrl = $request->referer;
         $request = (0 == $request->get->count()) ? $request = $request->post : $request->get;
         foreach ($request as $key => $value ) {
             switch ($key) {
@@ -57,6 +57,7 @@ class UsersPhone extends Controller
                     $query = $joinedFilter->selectQuery(UsersPhoneView::class, $sorter, $paginator, $globalFilter);
                     $twigData = new Std();
                     $twigData->devices = UsersPhoneView::findAllByQuery($query);
+                    $twigData->baseUrl = $baseUrl;
 
                     $this->data->body->html = $this->view->render('UsersPhoneTableBody.html', $twigData);
                     $this->data->body->hrefFilter = $hrefFilter;
