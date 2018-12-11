@@ -60,12 +60,12 @@ class Test extends Controller
                     $lotusId = $item['lotusId_1c'];
                 }
             }
-//          == field lotus ID via real address
+//          == field "Lotus_id по Реальному адресу"
 //            set as lotusId_voice only if dev is active or dev doesn't have inv number
             $item['lotusId_voice'] = $active || empty($item['invNumber']) ? $item['lotusId_voice'] : null;
             $res[$key]['lotusId_voice'] = $item['lotusId_voice'];
             
-//          ==field of comparison lotus IDs
+//          ==field "1C адрес и Реальный"
             if (empty($item['lotusId_voice']) || empty($item['lotusId_1c'])) {
                 $res[$key]['compareLotusId'] = null;
             } else {
