@@ -1,0 +1,73 @@
+{% spaceless %}
+        {% for dev in devices %}
+            <tr>
+                {#City#}
+                <td>
+                    <a href="{{ baseUrl }}?city_id={{ dev.cityId }}">{{ dev.city }}</a>
+                </td>
+
+                {#Office#}
+                <td>
+                    <a href="{{ baseUrl }}?loc_id={{ dev.officeId }}">{{ dev.office }}</a>
+                </td>
+
+                {#Name#}
+                <td>{{ dev.name }}</td>
+
+                {#Platform#}
+                <td>
+                    <a href="{{ baseUrl }}?pl_id={{ dev.platformId }}">{{ dev.platform }}</a>
+                </td>
+
+                {#DN#}
+                <td>{{ dev.dn }}</td>
+
+                {#IsActive#}
+                <td {% if dev.isActive == 'да' %} style="background :MediumSeaGreen" title="Активное оборудование" {% endif %}></td>
+
+                {#Publisher Name#}
+                <td>
+                    <a href="http://{{ dev.publisherIp }}" >{{ dev.publisherName }}</a>
+                </td>
+
+                {#IpAddress#}
+                <td>
+                    <a href="http://{{ dev.ipAddress }}" >{{ dev.ipAddress }}</a>
+                </td>
+
+                {#InventoryNumber#}
+                <td>{{ dev.inventoryNumber }}</td>
+
+                {#SerialNumber#}
+                <td>{{ dev.serialNumber }}</td>
+
+                {#Vlan Id#}
+                <td>{{ dev.vlanId }}</td>
+
+                {#Switch Hostname#}
+                <td>
+                    <a href="{{ baseUrl }}?sw_hn={{ dev.switchHostname }}">{{ dev.switchHostname }}</a>
+                </td>
+
+                {#Switch Ip#}
+                <td>
+                    <a href="ssh://{{ dev.switchIp }}" >{{ dev.switchIp }}</a>
+                </td>
+
+                {#Switch Port#}
+                <td>{{ dev.switchPort }}</td>
+
+                {#Switch Platform#}
+                <td>{{ dev.switchPlatform }}</td>
+
+                {#Switch Inventory Number#}
+                <td>{{ dev.switchInventoryNumber }}</td>
+
+                {#Description#}
+                <td>{{ dev.depiction }}</td>
+
+                {#Alerting Name#}
+                <td>{{ dev.alertingName }}</td>
+            </tr>
+        {% endfor %}
+{% endspaceless %}
