@@ -23,11 +23,7 @@
                 <td>{{ dev.dn }}</td>
 
                 {#IsActive#}
-                <td align="center" style="color:MediumSeaGreen">
-                    {% if dev.isActive == 'да' %}
-                        <b>A</b>
-                    {% endif %}
-                </td>
+                <td {% if dev.isActive == 'да' %} style="background :MediumSeaGreen" title="Активное оборудование" {% endif %}></td>
 
                 {#Publisher Name#}
                 <td>
