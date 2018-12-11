@@ -47,18 +47,31 @@ class Test extends Controller
             $sn = empty($item['invNumber']) ? $item['serialNumber'] : $item['serialNumber_1c'];
             $res[$key]['res_sn'] = $sn;
             
-//          if device active, get location data via lotusId_voice
-//          if device isn't active, get location data via lotusId_1c
-            $lotusId = (!empty($item['dev_age']) && $item['dev_age'] < $MAX_AGE) ? $item['lotusId_voice'] : $item['lotusId_1c'];
-//            filling result of comparison lotus IDs
-            $item['lotusId_voice'] = (!empty($item['dev_age']) && $item['dev_age'] < $MAX_AGE) ? $item['lotusId_voice'] : null;
+//          //if device active, get location data via lotusId_voice
+//          //if device isn't active, get location data via lotusId_1c
+//            //$lotusId = (!empty($item['dev_age']) && $item['dev_age'] < $MAX_AGE) ? $item['lotusId_voice'] : $item['lotusId_1c'];
+//            choosing of lotusId for location info
+            if (empty($item['invNumber'])) {
+                $lotusId = $item['lotusId_voice'];
+            } else {
+                if ($registeredInVoice) { // dev is registered in voice
+                   $lotusId = $active ? $item['lotusId_voice'] : $item['lotusId_1c'];
+                } else { // dev isn't registered in voice
+                    $lotusId = $item['lotusId_1c'];
+                }
+            }
+//          == field lotus ID via real address
+//            set as lotusId_voice only if dev is active or dev doesn't have inv number
+            $item['lotusId_voice'] = $active || empty($item['invNumber']) ? $item['lotusId_voice'] : null;
             $res[$key]['lotusId_voice'] = $item['lotusId_voice'];
+            
+//          ==field of comparison lotus IDs
             if (empty($item['lotusId_voice']) || empty($item['lotusId_1c'])) {
                 $res[$key]['compareLotusId'] = null;
             } else {
                 $res[$key]['compareLotusId'] = ($item['lotusId_voice'] == $item['lotusId_1c']) ? $COMPARED : $NOT_COMPARED;
             }
-//            filling location info
+//          ==Fields of location info
             if (array_key_exists($lotusId,$locationMap)) {
                 $res[$key]['regCenter'] = $locationMap[$lotusId]['regCenter'];
                 $res[$key]['region'] = $locationMap[$lotusId]['region'];
@@ -73,7 +86,8 @@ class Test extends Controller
 //            filling соответствие Инв. номера и SN
             if (!$item['invNumber']) {
                 if ($registeredInVoice) {
-                    $res[$key]['status'] = $active ? $WORKING : ($emptyAge ? '' : $WAS_WORKING);
+//                    $res[$key]['status'] = $active ? $WORKING : ($emptyAge ? '' : $WAS_WORKING);
+                    $res[$key]['status'] = $active ? $WORKING : $WAS_WORKING;
                 } else {
                     $res[$key]['status'] = null;
                 }
@@ -83,8 +97,8 @@ class Test extends Controller
 //                    but is registered in voice DB
                     $res[$key]['status'] = empty($item['dev_id']) ? null : ($active ? $WORKING : null);
                 } else {
-                    //                    isn't written-off
-                    if (empty($item['serialNumber_1c']) || empty($item['dev_id']) || $emptyAge || $item['dev_age'] >= $MAX_AGE) {
+ //                    isn't written-off
+                    if (empty($item['serialNumber_1c']) || !$registeredInVoice || $emptyAge || $item['dev_age'] >= $MAX_AGE) {
                         $res[$key]['status'] = $SHOULD_BE_RETURNED;
                     } else {
                         $res[$key]['status'] = $WORKING;
