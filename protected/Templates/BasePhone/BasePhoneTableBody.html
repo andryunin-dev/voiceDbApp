@@ -16,18 +16,27 @@
 
                 {#Platform#}
                 <td>
-                    <a href="{{ baseUrl }}?pl_id={{ dev.platformId }}">{{ dev.platform }}</a>
+                    <a href="{{ baseUrl }}?pl_id={{ dev.platformId }}">{{ dev.platform }} </a>
+                    {% if not dev.comment is empty %}<span class="glyphicon glyphicon-info-sign" aria-hidden="true" title="{{ dev.comment }}"></span>{% endif %}
                 </td>
 
                 {#DN#}
-                <td>{{ dev.dn }}</td>
+                <td>{{ dev.dnDash }}</td>
 
                 {#IsActive#}
-                <td {% if dev.isActive == 'да' %} style="background :MediumSeaGreen" title="Активное оборудование" {% endif %}></td>
+                <td
+                    {% if dev.isActive == 'да' %}
+                        style="background:MediumSeaGreen; font-size:85%"
+                    {% else %}
+                        style="background:Red; color:white; font-size:85%"
+                    {% endif %}
+                >
+                    <span  title="last update: {{ dev.lastUpdate|date("d.m.Y H:i", "Europe/Moscow") }} MSK(+03:00)">{{ dev.lastUpdate|date("Y-m-d", "Europe/Moscow") }}</span>
+                </td>
 
                 {#Publisher Name#}
                 <td>
-                    <a href="http://{{ dev.publisherIp }}" >{{ dev.publisherName }}</a>
+                    <a href="https://{{ dev.publisherIp }}:8443/ccmadmin/" >{{ dev.publisherName }}</a>
                 </td>
 
                 {#IpAddress#}
@@ -62,6 +71,9 @@
 
                 {#Switch Inventory Number#}
                 <td>{{ dev.switchInventoryNumber }}</td>
+
+                {#Prefix#}
+                <td>{{ dev.dnPrefix }}</td>
 
                 {#Description#}
                 <td>{{ dev.depiction }}</td>
