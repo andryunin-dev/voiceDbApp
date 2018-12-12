@@ -31,10 +31,18 @@
                 <td>{{ dev.lotusUserMobilePhone }}</td>
 
                 {#IsActive#}
-                <td align="center" style="color:MediumSeaGreen">
-                    {% if dev.isActive == 'да' %}
-                        <b>A</b>
-                    {% endif %}
+                <td align="center">
+                    <span
+                        {% if dev.isActive == 'да' %}
+                            style="background:#80ed80; font-size:85%"
+                        {% else %}
+                            style="background:#d42b48; color:#e4e4e4; font-size:85%"
+                        {% endif %}
+
+                        title="last update: {{ dev.lastUpdate|date("d.m.Y H:i", "Europe/Moscow") }} MSK(+03:00)"
+                    >
+                        {{ dev.lastUpdate|date("Y-m-d", "Europe/Moscow") }}
+                    </span>
                 </td>
 
                 {#Model#}

@@ -37,6 +37,7 @@ class UsersPhoneView extends Model
             'switchPort' => ['type' => 'string'],
             'switchInventoryNumber' => ['type' => 'string'],
             'isActive' => ['type' => 'string'],
+            'lastUpdate' => ['type' => 'datetime'],
         ]
     ];
 
