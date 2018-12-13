@@ -1,0 +1,19 @@
+{% extends 'SimpleBootstrap.html' %}
+{% block main %}
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>1С_RouteSwitch</th>
+                <th>Netcmdb_RouteSwitch</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for dev in devs %}
+            <tr>
+                <td><pre>{{ dev.oneC_name }}</pre></td>
+                <td><pre>{{ dev.db_name }}</pre></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Components\Export\ApplianceToExcel;
 use App\Components\RLogger;
 use App\ViewModels\DevModulePortGeo;
+use App\ViewModels\MappedLocations_View;
 use T4\Core\Exception;
 use T4\Dbal\Query;
 use T4\Mvc\Controller;
@@ -16,20 +17,32 @@ class Export extends Controller
     private const VG = 'vg';
 
 
-    public function actionIpAppliances()
+    public function actionIpAppliances($ip = null)
     {
         $tableColumns = ['hostname','portInfo','lotusId'];
 
-        $query = (new Query())
-            ->select($tableColumns)
-            ->from(DevModulePortGeo::getTableName())
-            ->where('"appType" IN (:switch, :router, :vg)')
-            ->params([
-                ':switch' => self::SWITCH,
-                ':router' => self::ROUTER,
-                ':vg' => self::VG,
-            ])
-        ;
+        if (!is_null($ip)) {
+            $query = (new Query())
+                ->select($tableColumns)
+                ->from(DevModulePortGeo::getTableName())
+                ->where('"managementIp" = :ip AND "appType" IN (:switch, :router, :vg)')
+                ->params([
+                    ':ip' => $ip,
+                    ':switch' => self::SWITCH,
+                    ':router' => self::ROUTER,
+                    ':vg' => self::VG,
+                ]);
+        } else {
+            $query = (new Query())
+                ->select($tableColumns)
+                ->from(DevModulePortGeo::getTableName())
+                ->where('"appType" IN (:switch, :router, :vg)')
+                ->params([
+                    ':switch' => self::SWITCH,
+                    ':router' => self::ROUTER,
+                    ':vg' => self::VG,
+                ]);
+        }
         $appliances = DevModulePortGeo::findAllByQuery($query);
 
         // Semicolon format
@@ -45,7 +58,6 @@ class Export extends Controller
             }
         }
         echo $outputData;
-
         die;
     }
 
@@ -87,5 +99,34 @@ class Export extends Controller
         } catch (\Throwable $e) {
             $logger->error($e->getMessage() ?? '""');
         }
+    }
+    
+    /**
+     * Deprecated! Isn't used
+     */
+    public function actionGetMappedLocations()
+    {
+        $filename = 'export.csv';
+        $delimeter = ';';
+        $f = fopen('php://memory', 'w');
+        
+        $result = MappedLocations_View::findAll();
+        $headerRow = array_keys(MappedLocations_View::getColumns());
+//        write header row
+        fputcsv($f, $headerRow, $delimeter);
+        
+        foreach ($result as $location) {
+            if (! empty($location->Comment)) {
+                $location->comment = preg_replace('/[\r\n]+/',' ', $location->Comment);
+            }
+            $locationArray = $location->toArray();
+            fputcsv($f, array_values($locationArray), $delimeter);
+        }
+        
+        fseek($f, 0);
+        header('Content-Type: application/csv');
+        header('Content-Disposition: attachment; filename="'.$filename.'";');
+        fpassthru($f);
+        die;
     }
 }

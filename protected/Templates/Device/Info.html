@@ -21,7 +21,8 @@
     <script>
         tableSettings = {
             dataUrl: "/device/devicesTable.json",
-            width: '115',
+            width: '125',
+            // width: '125',
             header: {
                 tableClasses: "bg-primary table-bordered",
                 columns: {
@@ -30,12 +31,14 @@
                     hostname_dn: {id: 'hostname', name: 'Hostname', width: 15, sortable: true, filterable: true},
                     appType: {id: 'app-type', name: 'Тип', width: "70px", sortable: true, filterable: true},
                     platformTitle: {id: 'appliance', name: 'Оборудование', width: 20, sortable: true, filterable: true},
+                    appRoomLocation: {id: 'app-room-location', name: 'U', width: 5, sortable: true, filterable: true},
                     softwareAndVersion: {id: 'soft', name: 'ПО', width: 15, sortable: true, filterable: true},
                     module: {id: 'module', name: 'Модуль', width: 10, sortable: false, filterable: false},
                     data_port: {id: 'dport', name: 'Интерфейсы', width: 15, filterable: false},
                     platformSerial: {id: 'sn', name: 'SN', width: '110px', filterable: true},
                     inventoryNumber: {id: 'inv-num', name: 'Инв.', width: '100px', filterable: true},
-                    responsiblePerson: {id: 'resp-person', name: 'МОЛ', width: '100px', filterable: true},
+                    invUserFio: {id: 'inv-user', name: 'Пользователь', width: '140px', filterable: true},
+                    responsiblePerson: {id: 'resp-person', name: 'МОЛ', width: '140px', filterable: true},
                     {% if not user.readOnly %}
                     action: {id: 'action', name: 'Действия', width: '105px'}
                     {% endif %}

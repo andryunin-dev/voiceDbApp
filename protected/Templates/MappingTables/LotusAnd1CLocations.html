@@ -1,0 +1,29 @@
+{% extends 'SimpleBootstrap.html' %}
+{% block main %}
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Помещение Код</th>
+                <th>Lotus_id</th>
+                <th>Помещение</th>
+                <th>РЦ</th>
+                <th>Регион</th>
+                <th>Город</th>
+                <th>Офис</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for loc in locations %}
+            <tr>
+                <td><pre>{{ loc.flatCode }}</pre></td>
+                <td><pre>{{ loc.lotus_id }}</pre></td>
+                <td><pre>{{ loc.flatAddress }}</pre></td>
+                <td><pre>{{ loc.regCenter }}</pre></td>
+                <td><pre>{{ loc.region }}</pre></td>
+                <td><pre>{{ loc.city }}</pre></td>
+                <td><pre>{{ loc.office }}</pre></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

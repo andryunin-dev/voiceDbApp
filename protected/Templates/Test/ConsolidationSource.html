@@ -1,0 +1,68 @@
+{% extends 'SimpleBootstrap.html' %}
+{% block main %}
+    <table class="table table-bordered">
+        <thead>
+        <tr>
+            <th>ИнвентарнаяЕдиница</th>
+            <th>СерийныйНомер</th>
+            <th>Номенклатура</th>
+            <th>ДатаПостановкиНаУчет</th>
+            <th>ТипНоменклатуры</th>
+            <th>МОЛ</th>
+            <th>ПомещениеКод</th>
+            <th>Помещение</th>
+            <th>ТабНомерМОЛ</th>
+            <th>ПользовательТМЦ</th>
+            <th>ТабНомерПользовательТМЦ</th>
+            <th>Lotus_id по 1С</th>
+            <th>Lotus_id по Реальному адресу</th>
+            <th>1C адрес и Реальный</th>
+            <th>РЦ</th>
+            <th>Регион</th>
+            <th>Город</th>
+            <th>Офис</th>
+            <th>Модель</th>
+            <th>Статус</th>
+            <th>Списание</th>
+            <th>Тип</th>
+            <th>Соответствие Инв и S/n</th>
+            <th>Hostname</th>
+            <th>Management IP</th>
+            <th>Комментарий</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in res %}
+            {% set platform = item.platform_1c is empty ? item.platform_voice : item.platform_1c %}
+            <tr>
+                <td>{{ item.invNumber }}</td>
+                <td>{{ item.res_sn }}</td>
+                <td>{{ item.nomenclature_1c }}</td>
+                <td>{{ item.registartionDate_1c }}</td>
+                <td>{{ item.nomenclatureType_1c }}</td>
+                <td>{{ item.molFio_1c }}</td>
+                <td>{{ item.roomCode_1c }}</td>
+                <td>{{ item.room_1c }}</td>
+                <td>{{ item.molTabNumber_1c }}</td>
+                <td>{{ item.invUserFio }}</td>
+                <td>{{ item.invUserTabNumber }}</td>
+                <td>{{ item.lotusId_1c }}</td>
+                <td>{{ item.lotusId_voice }}</td>
+                <td>{{ item.compareLotusId }}</td>
+                <td>{{ item.regCenter }}</td>
+                <td>{{ item.region }}</td>
+                <td>{{ item.city }}</td>
+                <td>{{ item.office }}</td>
+                <td>{{ platform }}</td>
+                <td>{{ item.status }}</td>
+                <td>{{ item.writtenOff }}</td>
+                <td>{{ item.type }}</td>
+                <td>{{ item.invNum_SN }}</td>
+                <td>{{ item.hostname }}</td>
+                <td>{{ item.managementIP }}</td>
+                <td>{{ item.comment }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

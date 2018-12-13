@@ -14,11 +14,13 @@
         {% endif %}
         {{ columns.platformTitle.name }}
     </th>
+    <th id={{ columns.appRoomLocation.th_id|trim('#') }}>{{ columns.appRoomLocation.name }}</th>
     <th id={{ columns.softwareAndVersion.th_id|trim('#') }}>{{ columns.softwareAndVersion.name }}</th>
     <th id={{ columns.module.th_id|trim('#') }}>{{ columns.module.name }}</th>
     <th id={{ columns.data_port.th_id|trim('#') }}>{{ columns.data_port.name }}</th>
     <th id={{ columns.platformSerial.th_id|trim('#') }}>{{ columns.platformSerial.name }}</th>
     <th id={{ columns.inventoryNumber.th_id|trim('#') }}>{{ columns.inventoryNumber.name }}</th>
+    <th id={{ columns.invUserFio.th_id|trim('#') }}>{{ columns.invUserFio.name }}</th>
     <th id={{ columns.responsiblePerson.th_id|trim('#') }}>{{ columns.responsiblePerson.name }}</th>
     <th id={{ columns.action.th_id|trim('#') }}>{{ columns.action.name }}</th>
 </tr>

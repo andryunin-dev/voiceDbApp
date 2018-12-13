@@ -86,6 +86,7 @@ class DevModulePortGeo extends Model
             'hostname' => ['type' => 'string'],
             'hostname_dn' => ['type' => 'string'],
             'appDetails' => ['type' => 'jsonb'],
+            'appRoomLocation' => ['type' => 'string'],
             'appComment' => ['type' => 'string'],
             'appType_id' => ['type' => 'int', 'length' => 'big'],
             'appType' => ['type' => 'string'],
@@ -99,6 +100,7 @@ class DevModulePortGeo extends Model
             'platformItem_id' => ['type' => 'int', 'length' => 'big'],
             'platformSerial' => ['type' => 'string'],
             'platformTitle' => ['type' => 'string'],
+            'platformDetails' => ['type' => 'jsonb'],
             'isHW' => ['type' => 'boolean'],
             'platform_id' => ['type' => 'int', 'length' => 'big'],
             'softwareVendor_id' => ['type' => 'int', 'length' => 'big'],
@@ -118,6 +120,8 @@ class DevModulePortGeo extends Model
             'm0_calls_amount' => ['type' => 'int'],
             'm1_calls_amount' => ['type' => 'int'],
             'm2_calls_amount' => ['type' => 'int'],
+            'invUserFio' => ['type' => 'string'],
+            'invUserTabNumber' => ['type' => 'string'],
         ]
     ];
     public static $columnMap = [

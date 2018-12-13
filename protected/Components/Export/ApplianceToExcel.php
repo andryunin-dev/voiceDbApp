@@ -90,7 +90,7 @@ class ApplianceToExcel
     private function getApplianceSellStyleType($appliance)
     {
         $styleType = self::SELL_STYLE_TYPE_DEFAULT;
-        if ($appliance->app_age > self::MAX_APP_AGE) {
+        if ($appliance->app_age > self::MAX_APP_AGE || is_null($appliance->app_age)) {
             $styleType = self::SELL_STYLE_TYPE_APPLIANCE_MAX_AGE;
         } elseif (false === $appliance->app_inUse) {
             $styleType = self::SELL_STYLE_TYPE_APPLIANCE_NOT_IN_USE;
@@ -155,8 +155,11 @@ class ApplianceToExcel
             app."appType" AS "app_type",
             (app."platformVendor" || \' \' || app."platformTitle")  AS "app_title",
             app."platformSerial" AS "app_serialNumber",
+            app."platformSerialAlt" AS "app_serialNumberAlt",
+            app."platformDetails" AS "app_platformDetails",
             app."softwareTitle" AS "app_softwareTitle",
             app."softwareVersion" AS "app_softwareVersion",
+            app."appDetails" AS "app_details",
             app."appLastUpdate" AS "app_lastUpdate",
             app."appComment" AS "app_comment",
             app."appInUse" AS "app_inUse",
@@ -174,10 +177,10 @@ class ApplianceToExcel
         // Init worksheet data
         $sheet = 'sheet1';
         $currentRow = 1;
-        $columns = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q'];
+        $columns = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X'];
 
         // Add Header to the worksheet
-        $header = ['№п/п', 'Рег. центр', 'Регион', 'Город', 'Офис', 'LotusId', 'Hostname', 'Management Ip', 'Type', 'Device', 'Device ser', 'Inv. Number', 'Mol', 'Software', 'Software ver.', 'Appl. last update', 'Comment'];
+        $header = ['№п/п', 'Рег. центр', 'Регион', 'Город', 'Офис', 'LotusId', 'Hostname', 'Management Ip', 'Type', 'Device', 'Device ser', 'Device alt ser', 'Inv. Number', 'Mol', 'Software', 'Software ver.', 'Appl. last update', 'Comment', 'Этаж', 'Ряд', 'Стойка', 'Сторона стойки', 'Unit', 'Высота Unit'];
         $rows = '<row r="' . $currentRow . '" spans="1:' . count($columns) . '" x14ac:dyDescent="0.25">';
         for ($i = 0; $i < count($columns); $i++) {
             $sharedStringsSI .= '<si><t>' . $header[$i] . '</t></si>';
@@ -192,6 +195,12 @@ class ApplianceToExcel
             // define sell style type for the appliance
             $styleType = $this->getApplianceSellStyleType($appliance);
 
+            // Cast Appliance Details
+            $applianceDetails = json_decode($appliance->app_details);
+
+            // Cast Platform Details
+            $platformDetails = json_decode($appliance->app_platformDetails);
+
             // define appliance columns
             $applianceColumns = [
                 $appliance->app_regCenter,
@@ -204,12 +213,19 @@ class ApplianceToExcel
                 $appliance->app_type,
                 $appliance->app_title,
                 $appliance->app_serialNumber,
+                $appliance->app_serialNumberAlt,
                 $appliance->app_inventoryNumber,
                 $appliance->app_molFio,
                 $appliance->app_softwareTitle,
                 $appliance->app_softwareVersion,
                 $appliance->app_lastUpdate,
                 $appliance->app_comment,
+                $applianceDetails->site->floor,
+                $applianceDetails->site->row,
+                $applianceDetails->site->rack,
+                $applianceDetails->site->rackSide,
+                $applianceDetails->site->unit,
+                $platformDetails->units,
             ];
 
             // Open row for the appliance to the worksheet
@@ -257,6 +273,7 @@ class ApplianceToExcel
                 app."appType" AS "app_type",
                 (app."platformVendor" || \' \' || app."platformTitle")  AS "app_title",
                 app."platformSerial" AS "app_serialNumber",
+                app."platformSerialAlt" AS "app_serialNumberAlt",
                 CAST(app."appDetails"::jsonb->>\'hostname\' AS citext) AS app_hostname,
                 app."softwareTitle" AS "app_softwareTitle",
                 app."softwareVersion" AS "app_softwareVersion",
@@ -287,10 +304,10 @@ class ApplianceToExcel
         // Init worksheet data
         $sheet = 'sheet2';
         $currentRow = 1;
-        $columns = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V'];
+        $columns = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W'];
 
         // Add Header to the worksheet
-        $header = ['№п/п', 'Рег. центр', 'Регион', 'Город', 'Офис', 'LotusId', 'Hostname', 'Management Ip', 'Type', 'Device', 'Device ser', 'Inv. Number', 'Mol', 'Software', 'Software ver.', 'Appl. last update', 'Module', 'Module ser', 'Module\'s Inv. Number', 'Module\'s Mol', 'Module last update', 'Comment'];
+        $header = ['№п/п', 'Рег. центр', 'Регион', 'Город', 'Офис', 'LotusId', 'Hostname', 'Management Ip', 'Type', 'Device', 'Device ser', 'Device alt ser', 'Inv. Number', 'Mol', 'Software', 'Software ver.', 'Appl. last update', 'Module', 'Module ser', 'Module\'s Inv. Number', 'Module\'s Mol', 'Module last update', 'Comment'];
         $rows = '<row r="' . $currentRow . '" spans="1:' . count($columns) . '" x14ac:dyDescent="0.25">';
         for ($i = 0; $i < count($columns); $i++) {
             $sharedStringsSI .= '<si><t>' . $header[$i] . '</t></si>';
@@ -320,6 +337,7 @@ class ApplianceToExcel
                 ['value' => $appliance->app_type, 'style' => $styleApplianceType],
                 ['value' => $appliance->app_title, 'style' => $styleApplianceType],
                 ['value' => $appliance->app_serialNumber, 'style' => $styleApplianceType],
+                ['value' => $appliance->app_serialNumberAlt, 'style' => $styleApplianceType],
                 ['value' => $appliance->app_inventoryNumber, 'style' => $styleApplianceType],
                 ['value' => $appliance->app_molFio, 'style' => $styleApplianceType],
                 ['value' => $appliance->app_softwareTitle, 'style' => $styleApplianceType],

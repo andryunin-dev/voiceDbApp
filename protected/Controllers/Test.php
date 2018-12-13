@@ -2,65 +2,145 @@
 
 namespace App\Controllers;
 
+use App\ConsolidationTablesModels\ConsolidationTable_1;
+use App\MappingModels\LotusLocation;
 use App\Models\Appliance;
+use App\Models\ApplianceType;
 use App\ViewModels\DevGeo_View;
+use App\ViewModels\DevModulePortGeo;
+use App\ViewModels\MappedLocations_View;
+use T4\Core\Collection;
+use T4\Core\Std;
 use T4\Dbal\Query;
 use T4\Mvc\Controller;
-use T4\Orm\Exception;
 
 class Test extends Controller
 {
 
-    public function actionTt()
+    public function actionConsolidationSource()
     {
-        try {
-
-            $connection = odbc_connect("Driver={SQL Server Native Client 10.0};Server=$server;Database=$database;", $user, $password);
-            if ($connection === false) {
-                throw new Exception('Database connection not established');
+        $MAX_AGE = 73;
+        $WORKING = 'В работе';
+        $WAS_WORKING = 'Был в работе';
+        $SHOULD_BE_RETURNED = 'К возврату';
+        $WRITTEN_OFF = 'Списан';
+        $INV_AND_SN = 'Инв и S/N';
+        $INV_WO_SN = 'Инв без S/N';
+        $SN_WO_INV = 'S/N без Инв';
+        $WO_SN_WO_INV = ''; //??без инв и сер
+        $COMPARED = 'совпадает';
+        $NOT_COMPARED = 'не совпадает';
+        $ON_BALANCE = 'На балансе';
+        
+        $locationMap = $this->createLocationMapArray();
+        $params = [':list_number' => 1];
+        $sql = 'SELECT * FROM view.consolidation_excel_table_src t1 WHERE t1."listNumber_1c" = :list_number OR t1."listNumber_voice" = :list_number ORDER BY "invNumber",  "lotusId_voice"';
+        $res = ConsolidationTable_1::getDbConnection()->query($sql, $params)->fetchAll(\PDO::FETCH_ASSOC);
+        
+        foreach ($res as $key => $item ) {
+            $item['molTabNumber_1c'] = (is_numeric($item['molTabNumber_1c']) && ($item['molTabNumber_1c'] < 0)) ? '' : $item['molTabNumber_1c'];
+            $res[$key]['molTabNumber_1c'] = $item['molTabNumber_1c'];
+            $writtenOff = empty($item['molTabNumber_1c']) && empty($item['roomCode_1c']);
+            $registeredInVoice = !empty($item['dev_id']);
+            $emptyAge = empty($item['dev_age']);
+            $active = $registeredInVoice && !$emptyAge && $item['dev_age'] < $MAX_AGE;
+            $sn = empty($item['invNumber']) ? $item['serialNumber'] : $item['serialNumber_1c'];
+            $res[$key]['res_sn'] = $sn;
+            
+//          //if device active, get location data via lotusId_voice
+//          //if device isn't active, get location data via lotusId_1c
+//            //$lotusId = (!empty($item['dev_age']) && $item['dev_age'] < $MAX_AGE) ? $item['lotusId_voice'] : $item['lotusId_1c'];
+//            choosing of lotusId for location info
+            if (empty($item['invNumber'])) {
+                $lotusId = $item['lotusId_voice'];
+            } else {
+                if ($registeredInVoice) { // dev is registered in voice
+                   $lotusId = $active ? $item['lotusId_voice'] : $item['lotusId_1c'];
+                } else { // dev isn't registered in voice
+                    $lotusId = $item['lotusId_1c'];
+                }
             }
-
-            $query = 'SELECT * FROM dbo."Saratov_AgentLogOut" AS agent_statistics WHERE agent_statistics."LogoutDateTime" BETWEEN ? AND ?';
-            $lastDay = (new \DateTime("last day"))->format('Y-m-d 00:00:00');
-            $currentDay = (new \DateTime())->format('Y-m-d 00:00:00');
-            $params = [$lastDay, $currentDay];
-
-            $stmt = odbc_prepare($connection, $query);
-            if ($stmt === false) {
-                throw new Exception('SQL command was not prepared successfully');
+//          == field "Lotus_id по Реальному адресу"
+//            set as lotusId_voice only if dev is active or dev doesn't have inv number
+            $item['lotusId_voice'] = $active || empty($item['invNumber']) ? $item['lotusId_voice'] : null;
+            $res[$key]['lotusId_voice'] = $item['lotusId_voice'];
+            
+//          ==field "1C адрес и Реальный"
+            if (empty($item['lotusId_voice']) || empty($item['lotusId_1c'])) {
+                $res[$key]['compareLotusId'] = null;
+            } else {
+                $res[$key]['compareLotusId'] = ($item['lotusId_voice'] == $item['lotusId_1c']) ? $COMPARED : $NOT_COMPARED;
             }
-
-            $success = odbc_execute($stmt, $params);
-            if ($success === false) {
-                throw new Exception('SQL command execution error');
-                // todo можно вытащить последнюю ошибку
+//          ==Fields of location info
+            if (array_key_exists($lotusId,$locationMap)) {
+                $res[$key]['regCenter'] = $locationMap[$lotusId]['regCenter'];
+                $res[$key]['region'] = $locationMap[$lotusId]['region'];
+                $res[$key]['city'] = $locationMap[$lotusId]['city'];
+                $res[$key]['office'] = $locationMap[$lotusId]['office'];
+            } else {
+                $res[$key]['regCenter'] = null;
+                $res[$key]['region'] = null;
+                $res[$key]['city'] = null;
+                $res[$key]['office'] = null;
             }
-
-//            var_dump(odbc_num_rows($stmt));
-
-            $result = [];
-            while ($item = odbc_fetch_array($stmt)) {
-                $result[] = $item['Extension'];
+//            filling соответствие Инв. номера и SN
+            if (!$item['invNumber']) {
+                if ($registeredInVoice) {
+//                    $res[$key]['status'] = $active ? $WORKING : ($emptyAge ? '' : $WAS_WORKING);
+                    $res[$key]['status'] = $active ? $WORKING : $WAS_WORKING;
+                } else {
+                    $res[$key]['status'] = null;
+                }
+            } else {
+                if ($writtenOff) {
+//                    is written-off
+//                    but is registered in voice DB
+                    $res[$key]['status'] = empty($item['dev_id']) ? null : ($active ? $WORKING : null);
+                } else {
+ //                    isn't written-off
+                    if (empty($item['serialNumber_1c']) || !$registeredInVoice || $emptyAge || $item['dev_age'] >= $MAX_AGE) {
+                        $res[$key]['status'] = $SHOULD_BE_RETURNED;
+                    } else {
+                        $res[$key]['status'] = $WORKING;
+                    }
+                }
             }
-
-            odbc_free_result($stmt);
-            odbc_close($connection);
-
-            $dialNumbers = array_unique($result);
-            var_dump($dialNumbers);
-
-        } catch (\Exception $e) {
-            if ($connection !== false) {
-                odbc_free_result($stmt);
-                odbc_close($connection);
+//            filling "списан" and "соотв. Инв. и SN"
+            if (empty($item['invNumber'])) {
+                $res[$key]['writtenOff'] = null;
+                $res[$key]['invNum_SN'] = empty($item['serialNumber']) ? $WO_SN_WO_INV : $SN_WO_INV;
+            } else {
+                $res[$key]['writtenOff'] = $writtenOff ? $WRITTEN_OFF : $ON_BALANCE;
+                $res[$key]['invNum_SN'] = empty($item['serialNumber_1c']) ? $INV_WO_SN : $INV_AND_SN;
             }
-            var_dump($e);
+            
         }
-
-        die;
+        
+//        var_dump($res);die;
+        $this->data->res = $res;
+//        var_dump($res);die;
     }
-
-
+    
+    protected function createLocationMapArray()
+    {
+        $viewData = MappedLocations_View::findAll();
+        $mappingArray = [];
+        foreach ($viewData as $item) {
+            $mappingArray[$item->lotus_id]['regCenter'] = $item->regCenter;
+            $mappingArray[$item->lotus_id]['region'] = $item->region;
+            $mappingArray[$item->lotus_id]['city'] = $item->city;
+            $mappingArray[$item->lotus_id]['office'] = $item->office;
+            $mappingArray[$item->lotus_id]['address'] = $item->address;
+            $mappingArray[$item->lotus_id]['comment'] = $item->comment;
+        }
+        return $mappingArray;
+    }
+    
+    public function actionLotusLocation()
+    {
+        $res = LotusLocation::findAll();
+        var_dump($res->toArray());die;
+    }
     public function actionGetPhone()
     {
 
@@ -72,6 +152,8 @@ class Test extends Controller
 
         die;
     }
+    
+
 
 
     public function actionDeleteVeryOldAnalogPhones()
