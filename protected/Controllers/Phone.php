@@ -42,6 +42,9 @@ class Phone extends Controller
                 $inventoryNumber = InventoryItem1C::findByQuery($query)->inventoryNumber;
             }
             $phoneData['inventoryNumber'] = (!is_null($inventoryNumber)) ? $inventoryNumber : '';
+            if (! empty($phoneData['serialNumber'])) {
+                $phoneData['inventoryNumber'] = $phoneData['inventoryNumber'] . ', SN: ' . $phoneData['serialNumber'];
+            }
         }
 
         // Return result
