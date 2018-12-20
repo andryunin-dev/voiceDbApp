@@ -91,7 +91,7 @@
     height: 90% !important;
 }
 /*links in jqtable - blue*/
-.jqtable a {
+.jqtable a:not(.btn) {
     color: #337ab7;
 }
 /**/
