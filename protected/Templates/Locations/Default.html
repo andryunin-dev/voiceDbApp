@@ -88,6 +88,14 @@
                     }).focus()
                 }
             })
+            const highlightRow = function (e) {
+                const ws = e.data;
+                ws.obj.$body.find(".js-table-row.ui-state-highlight").removeClass("ui-state-highlight");
+                $(e.target).closest(".js-table-row").addClass("ui-state-highlight");
+
+                console.log('click on row')
+            };
+            locTable.jqTable('addBodyEventHandler', 'click', "", highlightRow);
 
         });
     </script>

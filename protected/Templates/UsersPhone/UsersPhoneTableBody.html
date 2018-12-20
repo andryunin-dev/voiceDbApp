@@ -1,6 +1,6 @@
 {% spaceless %}
         {% for dev in devices %}
-            <tr>
+            <tr class="js-table-row ui-widget-content">
                 {#Region#}
                 <td>
                     <a href="{{ baseUrl }}?reg_id={{ dev.region_id }}">{{ dev.region }}</a>
