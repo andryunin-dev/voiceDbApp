@@ -1893,6 +1893,18 @@ jqTable.workSetTmpl = {
                             return
                         }
                         ws.obj.$body.children('tbody').html(data.body.html);
+                        //inject onClick
+                        var editBtns = $(".jsEditBtn");
+                        editBtns.each(function () {
+                            const devId = $(this).data('devId')
+                            $(this).click(function (e) {
+                                e.preventDefault();
+                                console.log('ID - ', devId);
+
+                            })
+                        })
+
+                        //==========
                         if (data.bodyFooter && data.bodyFooter.html) {
                             ws.obj.$bodyFooter.children('tbody').html(data.bodyFooter.html);
                             inner.setBodyHeight(ws);

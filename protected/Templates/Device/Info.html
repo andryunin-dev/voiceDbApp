@@ -73,6 +73,13 @@
                     $(e.target).closest("table").find(".js-caret").toggleClass("caret-down");
                 }
             };
+            var highlightRow = function (e) {
+                var ws = e.data;
+                ws.obj.$body.find(".js-table-row.ui-state-highlight").removeClass("ui-state-highlight");
+                $(e.target).closest(".js-table-row").addClass("ui-state-highlight");
+
+                console.log('click on row')
+            };
 
             devTable.jqTable('addBodyEventHandler', 'click', "", toggleInnerTable);
             devTable.jqTable('addHeaderEventHandler', 'click', "", function (e) {
@@ -92,6 +99,7 @@
                     }).focus()
                 }
             })
+            devTable.jqTable('addBodyEventHandler', 'click', "", highlightRow);
 
         });
     </script>

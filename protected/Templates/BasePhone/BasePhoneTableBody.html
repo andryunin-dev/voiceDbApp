@@ -1,6 +1,6 @@
 {% spaceless %}
         {% for dev in devices %}
-            <tr>
+            <tr class="js-table-row ui-widget-content">
                 {#City#}
                 <td>
                     <a href="{{ baseUrl }}?city_id={{ dev.cityId }}">{{ dev.city }}</a>
