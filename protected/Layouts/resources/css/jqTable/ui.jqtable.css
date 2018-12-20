@@ -90,5 +90,9 @@
 .jqtable .global-filter {
     height: 90% !important;
 }
+/*links in jqtable - blue*/
+.jqtable a {
+    color: #337ab7;
+}
 /**/
 
