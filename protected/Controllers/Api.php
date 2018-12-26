@@ -10,10 +10,17 @@ use T4\Mvc\Controller;
 class Api extends Controller
 {
     public function actionGetRegCenters() {
+        // respond to preflights
+        if($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+            exit;
+        }
+        $filters = json_decode(file_get_contents('php://input'));
+    
         $query = (new Query())
             ->select('regCenter')
             ->distinct()
             ->from(Geo_View::getTableName())
+            ->where('"regCenter" NOTNULL')
             ->order('"regCenter"');
         $res = Geo_View::findAllByQuery($query);
         $output = [];
@@ -21,8 +28,54 @@ class Api extends Controller
          * @var Geo_View $item
          */
         foreach ($res as $item) {
-            $output[] = ['volume' => $item->regCenter, 'label' => $item->regCenter];
+            $output[] = ['value' => $item->regCenter, 'label' => $item->regCenter];
         }
-        $this->data->data = $output;
+        $this->data->rc = $output;
+    }
+    public function actionGetRegions() {
+        // respond to preflights
+        if($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+            exit;
+        }
+        $filters = json_decode(file_get_contents('php://input'));
+    
+        $query = (new Query())
+            ->select(['region_id', 'region'])
+            ->distinct()
+            ->from(Geo_View::getTableName())
+            ->where('"region" NOTNULL')
+            ->order('"region"');
+        $res = Geo_View::findAllByQuery($query);
+        $output = [];
+        /**
+         * @var Geo_View $item
+         */
+        foreach ($res as $item) {
+            $output[] = ['value' => $item->region_id, 'label' => $item->region];
+        }
+        $this->data->rc = $output;
+    }
+    public function actionGetOffices() {
+        // respond to preflights
+        if($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+            exit;
+        }
+        $filters = json_decode(file_get_contents('php://input'));
+    
+        $query = (new Query())
+            ->select(['office_id', 'office'])
+            ->distinct()
+            ->from(Geo_View::getTableName())
+            ->where('"office_id" NOTNULL')
+            ->order('"office_id"');
+        $res = Geo_View::findAllByQuery($query);
+        $output = [];
+        /**
+         * @var Geo_View $item
+         */
+        foreach ($res as $item) {
+            $output[] = ['value' => $item->office_id, 'label' => $item->office];
+        }
+        $this->data->rc = $output;
     }
 }
