@@ -73,6 +73,8 @@
                     $(e.target).closest("table").find(".js-caret").toggleClass("caret-down");
                 }
             };
+            devTable.jqTable('addBodyEventHandler', 'click', "", toggleInnerTable);
+
             var highlightRow = function (e) {
                 var ws = e.data;
                 ws.obj.$body.find(".js-table-row.ui-state-highlight").removeClass("ui-state-highlight");
@@ -80,8 +82,19 @@
 
                 console.log('click on row')
             };
+            devTable.jqTable('addBodyEventHandler', 'click', "", highlightRow);
 
-            devTable.jqTable('addBodyEventHandler', 'click', "", toggleInnerTable);
+            const editDev = function (e) {
+                const isButtonPressed = $(e.target).hasClass('js-dev-edit') || $(e.target).parent().hasClass('js-dev-edit');
+                if (isButtonPressed) {
+                    e.stopPropagation();
+                    const devId = $(e.target).data('devId') || $(e.target).parent().data('devId')
+                    console.log('edit dev with ID ', devId)
+                    window.openEditModal(devId)
+                }
+            }
+            devTable.jqTable('addBodyEventHandler', 'click', "", editDev);
+
             devTable.jqTable('addHeaderEventHandler', 'click', "", function (e) {
                 if ($(e.target).parent().hasClass('finder-icon') || $(e.target).hasClass('finder-icon')) {
                     var ws = e.data;
@@ -99,7 +112,7 @@
                     }).focus()
                 }
             })
-            devTable.jqTable('addBodyEventHandler', 'click', "", highlightRow);
+
 
         });
     </script>

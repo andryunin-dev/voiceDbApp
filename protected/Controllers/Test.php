@@ -13,9 +13,20 @@ use T4\Core\Collection;
 use T4\Core\Std;
 use T4\Dbal\Query;
 use T4\Mvc\Controller;
+use T4\Mvc\Route;
 
 class Test extends Controller
 {
+    
+    public function actionTestApi() {
+        $data = [
+            'key1' => 'val1',
+            'key2' => 'val2',
+            'key3' => 'val3',
+        ];
+        var_dump(new Route());die;
+        $this->data->out = $data;
+    }
 
     public function actionConsolidationSource()
     {
