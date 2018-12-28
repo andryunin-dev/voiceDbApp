@@ -10,6 +10,7 @@ use App\ViewModels\DevGeo_View;
 use App\ViewModels\DevGeo_ViewMat;
 use App\ViewModels\DevPhoneInfoGeo;
 use App\ViewModels\DevPhoneInfoGeoMat;
+use App\ViewModels\HdsAgentsPhonesStatView;
 use T4\Core\Std;
 use T4\Mvc\Controller;
 
@@ -382,6 +383,125 @@ class TableConfigs extends Controller
             ->cssSetBodyTableClasses(["table", "bg-success", "table-bordered", "body-footer"])
             ->rowsOnPageList([10,50,100,200,'все'])
             ->tablePreFilter($tablePreFilter)
+            ->save();
+        var_dump($tab);
+        die;
+    }
+
+
+
+    public function actionAgentsPhonesStatsByModelsWithBodyFooter()
+    {
+        $tableName = 'devGeoPivotStatisticByAgentsPhonesWithBodyFooter';
+        $tableNameBF = $tableName . 'BF';
+        $ajaxHandlersURL = '/report/AgentsPhonesStatsReportHandler.json';
+        $className = HdsAgentsPhonesStatView::class;
+        $pivotWidthItems = '50px';
+
+        $columns = ['regionTitle', 'cityTitle', 'officeTitle', 'employees', 'hwPhonesActive', 'plPrefix', 'plPlatform', 'officeId'];
+        $pivots = [
+            'plPrefix' => ['name' => 'prefix'],
+            'plPlatform' => ['name' => 'platformTitle']
+        ];
+        $extraColumns = [];
+        $confColumns = [
+            'regionTitle' => ['id' => 'region','name' => 'Регион', 'width' => 10, 'sortable' => true, 'filterable' => true],
+            'cityTitle' => ['id' => 'city','name' => 'Город', 'width' => 10, 'sortable' => true, 'filterable' => true],
+            'officeTitle' => ['id' => 'office','name' => 'Офис', 'width' =>25, 'sortable' => true, 'filterable' => true],
+            'employees' => ['id' => 'people-v','name' => 'Сотрудников', 'width' => '50px'],
+            'hwPhonesActive' => ['id' => 'hw-phone-active-v','name' => 'HW Phones<br>(актив.)', 'width' => '50px', 'classes' => ['class_1', 'class_2']],
+            'plPrefix' => ['id' => 'pl-prefix-v','name' => 'stat-by-prefix'],
+            'plPlatform' => ['id' => 'pl-platform-v','name' => 'stat-by-platform'],
+            'officeId' => ['id' => 'office-id','name' => 'OfficeId', 'visible' => false],
+        ];
+        $sortTemplates = [
+            'region' => ['regionTitle' => '', 'cityTitle' => '', 'officeTitle' => ''],
+            'city' => ['cityTitle' => '', 'officeTitle' => ''],
+        ];
+        $pivotItemsSelectBy = ['officeId'];
+
+        $tab = (new PivotTableConfig($tableName, $className));
+        foreach ($pivots as $alias => $col) {
+            $tab->definePivotColumn($col['name'], $alias);
+        }
+
+        //=====================
+        $tab->columns($columns, $extraColumns)
+            ->sortOrderSets($sortTemplates)
+            ->sortBy('region');
+        foreach ($confColumns as $col => $conf)
+        {
+            $tab->columnConfig($col, new Std($conf));
+        }
+
+        $tab
+            ->dataUrl($ajaxHandlersURL)
+            ->tableWidth(100)
+
+            ->bodyFooterTableName($tableNameBF)
+            ->pivotItemsSelectBy('plPrefix', $pivotItemsSelectBy)
+            ->pivotItemsSelectBy('plPlatform', $pivotItemsSelectBy)
+            ->pivotSortBy('plPrefix', ['prefix'], 'asc')
+            ->pivotSortBy('plPlatform', ['platformTitle'], 'asc')
+            ->pivotWidthItems('plPrefix', $pivotWidthItems)
+            ->pivotWidthItems('plPlatform', $pivotWidthItems)
+            ->cssSetHeaderTableClasses(['bg-primary', 'table-bordered', 'table-header-rotated'])
+            ->cssSetBodyTableClasses(["table", "cell-bordered", "cust-table-striped"])
+            ->rowsOnPageList([10,50,100,200,500,'все'])
+            ->save();
+        var_dump($tab);
+
+        echo '===============body footer table config===============';
+        /*=============body footer table================*/
+
+        $columns = ['textField', 'employees', 'hwPhonesActive', 'plPrefix', 'plPlatform', 'officeId', 'applianceType'];
+        $pivots = [
+            'plPrefix' => ['name' => 'prefix'],
+            'plPlatform' => ['name' => 'platformTitle']
+        ];
+
+        $extraColumns = ['textField', 'employees'];
+
+        $confColumns = [
+            'textField' => ['id' => 'txt_field','name' => 'ИТОГО:', 'width' => 45, 'visible' => true],
+            'employees' => ['id' => 'people','name' => 'Сотр.', 'width' => '50px'],
+            'hwPhonesActive' => ['id' => 'hw-phone-active','name' => 'HW Phones<br>(актив.)', 'width' => '50px'],
+            'plPrefix' => ['id' => 'pl-prefix','name' => 'stat-by-prefix', 'width' => 65],
+            'plPlatform' => ['id' => 'pl-platform','name' => 'stat-by-platform', 'width' => 65],
+            'officeId' => ['id' => 'office-id', 'visible' => false],
+            'applianceType' => ['id' => 'appliance-type', 'visible' => false],
+        ];
+        $footerPivotItemsSelectBy = ['applianceType'];
+
+        $sortTemplates = [
+            'default' => [],
+        ];
+
+        /*=======make config================*/
+        $tab = (new PivotTableConfig($tableNameBF, $className));
+        foreach ($pivots as $alias => $col) {
+            $tab->definePivotColumn($col['name'], $alias);
+        }
+
+        $tab->columns($columns, $extraColumns)
+            ->sortOrderSets($sortTemplates)
+            ->sortBy('default');
+        foreach ($confColumns as $col => $conf)
+        {
+            $tab->columnConfig($col, new Std($conf));
+        }
+
+        $tab
+            ->dataUrl($ajaxHandlersURL)
+            ->tableWidth(100)
+            ->pivotItemsSelectBy('plPrefix', $footerPivotItemsSelectBy)
+            ->pivotItemsSelectBy('plPlatform', $footerPivotItemsSelectBy)
+            ->pivotSortBy('plPrefix', ['prefix'], 'asc')
+            ->pivotSortBy('plPlatform', ['platformTitle'], 'asc')
+            ->pivotWidthItems('plPrefix', $pivotWidthItems)
+            ->pivotWidthItems('plPlatform', $pivotWidthItems)
+            ->cssSetBodyTableClasses(["table", "bg-success", "table-bordered", "body-footer"])
+            ->rowsOnPageList([10,50,100,200,'все'])
             ->save();
         var_dump($tab);
         die;
