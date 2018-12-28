@@ -149,6 +149,7 @@ class DevModulePortGeo extends Model
         'm0stats' => ['column' => 'm0_calls_amount', 'predicate' => 'is'],
         'm1stats' => ['column' => 'm1_calls_amount', 'predicate' => 'is'],
         'm2stats' => ['column' => 'm2_calls_amount', 'predicate' => 'is'],
+        'ap_id' => 'appliance_id',
     ];
     public static $applianceTypeMap = [
         'switch' => 'SW',

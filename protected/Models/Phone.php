@@ -258,10 +258,10 @@ class Phone extends Appliance
                     if (!is_null($webNetConf)) {
                         $phoneData = array_merge($phoneData, $webNetConf);
                     }
-                    $webPortInfo = self::getDataFromWebPortInfo($registeredDevice['ipAddress'], $axlPhone['model']);
-                    if (!is_null($webPortInfo)) {
-                        $phoneData = array_merge($phoneData, $webPortInfo);
-                    }
+//                    $webPortInfo = self::getDataFromWebPortInfo($registeredDevice['ipAddress'], $axlPhone['model']);
+//                    if (!is_null($webPortInfo)) {
+//                        $phoneData = array_merge($phoneData, $webPortInfo);
+//                    }
                 } else {
                     $logger->info('PHONE:  [message]=It does not have web access; [model]=' . $axlPhone['model'] . '; [name]=' . $registeredDeviceName . '; [ip]=' . $registeredDevice['ipAddress'] . '; [publisher]=' . $cucmIp);
                 }

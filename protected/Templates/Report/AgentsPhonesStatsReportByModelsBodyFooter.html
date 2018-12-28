@@ -1,0 +1,11 @@
+{% spaceless %}
+        <tr class="js-table-row">
+        {% for colname, columnParams in columnsBF %}
+            <td>
+                {% if dataBF.getValue(colname) != 0 %}
+                    {{ dataBF.getValue(colname) }}
+                {% endif %}
+            </td>
+        {% endfor %}
+        </tr>
+{% endspaceless %}
