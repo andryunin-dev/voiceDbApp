@@ -19,9 +19,10 @@ use App\Models\Module;
 use App\Models\Software;
 use App\Models\Vendor;
 use App\ViewModels\DevCallsStats;
-use T4\Core\Exception;
+use App\ViewModels\HdsAgentsPhonesStatView;
 use T4\Core\Std;
 use T4\Core\Url;
+use T4\Dbal\Query;
 use T4\Http\Helpers;
 use T4\Http\Request;
 use T4\Mvc\Controller;
@@ -76,7 +77,7 @@ class Report extends Controller
                 $config = Table::buildConfig($tableName);
 
                 return $this->data->config = $config;
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 return $this->data->config = new Std();
             }
         }
@@ -204,6 +205,150 @@ class Report extends Controller
             $this->data->exception = $e->getMessage();
         }
 
+    }
+
+
+    public function actionAgentsPhonesStatsReport()
+    {
+        $this->data->activeLink->phonesReports = true;
+    }
+
+    public function actionAgentsPhonesStatsReportHandler()
+    {
+        try {
+            $headerTemplate = 'AgentsPhonesStatsReportByModelsHeader.html';
+            $bodyTemplate = 'AgentsPhonesStatsReportByModelsBody.html';
+            $bodyFooterTemplate = 'AgentsPhonesStatsReportByModelsBodyFooter.html';
+            $request = (new Request());
+            $request = (0 == $request->get->count()) ? $request = $request->post : $request->get;
+            foreach ($request as $key => $value ) {
+                switch ($key) {
+                    case 'header':
+                        $data['columns'] = $value->columns->toArrayRecursive();
+                        $data['user'] = $this->data->user;
+                        $this->data->header->html = $this->view->render($headerTemplate, $data);
+                        break;
+                    case 'body':
+                        $request = $request->body;
+                        $tbConf = Table::getTableConfig($request->tableName);
+                        $tb = Table::getTable($tbConf);
+                        $tabFilter = new SqlFilter($tbConf->className());
+                        if (isset($request->tableFilter)) {
+                            $filterSet = $request->tableFilter->toArray();
+                            $tabFilter->setFilterFromArray($filterSet);
+                        }
+                        $tb->addFilter($tabFilter, 'append');
+                        $tb->paginationUpdate($request->pager->page, $request->pager->rowsOnPage);
+                        $tbData = $tb->getRecordsByPage();
+
+                        $tbDataBF = [];
+                        foreach ($tbData as $dataKey => $values) {
+                            $tbData[$dataKey] = new RecordItem($tbData[$dataKey]);
+
+                            foreach ($request->bodyFooter as $columnBFName => $v) {
+                                if ($columnBFName == 'textField') {
+                                    $tbDataBF[$columnBFName] = $v['name'];
+                                    continue;
+                                }
+
+                                $value = 0;
+                                if (isset($values[$columnBFName])) {
+                                    $value = $values[$columnBFName];
+                                } elseif (isset($values['plPrefix'][$columnBFName])) {
+                                    $value = $values['plPrefix'][$columnBFName];
+                                } elseif (isset($values['plPlatform'][$columnBFName])) {
+                                    $value = $values['plPlatform'][$columnBFName];
+                                }
+                                $tbDataBF[$columnBFName] += $value;
+                            }
+                        }
+                        $tbDataBF = new RecordItem($tbDataBF);
+
+                        //==========end================
+                        $data['data'] = $tbData;
+                        $data['columns'] = $request->columns;
+                        $data['columnsBF'] = $request->bodyFooter;
+                        $data['dataBF'] = $tbDataBF;
+                        $data['linkUrl'] = '/report/agentsPhonesStatsReportL';
+                        //==========end================
+
+                        //=============render templates=============
+                        $this->data->body->html = $this->view->render($bodyTemplate, $data);
+                        $this->data->bodyFooter->html = $this->view->render($bodyFooterTemplate, $data);
+                        $this->data->body->tableFilter = $tabFilter;
+                        $this->data->body->pager = $request->pager;
+                        $this->data->body->pager->page = $tb->currentPage();
+                        $this->data->body->pager->pages = $tb->numberOfPages();
+                        $this->data->body->pager->records = $tb->numberOfRecords();
+                        $info[] = 'Записей: ' . $tb->numberOfRecords();
+                        $this->data->body->info = $info;
+                        break;
+                    case 'headerFilter':
+                        $tb = new PivotTable(new PivotTableConfig($request->tableName));
+                        $filter = $request->headerFilter->filter;
+                        $column = $filter->column;
+
+                        $tbFilter = new SqlFilter($tb->config->className());
+                        if (isset($request->headerFilter->tableFilter) && $request->headerFilter->tableFilter instanceof Std) {
+                            $tbFilter ->addFilterFromArray($request->headerFilter->tableFilter->toArray());
+                        }
+                        $tbFilter->removeFilter($column);
+                        $tb->addFilter($tbFilter, 'append');
+
+                        $values[] = $filter->value . '%';
+                        $sqlFilter = (new SqlFilter($tb->config->className()))
+                            ->setFilter($filter->column, $filter->statement, $values);
+                        $tb->addFilter($sqlFilter, 'append');
+                        $this->data->result = $tb->distinctColumnValues($column);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        } catch (\Exception $e) {
+            $this->data->exception = $e->getMessage();
+        }
+
+    }
+
+    public function actionAgentsPhonesStatsReportL()
+    {
+        try {
+            // Get query args
+            $request = (new Request());
+            $linkUrl = $request->url->protocol.'://'.$request->url->host.'/device/info?ap_id=';
+            $request = (0 != $request->get->count()) ? $request->get : null;
+            if (is_null($request)) {
+                throw new \Exception('404 error: Page not found');
+            }
+
+            // Get Appliances By Query
+            $where = '"officeId" = :officeId';
+            $params = [':officeId' => $request->loc_id];
+            if (isset($request->pr)) {
+                $where .= ' AND prefix = :prefix';
+                $params[':prefix'] = $request->pr;
+            }
+            if (isset($request->pl)) {
+                $where .= ' AND "platformTitle" = :platformTitle';
+                $params[':platformTitle'] = $request->pl;
+            }
+            $query = (new Query())
+                ->distinct()
+                ->select('applianceId')
+                ->from(HdsAgentsPhonesStatView::getTableName())
+                ->where($where);
+            $appliances = HdsAgentsPhonesStatView::findAllByQuery($query, $params);
+            $ids = '';
+            foreach ($appliances as $appliance) {
+                $ids .= empty($ids) ? $appliance->applianceId : ','.$appliance->applianceId;
+            }
+
+            header('Location: ' . $linkUrl.$ids);
+        } catch (\Exception $e) {
+            $this->data->exception = $e->getMessage();
+        }
+        die;
     }
 
 
