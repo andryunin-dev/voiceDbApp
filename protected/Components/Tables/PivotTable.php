@@ -118,7 +118,8 @@ class PivotTable extends Table implements PivotTableInterface
 
         $bodyFooterTable = $this->config->bodyFooterTableName();
         if (! empty($bodyFooterTable)) {
-            $tbConf->bodyFooter = Table::buildConfig($bodyFooterTable);
+            $bodyFooter = Table::buildConfig($bodyFooterTable);
+            $tbConf->bodyFooter = $bodyFooter;
             //copy styles for body footer table to common section for styles
             $tbConf->styles->bodyFooter = $tbConf->bodyFooter->styles->body;
         }
@@ -174,8 +175,9 @@ class PivotTable extends Table implements PivotTableInterface
                 $innerClause_1 = array_map(function($item) {
                     return $this->driver->quoteName('t3.' . $item) . ' = ' . $this->driver->quoteName('t1.' . $item);
                 }, $pivotItemsSelectBy);
-                $innerClause_1 = empty($innerClause_1) ? '' : ' AND ' . implode(' AND ', $innerClause_1);
+
                 $innerFilterStatement = $pivPreFilter->filterStatement();
+                $innerClause_1 = empty($innerClause_1) ? '' : (empty($innerFilterStatement) ? implode(' AND ', $innerClause_1) : ' AND ' . implode(' AND ', $innerClause_1));
                 if (! empty($innerClause_1) || !empty($innerFilterStatement)) {
                     $pivotSql .= 'WHERE ' . $innerFilterStatement . $innerClause_1 . "\n";
                 }
@@ -224,7 +226,7 @@ class PivotTable extends Table implements PivotTableInterface
         $columns = array_diff($columns, $this->config->extraColumns->toArray(), $calculatedColumns);
         $this->mergedFilter = $this->config->tablePreFilter()->mergeWith($this->filter, 'ignore');
 
-        $sql = 'SELECT DISTINCT ' . $column . "\n";
+        $sql = 'SELECT DISTINCT "' . $column . '"' . "\n";
         $sql .= 'FROM ' . $table . "\n";
         $whereClause = $this->mergedFilter->filterStatement();
         if (! empty($whereClause)) {

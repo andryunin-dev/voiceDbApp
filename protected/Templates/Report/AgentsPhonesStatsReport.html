@@ -1,0 +1,62 @@
+{% extends 'Index.html' %}
+
+{% block main %}
+    <div class="row">
+        <div class="col-xs-12">
+            <table id="dev_tab">
+                <thead>
+                <tr>
+                    <th></th>
+                </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+
+{% endblock %}
+
+
+
+{% block JS %}
+    <script>
+
+        jQuery(function ($) {
+            var tableName = "devGeoPivotStatisticByAgentsPhonesWithBodyFooter";
+            var highlightRow = function (e) {
+                var ws = e.data;
+                ws.obj.$body.find(".js-table-row.ui-state-highlight").removeClass("ui-state-highlight");
+                $(e.target).closest(".js-table-row").addClass("ui-state-highlight");
+
+                console.log('click on row')
+            };
+            $.ajax({
+                url: '/report/tableSettings.json',
+                dataType: "json",
+                data: {
+                    tableName: tableName
+                }
+            })
+                .done(function(data) {
+                    console.log(data.config);
+                    var tableSettings = data.config;
+                    var devTable = $("#dev_tab");
+                    devTable.jqTable(tableSettings);
+                    devTable.jqTable('updateBodyContent', {}, window.location.href);
+                    devTable.jqTable('addBodyEventHandler', 'click', "", highlightRow);
+                });
+        });
+    </script>
+
+    <script>
+        var APP = APP || {};
+        if ("{{exportUrl}}") {
+            $("#excelExport").removeClass("hidden");
+            APP.setLink("#excelExport", "{{ exportUrl }}");
+        }
+        if ("{{eraseLogUrl}}") {
+        $("#eraseLog").removeClass("hidden");
+        APP.setLink("#eraseLog", "{{ eraseLogUrl }}");
+        }
+
+    </script>
+{% endblock %}
