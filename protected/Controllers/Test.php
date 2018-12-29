@@ -6,6 +6,7 @@ use App\ConsolidationTablesModels\ConsolidationTable_1;
 use App\MappingModels\LotusLocation;
 use App\Models\Appliance;
 use App\Models\ApplianceType;
+use App\ViewModels\ApiView_Geo;
 use App\ViewModels\DevGeo_View;
 use App\ViewModels\DevModulePortGeo;
 use App\ViewModels\MappedLocations_View;
@@ -17,15 +18,15 @@ use T4\Mvc\Route;
 
 class Test extends Controller
 {
-    
     public function actionTestApi() {
-        $data = [
-            'key1' => 'val1',
-            'key2' => 'val2',
-            'key3' => 'val3',
-        ];
-        var_dump(new Route());die;
-        $this->data->out = $data;
+        $query = (new Query())
+            ->select(['location_id', 'office'])
+            ->from(ApiView_Geo::getTableName())
+//            ->where(join(' AND ', $condition))
+            ->group('location_id, office')
+            ->order('"office"');
+        $res = ApiView_Geo::findAllByQuery($query)->toArrayRecursive();
+        $this->data->res = $res;
     }
 
     public function actionConsolidationSource()

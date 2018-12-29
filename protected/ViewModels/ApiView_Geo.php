@@ -2,15 +2,32 @@
 
 namespace App\ViewModels;
 
-class ApiGeo
+use T4\Orm\Model;
+
+/**
+ * Class ApiView_Geo
+ * @package App\ViewModels
+ * @property integer location_id
+ * @property integer office_lotus_id
+ * @property integer office_status_id
+ * @property integer city_id
+ * @property integer region_id
+ * @property string office
+ * @property string office_comment
+ * @property string office_status
+ * @property string office_address
+ * @property string city
+ * @property string region
+ */
+class ApiView_Geo extends Model
 {
     protected static $schema = [
-        'table' => 'view.api_view',
+        'table' => 'api_view.geo',
         'columns' => [
             'location_id' => ['type' => 'int', 'length' => 'big'],
             'office' => ['type' => 'string'],
             'office_lotus_id' => ['type' => 'int'],
-            'office_details' => ['type' => 'string'],
+            'office_details' => ['type' => 'json'],
             'office_comment' => ['type' => 'string'],
             'office_status_id' => ['type' => 'int', 'length' => 'big'],
             'office_status' => ['type' => 'string'],

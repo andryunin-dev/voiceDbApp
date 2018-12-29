@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\Region;
+use App\ViewModels\ApiView_Geo;
 use App\ViewModels\Geo_View;
 use T4\Core\Std;
 use T4\Dbal\Query;
@@ -38,18 +39,21 @@ class Api extends Controller
         if($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
             exit;
         }
-        $filters = json_decode(file_get_contents('php://input'));
-    
+        $filters = new Std(json_decode(file_get_contents('php://input')));
+        $condition = ['region_id NOTNULL'];
+        if (! empty($filters->value)) {
+            $condition[] = $filters->accessor . $filters->statement . $filters->value;
+        }
         $query = (new Query())
             ->select(['region_id', 'region'])
-            ->distinct()
-            ->from(Geo_View::getTableName())
-            ->where('"region" NOTNULL')
-            ->order('"region"');
-        $res = Geo_View::findAllByQuery($query);
+            ->from(ApiView_Geo::getTableName())
+            ->where(join(' AND ', $condition))
+            ->group('region_id, region')
+            ->order('region');
+        $res = ApiView_Geo::findAllByQuery($query);
         $output = [];
         /**
-         * @var Geo_View $item
+         * @var ApiView_Geo $item
          */
         foreach ($res as $item) {
             $output[] = ['value' => $item->region_id, 'label' => $item->region];
@@ -62,23 +66,23 @@ class Api extends Controller
             exit;
         }
         $filters = new Std(json_decode(file_get_contents('php://input')));
-        $condition = ['"office_id" NOTNULL'];
+        $condition = ['location_id NOTNULL'];
         if (! empty($filters->value)) {
             $condition[] = $filters->accessor . $filters->statement . $filters->value;
         }
         $query = (new Query())
-            ->select(['office_id', 'office'])
-            ->distinct()
-            ->from(Geo_View::getTableName())
+            ->select(['location_id', 'office'])
+            ->from(ApiView_Geo::getTableName())
             ->where(join(' AND ', $condition))
-            ->order('"office_id"');
-        $res = Geo_View::findAllByQuery($query);
+            ->group('location_id, office')
+            ->order('"office"');
+        $res = ApiView_Geo::findAllByQuery($query);
         $output = [];
         /**
-         * @var Geo_View $item
+         * @var ApiView_Geo $item
          */
         foreach ($res as $item) {
-            $output[] = ['value' => $item->office_id, 'label' => $item->office];
+            $output[] = ['value' => $item->location_id, 'label' => $item->office];
         }
         $this->data->rc = $output;
     }
