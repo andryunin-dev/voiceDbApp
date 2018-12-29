@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\Region;
 use App\ViewModels\Geo_View;
+use T4\Core\Std;
 use T4\Dbal\Query;
 use T4\Mvc\Controller;
 
@@ -60,13 +61,16 @@ class Api extends Controller
         if($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
             exit;
         }
-        $filters = json_decode(file_get_contents('php://input'));
-    
+        $filters = new Std(json_decode(file_get_contents('php://input')));
+        $condition = ['"office_id" NOTNULL'];
+        if (! empty($filters->value)) {
+            $condition[] = $filters->accessor . $filters->statement . $filters->value;
+        }
         $query = (new Query())
             ->select(['office_id', 'office'])
             ->distinct()
             ->from(Geo_View::getTableName())
-            ->where('"office_id" NOTNULL')
+            ->where(join(' AND ', $condition))
             ->order('"office_id"');
         $res = Geo_View::findAllByQuery($query);
         $output = [];
