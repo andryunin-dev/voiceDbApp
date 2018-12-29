@@ -1,0 +1,27 @@
+{% spaceless %}
+    {% for record in data %}
+        <tr class="js-table-row ui-widget-content">
+        {% for colname, columnParams in columns %}
+
+            {% if columnParams.isPivot and columnParams.pivotColumn == 'plPrefix' %}
+                {% set pivColumn = columnParams.pivotColumn  %}
+                {% set pivObj = record.getValue(pivColumn) %}
+                <td>
+                    <a href="{{ linkUrl }}?loc_id={{ record.getValue('officeId') }}&pr={{ colname }}">{{ pivObj.getValue(colname) }}</a>
+                </td>
+            {% elseif columnParams.isPivot and columnParams.pivotColumn == 'plPlatform' %}
+                {% set pivColumn = columnParams.pivotColumn  %}
+                {% set pivObj = record.getValue(pivColumn) %}
+                <td>
+                    <a href="{{ linkUrl }}?loc_id={{ record.getValue('officeId') }}&pl={{ colname }}">{{ pivObj.getValue(colname) }}</a>
+                </td>
+            {% else %}
+                {% set val = record.getValue(colname) %}
+                <td>{{ val }}</td>
+            {% endif %}
+
+        {% endfor %}
+        </tr>
+    {% endfor %}
+
+{% endspaceless %}
