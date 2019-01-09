@@ -60,6 +60,32 @@ class Api extends Controller
         }
         $this->data->rc = $output;
     }
+    public function actionGetCities() {
+        // respond to preflights
+        if($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+            exit;
+        }
+        $filters = new Std(json_decode(file_get_contents('php://input')));
+        $condition = ['city_id NOTNULL'];
+        if (! empty($filters->value)) {
+            $condition[] = $filters->accessor . $filters->statement . $filters->value;
+        }
+        $query = (new Query())
+            ->select(['city_id', 'city'])
+            ->from(ApiView_Geo::getTableName())
+            ->where(join(' AND ', $condition))
+            ->group('city_id, city')
+            ->order('city');
+        $res = ApiView_Geo::findAllByQuery($query);
+        $output = [];
+        /**
+         * @var ApiView_Geo $item
+         */
+        foreach ($res as $item) {
+            $output[] = ['value' => $item->city_id, 'label' => $item->city];
+        }
+        $this->data->rc = $output;
+    }
     public function actionGetOffices() {
         // respond to preflights
         if($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
