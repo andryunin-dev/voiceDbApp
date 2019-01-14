@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\ViewModels\ApiView_Devices;
 use App\ViewModels\ApiView_Geo;
 use App\ViewModels\Geo_View;
+use T4\Core\Exception;
 use T4\Core\Std;
 use T4\Dbal\Query;
 use T4\Mvc\Controller;
@@ -216,13 +217,73 @@ class Api extends Controller
             'dev_details', 'software_details'
         ];
         $condition = 'dev_id = :dev_id';
-        $query = (new Query())
-            ->select($fields)
-            ->from(ApiView_Devices::getTableName())
-            ->where($condition)
-            ->group(join(',',$fields))
-            ->params([':dev_id' => $id]);
-        $res = ApiView_Devices::findAllByQuery($query);
-        $this->data->rc = $res->toArrayRecursive();
+        try {
+            $query = (new Query())
+                ->select($fields)
+                ->from(ApiView_Devices::getTableName())
+                ->where($condition)
+                ->group(join(',',$fields))
+                ->params([':dev_id' => $id]);
+            $res = ApiView_Devices::findByQuery($query);
+            
+            $this->data->devInfo = $res;
+        } catch (Exception $e) {
+            http_response_code(417);
+        }
+        
+    }
+    public function actionGetDevModulesData($id)
+    {
+        // respond to preflights
+        if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+            exit;
+        }
+        $fields = [
+            'module' ,'module_item_id', 'module_item_details',  'module_item_comment', 'module_item_sn', 'module_in_use', 'module_not_found'
+        ];
+        $condition = 'dev_id = :dev_id';
+        try {
+            $query = (new Query())
+                ->select($fields)
+                ->from(ApiView_Devices::getTableName())
+                ->where($condition)
+                ->group(join(',',$fields))
+                ->order('module')
+                ->params([':dev_id' => $id]);
+            $res = ApiView_Devices::findAllByQuery($query);
+
+            $res = $res->toArrayRecursive();
+            $this->data->modulesInfo = $res;
+        } catch (Exception $e) {
+            http_response_code(417);
+        }
+        
+    }
+    public function actionGetDevPortsData($id)
+    {
+        // respond to preflights
+        if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+            exit;
+        }
+        $fields = [
+            'port_id', 'port_ip', 'port_comment', 'port_details', 'port_is_mng', 'port_mac', 'port_mask_len'
+        ];
+        $condition = 'dev_id = :dev_id';
+        try {
+            $query = (new Query())
+                ->select($fields)
+                ->from(ApiView_Devices::getTableName())
+                ->where($condition)
+                ->group(join(',',$fields))
+                ->order('port_details::jsonb->>\'portName\'')
+                ->params([':dev_id' => $id]);
+            $res = ApiView_Devices::findAllByQuery($query);
+
+            $res = $res->toArrayRecursive();
+            $this->data->portsInfo= $res;
+        } catch (Exception $e) {
+            http_response_code(417);
+        }
+        
     }
 }
