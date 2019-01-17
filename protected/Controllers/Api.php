@@ -253,7 +253,7 @@ class Api extends Controller
             $res = ApiView_Devices::findAllByQuery($query);
 
             $res = $res->toArrayRecursive();
-            $this->data->modulesInfo = $res;
+            $this->data->modules = $res;
         } catch (Exception $e) {
             http_response_code(417);
         }
@@ -280,7 +280,32 @@ class Api extends Controller
             $res = ApiView_Devices::findAllByQuery($query);
 
             $res = $res->toArrayRecursive();
-            $this->data->portsInfo= $res;
+            $this->data->ports= $res;
+        } catch (Exception $e) {
+            http_response_code(417);
+        }
+        
+    }
+    public function actionGetDevLocation($location_id)
+    {
+        // respond to preflights
+        if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+            exit;
+        }
+        $fields = [
+            'location_id', 'city_id', 'region_id', 'office_comment'
+        ];
+        $condition = 'location_id = :location_id';
+        try {
+            $query = (new Query())
+                ->select($fields)
+                ->from(ApiView_Geo::getTableName())
+                ->where($condition)
+                ->group(join(',',$fields))
+                ->params([':location_id' => $location_id]);
+            $res = ApiView_Geo::findByQuery($query);
+
+            $this->data->location= $res;
         } catch (Exception $e) {
             http_response_code(417);
         }
