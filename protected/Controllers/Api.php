@@ -2,6 +2,9 @@
 
 namespace App\Controllers;
 
+use App\ApiHelpers\DevInfo;
+use App\Models\Office;
+use App\Models\Vendor;
 use App\ViewModels\ApiView_Devices;
 use App\ViewModels\ApiView_Geo;
 use App\ViewModels\Geo_View;
@@ -310,5 +313,40 @@ class Api extends Controller
             http_response_code(417);
         }
         
+    }
+    
+    public function actionSaveDev() {
+        if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+            exit;
+        }
+        try {
+            $data = new Std(json_decode(file_get_contents('php://input')));
+            $data = new DevInfo($data);
+            if (!($data instanceof DevInfo)) {
+                $errors[] = 'Invalid input data';
+                throw new Exception();
+            }
+            $errors = $data->errors;
+            $count = $errors->count();
+        } catch (Exception $e) {
+            $this->data->errors = $errors;
+        } catch (\Exception $e) {
+            $this->data->exception = $e;
+        }
+    }
+    public function actionPostTest() {
+        if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+            exit;
+        }
+        $errors = [];
+        try {
+            $data = new Std(json_decode(file_get_contents('php://input')));
+            if (($data instanceof Std)) {
+                $errors[] = 'Invalid input data';
+                throw new Exception();
+            }
+        } catch (Exception $e) {
+            $this->data->errors = $errors;
+        }
     }
 }
