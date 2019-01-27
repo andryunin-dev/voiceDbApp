@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\ApiHelpers\DevInfo;
+use App\Models\Appliance;
 use App\Models\Office;
 use App\Models\Vendor;
 use App\ViewModels\ApiView_Devices;
@@ -242,7 +243,7 @@ class Api extends Controller
             exit;
         }
         $fields = [
-            'module' ,'module_item_id', 'module_item_details',  'module_item_comment', 'module_item_sn', 'module_in_use', 'module_not_found'
+            'module', 'module_id' ,'module_item_id', 'module_item_details',  'module_item_comment', 'module_item_sn', 'module_in_use', 'module_not_found'
         ];
         $condition = 'dev_id = :dev_id';
         try {
@@ -315,7 +316,8 @@ class Api extends Controller
         
     }
     
-    public function actionSaveDev() {
+    public function actionSaveDev()
+    {
         if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
             exit;
         }
@@ -326,15 +328,19 @@ class Api extends Controller
                 $errors[] = 'Invalid input data';
                 throw new Exception();
             }
-            $errors = $data->errors;
-            $count = $errors->count();
+            if ($data->errors->count() === 0) {
+                $data->saveDev();
+            } else {
+                throw new Exception();
+            }
         } catch (Exception $e) {
             $this->data->errors = $errors;
         } catch (\Exception $e) {
             $this->data->exception = $e;
         }
     }
-    public function actionPostTest() {
+    public function actionPostTest()
+    {
         if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
             exit;
         }
@@ -348,5 +354,19 @@ class Api extends Controller
         } catch (Exception $e) {
             $this->data->errors = $errors;
         }
+    }
+    public function actionGetApp($id) {
+        $app = Appliance::findByPK($id);
+        var_dump($app);
+        var_dump('============OFFICE============');
+        $office = ($app instanceof Appliance) ? $app->location : null;
+        var_dump($office);
+        var_dump('============MODULES============');
+        $modules = ($app instanceof Appliance) ? $app->modules : null;
+        var_dump($modules);
+        var_dump('============PORTS============');
+        $ports = ($app instanceof Appliance) ? $app->dataPorts : null;
+        var_dump($ports);
+        die;
     }
 }
