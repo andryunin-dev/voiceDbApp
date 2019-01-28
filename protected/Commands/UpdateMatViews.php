@@ -18,6 +18,18 @@ class UpdateMatViews extends Command
             $res = $conn->execute($sql);
         }
     }
+    public function actionLotusDbPhoneBook()
+    {
+        $sql = 'REFRESH MATERIALIZED VIEW "view"."lotus_db_phone_book"';
+
+        $dbList = [
+            'default',
+        ];
+        foreach ($dbList as $db) {
+            $conn = $this->app->db->$db;
+            $res = $conn->execute($sql);
+        }
+    }
 
     public function actionDevPhoneInfoGeo()
     {
