@@ -6,6 +6,7 @@ use App\ApiHelpers\DevInfo;
 use App\Models\Appliance;
 use App\Models\Office;
 use App\Models\Vendor;
+use App\Models\Vrf;
 use App\ViewModels\ApiView_Devices;
 use App\ViewModels\ApiView_Geo;
 use App\ViewModels\Geo_View;
@@ -270,7 +271,7 @@ class Api extends Controller
             exit;
         }
         $fields = [
-            'port_id', 'port_ip', 'port_comment', 'port_details', 'port_is_mng', 'port_mac', 'port_mask_len'
+            'port_id', 'port_ip', 'port_comment', 'port_details', 'port_is_mng', 'port_mac', 'port_mask_len', 'port_vrf_id', 'port_vrf_name'
         ];
         $condition = 'dev_id = :dev_id';
         try {
@@ -310,6 +311,27 @@ class Api extends Controller
             $res = ApiView_Geo::findByQuery($query);
 
             $this->data->location= $res;
+        } catch (Exception $e) {
+            http_response_code(417);
+        }
+        
+    }
+    public function actionGetVrfList()
+    {
+        // respond to preflights
+        if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+            exit;
+        }
+        $fields = [
+            '__id', 'name', 'rd', 'comment'
+        ];
+        try {
+            $query = (new Query())
+                ->select($fields)
+                ->from(Vrf::getTableName());
+            $res = Vrf::findAllByQuery($query);
+
+            $this->data->vrfList= $res->toArrayRecursive();
         } catch (Exception $e) {
             http_response_code(417);
         }
