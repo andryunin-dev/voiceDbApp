@@ -10,6 +10,7 @@ use App\Models\Office;
 use App\Models\Platform;
 use App\Models\Software;
 use App\Models\Vendor;
+use App\Models\Vrf;
 use T4\Core\Exception;
 use T4\Core\Std;
 
@@ -141,24 +142,24 @@ class DevInfo extends Std
             ])
             ->save();
         //save modules
-        foreach ($this->rawData->modules as $upModule) {
-            if($upModule->newModule === true) {
+        foreach ($this->rawData->modules as $updatedModule) {
+            if($updatedModule->newModule === true) {
                 $moduleItem = new ModuleItem();
-                if (false === $module = Module::findByPK($upModule->module_id)) {
+                if (false === $module = Module::findByPK($updatedModule->module_id)) {
                     $this->errors[] = 'Save data error for new module item';
                     continue;
                 }
             } else {
                 if (
-                    false === ($module = Module::findByPK($upModule->module_id)) ||
-                        false === ($moduleItem = ModuleItem::findByPK($upModule->module_item_id))
+                    false === ($module = Module::findByPK($updatedModule->module_id)) ||
+                        false === ($moduleItem = ModuleItem::findByPK($updatedModule->module_item_id))
                 ) {
-                    $this->errors[] = 'Save data error for module item ' . $upModule->module_item_id;
+                    $this->errors[] = 'Save data error for module item ' . $updatedModule->module_item_id;
                     continue;
                 }
             }
             
-            if ($upModule->deleted === true) {
+            if ($updatedModule->deleted === true) {
                 $moduleItem->delete();
                 continue;
             }
@@ -166,14 +167,23 @@ class DevInfo extends Std
                 ->fill([
                     'appliance' => $this->currentAppliance,
                     'module' => $module,
-                    'details' => $upModule->module_item_details,
-                    'serialNumber' => $upModule->module_item_sn,
+                    'details' => $updatedModule->module_item_details,
+                    'serialNumber' => $updatedModule->module_item_sn,
                     'location' => $this->office,
-                    'comment' => $upModule->module_item_comment,
-                    'inUse' => $upModule->module_item_in_use,
-                    'noFound' => $upModule->module_item_not_found
+                    'comment' => $updatedModule->module_item_comment,
+                    'inUse' => $updatedModule->module_item_in_use,
+                    'noFound' => $updatedModule->module_item_not_found
                 ])
                 ->save();
+        }
+        //save ports
+        foreach ($this->rawData->ports as $updatedPort) {
+            $test = isset($updatedPort->newPort);
+            if (isset($updatedPort->newPort) && $updatedPort->newPort === true) {
+                $vrf = Vrf::findByPK($updatedPort->port_vrf_id);
+            } else {
+            
+            }
         }
 
     }
