@@ -4,6 +4,8 @@ namespace App\ApiHelpers;
 
 use App\Models\Appliance;
 use App\Models\ApplianceType;
+use App\Models\DataPort;
+use App\Models\DPortType;
 use App\Models\Module;
 use App\Models\ModuleItem;
 use App\Models\Office;
@@ -86,6 +88,7 @@ class DevInfo extends Std
             $errors[] = 'Office is not found';
         }
     }
+    
     protected function checkDevInfo($data)
     {
         if (!isset($data->devInfo)) {
@@ -111,6 +114,7 @@ class DevInfo extends Std
             $errors[] = 'Office is not found';
         }
     }
+    
     public function saveDev()
     {
         // Appliance->details
@@ -143,7 +147,7 @@ class DevInfo extends Std
             ->save();
         //save modules
         foreach ($this->rawData->modules as $updatedModule) {
-            if($updatedModule->newModule === true) {
+            if ($updatedModule->newModule === true) {
                 $moduleItem = new ModuleItem();
                 if (false === $module = Module::findByPK($updatedModule->module_id)) {
                     $this->errors[] = 'Save data error for new module item';
@@ -152,7 +156,7 @@ class DevInfo extends Std
             } else {
                 if (
                     false === ($module = Module::findByPK($updatedModule->module_id)) ||
-                        false === ($moduleItem = ModuleItem::findByPK($updatedModule->module_item_id))
+                    false === ($moduleItem = ModuleItem::findByPK($updatedModule->module_item_id))
                 ) {
                     $this->errors[] = 'Save data error for module item ' . $updatedModule->module_item_id;
                     continue;
@@ -178,13 +182,11 @@ class DevInfo extends Std
         }
         //save ports
         foreach ($this->rawData->ports as $updatedPort) {
-            $test = isset($updatedPort->newPort);
-            if (isset($updatedPort->newPort) && $updatedPort->newPort === true) {
-                $vrf = Vrf::findByPK($updatedPort->port_vrf_id);
-            } else {
-            
+            if ($updatedPort->newPort === true) {
+                if ($updatedPort->deleted === true) {
+                    continue;
+                }
             }
         }
-
     }
 }
