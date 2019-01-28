@@ -32,6 +32,9 @@
             <th>Модель коммутатора</th>
             <th>ИНВ коммутатора</th>
             <th>Имя коммутатора</th>
+            <th>МОЛ email</th>
+            <th>Польз email</th>
+            <th>МОЛ_польз</th>
         </tr>
         </thead>
         <tbody>
@@ -67,6 +70,9 @@
                 <td>{{ item.gw_platform }}</td>
                 <td>{{ item.gw_invNumber }}</td>
                 <td>{{ item.cdpNeighborDeviceId }}</td>
+                <td>{{ item.molEmail }}</td>
+                <td>{{ item.userEmail }}</td>
+                <td>{{ item.molIsUser }}</td>
             </tr>
         {% endfor %}
         </tbody>
