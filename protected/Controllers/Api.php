@@ -8,7 +8,10 @@ use App\Models\Office;
 use App\Models\Vendor;
 use App\Models\Vrf;
 use App\ViewModels\ApiView_Devices;
+use App\ViewModels\ApiView_DPorts;
 use App\ViewModels\ApiView_Geo;
+use App\ViewModels\ApiView_Modules;
+use App\ViewModels\ApiView_Vrfs;
 use App\ViewModels\Geo_View;
 use T4\Core\Exception;
 use T4\Core\Std;
@@ -23,14 +26,20 @@ class Api extends Controller
         if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
             exit;
         }
-        $filters = json_decode(file_get_contents('php://input'));
-        
+        $table = Geo_View::getTableName();
+        $filters = new Std(json_decode(file_get_contents('php://input')));
+        $condition = ['"regCenter" NOTNULL'];
+        $fields = ['"regCenter"'];
+        $orderBy = ['"regCenter"'];
+        if (!empty($filters->value)) {
+            $condition[] = $filters->accessor . $filters->statement . $filters->value;
+        }
         $query = (new Query())
-            ->select('regCenter')
-            ->distinct()
-            ->from(Geo_View::getTableName())
-            ->where('"regCenter" NOTNULL')
-            ->order('"regCenter"');
+            ->select(join(',',$fields))
+            ->from($table)
+            ->where(join(' AND ', $condition))
+            ->group(join(',',$fields))
+            ->order(join(',',$orderBy));
         $res = Geo_View::findAllByQuery($query);
         $output = [];
         /**
@@ -39,7 +48,7 @@ class Api extends Controller
         foreach ($res as $item) {
             $output[] = ['value' => $item->regCenter, 'label' => $item->regCenter];
         }
-        $this->data->rc = $output;
+        $this->data->regCenters = $output;
     }
     
     public function actionGetRegions()
@@ -48,17 +57,20 @@ class Api extends Controller
         if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
             exit;
         }
+        $table = ApiView_Geo::getTableName();
         $filters = new Std(json_decode(file_get_contents('php://input')));
         $condition = ['region_id NOTNULL'];
+        $fields = ['region_id', 'region'];
+        $orderBy = ['region'];
         if (!empty($filters->value)) {
             $condition[] = $filters->accessor . $filters->statement . $filters->value;
         }
         $query = (new Query())
-            ->select(['region_id', 'region'])
-            ->from(ApiView_Geo::getTableName())
+            ->select(join(',',$fields))
+            ->from($table)
             ->where(join(' AND ', $condition))
-            ->group('region_id, region')
-            ->order('region');
+            ->group(join(',',$fields))
+            ->order(join(',',$orderBy));
         $res = ApiView_Geo::findAllByQuery($query);
         $output = [];
         /**
@@ -67,7 +79,7 @@ class Api extends Controller
         foreach ($res as $item) {
             $output[] = ['value' => $item->region_id, 'label' => $item->region];
         }
-        $this->data->rc = $output;
+        $this->data->regions = $output;
     }
     
     public function actionGetCities()
@@ -76,17 +88,20 @@ class Api extends Controller
         if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
             exit;
         }
+        $table = ApiView_Geo::getTableName();
         $filters = new Std(json_decode(file_get_contents('php://input')));
         $condition = ['city_id NOTNULL'];
+        $fields = ['city_id', 'city'];
+        $orderBy = ['city'];
         if (!empty($filters->value)) {
             $condition[] = $filters->accessor . $filters->statement . $filters->value;
         }
         $query = (new Query())
-            ->select(['city_id', 'city'])
-            ->from(ApiView_Geo::getTableName())
+            ->select(join(',',$fields))
+            ->from($table)
             ->where(join(' AND ', $condition))
-            ->group('city_id, city')
-            ->order('city');
+            ->group(join(',',$fields))
+            ->order(join(',',$orderBy));
         $res = ApiView_Geo::findAllByQuery($query);
         $output = [];
         /**
@@ -95,7 +110,7 @@ class Api extends Controller
         foreach ($res as $item) {
             $output[] = ['value' => $item->city_id, 'label' => $item->city];
         }
-        $this->data->rc = $output;
+        $this->data->cities = $output;
     }
     
     public function actionGetOffices()
@@ -104,26 +119,29 @@ class Api extends Controller
         if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
             exit;
         }
+        $table = ApiView_Geo::getTableName();
         $filters = new Std(json_decode(file_get_contents('php://input')));
-        $condition = ['location_id NOTNULL'];
+        $condition = ['office_id NOTNULL'];
+        $fields = ['office_id', 'office'];
+        $orderBy = ['"office"'];
         if (!empty($filters->value)) {
             $condition[] = $filters->accessor . $filters->statement . $filters->value;
         }
         $query = (new Query())
-            ->select(['location_id', 'office'])
-            ->from(ApiView_Geo::getTableName())
+            ->select(join(',',$fields))
+            ->from($table)
             ->where(join(' AND ', $condition))
-            ->group('location_id, office')
-            ->order('"office"');
+            ->group(join(',',$fields))
+            ->order(join(',',$orderBy));
         $res = ApiView_Geo::findAllByQuery($query);
         $output = [];
         /**
          * @var ApiView_Geo $item
          */
         foreach ($res as $item) {
-            $output[] = ['value' => $item->location_id, 'label' => $item->office];
+            $output[] = ['value' => $item->office_id, 'label' => $item->office];
         }
-        $this->data->rc = $output;
+        $this->data->offices = $output;
     }
     
     public function actionGetDevTypes()
@@ -132,17 +150,20 @@ class Api extends Controller
         if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
             exit;
         }
+        $table = ApiView_Devices::getTableName();
         $filters = new Std(json_decode(file_get_contents('php://input')));
         $condition = ['dev_type_id NOTNULL'];
+        $fields = ['dev_type_id', 'dev_type'];
+        $orderBy = ['"dev_type"'];
         if (!empty($filters->value)) {
             $condition[] = $filters->accessor . $filters->statement . $filters->value;
         }
         $query = (new Query())
-            ->select(['dev_type_id', 'dev_type'])
-            ->from(ApiView_Devices::getTableName())
+            ->select(join(',',$fields))
+            ->from($table)
             ->where(join(' AND ', $condition))
-            ->group('dev_type_id, dev_type')
-            ->order('"dev_type"');
+            ->group(join(',',$fields))
+            ->order(join(',',$orderBy));
         $res = ApiView_Devices::findAllByQuery($query);
         $output = [];
         /**
@@ -151,7 +172,7 @@ class Api extends Controller
         foreach ($res as $item) {
             $output[] = ['value' => $item->dev_type_id, 'label' => $item->dev_type];
         }
-        $this->data->rc = $output;
+        $this->data->devTypes = $output;
     }
     
     public function actionGetPlatforms()
@@ -160,17 +181,21 @@ class Api extends Controller
         if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
             exit;
         }
+        $table = ApiView_Devices::getTableName();
         $filters = new Std(json_decode(file_get_contents('php://input')));
         $condition = ['platform_id NOTNULL'];
+        $fields = ['platform_id', 'platform'];
+        $orderBy = ['"platform"'];
         if (!empty($filters->value)) {
             $condition[] = $filters->accessor . $filters->statement . $filters->value;
         }
         $query = (new Query())
-            ->select(['platform_id', 'platform'])
-            ->from(ApiView_Devices::getTableName())
+            ->select(join(',',$fields))
+            ->from($table)
             ->where(join(' AND ', $condition))
-            ->group('platform_id, platform')
-            ->order('"platform"');
+            ->group(join(',',$fields))
+            ->order(join(',',$orderBy));
+
         $res = ApiView_Devices::findAllByQuery($query);
         $output = [];
         /**
@@ -179,7 +204,7 @@ class Api extends Controller
         foreach ($res as $item) {
             $output[] = ['value' => $item->platform_id, 'label' => $item->platform];
         }
-        $this->data->rc = $output;
+        $this->data->platforms = $output;
     }
     
     public function actionGetSoftwareList()
@@ -188,17 +213,21 @@ class Api extends Controller
         if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
             exit;
         }
+        $table = ApiView_Devices::getTableName();
         $filters = new Std(json_decode(file_get_contents('php://input')));
         $condition = ['software_id NOTNULL'];
+        $fields = ['software_id', 'software'];
+        $orderBy = ['"software"'];
         if (!empty($filters->value)) {
             $condition[] = $filters->accessor . $filters->statement . $filters->value;
         }
         $query = (new Query())
-            ->select(['software_id', 'software'])
-            ->from(ApiView_Devices::getTableName())
+            ->select(join(',',$fields))
+            ->from($table)
             ->where(join(' AND ', $condition))
-            ->group('software_id, software')
-            ->order('"software"');
+            ->group(join(',',$fields))
+            ->order(join(',',$orderBy));
+
         $res = ApiView_Devices::findAllByQuery($query);
         $output = [];
         /**
@@ -207,7 +236,7 @@ class Api extends Controller
         foreach ($res as $item) {
             $output[] = ['value' => $item->software_id, 'label' => $item->software];
         }
-        $this->data->rc = $output;
+        $this->data->softwareList = $output;
     }
     
     public function actionGetDevData($id)
@@ -216,17 +245,23 @@ class Api extends Controller
         if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
             exit;
         }
+        $table = ApiView_Devices::getTableName();
+        $filters = new Std(json_decode(file_get_contents('php://input')));
+        $condition = ['dev_id = :dev_id'];
         $fields = [
             'dev_id', 'location_id', 'platform_id', 'platform_item_id', 'software_id', 'software_item_id', 'vendor_id', 'dev_type_id',
-            'dev_comment', 'software_comment', 'dev_last_update', 'dev_in_use', 'platform_sn', 'platform_sn_alt', 'is_hw', 'software_ver',
-            'dev_details', 'software_details'
+            'dev_comment', 'software_item_comment', 'dev_last_update', 'dev_in_use', 'platform_item_sn', 'platform_item_sn_alt', 'is_hw', 'software_item_ver',
+            'dev_details', 'software_item_details'
         ];
-        $condition = 'dev_id = :dev_id';
+        if (!empty($filters->value)) {
+            $condition[] = $filters->accessor . $filters->statement . $filters->value;
+        }
+        
         try {
             $query = (new Query())
-                ->select($fields)
-                ->from(ApiView_Devices::getTableName())
-                ->where($condition)
+                ->select(join(',',$fields))
+                ->from($table)
+                ->where(join(' AND ', $condition))
                 ->group(join(',',$fields))
                 ->params([':dev_id' => $id]);
             $res = ApiView_Devices::findByQuery($query);
@@ -235,7 +270,6 @@ class Api extends Controller
         } catch (Exception $e) {
             http_response_code(417);
         }
-        
     }
     public function actionGetDevModulesData($id)
     {
@@ -243,19 +277,25 @@ class Api extends Controller
         if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
             exit;
         }
+        $table = ApiView_Modules::getTableName();
+        $filters = new Std(json_decode(file_get_contents('php://input')));
+        $condition = ['dev_id = :dev_id'];
         $fields = [
-            'module', 'module_id' ,'module_item_id', 'module_item_details',  'module_item_comment', 'module_item_sn', 'module_in_use', 'module_not_found'
+            'module', 'module_id' ,'module_item_id', 'module_item_details',  'module_item_comment', 'module_item_sn', 'module_item_in_use', 'module_item_not_found', 'module_item_last_update'
         ];
-        $condition = 'dev_id = :dev_id';
+        $order = ['module'];
+        if (!empty($filters->value)) {
+            $condition[] = $filters->accessor . $filters->statement . $filters->value;
+        }
         try {
             $query = (new Query())
-                ->select($fields)
-                ->from(ApiView_Devices::getTableName())
-                ->where($condition)
+                ->select(join(',',$fields))
+                ->from($table)
+                ->where(join(' AND ', $condition))
                 ->group(join(',',$fields))
-                ->order('module')
+                ->order(join(',',$order))
                 ->params([':dev_id' => $id]);
-            $res = ApiView_Devices::findAllByQuery($query);
+            $res = ApiView_Modules::findAllByQuery($query);
 
             $res = $res->toArrayRecursive();
             $this->data->modules = $res;
@@ -270,19 +310,26 @@ class Api extends Controller
         if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
             exit;
         }
+        $table = ApiView_DPorts::getTableName();
+        $filters = new Std(json_decode(file_get_contents('php://input')));
+        $condition = ['dev_id = :dev_id'];
         $fields = [
-            'port_id', 'port_ip', 'port_comment', 'port_details', 'port_is_mng', 'port_mac', 'port_mask_len', 'port_vrf_id', 'port_vrf_name'
+            'port_id', 'port_type_id', 'port_ip', 'port_comment', 'port_details', 'port_is_mng', 'port_mac', 'port_mask_len', 'port_type', 'port_last_update', 'port_net_id', 'port_vrf_id'
         ];
-        $condition = 'dev_id = :dev_id';
+        $order = ['port_details::jsonb->>\'portName\''];
+        if (!empty($filters->value)) {
+            $condition[] = $filters->accessor . $filters->statement . $filters->value;
+        }
+        
         try {
             $query = (new Query())
-                ->select($fields)
-                ->from(ApiView_Devices::getTableName())
-                ->where($condition)
+                ->select(join(',',$fields))
+                ->from($table)
+                ->where(join(' AND ', $condition))
                 ->group(join(',',$fields))
-                ->order('port_details::jsonb->>\'portName\'')
+                ->order(join(',',$order))
                 ->params([':dev_id' => $id]);
-            $res = ApiView_Devices::findAllByQuery($query);
+            $res = ApiView_DPorts::findAllByQuery($query);
 
             $res = $res->toArrayRecursive();
             $this->data->ports= $res;
@@ -297,17 +344,21 @@ class Api extends Controller
         if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
             exit;
         }
-        $fields = [
-            'location_id', 'city_id', 'region_id', 'office_comment'
-        ];
-        $condition = 'location_id = :location_id';
+        $table = ApiView_Geo::getTableName();
+        $filters = new Std(json_decode(file_get_contents('php://input')));
+        $condition = ['office_id = :office_id'];
+        $fields = ['office_id', 'city_id', 'region_id', 'office_comment'];
+        if (!empty($filters->value)) {
+            $condition[] = $filters->accessor . $filters->statement . $filters->value;
+        }
+        
         try {
             $query = (new Query())
-                ->select($fields)
-                ->from(ApiView_Geo::getTableName())
-                ->where($condition)
+                ->select(join(',',$fields))
+                ->from($table)
+                ->where(join(' AND ', $condition))
                 ->group(join(',',$fields))
-                ->params([':location_id' => $location_id]);
+                ->params([':office_id' => $location_id]);
             $res = ApiView_Geo::findByQuery($query);
 
             $this->data->location= $res;
@@ -322,20 +373,27 @@ class Api extends Controller
         if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
             exit;
         }
-        $fields = [
-            '__id', 'name', 'rd', 'comment'
-        ];
+        $table = ApiView_Vrfs::getTableName();
+        $filters = new Std(json_decode(file_get_contents('php://input')));
+        $condition = [];
+        $fields = ['vrf_id', 'vrf_name', 'vrf_rd', 'vrf_comment'];
+        $order = ['vrf_id'];
+        if (!empty($filters->value)) {
+            $condition[] = $filters->accessor . $filters->statement . $filters->value;
+        }
+    
         try {
             $query = (new Query())
-                ->select($fields)
-                ->from(Vrf::getTableName());
-            $res = Vrf::findAllByQuery($query);
-
+                ->select(join(',',$fields))
+                ->from($table)
+                ->order(join(',',$order));
+            $res = ApiView_Vrfs::findAllByQuery($query);
+        
             $this->data->vrfList= $res->toArrayRecursive();
         } catch (Exception $e) {
             http_response_code(417);
         }
-        
+       
     }
     
     public function actionSaveDev()
