@@ -182,10 +182,18 @@ class DevInfo extends Std
         }
         //save ports
         foreach ($this->rawData->ports as $updatedPort) {
+            $vrf = Vrf::findByPK($updatedPort->port_vrf_id);
+            $portTypeId = DPortType::findByPK($updatedPort->port_type_id);
             if ($updatedPort->newPort === true) {
                 if ($updatedPort->deleted === true) {
                     continue;
                 }
+                (new DataPort())->fill([
+                    'ipAddress' => $updatedPort->port_ip,
+                    'appliance' => $this->currentAppliance,
+                    'vrf' => $vrf,
+                    'portType' => $portTypeId,
+                ])->save();
             }
         }
     }
