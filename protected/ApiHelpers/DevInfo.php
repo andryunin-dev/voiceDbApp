@@ -150,7 +150,7 @@ class DevInfo extends Std
                     'vendor' => $this->vendor,
                     'type' => $this->applianceType,
                     'details' => $this->devDetails,
-                    'comment' => $this->rawData->d
+                    'comment' => $this->rawData->devInfo->dev_comment
                 ])
                 ->save();
             //save modules
@@ -170,7 +170,7 @@ class DevInfo extends Std
                         continue;
                     }
                 }
-        
+                
                 if ($updatedModule->deleted === true) {
                     $moduleItem->delete();
                     continue;
@@ -225,8 +225,8 @@ class DevInfo extends Std
                     $newPort->save();
                 } else {
                     $currentPort = DataPort::findByPK($updatedPort->port_id);
-                    if (! $ip->is_valid) {
-                        $this->errors[] = 'Invalid IP address: $updatedPort->port_ip' .  ' or mask: ' . $updatedPort->port_mask_len;
+                    if (!$ip->is_valid) {
+                        $this->errors[] = 'Invalid IP address: $updatedPort->port_ip' . ' or mask: ' . $updatedPort->port_mask_len;
                         continue;
                     }
                     $currentPort->fill([
