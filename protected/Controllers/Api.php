@@ -20,6 +20,8 @@ use T4\Mvc\Controller;
 
 class Api extends Controller
 {
+    protected $devData;
+    protected $errors = ['ERROR!'];
     public function actionGetRegCenters()
     {
         // respond to preflights
@@ -93,9 +95,14 @@ class Api extends Controller
         $condition = ['city_id NOTNULL'];
         $fields = ['city_id', 'city'];
         $orderBy = ['city'];
-        if (!empty($filters->value)) {
-            $condition[] = $filters->accessor . $filters->statement . $filters->value;
+        if ($filters->count() > 0) {
+            foreach ($filters as $filter) {
+                if (!empty($filter->value)) {
+                    $condition[] = $filter->accessor . $filter->statement . $filter->value;
+                }
+            }
         }
+        
         $query = (new Query())
             ->select(join(',',$fields))
             ->from($table)
@@ -124,8 +131,12 @@ class Api extends Controller
         $condition = ['office_id NOTNULL'];
         $fields = ['office_id', 'office'];
         $orderBy = ['"office"'];
-        if (!empty($filters->value)) {
-            $condition[] = $filters->accessor . $filters->statement . $filters->value;
+        if ($filters->count() > 0) {
+            foreach ($filters as $filter) {
+                if (!empty($filter->value)) {
+                    $condition[] = $filter->accessor . $filter->statement . $filter->value;
+                }
+            }
         }
         $query = (new Query())
             ->select(join(',',$fields))
@@ -402,21 +413,27 @@ class Api extends Controller
             exit;
         }
         try {
-            $data = new Std(json_decode(file_get_contents('php://input')));
-            $data = new DevInfo($data);
-            if (!($data instanceof DevInfo)) {
-                $errors[] = 'Invalid input data';
+            $this->devData = new Std(json_decode(file_get_contents('php://input')));
+            $this->devData = new DevInfo($this->devData);
+            if (!($this->devData instanceof DevInfo)) {
+                $this->errors[] = 'Invalid input data';
                 throw new Exception();
             }
-            if ($data->errors->count() === 0) {
-                $data->saveDev();
+            if ($this->devData->errors->count() === 0) {
+                $this->devData->saveDev();
             } else {
                 throw new Exception();
             }
+            if ($this->devData->errors->count() > 0) {
+                $this->errors = array_merge($this->errors, $this->devData->errors->toArray());
+                throw new Exception();
+            } else {
+                $this->data->result = 'OK';
+            }
         } catch (Exception $e) {
-            $this->data->errors = $errors;
+            $this->data->errors = $this->errors;
         } catch (\Exception $e) {
-            $this->data->exception = $e;
+            $this->data->exception = $e->getMessage();
         }
     }
     public function actionPostTest()

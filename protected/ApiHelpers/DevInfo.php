@@ -2,6 +2,7 @@
 
 namespace App\ApiHelpers;
 
+use App\Components\IpTools;
 use App\Models\Appliance;
 use App\Models\ApplianceType;
 use App\Models\DataPort;
@@ -63,6 +64,7 @@ use T4\Core\Std;
  */
 class DevInfo extends Std
 {
+    const DEFAULT_PORT_TYPE = '';
     
     public function __construct($data = null)
     {
@@ -117,84 +119,138 @@ class DevInfo extends Std
     
     public function saveDev()
     {
-        // Appliance->details
-        if ($this->rawData->devInfo->dev_details instanceof Std || is_null($this->rawData->devInfo->dev_details)) {
-            $this->devDetails = $this->rawData->devInfo->dev_details;
-        }
-        //office comment
-        $this->office->comment = $this->rawData->geoLocation->office_comment;
-        $this->office->save();
-        $this->currentAppliance->inUse = $this->rawData->devInfo->dev_in_use;
-        ($this->currentAppliance->platform)
-            ->fill([
-                'platform' => $this->platform,
-                'serialNumber' => $this->rawData->devInfo->platform_sn,
-                'serialNumberAlt' => $this->rawData->devInfo->platform_sn_alt,
-            ])
-            ->save();
-        ($this->currentAppliance->software)
-            ->fill([
-                'software' => $this->software,
-                'version' => $this->rawData->devInfo->software_ver
-            ])
-            ->save();
-        ($this->currentAppliance)
-            ->fill([
-                'location' => $this->office,
-                'vendor' => $this->vendor,
-                'type' => $this->applianceType,
-            ])
-            ->save();
-        //save modules
-        foreach ($this->rawData->modules as $updatedModule) {
-            if ($updatedModule->newModule === true) {
-                $moduleItem = new ModuleItem();
-                if (false === $module = Module::findByPK($updatedModule->module_id)) {
-                    $this->errors[] = 'Save data error for new module item';
-                    continue;
-                }
+        try {
+            Appliance::getDbConnection()->beginTransaction();
+            // Appliance->details
+            if ($this->rawData->devInfo->dev_details instanceof Std || is_null($this->rawData->devInfo->dev_details)) {
+                $this->devDetails = $this->rawData->devInfo->dev_details;
             } else {
-                if (
-                    false === ($module = Module::findByPK($updatedModule->module_id)) ||
-                    false === ($moduleItem = ModuleItem::findByPK($updatedModule->module_item_id))
-                ) {
-                    $this->errors[] = 'Save data error for module item ' . $updatedModule->module_item_id;
-                    continue;
-                }
+                $this->devDetails = null;
             }
-            
-            if ($updatedModule->deleted === true) {
-                $moduleItem->delete();
-                continue;
-            }
-            $moduleItem
+            //office comment
+            $this->office->comment = $this->rawData->geoLocation->office_comment;
+            $this->office->save();
+            $this->currentAppliance->inUse = $this->rawData->devInfo->dev_in_use;
+            ($this->currentAppliance->platform)
                 ->fill([
-                    'appliance' => $this->currentAppliance,
-                    'module' => $module,
-                    'details' => $updatedModule->module_item_details,
-                    'serialNumber' => $updatedModule->module_item_sn,
-                    'location' => $this->office,
-                    'comment' => $updatedModule->module_item_comment,
-                    'inUse' => $updatedModule->module_item_in_use,
-                    'noFound' => $updatedModule->module_item_not_found
+                    'platform' => $this->platform,
+                    'serialNumber' => $this->rawData->devInfo->platform_item_sn,
+                    'serialNumberAlt' => $this->rawData->devInfo->platform_item_sn_alt,
                 ])
                 ->save();
-        }
-        //save ports
-        foreach ($this->rawData->ports as $updatedPort) {
-            $vrf = Vrf::findByPK($updatedPort->port_vrf_id);
-            $portTypeId = DPortType::findByPK($updatedPort->port_type_id);
-            if ($updatedPort->newPort === true) {
-                if ($updatedPort->deleted === true) {
+            ($this->currentAppliance->software)
+                ->fill([
+                    'software' => $this->software,
+                    'version' => $this->rawData->devInfo->software_item_ver
+                ])
+                ->save();
+            ($this->currentAppliance)
+                ->fill([
+                    'location' => $this->office,
+                    'vendor' => $this->vendor,
+                    'type' => $this->applianceType,
+                    'details' => $this->devDetails,
+                    'comment' => $this->rawData->d
+                ])
+                ->save();
+            //save modules
+            foreach ($this->rawData->modules as $updatedModule) {
+                if ($updatedModule->newModule === true) {
+                    $moduleItem = new ModuleItem();
+                    if (false === $module = Module::findByPK($updatedModule->module_id)) {
+                        $this->errors[] = 'Save data error for new module item';
+                        continue;
+                    }
+                } else {
+                    if (
+                        false === ($module = Module::findByPK($updatedModule->module_id)) ||
+                        false === ($moduleItem = ModuleItem::findByPK($updatedModule->module_item_id))
+                    ) {
+                        $this->errors[] = 'Save data error for module item ' . $updatedModule->module_item_id;
+                        continue;
+                    }
+                }
+        
+                if ($updatedModule->deleted === true) {
+                    $moduleItem->delete();
                     continue;
                 }
-                (new DataPort())->fill([
-                    'ipAddress' => $updatedPort->port_ip,
-                    'appliance' => $this->currentAppliance,
-                    'vrf' => $vrf,
-                    'portType' => $portTypeId,
-                ])->save();
+                $moduleItem
+                    ->fill([
+                        'appliance' => $this->currentAppliance,
+                        'module' => $module,
+                        'details' => $updatedModule->module_item_details,
+                        'serialNumber' => $updatedModule->module_item_sn,
+                        'location' => $this->office,
+                        'comment' => $updatedModule->module_item_comment,
+                        'inUse' => $updatedModule->module_item_in_use,
+                        'noFound' => $updatedModule->module_item_not_found
+                    ])
+                    ->save();
             }
+            //save ports
+            $defaultPortType = DPortType::findByColumn('type', self::DEFAULT_PORT_TYPE);
+            foreach ($this->rawData->ports as $updatedPort) {
+                $vrf = is_null($updatedPort->port_vrf_id) ? null : Vrf::findByPK($updatedPort->port_vrf_id);
+                if ($vrf === false) {
+                    $this->errors[] = 'Can\'t find VRF with id: ' . $updatedPort->port_vrf_id;
+                    continue;
+                }
+                $portType = DPortType::findByPK($updatedPort->port_type_id);
+                $ip = new IpTools($updatedPort->port_ip, $updatedPort->port_mask_len);
+                if ($updatedPort->newPort === true) {
+                    if ($updatedPort->deleted === true) {
+                        continue;
+                    }
+                    if (!($vrf instanceof Vrf)) {
+                        $this->errors[] = 'VRF error for new port';
+                    }
+                    $existedPort = DataPort::findByIpVrf($updatedPort->port_ip, $vrf);
+                    if ($existedPort instanceof DataPort) {
+                        $this->errors[] = 'Port with IP ' . $updatedPort->port_ip . 'and VRF ' . $vrf->name . ' already exists';
+                        continue;
+                    }
+                    $portType = $portType === false ? $defaultPortType : $portType;
+                    $newPort = (new DataPort())->fill([
+                        'ipAddress' => $updatedPort->port_ip,
+                        'masklen' => $ip->masklen,
+                        'appliance' => $this->currentAppliance,
+                        'vrf' => $vrf,
+                        'portType' => $portType,
+                        'isManagement' => $updatedPort->port_is_mng,
+                        'macAddress' => $updatedPort->port_mac,
+                        'comment' => $updatedPort->port_comment,
+                        'details' => $updatedPort->port_details,
+                    ]);
+                    $newPort->save();
+                } else {
+                    $currentPort = DataPort::findByPK($updatedPort->port_id);
+                    if (! $ip->is_valid) {
+                        $this->errors[] = 'Invalid IP address: $updatedPort->port_ip' .  ' or mask: ' . $updatedPort->port_mask_len;
+                        continue;
+                    }
+                    $currentPort->fill([
+                        'ipAddress' => $ip->address,
+                        'masklen' => $ip->masklen,
+                        'appliance' => $this->currentAppliance,
+                        'vrf' => $vrf,
+                        'portType' => $portType,
+                        'isManagement' => $updatedPort->port_is_mng,
+                        'macAddress' => $updatedPort->port_mac,
+                        'comment' => $updatedPort->port_comment,
+                        'details' => $updatedPort->port_details,
+                    ]);
+                    $currentPort->save();
+                }
+            }
+            if ($this->errors->count() === 0) {
+                Appliance::getDbConnection()->commitTransaction();
+            } else {
+                Appliance::getDbConnection()->rollbackTransaction();
+            }
+        } catch (\Exception $e) {
+            $this->errors[] = 'Unexpected error (code: ' . $e->getCode() . ') save data: ' . $e->getMessage();
+            Appliance::getDbConnection()->rollbackTransaction();
         }
     }
 }
