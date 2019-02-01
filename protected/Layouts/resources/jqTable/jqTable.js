@@ -1893,16 +1893,16 @@ jqTable.workSetTmpl = {
                             return
                         }
                         ws.obj.$body.children('tbody').html(data.body.html);
-                        //inject onClick
-                        var editBtns = $(".jsEditBtn");
-                        editBtns.each(function () {
-                            const devId = $(this).data('devId')
-                            $(this).click(function (e) {
-                                e.preventDefault();
-                                console.log('ID - ', devId);
-
-                            })
-                        })
+                        // //inject onClick
+                        // var editBtns = $(".jsEditBtn");
+                        // editBtns.each(function () {
+                        //     const devId = $(this).data('devId')
+                        //     $(this).click(function (e) {
+                        //         e.preventDefault();
+                        //         console.log('ID - ', devId);
+                        //
+                        //     })
+                        // })
 
                         //==========
                         if (data.bodyFooter && data.bodyFooter.html) {
