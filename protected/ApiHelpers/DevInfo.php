@@ -184,9 +184,10 @@ class DevInfo extends Std
                         'location' => $this->office,
                         'comment' => $updatedModule->module_item_comment,
                         'inUse' => $updatedModule->module_item_in_use,
-                        'noFound' => $updatedModule->module_item_not_found
-                    ])
-                    ->save();
+                        'notFound' => $updatedModule->module_item_not_found
+                    ]);
+                
+                $res = $moduleItem->save();
             }
             //save ports
             $defaultPortType = DPortType::findByColumn('type', self::DEFAULT_PORT_TYPE);
