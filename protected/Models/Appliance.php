@@ -21,7 +21,7 @@ use T4\Orm\Model;
  * @property Cluster $cluster
  * @property Vendor $vendor
  * @property PlatformItem $platform
- * @property Software $software
+ * @property SoftwareItem $software
  *
  * @property Collection|VoicePort[] $voicePorts
  * @property Collection|DataPort[] $dataPorts
