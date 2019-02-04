@@ -11,7 +11,9 @@ use App\Models\Module;
 use App\Models\ModuleItem;
 use App\Models\Office;
 use App\Models\Platform;
+use App\Models\PlatformItem;
 use App\Models\Software;
+use App\Models\SoftwareItem;
 use App\Models\Vendor;
 use App\Models\Vrf;
 use T4\Core\Exception;
@@ -65,6 +67,9 @@ use T4\Core\Std;
 class DevInfo extends Std
 {
     const DEFAULT_PORT_TYPE = '';
+    const DEFAULT_VENDOR = '';
+    const DEFAULT_PLATFORM = '';
+    const DEFAULT_SOFTWARE = '';
     
     public function __construct($data = null)
     {
@@ -97,30 +102,68 @@ class DevInfo extends Std
             $this->errors[] = 'devInfo is not found';
             return;
         }
-        if (!empty($data->devInfo->dev_id)) {
-            $this->currentAppliance = Appliance::findByPK($data->devInfo->dev_id);
+        if (false === $data->newDev && empty($data->devInfo->dev_id)) {
+            $this->errors[] = 'Empty device id';
+            return;
         }
-        if (false === $this->vendor = Vendor::findByPK($data->devInfo->vendor_id)) {
-            $errors[] = 'Vendor is not found';
+        try {
+            if ($data->newDev === false) {
+                if (false === $this->currentAppliance = Appliance::findByPK($data->devInfo->dev_id)) {
+                    $this->errors[] = 'Device is not found';
+                    return;
+                }
+                if (false === $this->vendor = Vendor::findByPK($data->devInfo->vendor_id)) {
+                    $errors[] = 'Vendor is not found';
+                }
+                if (false === $this->applianceType = ApplianceType::findByPK($data->devInfo->dev_type_id)) {
+                    $errors[] = 'Appliance type is not found';
+                }
+                if (false === $this->platform = Platform::findByPK($data->devInfo->platform_id)) {
+                    $errors[] = 'Platform is not found';
+                }
+                if (false === $this->software = Software::findByPK($data->devInfo->software_id)) {
+                    $errors[] = 'Software is not found';
+                }
+                if (false === $this->office = Office::findByPK($data->devInfo->location_id)) {
+                    $errors[] = 'Office is not found';
+                }
+            } else {
+                $this->currentAppliance = new Appliance;
+                if (false === $this->vendor = Vendor::findByColumn('title', self::DEFAULT_VENDOR)) {
+                    $errors[] = 'Default vendor is not found';
+                }
+                if (false === $this->applianceType = ApplianceType::findByPK($data->devInfo->dev_type_id)) {
+                    $errors[] = 'Appliance type is not found';
+                }
+                if (false === $this->platform = Platform::findByColumn('title', self::DEFAULT_PLATFORM)) {
+                    $errors[] = 'Platform is not found';
+                }
+                if (false === $this->software = Software::findByColumn('title', self::DEFAULT_SOFTWARE)) {
+                    $errors[] = 'Software is not found';
+                }
+                if (false === $this->office = Office::findByPK($data->devInfo->location_id)) {
+                    $errors[] = 'Office is not found';
+                }
+            }
+            
+        } catch (\Exception $e) {
+            $this->errors[] = $e->getMessage();
+            return;
         }
-        if (false === $this->applianceType = ApplianceType::findByPK($data->devInfo->dev_type_id)) {
-            $errors[] = 'Appliance type is not found';
-        }
-        if (false === $this->platform = Platform::findByPK($data->devInfo->platform_id)) {
-            $errors[] = 'Platform is not found';
-        }
-        if (false === $this->software = Software::findByPK($data->devInfo->software_id)) {
-            $errors[] = 'Software is not found';
-        }
-        if (false === $this->office = Office::findByPK($data->devInfo->location_id)) {
-            $errors[] = 'Office is not found';
-        }
+        
     }
     
     public function saveDev()
     {
         try {
             Appliance::getDbConnection()->beginTransaction();
+            // if new dev - set platformItem, softwareItem
+            if ($this->rawData->newDev === true) {
+                $this->currentAppliance->fill([
+                    'platform' => new PlatformItem(),
+                    'software' => new SoftwareItem(),
+                ]);
+            }
             // Appliance->details
             if ($this->rawData->devInfo->dev_details instanceof Std || is_null($this->rawData->devInfo->dev_details)) {
                 $this->devDetails = $this->rawData->devInfo->dev_details;
@@ -130,6 +173,7 @@ class DevInfo extends Std
             //office comment
             $this->office->comment = $this->rawData->geoLocation->office_comment;
             $this->office->save();
+
             $this->currentAppliance->inUse = $this->rawData->devInfo->dev_in_use;
             ($this->currentAppliance->platform)
                 ->fill([
