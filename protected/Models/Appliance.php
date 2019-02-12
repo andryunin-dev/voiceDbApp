@@ -15,6 +15,7 @@ use T4\Orm\Model;
  * @property string $comment
  * @property string $lastUpdate
  * @property boolean $inUse
+ * @property boolean $untrustedLocation
  *
  * @property ApplianceType $type
  * @property Office $location
@@ -37,7 +38,8 @@ class Appliance extends Model
             'details' => ['type' => 'json'],
             'comment' => ['type' => 'text'],
             'lastUpdate' => ['type' => 'datetime'],
-            'inUse' => ['type' => 'boolean']
+            'inUse' => ['type' => 'boolean'],
+            'untrustedLocation' => ['type' => 'boolean'],
         ],
         'relations' => [
             'type' => ['type' => self::BELONGS_TO, 'model' => ApplianceType::class, 'by' => '__type_id'],

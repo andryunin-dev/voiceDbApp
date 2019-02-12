@@ -78,15 +78,14 @@ class DSPprefixes extends Std
                     'isManagement' => ($dataPortIp == $managementDataPortIp) ? true : false,
                     'lastUpdate'=> (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P'),
                 ]);
-                //todo - изменить afterSave() фреймворка (json -> Std) и удалить проверку !($dataPort->details instanceof Std)
-                if (is_null($dataPort->details) || !($dataPort->details instanceof Std)) {
+                if (!is_null($dataPort->details) && ($dataPort->details instanceof Std)) {
+                    $dataPort->details->portName = $dataPortData->interface;
+                    $dataPort->details->description = $dataPortData->description;
+                } else {
                     $dataPort->details = new Std([
                         'portName' => $dataPortData->interface,
                         'description' => $dataPortData->description,
                     ]);
-                } else {
-                    $dataPort->details->portName = $dataPortData->interface;
-                    $dataPort->details->description = $dataPortData->description;
                 }
                 $dataPort->save();
 
