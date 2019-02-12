@@ -154,10 +154,10 @@ class DSPappliance extends Std
                 'inUse' => true,
                 'lastUpdate'=> (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P'),
             ]);
-            if (is_null($appliance->details) || !($appliance->details instanceof Std)) {
-                $appliance->details = new Std(['hostname' => $data->hostname]);
-            } else {
+            if (!is_null($appliance->details) && ($appliance->details instanceof Std)) {
                 $appliance->details->hostname = $data->hostname;
+            } else {
+                $appliance->details = new Std(['hostname' => $data->hostname]);
             }
             $appliance->save();
 
@@ -213,6 +213,8 @@ class DSPappliance extends Std
                         $managementDataPort = $foundDataPort;
                     } else {
                         $foundDataPort->delete();
+                        $appliance->untrustedLocation = true;
+                        $appliance->save();
                         $managementDataPort = new DataPort();
                     }
                 } else {
