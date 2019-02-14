@@ -1,7 +1,7 @@
 {
   "require": {
     "maximus905/t4fork": "dev-master",
-    "phpunit/phpunit": "*",
+    "phpunit/phpunit": "7.1",
     "monolog/monolog": "^1.22",
     "theorchard/monolog-cascade": "^0.4.1",
     "sunra/php-simple-html-dom-parser": "1.5.2",
