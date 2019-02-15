@@ -1,14 +1,7 @@
 {
-  "repositories": [
-    {
-      "type": "vcs",
-      "url": "https://github.com/Maximus905/t4"
-    }
-  ],
-
   "require": {
-    "pr-of-it/t4": "dev-fixes",
-    "phpunit/phpunit": "*",
+    "maximus905/t4fork": "dev-master",
+    "phpunit/phpunit": "7.1",
     "monolog/monolog": "^1.22",
     "theorchard/monolog-cascade": "^0.4.1",
     "sunra/php-simple-html-dom-parser": "1.5.2",

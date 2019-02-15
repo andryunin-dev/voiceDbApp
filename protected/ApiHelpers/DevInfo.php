@@ -129,16 +129,31 @@ class DevInfo extends Std
                 }
             } else {
                 $this->currentAppliance = new Appliance;
+                
+                if (empty($data->devInfo->platform_id)) {
+                    $this->platform = Platform::findByColumn('title', self::DEFAULT_PLATFORM);
+                } else {
+                    $this->platform = Platform::findByPK($data->devInfo->platform_id);
+                }
+                
+                if (empty($data->devInfo->software_id)) {
+                    $this->software = Software::findByColumn('title', self::DEFAULT_SOFTWARE);
+                } else {
+                    $this->software = Software::findByPK($data->devInfo->software_id);
+                }
+                
+                
+                
                 if (false === $this->vendor = Vendor::findByColumn('title', self::DEFAULT_VENDOR)) {
                     $errors[] = 'Default vendor is not found';
                 }
                 if (false === $this->applianceType = ApplianceType::findByPK($data->devInfo->dev_type_id)) {
                     $errors[] = 'Appliance type is not found';
                 }
-                if (false === $this->platform = Platform::findByColumn('title', self::DEFAULT_PLATFORM)) {
+                if (false === $this->platform) {
                     $errors[] = 'Platform is not found';
                 }
-                if (false === $this->software = Software::findByColumn('title', self::DEFAULT_SOFTWARE)) {
+                if (false === $this->software) {
                     $errors[] = 'Software is not found';
                 }
                 if (false === $this->office = Office::findByPK($data->devInfo->location_id)) {
