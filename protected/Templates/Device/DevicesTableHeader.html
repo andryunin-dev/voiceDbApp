@@ -8,17 +8,20 @@
     <th id={{ columns.appType.th_id|trim('#') }}>{{ columns.appType.name }}</th>
     <th id={{ columns.platformTitle.th_id|trim('#') }}>
         {% if user.permissions.addEmptyAppliance %}
-            <a class="btn btn-success btn-xs btn-custom pull-left" href="/modal/addAppliance" role="button"
-               data-action="get-popup" title="добавить устройство"><span class="glyphicon glyphicon-plus"
-                                                                         aria-hidden="true"></span></a>
+            <button class="btn btn-success btn-xs btn-custom pull-left js-new-dev" ><span class="glyphicon glyphicon-plus" aria-hidden="true" title="добавить устройство"></span></button>
+            {#<a class="btn btn-success btn-xs btn-custom pull-left" href="/modal/addAppliance" role="button"#}
+               {#data-action="get-popup" title="добавить устройство"><span class="glyphicon glyphicon-plus"#}
+                                                                         {#aria-hidden="true"></span></a>#}
         {% endif %}
         {{ columns.platformTitle.name }}
     </th>
+    <th id={{ columns.appRoomLocation.th_id|trim('#') }}>{{ columns.appRoomLocation.name }}</th>
     <th id={{ columns.softwareAndVersion.th_id|trim('#') }}>{{ columns.softwareAndVersion.name }}</th>
     <th id={{ columns.module.th_id|trim('#') }}>{{ columns.module.name }}</th>
     <th id={{ columns.data_port.th_id|trim('#') }}>{{ columns.data_port.name }}</th>
     <th id={{ columns.platformSerial.th_id|trim('#') }}>{{ columns.platformSerial.name }}</th>
     <th id={{ columns.inventoryNumber.th_id|trim('#') }}>{{ columns.inventoryNumber.name }}</th>
+    <th id={{ columns.invUserFio.th_id|trim('#') }}>{{ columns.invUserFio.name }}</th>
     <th id={{ columns.responsiblePerson.th_id|trim('#') }}>{{ columns.responsiblePerson.name }}</th>
     <th id={{ columns.action.th_id|trim('#') }}>{{ columns.action.name }}</th>
 </tr>

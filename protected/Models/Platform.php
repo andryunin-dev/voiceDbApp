@@ -29,6 +29,7 @@ class Platform extends Model
         'table' => 'equipment.platforms',
         'columns' => [
             'title' => ['type' => 'string'],
+            'details' => ['type' => 'json'],
             'isHW' => ['type' => 'boolean'],
         ],
         'relations' => [

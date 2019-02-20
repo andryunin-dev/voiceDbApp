@@ -616,6 +616,7 @@ class Admin extends Controller
                 ->fill([
                     'vendor' => $vendor,
                     'title' => $platform->title,
+                    'details' => ['units' => $platform->details->units],
                     'isHW' => (bool) $platform->isHW,
                 ])
                 ->save();
@@ -648,8 +649,17 @@ class Admin extends Controller
                     'vendor' => $vendor,
                     'title' => $platform->title,
                     'isHW' => (bool) $platform->isHW,
-                ])
-                ->save();
+                ]);
+
+            // update Platform->details
+            if (is_null($updatedPlatform->details) || !($updatedPlatform->details instanceof Std)) {
+                $updatedPlatform->details = new Std([
+                    'units' => $platform->details->units,
+                ]);
+            } else {
+                $updatedPlatform->details->units = $platform->details->units;
+            }
+            $updatedPlatform->save();
 
             Platform::getDbConnection()->commitTransaction();
         } catch (MultiException $e) {
@@ -1273,6 +1283,30 @@ class Admin extends Controller
             if (false === $software = Software::findByPK($data->softwareId)) {
                 throw new Exception('ПО не найдено');
             }
+
+            // save Appliance->details
+            if (is_null($currentAppliance->details) || !($currentAppliance->details instanceof Std)) {
+                $currentAppliance->details = new Std([
+                    'hostname' => $data->hostname,
+                    'site' => [
+                        'floor' => $data->site->floor,
+                        'row' => $data->site->row,
+                        'rack' => $data->site->rack,
+                        'unit' => $data->site->unit,
+                        'rackSide' => $data->site->rackSide,
+                    ],
+                ]);
+            } else {
+                $currentAppliance->details->hostname = $data->hostname;
+                $currentAppliance->details->site = [
+                    'floor' => $data->site->floor,
+                    'row' => $data->site->row,
+                    'rack' => $data->site->rack,
+                    'unit' => $data->site->unit,
+                    'rackSide' => $data->site->rackSide,
+                ];
+            }
+
             //сохранение комментария к офису
             //сохраняем изменения в комменте только если не поменялся офис
             if ($currentAppliance->location->getPk() == $office->getPk() && $office->comment != $data->officeComment) {
@@ -1283,7 +1317,8 @@ class Admin extends Controller
             ($currentAppliance->platform)
                 ->fill([
                     'platform' => $platform,
-                    'serialNumber' => $data->platformSn
+                    'serialNumber' => $data->platformSnMain,
+                    'serialNumberAlt' => $data->platformSnAlt,
                 ])
                 ->save();
 
@@ -1299,11 +1334,9 @@ class Admin extends Controller
                     'location' => $office,
                     'vendor' => $vendor,
                     'type' => $applianceType,
-                    'details' => [
-                        'hostname' => $data->hostname
-                    ]
                 ])
                 ->save();
+
             //если задается новый management IP
             if (!empty($data->managementIp) && !isset($data->managementIpId)) {
                 $newDPort = (new DataPort())
@@ -1315,7 +1348,6 @@ class Admin extends Controller
                         'portType' => DPortType::getEmpty()
                     ]);
                 $newDPort->save();
-
             }
 
             //если appliance сохранился без ошибок - сохраняем существующие модули к нему

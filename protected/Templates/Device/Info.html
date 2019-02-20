@@ -21,7 +21,8 @@
     <script>
         tableSettings = {
             dataUrl: "/device/devicesTable.json",
-            width: '115',
+            width: '125',
+            // width: '125',
             header: {
                 tableClasses: "bg-primary table-bordered",
                 columns: {
@@ -30,12 +31,14 @@
                     hostname_dn: {id: 'hostname', name: 'Hostname', width: 15, sortable: true, filterable: true},
                     appType: {id: 'app-type', name: 'Тип', width: "70px", sortable: true, filterable: true},
                     platformTitle: {id: 'appliance', name: 'Оборудование', width: 20, sortable: true, filterable: true},
+                    appRoomLocation: {id: 'app-room-location', name: 'U', width: 5, sortable: true, filterable: true},
                     softwareAndVersion: {id: 'soft', name: 'ПО', width: 15, sortable: true, filterable: true},
                     module: {id: 'module', name: 'Модуль', width: 10, sortable: false, filterable: false},
                     data_port: {id: 'dport', name: 'Интерфейсы', width: 15, filterable: false},
                     platformSerial: {id: 'sn', name: 'SN', width: '110px', filterable: true},
                     inventoryNumber: {id: 'inv-num', name: 'Инв.', width: '100px', filterable: true},
-                    responsiblePerson: {id: 'resp-person', name: 'МОЛ', width: '100px', filterable: true},
+                    invUserFio: {id: 'inv-user', name: 'Пользователь', width: '140px', filterable: true},
+                    responsiblePerson: {id: 'resp-person', name: 'МОЛ', width: '140px', filterable: true},
                     {% if not user.readOnly %}
                     action: {id: 'action', name: 'Действия', width: '105px'}
                     {% endif %}
@@ -64,14 +67,47 @@
         jQuery(function ($) {
             var devTable = $("#dev_tab");
             devTable.jqTable(tableSettings).jqTable('updateBodyContent', {}, window.location.href);
+            window.updateDevTable = function () {
+                devTable.jqTable('updateBodyContent', {}, window.location.href)
+            };
             var toggleInnerTable = function (e) {
                 if ($(e.target).hasClass('toggler') || $(e.target).parents('.toggler').hasClass('toggler')) {
                     $(e.target).closest("table").find("tbody tr td").slideToggle("fast");
                     $(e.target).closest("table").find(".js-caret").toggleClass("caret-down");
                 }
             };
-
             devTable.jqTable('addBodyEventHandler', 'click', "", toggleInnerTable);
+
+            var highlightRow = function (e) {
+                var ws = e.data;
+                ws.obj.$body.find(".js-table-row.ui-state-highlight").removeClass("ui-state-highlight");
+                $(e.target).closest(".js-table-row").addClass("ui-state-highlight");
+
+                console.log('click on row')
+            };
+            devTable.jqTable('addBodyEventHandler', 'click', "", highlightRow);
+
+            const editDev = function (e) {
+                const isButtonPressed = $(e.target).hasClass('js-dev-edit') || $(e.target).parent().hasClass('js-dev-edit');
+                if (isButtonPressed) {
+                    e.stopPropagation();
+                    const devId = $(e.target).data('devId') || $(e.target).parent().data('devId')
+                    console.log('edit dev with ID ', devId)
+                    window.openEditModal(devId)
+                }
+            }
+            const newDev = function (e) {
+                const isButtonPressed = $(e.target).hasClass('js-new-dev') || $(e.target).parent().hasClass('js-new-dev');
+                if (isButtonPressed) {
+                    e.stopPropagation();
+                    // const devId = $(e.target).data('devId') || $(e.target).parent().data('devId')
+                    console.log('create new dev ')
+                    window.openNewDevModal()
+                }
+            }
+            devTable.jqTable('addBodyEventHandler', 'click', "", editDev);
+            devTable.jqTable('addHeaderEventHandler', 'click', "", newDev);
+
             devTable.jqTable('addHeaderEventHandler', 'click', "", function (e) {
                 if ($(e.target).parent().hasClass('finder-icon') || $(e.target).hasClass('finder-icon')) {
                     var ws = e.data;
@@ -89,6 +125,7 @@
                     }).focus()
                 }
             })
+
 
         });
     </script>

@@ -173,8 +173,9 @@ class ModuleItem extends Model
     public function delete()
     {
         if (!is_null($this->module1C)) {
-            $this->module1C->voiceModule = null;
-            $this->module1C->save();
+            $this->module1C->delete();
+//            $this->module1C->voiceModule = null;
+//            $this->module1C->save();
         }
         return parent::delete();
     }

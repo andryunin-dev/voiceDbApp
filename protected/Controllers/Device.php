@@ -72,7 +72,21 @@ class Device extends Controller
                     $paginator->update();
                     $query = $joinedFilter->selectQuery(DevModulePortGeo::class, $sorter, $paginator, $globalFilter);
                     $twigData = new Std();
-                    $twigData->devices = DevModulePortGeo::findAllByQuery($query);
+
+                    $devices = [];
+                    foreach (DevModulePortGeo::findAllByQuery($query) as $device) {
+                        if (!is_null($device->appDetails)) {
+                            $details = json_decode($device->appDetails, true);
+                            $device->appDetails = $details;
+                        }
+                        if (!is_null($device->platformDetails)) {
+                            $details = json_decode($device->platformDetails, true);
+                            $device->platformDetails = $details;
+                        }
+                        $devices[] = $device;
+                    }
+                    $twigData->devices = $devices;
+
                     $twigData->appTypeMap = DevModulePortGeo::$applianceTypeMap;
                     $twigData->user = $this->data->user;
                     $twigData->url = $url;

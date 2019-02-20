@@ -1,0 +1,81 @@
+{% spaceless %}
+        {% for dev in devices %}
+            <tr class="js-table-row ui-widget-content">
+                {#Region#}
+                <td>
+                    <a href="{{ baseUrl }}?reg_id={{ dev.region_id }}">{{ dev.region }}</a>
+                </td>
+
+                {#Office#}
+                <td>
+                    <a href="{{ baseUrl }}?loc_id={{ dev.office_id }}">{{ dev.office }}</a>
+                </td>
+
+                {#LotusUser#}
+                <td>
+                    {% if dev.lotusUserWorkEmail %}
+                        <a href="mailto:{{ dev.lotusUserWorkEmail }}">{{ dev.lotusUser }}</a>
+                    {% else %}
+                        {{ dev.lotusUser }}
+                    {% endif %}
+                </td>
+
+                {#LotusUserPosition#}
+                <td>
+                    <a href="{{ baseUrl }}?pos_id={{ dev.lotusUserPosition_id }}">{{ dev.lotusUserPosition }}</a>
+                </td>
+
+                {#DN#}
+                <td>{{ dev.dn }}</td>
+                {#LotusUserMobilePhone#}
+                <td>{{ dev.lotusUserMobilePhone }}</td>
+
+                {#IsActive#}
+                <td align="center">
+                    <span
+                        {% if dev.isActive == 'да' %}
+                            style="background:#80ed80; font-size:85%"
+                        {% else %}
+                            style="background:#d42b48; color:#e4e4e4; font-size:85%"
+                        {% endif %}
+
+                        title="last update: {{ dev.lastUpdate|date("d.m.Y H:i", "Europe/Moscow") }} MSK(+03:00)"
+                    >
+                        {{ dev.lastUpdate|date("Y-m-d", "Europe/Moscow") }}
+                    </span>
+                </td>
+
+                {#Model#}
+                <td>
+                    <a href="{{ baseUrl }}?pl_id={{ dev.platform_id }}">{{ dev.model }}</a>
+                </td>
+
+                {#SerialNumber#}
+                <td>{{ dev.serialNumber }}</td>
+                {#InventoryNumber#}
+                <td>{{ dev.inventoryNumber }}</td>
+                {#IpAddress#}
+                <td>{{ dev.ipAddress }}</td>
+                {#SwitchPort#}
+                <td>{{ dev.switchPort }}</td>
+                {#switchPlatform#}
+                <td>{{ dev.switchPlatform }}</td>
+                {#switchIp#}
+                <td>{{ dev.switchIp }}</td>
+
+                {#switchInventoryNumber#}
+                <td>
+                    <a href="{{ baseUrl }}?sw_inv={{ dev.switchInventoryNumber }}">{{ dev.switchInventoryNumber }}</a>
+                </td>
+
+                {#alertingName#}
+                <td>{{ dev.alertingName }}</td>
+                {#inventoryUser#}
+                <td>{{ dev.inventoryUser }}</td>
+                {#mol#}
+                <td>{{ dev.mol }}</td>
+                {#lotusUserDivision#}
+                <td>{{ dev.lotusUserDivision }}</td>
+            </tr>
+        {% endfor %}
+{% endspaceless %}

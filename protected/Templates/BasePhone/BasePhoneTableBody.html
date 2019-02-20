@@ -1,0 +1,85 @@
+{% spaceless %}
+        {% for dev in devices %}
+            <tr class="js-table-row ui-widget-content">
+                {#City#}
+                <td>
+                    <a href="{{ baseUrl }}?city_id={{ dev.cityId }}">{{ dev.city }}</a>
+                </td>
+
+                {#Office#}
+                <td>
+                    <a href="{{ baseUrl }}?loc_id={{ dev.officeId }}">{{ dev.office }}</a>
+                </td>
+
+                {#Name#}
+                <td>{{ dev.name }}</td>
+
+                {#Platform#}
+                <td>
+                    <a href="{{ baseUrl }}?pl_id={{ dev.platformId }}">{{ dev.platform }} </a>
+                    {% if not dev.comment is empty %}<span class="glyphicon glyphicon-info-sign" aria-hidden="true" title="{{ dev.comment }}"></span>{% endif %}
+                </td>
+
+                {#DN#}
+                <td>{{ dev.dnDash }}</td>
+
+                {#IsActive#}
+                <td
+                    {% if dev.isActive == 'да' %}
+                        style="background:MediumSeaGreen; font-size:85%"
+                    {% else %}
+                        style="background:#d42b48; color:#e4e4e4; font-size:85%"
+                    {% endif %}
+                >
+                    <span  title="last update: {{ dev.lastUpdate|date("d.m.Y H:i", "Europe/Moscow") }} MSK(+03:00)">{{ dev.lastUpdate|date("Y-m-d", "Europe/Moscow") }}</span>
+                </td>
+
+                {#Publisher Name#}
+                <td>
+                    <a href="https://{{ dev.publisherIp }}:8443/ccmadmin/" target="_blank">{{ dev.publisherName }}</a>
+                </td>
+
+                {#IpAddress#}
+                <td>
+                    <a href="http://{{ dev.ipAddress }}" target="_blank">{{ dev.ipAddress }}</a>
+                </td>
+
+                {#InventoryNumber#}
+                <td>{{ dev.inventoryNumber }}</td>
+
+                {#SerialNumber#}
+                <td>{{ dev.serialNumber }}</td>
+
+                {#Vlan Id#}
+                <td>{{ dev.vlanId }}</td>
+
+                {#Switch Hostname#}
+                <td>
+                    <a href="{{ baseUrl }}?sw_hn={{ dev.switchHostname }}">{{ dev.switchHostname }}</a>
+                </td>
+
+                {#Switch Ip#}
+                <td>
+                    <a href="ssh://{{ dev.switchIp }}" >{{ dev.switchIp }}</a>
+                </td>
+
+                {#Switch Port#}
+                <td>{{ dev.switchPort }}</td>
+
+                {#Switch Platform#}
+                <td>{{ dev.switchPlatform }}</td>
+
+                {#Switch Inventory Number#}
+                <td>{{ dev.switchInventoryNumber }}</td>
+
+                {#Prefix#}
+                <td>{{ dev.dnPrefix }}</td>
+
+                {#Description#}
+                <td>{{ dev.depiction }}</td>
+
+                {#Alerting Name#}
+                <td>{{ dev.alertingName }}</td>
+            </tr>
+        {% endfor %}
+{% endspaceless %}
