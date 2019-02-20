@@ -6,6 +6,7 @@ namespace App\Controllers;
 use App\Components\Sql\SqlSearcher;
 use App\Models\DataPort;
 use App\Models\Network;
+use App\ViewModels\ApiView_Networks;
 use App\ViewModels\DevGeoNetMat;
 use App\ViewModels\NetworksView;
 use T4\Core\Std;
@@ -28,11 +29,11 @@ class Networks extends Controller
         $queryNet
             ->select('net_id', 'net_ip')
             ->distinct()
-            ->from(DevGeoNetMat::getTableName())
+            ->from(ApiView_Networks::getTableName())
             ->where($expression)
             ->order('net_ip')
             ->params($parameters);
-        $queryRes = DevGeoNetMat::findAllByQuery($queryNet);
+        $queryRes = ApiView_Networks::findAllByQuery($queryNet);
         $nets = array_reduce($queryRes->toArrayRecursive(), function ($res, $item) {
             if (! empty($item['net_id'])) {
                 $res[] = $item['net_id'];
@@ -44,11 +45,11 @@ class Networks extends Controller
         $queryHost
             ->select('port_id', 'port_ip')
             ->distinct()
-            ->from(DevGeoNetMat::getTableName())
+            ->from(ApiView_Networks::getTableName())
             ->where($expression)
             ->order('port_ip')
             ->params($parameters);
-        $queryRes = DevGeoNetMat::findAllByQuery($queryHost);
+        $queryRes = ApiView_Networks::findAllByQuery($queryHost);
         $hosts = array_reduce($queryRes->toArrayRecursive(), function ($res, $item) {
             if (! empty($item['port_id'])) {
                 $res[] = $item['port_id'];

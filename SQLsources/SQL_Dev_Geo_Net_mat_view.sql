@@ -133,8 +133,8 @@ CREATE MATERIALIZED VIEW view.dev_geo_net_mat AS
   SELECT *
   FROM devs
           FULL JOIN phi USING (dev_id)
-           FULL JOIN locs USING (location_id)
-           FULL JOIN nets USING (net_id);
+          FULL JOIN locs USING (location_id)
+          FULL JOIN nets USING (net_id);
 
 -- SELECT example
 SELECT
