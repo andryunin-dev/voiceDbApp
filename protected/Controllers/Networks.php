@@ -6,6 +6,7 @@ namespace App\Controllers;
 use App\Components\Sql\SqlSearcher;
 use App\Models\DataPort;
 use App\Models\Network;
+use App\ViewModels\ApiView_IpSearch;
 use App\ViewModels\ApiView_Networks;
 use App\ViewModels\DevGeoNetMat;
 use App\ViewModels\NetworksView;
@@ -16,6 +17,7 @@ use T4\Mvc\Controller;
 class Networks extends Controller
 {
     public function actionFilteredSearch() {
+        
         // respond to preflights
         if($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
             exit;
@@ -23,41 +25,21 @@ class Networks extends Controller
         $filters = json_decode(file_get_contents('php://input'));
         $searcher = new SqlSearcher($filters);
         $expression = $searcher->expression;
-        $parameters = $searcher->parameters;
+        $params = $searcher->parameters;
         
-        $queryNet = new Query();
-        $queryNet
-            ->select('net_id', 'net_ip')
-            ->distinct()
-            ->from(ApiView_Networks::getTableName())
-            ->where($expression)
-            ->order('net_ip')
-            ->params($parameters);
-        $queryRes = ApiView_Networks::findAllByQuery($queryNet);
-        $nets = array_reduce($queryRes->toArrayRecursive(), function ($res, $item) {
-            if (! empty($item['net_id'])) {
-                $res[] = $item['net_id'];
-            }
-            return $res;
-        }, []);
+        $query = 'SELECT *, network.ip_path(t1.ip, t1.rec_type) FROM api_view.ip_search t1
+                    WHERE ' . $expression . '
+                    ORDER BY ip';
+    
+        $con = ApiView_Networks::getDbConnection();
+        $stm = $con->query($query, $params);
+        $result = $stm->fetchAll(\PDO::FETCH_ASSOC);
         
-        $queryHost = new Query();
-        $queryHost
-            ->select('port_id', 'port_ip')
-            ->distinct()
-            ->from(ApiView_Networks::getTableName())
-            ->where($expression)
-            ->order('port_ip')
-            ->params($parameters);
-        $queryRes = ApiView_Networks::findAllByQuery($queryHost);
-        $hosts = array_reduce($queryRes->toArrayRecursive(), function ($res, $item) {
-            if (! empty($item['port_id'])) {
-                $res[] = $item['port_id'];
-            }
-            return $res;
-        }, []);
         
-        $this->data->result = ['nets' => $nets, 'hosts' => $hosts];
+//        $dbh = $this->app->db->default;
+//        $stmt = $dbh->prepare(new Query($query));
+//        $result = ($stmt->execute($params) === true) ? $stmt->fetchAll(\PDO::FETCH_ASSOC) : [];
+        $this->data->searchResult = $result;
     }
 
     /**
