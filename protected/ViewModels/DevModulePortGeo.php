@@ -48,6 +48,7 @@ use T4\Orm\Model;
  * @property string $moduleInfo
  * @property string $portInfo
  * @property string $managementIp
+ * @property string $ipAddresses
  * @property string $inventoryNumber
  * @property string $responsiblePerson
  * @property string $last_call_day
@@ -113,6 +114,7 @@ class DevModulePortGeo extends Model
             'moduleInfo' => ['type' => 'jsonb'],
             'portInfo' => ['type' => 'jsonb'],
             'managementIp' => ['type' => 'string'],
+            'ipAddresses' => ['type' => 'string'],
             'inventoryNumber' => ['type' => 'string'],
             'responsiblePerson' => ['type' => 'string'],
             'last_call_day' => ['type' => 'string'],
