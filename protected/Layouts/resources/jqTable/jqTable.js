@@ -1227,10 +1227,12 @@ jqTable.workSetTmpl = {
                 }
             },
             buildFirstRowBody: function (ws) {
-                //добавляем id к 1-й строке, наполняем ячейками с нужными id
+                //добавляем id к 1-й строке, наполняем ячейками с нужными id, пропускаем ячейки с visible: false
                 ws.obj.$bodyFirstRow.attr("id", ws.model.body.selectors.firstRow.slice(1));
                 $.each(ws.model.header.columns, function (key,value) {
-                    $('<th></th>').attr({"id": value.td_id.slice(1)}).appendTo(ws.obj.$bodyFirstRow);
+                    if (value.visible === undefined || (value.visible && value.visible === true)) {
+                        $('<th></th>').attr({"id": value.td_id.slice(1)}).appendTo(ws.obj.$bodyFirstRow);
+                    }
                 });
             },
             buildFirstRowBodyFooter: function (ws) {
