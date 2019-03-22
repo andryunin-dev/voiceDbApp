@@ -1,3 +1,25 @@
+-- ====create api_view for networks
+DROP VIEW IF EXISTS api_view.networks;
+CREATE VIEW api_view.networks AS (
+                                 SELECT
+                                        nets.__id net_id,
+                                        nets.__vlan_id vlan_id,
+                                        nets.__vrf_id vrf_id,
+                                        nets.address net_ip,
+                                        nets.comment net_comment,
+                                        vlans.id vlan_number,
+                                        vlans.name vlan_name,
+                                        vlans.comment vlan_comment,
+                                        vrfs.rd vrf_rd,
+                                        vrfs.name vrf_name,
+                                        vrfs.comment vrf_comment
+                                 FROM network.networks nets
+                                          FULL JOIN network.vlans vlans ON nets.__vlan_id = vlans.__id
+                                          FULL JOIN network.vrfs vrfs ON nets.__vrf_id = vrfs.__id
+                                 );
+--   ==============
+
+
 -- ====== view for search by ip
 DROP VIEW IF EXISTS api_view.ip_search;
 CREATE VIEW api_view.ip_search AS (
