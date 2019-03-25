@@ -3,15 +3,43 @@
 namespace App\Controllers;
 
 
+use App\Components\Sql\SqlSearcher;
 use App\Models\DataPort;
 use App\Models\Network;
+use App\ViewModels\ApiView_IpSearch;
+use App\ViewModels\ApiView_Networks;
+use App\ViewModels\DevGeoNetMat;
 use App\ViewModels\NetworksView;
+use T4\Core\Std;
+use T4\Dbal\Query;
 use T4\Mvc\Controller;
 
 class Networks extends Controller
 {
-    public function actionIpam() {
-
+    public function actionFilteredSearch() {
+        
+        // respond to preflights
+        if($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+            exit;
+        }
+        $filters = json_decode(file_get_contents('php://input'));
+        $searcher = new SqlSearcher($filters);
+        $expression = $searcher->expression;
+        $params = $searcher->parameters;
+        
+        $query = 'SELECT *, network.ip_path(t1.ip, t1.rec_type) FROM api_view.ip_search t1
+                    WHERE ' . $expression . '
+                    ORDER BY ip';
+    
+        $con = ApiView_Networks::getDbConnection();
+        $stm = $con->query($query, $params);
+        $result = $stm->fetchAll(\PDO::FETCH_ASSOC);
+        
+        
+//        $dbh = $this->app->db->default;
+//        $stmt = $dbh->prepare(new Query($query));
+//        $result = ($stmt->execute($params) === true) ? $stmt->fetchAll(\PDO::FETCH_ASSOC) : [];
+        $this->data->searchResult = $result;
     }
 
     /**
@@ -103,6 +131,4 @@ class Networks extends Controller
             $this->data->error = $e->getMessage();
         }
     }
-
-
 }
