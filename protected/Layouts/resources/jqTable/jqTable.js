@@ -1493,7 +1493,7 @@ jqTable.workSetTmpl = {
 
                         },
                         minLength: 0,
-                        delay: 300,
+                        delay: 800,
                         search: function (e, ui) {
                             $(this).data('filter').value = $(this).val();
                             methods.updateBodyContent(ws);
