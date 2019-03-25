@@ -8,16 +8,59 @@ use App\Models\Appliance;
 use App\Models\ApplianceType;
 use App\ViewModels\ApiView_Geo;
 use App\ViewModels\DevGeo_View;
+use T4\Core\Std;
 use App\ViewModels\DevModulePortGeo;
 use App\ViewModels\MappedLocations_View;
 use T4\Core\Collection;
-use T4\Core\Std;
 use T4\Dbal\Query;
 use T4\Mvc\Controller;
 use T4\Mvc\Route;
 
 class Test extends Controller
 {
+    protected $conditionalFormats = [
+        'beginWith' => '%s%%'
+    ];
+    
+    public function actionFunctions()
+    {
+        $array = ['test', 't2'];
+        var_dump(implode(' OR ', $array));
+        $string = sprintf($this->conditionalFormats['beginWith'], 'test');
+        $obj = new Std();
+        $obj->value = 'test';
+        
+        var_dump($string);
+        if ($obj->test) {
+            echo 'value exists';
+        } else {
+            echo 'value isn\'t exists';
+        }
+        die;
+    }
+    public function actionJson()
+    {
+
+        $jstring = '
+        {  
+            "Person":[  
+               "name",
+               "age"
+            ],
+            "Device":{  
+               "Platform":[  
+                  "sn",
+                  "inv"
+               ],
+               "Software":[  
+                  "ver"
+               ]
+        }
+}
+        ';
+        echo $jstring;
+        var_dump(json_decode($jstring));die;
+    }
     public function actionTestApi() {
         $query = (new Query())
             ->select(['location_id', 'office'])
@@ -273,8 +316,6 @@ class Test extends Controller
 
         die;
     }
-    
-
 
 
     public function actionDeleteVeryOldAnalogPhones()
