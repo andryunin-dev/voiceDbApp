@@ -39,7 +39,9 @@ BEGIN
 END;
 $$
 LANGUAGE plpgsql';
+        $sql['drop old api_view.ip_search'] = 'DROP VIEW IF EXISTS api_view.ip_search';
         $sql['drop old api_view.networks'] = 'DROP VIEW IF EXISTS api_view.networks';
+        $sql['drop ip_path function'] = 'DROP FUNCTION IF EXISTS network.ip_path(inet, text, OUT text) ';
         $sql['create api_view.networks'] = '
         CREATE VIEW api_view.networks AS (
   SELECT
@@ -58,7 +60,6 @@ LANGUAGE plpgsql';
            FULL JOIN network.vlans vlans ON nets.__vlan_id = vlans.__id
            FULL JOIN network.vrfs vrfs ON nets.__vrf_id = vrfs.__id
   )';
-        $sql['drop old api_view.ip_search'] = 'DROP VIEW IF EXISTS api_view.ip_search';
         $sql['create api_view.ip_search'] = '
         CREATE VIEW api_view.ip_search AS (
   SELECT __id id, address ip, \'network\' rec_type
