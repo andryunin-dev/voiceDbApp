@@ -16,6 +16,8 @@ use T4\Mvc\Controller;
 
 class Networks extends Controller
 {
+    public function actionIpam() {
+    }
     public function actionFilteredSearch() {
         
         // respond to preflights
