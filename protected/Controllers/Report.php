@@ -544,7 +544,7 @@ class Report extends Controller
                         $tbData = $tb->getRecordsByPage();
 
                         //========== concatenate data from non calling dev statictics================
-                        $nonCallingDevicesByOffices = DevCallsStats::getAmountOfNonCallingDevicesByOffices();
+                        $nonCallingDevicesByOffices = DevCallsStats::getAmountOfNonCallingDevicesByOffices($tabFilter); // -------------------------------------
                         foreach ($tbData as $k => $item) {
                             $officeNonCallingStats = $nonCallingDevicesByOffices['offices'][$item['office_id']];
                             if (!is_null($officeNonCallingStats)) {
@@ -563,6 +563,7 @@ class Report extends Controller
                         $data['columnsBF'] = $request->bodyFooter;
                         $data['notUsedPhonesUrl'] = $notUsedPhonesUrl;
                         $data['maxAge'] = $this->app->config->appParams->maxAge;
+
                         //============get body footer data==============
                         $tbBF = $tb->getBodyFooterTable();
                         $tbDataBF = [];
@@ -588,6 +589,7 @@ class Report extends Controller
                             return $acc += $item['lotus_employees'];
                         });
                         $data['lotusEmployeesTotal'] = $people;
+
                         //=============render templates=============
                         $this->data->body->html = $this->view->render($bodyTemplate, $data);
                         $this->data->bodyFooter->html = $this->view->render($bodyFooterTemplate, $data);
