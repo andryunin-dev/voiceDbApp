@@ -2,10 +2,12 @@
 
 namespace App\Controllers;
 
+use App\Components\IpTools;
 use App\ConsolidationTablesModels\ConsolidationTable_1;
 use App\MappingModels\LotusLocation;
 use App\Models\Appliance;
 use App\Models\ApplianceType;
+use App\Models\Network2;
 use App\ViewModels\ApiView_Geo;
 use App\ViewModels\DevGeo_View;
 use T4\Core\Std;
@@ -18,26 +20,23 @@ use T4\Mvc\Route;
 
 class Test extends Controller
 {
-    protected $conditionalFormats = [
-        'beginWith' => '%s%%'
-    ];
-    
-    public function actionFunctions()
+    public function actionTestIp()
     {
-        $array = ['test', 't2'];
-        var_dump(implode(' OR ', $array));
-        $string = sprintf($this->conditionalFormats['beginWith'], 'test');
-        $obj = new Std();
-        $obj->value = 'test';
-        
-        var_dump($string);
-        if ($obj->test) {
-            echo 'value exists';
-        } else {
-            echo 'value isn\'t exists';
+//        $ip = new IpTools('10.1.2.0/16');
+//        $this->data->isValid = $ip->is_valid;
+//        $this->data->is_hostIp = $ip->is_hostIp;
+//        $this->data->is_networkIp = $ip->is_networkIp;
+//        $this->data->cidrAddress = $ip->cidrAddress;
+        $net = new Network2();
+        $res = $net->checkAbilityCreateNetwork('10.1.2.0/25', 1);
+        if ($res === false) {
+            $this->data->errors = $net->errors;
         }
-        die;
+        else {
+            $this->data->result = $res;
+        }
     }
+    
     public function actionJson()
     {
 

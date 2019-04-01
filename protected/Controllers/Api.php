@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\ApiHelpers\DevInfo;
 use App\Models\Appliance;
+use App\Models\Network2;
 use App\Models\Office;
 use App\Models\Vendor;
 use App\Models\Vrf;
@@ -11,6 +12,7 @@ use App\ViewModels\ApiView_Devices;
 use App\ViewModels\ApiView_DPorts;
 use App\ViewModels\ApiView_Geo;
 use App\ViewModels\ApiView_Modules;
+use App\ViewModels\ApiView_Networks;
 use App\ViewModels\ApiView_Vrfs;
 use App\ViewModels\Geo_View;
 use T4\Core\Exception;
@@ -21,6 +23,7 @@ use T4\Mvc\Controller;
 class Api extends Controller
 {
     protected $devData;
+    protected $netData;
     protected $errors = ['ERROR!'];
     public function actionGetRegCenters()
     {
@@ -436,6 +439,56 @@ class Api extends Controller
             $this->data->exception = $e->getMessage();
         }
     }
+    
+    public function actionGetNetData($netId)
+    {
+        // respond to preflights
+        if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+            exit;
+        }
+        try {
+            if (! is_numeric($netId)) {
+                throw new Exception('Error data request');
+            }
+            $netId = intval($netId);
+            $network = ApiView_Networks::findByPK($netId);
+            $this->data->netData = $network;
+        } catch (\Exception $e) {
+            $this->data->exception = $e->getMessage();
+        }
+    }
+    
+    public function actionGetApp($id) {
+        $app = Appliance::findByPK($id);
+        var_dump($app);
+        var_dump('============OFFICE============');
+        $office = ($app instanceof Appliance) ? $app->location : null;
+        var_dump($office);
+        var_dump('============MODULES============');
+        $modules = ($app instanceof Appliance) ? $app->modules : null;
+        var_dump($modules);
+        var_dump('============PORTS============');
+        $ports = ($app instanceof Appliance) ? $app->dataPorts : null;
+        var_dump($ports);
+        die;
+    }
+    public function actionSaveNetData()
+    {
+        if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+            exit;
+        }
+        $errors = [];
+        try {
+            $this->netData = new Std(json_decode(file_get_contents('php://input')));
+            if (!($this->netData instanceof Std)) {
+                $errors[] = 'Invalid input data';
+                throw new Exception();
+            }
+            $this->netData = new Network2($this->netData);
+        } catch (Exception $e) {
+            $this->data->errors = $errors;
+        }
+    }
     public function actionPostTest()
     {
         if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
@@ -452,18 +505,5 @@ class Api extends Controller
             $this->data->errors = $errors;
         }
     }
-    public function actionGetApp($id) {
-        $app = Appliance::findByPK($id);
-        var_dump($app);
-        var_dump('============OFFICE============');
-        $office = ($app instanceof Appliance) ? $app->location : null;
-        var_dump($office);
-        var_dump('============MODULES============');
-        $modules = ($app instanceof Appliance) ? $app->modules : null;
-        var_dump($modules);
-        var_dump('============PORTS============');
-        $ports = ($app instanceof Appliance) ? $app->dataPorts : null;
-        var_dump($ports);
-        die;
-    }
+    
 }
