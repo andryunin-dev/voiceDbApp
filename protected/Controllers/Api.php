@@ -3,8 +3,8 @@
 namespace App\Controllers;
 
 use App\ApiHelpers\DevInfo;
+use App\ApiHelpers\NetData;
 use App\Models\Appliance;
-use App\Models\Network2;
 use App\Models\Office;
 use App\Models\Vendor;
 use App\Models\Vrf;
@@ -424,14 +424,10 @@ class Api extends Controller
             }
             if ($this->devData->errors->count() === 0) {
                 $this->devData->saveDev();
+                $this->data->result = 'OK';
             } else {
-                throw new Exception();
-            }
-            if ($this->devData->errors->count() > 0) {
                 $this->errors = array_merge($this->errors, $this->devData->errors->toArray());
                 throw new Exception();
-            } else {
-                $this->data->result = 'OK';
             }
         } catch (Exception $e) {
             $this->data->errors = $this->errors;
@@ -477,16 +473,31 @@ class Api extends Controller
         if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
             exit;
         }
-        $errors = [];
         try {
             $this->netData = new Std(json_decode(file_get_contents('php://input')));
             if (!($this->netData instanceof Std)) {
-                $errors[] = 'Invalid input data';
+                $this->errors[] = 'Invalid input data';
                 throw new Exception();
             }
-            $this->netData = new Network2($this->netData);
-        } catch (Exception $e) {
-            $this->data->errors = $errors;
+//            $this->netData = new Std();
+//            $this->netData->fill([
+//                'newNet' => false,
+//                'netId' => 125921,
+////                'netId' => '',
+//                'netIp' => '192.169.1.0/25',
+//                'netComment' => '',
+//                'vrfId' => 1
+//            ]);
+            $this->netData = new NetData($this->netData);
+            if ($this->netData->errors->count() > 0) {
+                $this->errors = array_merge($this->errors, $this->netData->errors->toArray());
+                throw new Exception();
+            } else {
+                $res = $this->netData->netObject->save();
+                $this->data->result = 'OK';
+            }
+        } catch (\Exception $e) {
+            $this->data->errors = $this->errors;
         }
     }
     public function actionPostTest()
