@@ -7,7 +7,9 @@ use App\ConsolidationTablesModels\ConsolidationTable_1;
 use App\MappingModels\LotusLocation;
 use App\Models\Appliance;
 use App\Models\ApplianceType;
+use App\Models\Network;
 use App\Models\Network2;
+use App\Models\Vrf;
 use App\ViewModels\ApiView_Geo;
 use App\ViewModels\DevGeo_View;
 use T4\Core\Std;
@@ -22,19 +24,30 @@ class Test extends Controller
 {
     public function actionTestIp()
     {
-//        $ip = new IpTools('10.1.2.0/16');
-//        $this->data->isValid = $ip->is_valid;
-//        $this->data->is_hostIp = $ip->is_hostIp;
-//        $this->data->is_networkIp = $ip->is_networkIp;
-//        $this->data->cidrAddress = $ip->cidrAddress;
-        $net = new Network2();
-        $res = $net->checkAbilityCreateNetwork('10.1.2.0/25', 1);
-        if ($res === false) {
-            $this->data->errors = $net->errors;
+        try {
+            $vrf = Vrf::findByPK(1);
+    
+            $net = Network::findByAddressVrf('10.1.1.0/24', $vrf);
+            $net->delete();
+            $net = (new Network())->fill(['address' => '10.1.1.0/24', 'comment' => 'test' ]);
+            $net->vrf = $vrf;
+            $net->save();
+//            $net->address = '10.1.3.0/24';
+//            $net->delete();
+            $children = $net->children;
+            var_dump($children);
+            die;
+        } catch (\Exception $e) {
+            var_dump($e->getMessage());
         }
-        else {
-            $this->data->result = $res;
-        }
+        
+//        $vrf = Vrf::findByPK(1);
+//        $net->fill([
+//            'address' => '10.1.0.0/16',
+//            'comment' => '',
+//            'vrf' => $vrf
+//        ]);
+//        $net->save();
     }
     
     public function actionJson()

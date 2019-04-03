@@ -1742,12 +1742,12 @@ class Admin extends Controller
 
     public function actionNetworksTree()
     {
-        $allVrf = Vrf::findAll(['name' => 'asc']);
-        $vrfs = new Collection();
-        foreach ($allVrf as $vrf) {
-            $vrf->rootNetworks = Network::findAllRootsByVrf($vrf, ['address' => 'asc']);
-            $vrfs->append($vrf);
-        }
-        $this->data->vrfs = $vrfs;
+//        $allVrf = Vrf::findAll(['name' => 'asc']);
+//        $vrfs = new Collection();
+//        foreach ($allVrf as $vrf) {
+//            $vrf->rootNetworks = Network::findAllRootsByVrf($vrf, ['address' => 'asc']);
+//            $vrfs->append($vrf);
+//        }
+//        $this->data->vrfs = $vrfs;
     }
 }
