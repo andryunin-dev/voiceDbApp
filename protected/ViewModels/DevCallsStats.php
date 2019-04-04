@@ -2,6 +2,7 @@
 
 namespace App\ViewModels;
 
+use App\Components\Sql\SqlFilter;
 use T4\Mvc\Application;
 use T4\Orm\Model;
 
@@ -28,6 +29,8 @@ class DevCallsStats extends Model
 
 
     /**
+     * @param SqlFilter|null $tabFilter
+     *
      * @return array [
      *      'total' => [
      *          'd0Hw_total_nonCallingDevAmount' => 44,   // колличество незвонивших HW телефонов за текущий день во всех офисах
@@ -54,10 +57,29 @@ class DevCallsStats extends Model
      *      ]
      * ]
      */
-    public static function getAmountOfNonCallingDevicesByOffices()
+    public static function getAmountOfNonCallingDevicesByOffices(SqlFilter $tabFilter = null)
     {
         $app = Application::instance();
         $maxAge = $app->config->appParams->maxAge;
+
+        $filter = '';
+        foreach ($tabFilter->toArray() as $col => $ops) {
+            foreach ($ops as $op => $vals) {
+                if ($op == 'eq') {
+                    if (count($vals) == 1) {
+                        $filter .= ' AND ' . $col . ' = ' . '\'' . $vals[0] . '\'';
+                    }
+                    if (count($vals) > 1) {
+                        $filter .= ' AND ' . $col . ' IN (';
+                        foreach ($vals as $item) {
+                            $filter .= '\'' . $item . '\', ';
+                        }
+                        $filter = substr($filter, 0, -2);
+                        $filter .= ')';
+                    }
+                }
+            }
+        }
 
         $sql = '
             SELECT
@@ -72,8 +94,7 @@ class DevCallsStats extends Model
                 count(*) FILTER (WHERE "isHW" = FALSE AND "appAge" < '.$maxAge.' AND m1_calls_amount ISNULL) AS "m1An_nonCallingDevAmount",
                 count(*) FILTER (WHERE "isHW" = FALSE AND "appAge" < '.$maxAge.' AND m2_calls_amount ISNULL) AS "m2An_nonCallingDevAmount"
             FROM view.dev_phone_info_geo
-            WHERE "appType" = \'phone\' AND (d0_calls_amount ISNULL OR m0_calls_amount ISNULL OR m1_calls_amount ISNULL OR m2_calls_amount ISNULL)
-            GROUP BY office_id';
+            WHERE "appType" = \'phone\' AND (d0_calls_amount ISNULL OR m0_calls_amount ISNULL OR m1_calls_amount ISNULL OR m2_calls_amount ISNULL)'. $filter .' GROUP BY office_id';
         $callsStats = $app->db->default->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
 
 

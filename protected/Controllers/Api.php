@@ -3,7 +3,9 @@
 namespace App\Controllers;
 
 use App\ApiHelpers\DevInfo;
+use App\ApiHelpers\NetData;
 use App\Models\Appliance;
+use App\Models\Network;
 use App\Models\Office;
 use App\Models\Vendor;
 use App\Models\Vrf;
@@ -11,6 +13,7 @@ use App\ViewModels\ApiView_Devices;
 use App\ViewModels\ApiView_DPorts;
 use App\ViewModels\ApiView_Geo;
 use App\ViewModels\ApiView_Modules;
+use App\ViewModels\ApiView_Networks;
 use App\ViewModels\ApiView_Vrfs;
 use App\ViewModels\Geo_View;
 use T4\Core\Exception;
@@ -21,6 +24,7 @@ use T4\Mvc\Controller;
 class Api extends Controller
 {
     protected $devData;
+    protected $netData;
     protected $errors = ['ERROR!'];
     public function actionGetRegCenters()
     {
@@ -421,19 +425,107 @@ class Api extends Controller
             }
             if ($this->devData->errors->count() === 0) {
                 $this->devData->saveDev();
+                $this->data->result = 'OK';
             } else {
-                throw new Exception();
-            }
-            if ($this->devData->errors->count() > 0) {
                 $this->errors = array_merge($this->errors, $this->devData->errors->toArray());
                 throw new Exception();
-            } else {
-                $this->data->result = 'OK';
             }
         } catch (Exception $e) {
             $this->data->errors = $this->errors;
         } catch (\Exception $e) {
             $this->data->exception = $e->getMessage();
+        }
+    }
+    
+    public function actionGetNetData($netId)
+    {
+        // respond to preflights
+        if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+            exit;
+        }
+        try {
+            if (! is_numeric($netId)) {
+                throw new Exception('Error data request');
+            }
+            $netId = intval($netId);
+            $network = ApiView_Networks::findByPK($netId);
+            $this->data->netData = $network;
+        } catch (\Exception $e) {
+            $this->data->exception = $e->getMessage();
+        }
+    }
+    
+    public function actionGetApp($id) {
+        $app = Appliance::findByPK($id);
+        var_dump($app);
+        var_dump('============OFFICE============');
+        $office = ($app instanceof Appliance) ? $app->location : null;
+        var_dump($office);
+        var_dump('============MODULES============');
+        $modules = ($app instanceof Appliance) ? $app->modules : null;
+        var_dump($modules);
+        var_dump('============PORTS============');
+        $ports = ($app instanceof Appliance) ? $app->dataPorts : null;
+        var_dump($ports);
+        die;
+    }
+    public function actionSaveNetData()
+    {
+        if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+            exit;
+        }
+        try {
+            $this->netData = new Std(json_decode(file_get_contents('php://input')));
+            if (!($this->netData instanceof Std)) {
+                $this->errors[] = 'Invalid input data';
+                throw new Exception();
+            }
+//            $this->netData = new Std();
+//            $this->netData->fill([
+//                'newNet' => false,
+//                'netId' => 125921,
+////                'netId' => '',
+//                'netIp' => '192.169.1.0/25',
+//                'netComment' => '',
+//                'vrfId' => 1
+//            ]);
+            //$this->netData = new NetData($this->netData);
+            if (is_numeric($this->netData->vrfId)) {
+                $this->netData->vrf = Vrf::findByPK($this->netData->vrfId);
+            } else {
+                throw new \Exception('Invalid VRF data');
+            }
+            if ($this->netData->newNet === true) {
+                //new Network
+                $network = (new Network())
+                    ->fill([
+                        'address' => $this->netData->netIp,
+                        'comment' => $this->netData->netComment,
+                        'vrf' => $this->netData->vrf
+                    ])
+                    ->save();
+            } elseif ($this->netData->newNet === false) {
+                //edit existed network
+                $network = Network::findByPK($this->netData->netId);
+                if (! $network instanceof Network) {
+                    throw new \Exception('Network not found');
+                }
+                $network
+                    ->fill([
+                        'address' => $this->netData->netIp,
+                        'comment' => $this->netData->netComment,
+                        'vrf' => $this->netData->vrf
+                    ])
+                    ->save();
+            }
+            $this->data->result = 'OK';
+        } catch (\Exception $e) {
+            if (isset($network) && $network instanceof Network) {
+                $this->data->errors =  $network->errors;
+                $this->data->errors[] = $e->getMessage();
+            } else {
+                $this->data->errors = [$e->getMessage()];
+            }
         }
     }
     public function actionPostTest()
@@ -452,18 +544,5 @@ class Api extends Controller
             $this->data->errors = $errors;
         }
     }
-    public function actionGetApp($id) {
-        $app = Appliance::findByPK($id);
-        var_dump($app);
-        var_dump('============OFFICE============');
-        $office = ($app instanceof Appliance) ? $app->location : null;
-        var_dump($office);
-        var_dump('============MODULES============');
-        $modules = ($app instanceof Appliance) ? $app->modules : null;
-        var_dump($modules);
-        var_dump('============PORTS============');
-        $ports = ($app instanceof Appliance) ? $app->dataPorts : null;
-        var_dump($ports);
-        die;
-    }
+    
 }
