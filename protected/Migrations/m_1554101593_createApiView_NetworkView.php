@@ -10,6 +10,7 @@ class m_1554101593_createApiView_NetworkView
 
     public function up()
     {
+        $sql['drop api_view.networks'] = 'DROP VIEW IF EXISTS api_view.networks';
         $sql['create api_view.networks'] =
             '
             CREATE VIEW api_view.networks as
