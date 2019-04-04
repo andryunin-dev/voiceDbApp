@@ -71,7 +71,10 @@ class Network extends Model
                 WHERE address >> :address AND __vrf_id = :vrf_id) t ON n.address = t.max_address AND n.__vrf_id = :vrf_id',
         'findNetworkForHostByIp' =>
             'SELECT * FROM network.networks
-          WHERE address = network(:address) AND __vrf_id = :vrf_id'
+          WHERE address = network(:address) AND __vrf_id = :vrf_id',
+        'findAllNetworks' => '
+        SELECT net_id __id, net_ip address, net_comment "comment", vrf_id __vrf_id FROM api_view.networks
+        WHERE net_id NOTNULL AND vrf_id NOTNULL'
     ];
     
     protected static $staticErrors = [];
@@ -100,6 +103,10 @@ class Network extends Model
     protected function getErrors()
     {
         return $this->errors;
+    }
+    protected function getVrfId()
+    {
+        return $this->vrf->getPk();
     }
     
     /**
@@ -411,6 +418,15 @@ class Network extends Model
 //        }
 //        return parent::beforeDelete();
 //    }
+    public static function findAllSortedByVrfIp ($vrfDirect = 'asc', $ipDirect = 'asc')
+    {
+        $query = self::SQL['findAllNetworks'];
+        $order = "ORDER BY vrf_name ${vrfDirect}, net_ip ${ipDirect}";
+        $query .= "\n" . $order;
+        $query = new Query($query);
+        $networks = Network::findAllByQuery($query);
+        return $networks;
+    }
 
     public static function findAll($options = [])
     {

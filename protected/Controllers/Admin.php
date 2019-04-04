@@ -1696,7 +1696,7 @@ class Admin extends Controller
 
     public function actionNetworksTab()
     {
-        $this->data->networks = Network::findAll(['vrf' => 'asc', 'address' => 'asc']);
+        $this->data->networks = Network::findAllSortedByVrfIp();
     }
 
     public function actionAddNetwork($network)

@@ -1,0 +1,247 @@
+{% if timer is defined and user.debugMode == true %}
+    {{ timer.fix('Twig render start') }}
+{% endif %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>Net CMDB</title>
+    {{ publish('/Layouts/resources') }}
+    {{ publishCss() }}
+    <link rel="stylesheet" href="{{ asset('/Layouts/resources/bootstrap/css/bootstrap.css') }}">
+    <link rel="stylesheet" href="{{ asset('/Layouts/resources/jquery-ui-1.12.1.base/jquery-ui.css') }}">
+
+    {#<link rel="stylesheet" href="{{ asset('/Layouts/resources/JQGrid/css/ui.jqgrid.css') }}">#}
+
+    <link rel="stylesheet" href="{{ asset('/Layouts/resources/css/jqTable/ui.jqtable.css') }}">
+    <link rel="stylesheet" href="{{ asset('/Layouts/resources/css/jqTable/ui.ajaxPreloader.css') }}">
+    {#<link rel="stylesheet" href="{{ asset('/Layouts/resources/css/styleAjax.css') }}">#}
+    {#<link rel="stylesheet" href="{{ asset('/Layouts/resources/css/headerFix.css') }}">#}
+    <link rel="stylesheet" href="{{ asset('/Layouts/resources/css/bootstrapExt.css') }}">
+    <link rel="stylesheet" href="{{ asset('/Layouts/resources/css/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('/Layouts/resources/css/testStyle.css') }}">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!--js-->
+    {{ publishJs() }}
+    <script src="{{ asset('/Layouts/resources/jquery-ui-1.12.1.base/external/jquery/jquery.js') }}"></script>
+    <script src="{{ asset('/Layouts/resources/jquery-ui-1.12.1.base/jquery-ui.js') }}"></script>
+
+    {#<script src="{{ asset('/Layouts/resources/JQGrid/js/i18n/grid.locale-en.js') }}"></script>#}
+    {#<script src="{{ asset('/Layouts/resources/JQGrid/js/jquery.jqGrid.min.js') }}"></script>#}
+    <script src="{{ asset('/Layouts/resources/js/js.cookie.js') }}"></script>
+    <script src="{{ asset('/Layouts/resources/js/jquery.cookie.js') }}"></script>
+    <script src="{{ asset('/Layouts/resources/bootstrap/js/dropdown.js') }}"></script>
+    {#<script src="{{ asset('/Layouts/resources/ajaxTable/main.js') }}"></script>#}
+    <script src="{{ asset('/Layouts/resources/jqTable/jqTable.js') }}"></script>
+    {#<script src="{{ asset('/Layouts/resources/jsRender/jsrender.js') }}"></script>#}
+    <script src="{{ asset('/Layouts/resources/js/script.js') }}"></script>
+
+    {#React injection=============================================#}
+    <link href="/react/editNetModal/static/css/main.8a397022.chunk.css" rel="stylesheet">
+
+{#======================================================#}
+    {% block headerScript %}
+    {% endblock %}
+</head>
+<body>
+<div class="container-fluid">
+    <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/locations"><img src="{{ asset('/Layouts/resources/img/logo_brs_small_2.png') }}" height="40" alt="BRS"></a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse navbar-ex1-collapse">
+                <ul class="nav navbar-nav">
+                    <li {% if activeLink.offices == true %}class="active" {% endif %}>
+                        <a href="/locations">Офисы</a>
+                    </li>
+                    {#<li {% if activeLink.devices == true %}class="active" {% endif %}>#}
+                    {#<a href="/admin/devices">Оборудование</a>#}
+                    {#</li>#}
+                    <li {% if activeLink.devicesNew == true %}class="active" {% endif %}>
+                        <a href="/device/info">Оборудование</a>
+                    </li>
+                    {#<li class="dropdown {% if activeLink.devices == true %} active {% endif %}">#}
+                    {#<a href="#" class="dropdown-toggle active" data-toggle="dropdown">Оборудование <b class="caret"></b></a>#}
+                    {#<ul class="dropdown-menu">#}
+                    {#<li><a href="/admin/devices">По офисам(HW inventory)</a></li>#}
+                    {#<li><a href="/admin/portInventory">По офисам(ports inventory)</a></li>#}
+                    {#</ul>#}
+                    {#</li>#}
+                    <li class="dropdown {% if activeLink.phonesReports == true %} active {% endif %}">
+                        <a href="#" class="dropdown-toggle active" data-toggle="dropdown">Phones<b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="/basePhone">Телефоны Инфо</a></li>
+                            <li><a href="/usersPhone">Телефоны по ФИО</a></li>
+                        </ul>
+                    </li>
+                    <li class="dropdown {% if activeLink.ipPlanning == true %} active {% endif %}">
+                        <a href="#" class="dropdown-toggle active" data-toggle="dropdown">IP Planning<b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="/networks/ipam">IPAM</a></li>
+                        </ul>
+                    </li>
+                    <li {% if activeLink.reportNew == true %}class="active" {% endif %}>
+                        <a href="/report/new">Reports</a>
+                    </li>
+                    <li class="dropdown {% if activeLink.phonesReports == true %} active {% endif %}">
+                        <a href="#" class="dropdown-toggle active" data-toggle="dropdown">Phones reports<b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="/report/phoneStatsReport">По моделям</a></li>
+                            <li><a href="/report/phoneStatsByClustersReport">По кластерам</a></li>
+                            <li><a href="/report/phoneStatsByNotUsedReport">По не используемым</a></li>
+                            <li><a href="/report/agentsPhonesStatsReport">По Agent Licenses</a></li>
+                        </ul>
+                    </li>
+
+                </ul>
+                {% block navBarInfo %}
+                {% endblock %}
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <p class="navbar-btn-custom">
+                            <a id="eraseLog" class="btn btn-success btn-xs hidden" href="#" title="Очистить Logs">Очистить</a>
+                        </p>
+                    </li>
+                    <li>
+                        <p class="navbar-btn-custom">
+                            <a id="excelExport" class="btn btn-success btn-xs hidden" href="#" title="Экспорт в Excel">Экспорт</a>
+                        </p>
+                    </li>
+                    <li>
+                        <p class="navbar-btn-custom">
+                            <a id="phonesErrorsExport" class="btn btn-success btn-xs hidden" href="#" title="Экспорт Phones Errors Logs">Экспорт</a>
+                        </p>
+                    </li>
+                    <li class="dropdown {% if activeLink.dictionary == true %} active {% endif %}">
+                        <a href="#" class="dropdown-toggle active" data-toggle="dropdown">Справочники <b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="/admin/regions">Регионы</a></li>
+                            <li><a href="/admin/cities">Города</a></li>
+                            <li><a href="/admin/officeStatuses">Статусы офисов</a></li>
+                            <li role="separator" class="divider"></li>
+                            <li><a href="/admin/devparts">Оборудование</a></li>
+                            <li><a href="/admin/portTypes">Типы портов</a></li>
+                            <li role="separator" class="divider"></li>
+                            <li><a href="/admin/vrf">VRF</a></li>
+                            <li><a href="/admin/NetworksTab">Networks(Table)</a></li>
+                            <li><a href="/admin/NetworksTree">Networks(Tree)</a></li>
+                            <li role="separator" class="divider"></li>
+                            <li><a href="/logs">Логи Hardware</a></li>
+                            <li><a href="/logs/phones">Логи Phones</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div><!-- /.navbar-collapse -->
+        </div>
+    </nav>
+
+    {% block main %}
+    {% endblock %}
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="reactEditNetModal"></div>
+    <script>!function (f) {
+            function e(e) {
+                for (var r, t, n = e[0], o = e[1], u = e[2], i = 0, l = []; i < n.length; i++) t = n[i], c[t] && l.push(c[t][0]), c[t] = 0
+                for (r in o) Object.prototype.hasOwnProperty.call(o, r) && (f[r] = o[r])
+                for (d && d(e); l.length;) l.shift()()
+                return p.push.apply(p, u || []), a()
+            }
+
+            function a() {
+                for (var e, r = 0; r < p.length; r++) {
+                    for (var t = p[r], n = !0, o = 1; o < t.length; o++) {
+                        var u = t[o]
+                        0 !== c[u] && (n = !1)
+                    }
+                    n && (p.splice(r--, 1), e = i(i.s = t[0]))
+                }
+                return e
+            }
+
+            var t = {}, c = {2: 0}, p = []
+
+            function i(e) {
+                if (t[e]) return t[e].exports
+                var r = t[e] = {i: e, l: !1, exports: {}}
+                return f[e].call(r.exports, r, r.exports, i), r.l = !0, r.exports
+            }
+
+            i.m = f, i.c = t, i.d = function (e, r, t) {
+                i.o(e, r) || Object.defineProperty(e, r, {enumerable: !0, get: t})
+            }, i.r = function (e) {
+                "undefined" != typeof Symbol && Symbol.toStringTag && Object.defineProperty(e, Symbol.toStringTag, {value: "Module"}), Object.defineProperty(e, "__esModule", {value: !0})
+            }, i.t = function (r, e) {
+                if (1 & e && (r = i(r)), 8 & e) return r
+                if (4 & e && "object" == typeof r && r && r.__esModule) return r
+                var t = Object.create(null)
+                if (i.r(t), Object.defineProperty(t, "default", {
+                    enumerable: !0,
+                    value: r
+                }), 2 & e && "string" != typeof r) for (var n in r) i.d(t, n, function (e) {
+                    return r[e]
+                }.bind(null, n))
+                return t
+            }, i.n = function (e) {
+                var r = e && e.__esModule ? function () {
+                    return e.default
+                } : function () {
+                    return e
+                }
+                return i.d(r, "a", r), r
+            }, i.o = function (e, r) {
+                return Object.prototype.hasOwnProperty.call(e, r)
+            }, i.p = "/react/editNetModal/"
+            var r = window.webpackJsonp = window.webpackJsonp || [], n = r.push.bind(r)
+            r.push = e, r = r.slice()
+            for (var o = 0; o < r.length; o++) e(r[o])
+            var d = n
+            a()
+        }([])</script>
+    <script src="/react/editNetModal/static/js/1.3b728ab6.chunk.js"></script>
+    <script src="/react/editNetModal/static/js/main.c8cb4a43.chunk.js"></script>
+</div>
+
+
+{% block JS %}
+{% endblock %}
+{% if timer is defined and user.debugMode == true %}
+    {{ timer.fix('Twig render finish') }}
+    <div id="dialog-timer" title="Runtime Info">
+        {% for prop, value in timer %}
+            <p>{{ prop }} - {{ timer[prop] }}</p>
+        {% endfor %}
+    </div>
+    <script>
+        $( function() {
+            $( "#dialog-timer" ).dialog();
+        } );
+    </script>
+{% endif %}
+
+
+
+</body>
+</html>

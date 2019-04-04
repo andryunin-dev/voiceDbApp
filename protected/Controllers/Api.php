@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\ApiHelpers\DevInfo;
 use App\ApiHelpers\NetData;
 use App\Models\Appliance;
+use App\Models\Network;
 use App\Models\Office;
 use App\Models\Vendor;
 use App\Models\Vrf;
@@ -488,16 +489,43 @@ class Api extends Controller
 //                'netComment' => '',
 //                'vrfId' => 1
 //            ]);
-            $this->netData = new NetData($this->netData);
-            if ($this->netData->errors->count() > 0) {
-                $this->errors = array_merge($this->errors, $this->netData->errors->toArray());
-                throw new Exception();
+            //$this->netData = new NetData($this->netData);
+            if (is_numeric($this->netData->vrfId)) {
+                $this->netData->vrf = Vrf::findByPK($this->netData->vrfId);
             } else {
-                $res = $this->netData->netObject->save();
-                $this->data->result = 'OK';
+                throw new \Exception('Invalid VRF data');
             }
+            if ($this->netData->newNet === true) {
+                //new Network
+                $network = (new Network())
+                    ->fill([
+                        'address' => $this->netData->netIp,
+                        'comment' => $this->netData->netComment,
+                        'vrf' => $this->netData->vrf
+                    ])
+                    ->save();
+            } elseif ($this->netData->newNet === false) {
+                //edit existed network
+                $network = Network::findByPK($this->netData->netId);
+                if (! $network instanceof Network) {
+                    throw new \Exception('Network not found');
+                }
+                $network
+                    ->fill([
+                        'address' => $this->netData->netIp,
+                        'comment' => $this->netData->netComment,
+                        'vrf' => $this->netData->vrf
+                    ])
+                    ->save();
+            }
+            $this->data->result = 'OK';
         } catch (\Exception $e) {
-            $this->data->errors = $this->errors;
+            if (isset($network) && $network instanceof Network) {
+                $this->data->errors =  $network->errors;
+                $this->data->errors[] = $e->getMessage();
+            } else {
+                $this->data->errors = [$e->getMessage()];
+            }
         }
     }
     public function actionPostTest()
