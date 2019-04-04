@@ -1,4 +1,4 @@
-{% extends 'Index.html' %}
+{% extends 'IndexNetTab.html' %}
 
 {% block main %}
     <div class="row">
@@ -9,11 +9,11 @@
                         <h3 class="panel-title">Networks ({{ networks.count }} records)</h3>
                     </div>
                     <div class="panel-body">
-                        <table id="regsTable" class="bg-default table table-condensed table-bordered table-hover table-striped no-cut-long-text">
+                        <table id="netTableBody"  class="bg-default table table-condensed table-bordered table-hover table-striped no-cut-long-text">
                             <thead>
                                 <tr>
                                     <th class="bg-primary">Network
-                                        <a class="btn btn-success btn-xs pull-right" href="/modal/addNetwork" role="button" data-action="get-popup"><span class="glyphicon glyphicon-plus" aria-hidden="true" title="добавить"></span></a>
+                                        <button class="btn btn-success btn-xs pull-right js-net-new"><span class="glyphicon glyphicon-plus" aria-hidden="true" title="добавить"></span></button>
                                     </th>
                                     <th class="bg-primary col-xs-3">VRF</th>
                                     <th class="bg-primary col-xs-4">Комментарий</th>
@@ -28,9 +28,8 @@
                                     <td>{{ network.vrf }}</td>
                                     <td>{{ network.comment }}</td>
                                     <td class="text-center">
-                                        <a class="btn btn-success btn-xs" href="/modal/editNetwork?id={{ network.getPK }}"
-                                           role="button" data-action="get-popup"><span class="glyphicon glyphicon-pencil" aria-hidden="true" title="редактировать"></span></a>
-                                        <a class="btn btn-danger btn-xs" href="/admin/delNetwork?id={{ network.getPK }}" role="button" data-action="delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" title="удалить"></span></a>
+                                        <button class="btn btn-success btn-xs" data-net-id="{{ network.getPK }}" data-vrf-id="{{ network.vrfId }}"><span class="glyphicon glyphicon-pencil js-net-edit" aria-hidden="true" title="редактировать"></span></button>
+                                        <a class="btn btn-danger btn-xs" href="/admin/delNetwork?id={{ network.getPK }}" role="button" data-action="delete"><span class="glyphicon glyphicon-trash js-net-del" aria-hidden="true" title="удалить"></span></a>
                                     </td>
                                 </tr>
                             {% endfor %}
@@ -41,4 +40,28 @@
             </div>
         </main>
     </div>
+{% endblock %}
+{% block JS %}
+    <script>
+        jQuery(function ($) {
+            const netmodal = function (e) {
+                const isEditButtonPressed = $(e.target).hasClass('js-net-edit') || $(e.target).parent().hasClass('js-net-edit');
+                const isNewNetButtonPressed = $(e.target).hasClass('js-net-new') || $(e.target).parent().hasClass('js-net-new');
+                if (isEditButtonPressed) {
+                    e.stopPropagation();
+                    const netId = $(e.target).data('netId') || $(e.target).parent().data('netId')
+                    const vrfId = $(e.target).data('vrfId') || $(e.target).parent().data('vrfId')
+                    console.log('edit net with ID ', netId, 'VRF ', vrfId)
+                    window.openNetworkEditModal(netId, vrfId)
+                } else if (isNewNetButtonPressed) {
+                    console.log('create new network')
+                    window.openNewNetworkModal()
+                }
+            }
+            $("#netTableBody").on("click", function ($e) {
+                netmodal($e)
+            })
+        })
+
+    </script>
 {% endblock %}

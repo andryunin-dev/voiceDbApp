@@ -92,7 +92,7 @@ class DevInfo extends Std
             return;
         }
         if (false === $this->office = Office::findByPK($data->geoLocation->office_id)) {
-            $errors[] = 'Office is not found';
+            $this->errors[] = 'Office is not found';
         }
     }
     
