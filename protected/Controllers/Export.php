@@ -15,7 +15,48 @@ class Export extends Controller
     private const ROUTER = 'router';
     private const SWITCH = 'switch';
     private const VG = 'vg';
+    private const NEXUS = 'Nexus';
 
+
+    public function actionIpNexus($ip = null)
+    {
+        $tableColumns = ['hostname','portInfo','lotusId'];
+
+        if (!is_null($ip)) {
+            $query = (new Query())
+                ->select($tableColumns)
+                ->from(DevModulePortGeo::getTableName())
+                ->where('"managementIp" = :ip AND "appType" IN (:nexus)')
+                ->params([
+                    ':ip' => $ip,
+                    ':nexus' => self::NEXUS,
+                ]);
+        } else {
+            $query = (new Query())
+                ->select($tableColumns)
+                ->from(DevModulePortGeo::getTableName())
+                ->where('"appType" IN (:nexus)')
+                ->params([
+                    ':nexus' => self::NEXUS,
+                ]);
+        }
+        $appliances = DevModulePortGeo::findAllByQuery($query);
+
+        // Semicolon format
+        $outputData = '';
+        foreach ($appliances as $appliance) {
+            $dataPorts = json_decode($appliance->portInfo);
+            if (!is_null($dataPorts)) {
+                foreach ($dataPorts as $dataPort) {
+                    if (true == $dataPort->isManagement) {
+                        $outputData .= $appliance->hostname . ',' . $dataPort->ipAddress . ',' . $appliance->lotusId . ';';
+                    }
+                }
+            }
+        }
+        echo $outputData;
+        die;
+    }
 
     public function actionIpAppliances($ip = null)
     {
