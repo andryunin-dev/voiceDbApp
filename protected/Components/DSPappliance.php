@@ -191,6 +191,9 @@ class DSPappliance extends Std
                 $moduleItem->save();
                 $inUseModules[] = $moduleItem->getPk();
             }
+
+            $appliance->refresh();
+
             foreach ($appliance->modules as $module) {
                 if (!in_array($module->getPk(),$inUseModules)) {
                     $module->fill([
