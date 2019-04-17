@@ -22,6 +22,7 @@ use T4\Orm\Model;
  * @property Vrf $vrf
  * @property Office $location
  * @property Collection $children
+ * @property Network|false $parentNetwork
  */
 class Network extends Model
 {
@@ -64,11 +65,16 @@ class Network extends Model
         'findNetworkBy_Ip_VrfId' =>
             'SELECT * FROM network.networks
           WHERE address = :address AND __vrf_id = :vrf_id',
-        'findCloserParentNetworkForNetIp' =>
+        'findCloserParentNetworkByNetIpVrfId' =>
             'SELECT *
           FROM network.networks n
           JOIN (SELECT MAX(address) max_address FROM network.networks
                 WHERE address >> :address AND __vrf_id = :vrf_id) t ON n.address = t.max_address AND n.__vrf_id = :vrf_id',
+        'findCloserParentNetworkByNetIp' =>
+            'SELECT *
+          FROM network.networks n
+          JOIN (SELECT MAX(address) max_address FROM network.networks
+                WHERE address >> :address) t ON n.address = t.max_address',
         'findNetworkForHostByIp' =>
             'SELECT * FROM network.networks
           WHERE address = network(:address) AND __vrf_id = :vrf_id',
@@ -211,10 +217,21 @@ class Network extends Model
      * @param int $vrfId
      * @return Network
      */
-    protected function findCloserParentNetworkForNetIp($address, $vrfId)
+    protected function findCloserParentNetworkByNetIpVrfId($address, $vrfId)
     {
-        $query = new Query(self::SQL['findCloserParentNetworkForNetIp']);
+        $query = new Query(self::SQL['findCloserParentNetworkByNetIpVrfId']);
         $result = Network::findByQuery($query, [':address' => $address, ':vrf_id' => $vrfId]);
+        return $result;
+    }
+    /**
+     * @param string $address
+     * @param int $vrfId
+     * @return Network
+     */
+    protected function findCloserParentNetworkByNetIp($address)
+    {
+        $query = new Query(self::SQL['findCloserParentNetworkByNetIp']);
+        $result = Network::findByQuery($query, [':address' => $address]);
         return $result;
     }
     
@@ -229,6 +246,13 @@ class Network extends Model
             throw new Exception(implode($this->errors, ', '));
         }
         
+    }
+    
+    protected function getParentNetwork()
+    {
+        $query = new Query(self::SQL['findCloserParentNetworkByNetIp']);
+        $result = Network::findByQuery($query, [':address' => $this->address]);
+        return $result;
     }
     
     /**
@@ -249,7 +273,7 @@ class Network extends Model
                 $this->errors[] = "Network $address already exists";
                 return false;
             }
-            $parentNet = $this->findCloserParentNetworkForNetIp($address, $vrf_id);
+            $parentNet = $this->findCloserParentNetworkByNetIpVrfId($address, $vrf_id);
             if ($parentNet === false) {
                 return true;
             } else {

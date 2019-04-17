@@ -67,11 +67,6 @@ class Networks extends Controller
      */
     public function actionNetElementsByIds($netsIds = '')
     {
-        /**
-         * for test only!!!
-         */
-//        $netsIds = ' 4039,2995 ,3274,3146,4093,4094,3334,3275,26127';
-
         $netsIds = array_map('trim', explode(',', $netsIds));
         $connection = NetworksView::getDbConnection();
         $table = NetworksView::getTableName();
