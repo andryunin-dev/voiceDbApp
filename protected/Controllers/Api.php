@@ -16,6 +16,7 @@ use App\ViewModels\ApiView_Modules;
 use App\ViewModels\ApiView_Networks;
 use App\ViewModels\ApiView_Vrfs;
 use App\ViewModels\Geo_View;
+use phpDocumentor\Reflection\Types\This;
 use T4\Core\Exception;
 use T4\Core\Std;
 use T4\Dbal\Query;
@@ -25,7 +26,7 @@ class Api extends Controller
 {
     protected $devData;
     protected $netData;
-    protected $errors = ['ERROR!'];
+    protected $errors = [];
     public function actionGetRegCenters()
     {
         // respond to preflights
@@ -478,7 +479,7 @@ class Api extends Controller
             $this->netData = new Std(json_decode(file_get_contents('php://input')));
             if (!($this->netData instanceof Std)) {
                 $this->errors[] = 'Invalid input data';
-                throw new Exception();
+                throw new \Exception();
             }
 //            $this->netData = new Std();
 //            $this->netData->fill([
@@ -493,9 +494,18 @@ class Api extends Controller
             if (is_numeric($this->netData->vrfId)) {
                 $this->netData->vrf = Vrf::findByPK($this->netData->vrfId);
             } else {
-                throw new \Exception('Invalid VRF data');
+                $this->errors[] ='Invalid VRF data';
+                throw new \Exception();
             }
-            if ($this->netData->newNet === true) {
+            if ($this->netData->delNet === true) {
+                $network = Network::findByPK($this->netData->netId);
+                if (! $network instanceof Network) {
+                    $this->errors[] = 'Network not found';
+                    throw new \Exception();
+                }
+                $network->delete();
+                $this->data->parentNetId = $network->parentNetwork === false ? false :  $network->parentNetwork->getPk();
+            } elseif ($this->netData->newNet === true) {
                 //new Network
                 $network = (new Network())
                     ->fill([
@@ -504,11 +514,14 @@ class Api extends Controller
                         'vrf' => $this->netData->vrf
                     ])
                     ->save();
+                $this->data->netId = $network->getPk();
+                $this->data->parentNetId = $network->parentNetwork === false ? false :  $network->parentNetwork->getPk();
             } elseif ($this->netData->newNet === false) {
                 //edit existed network
                 $network = Network::findByPK($this->netData->netId);
                 if (! $network instanceof Network) {
-                    throw new \Exception('Network not found');
+                    $this->errors[] = 'Network not found';
+                    throw new \Exception();
                 }
                 $network
                     ->fill([
@@ -517,17 +530,22 @@ class Api extends Controller
                         'vrf' => $this->netData->vrf
                     ])
                     ->save();
+                $this->data->netId = $network->getPk();
+                $this->data->parentNetId = $network->parentNetwork === false ? false :  $network->parentNetwork->getPk();
             }
             $this->data->result = 'OK';
         } catch (\Exception $e) {
             if (isset($network) && $network instanceof Network) {
-                $this->data->errors =  $network->errors;
-                $this->data->errors[] = $e->getMessage();
+                $this->data->errors =  array_merge($this->errors, $network->errors);
             } else {
                 $this->data->errors = [$e->getMessage()];
             }
         }
     }
+    
+    /**
+     * Test only
+     */
     public function actionPostTest()
     {
         if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
@@ -538,11 +556,24 @@ class Api extends Controller
             $data = new Std(json_decode(file_get_contents('php://input')));
             if (($data instanceof Std)) {
                 $errors[] = 'Invalid input data';
-                throw new Exception();
+                throw new \Exception();
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->data->errors = $errors;
         }
+    }
+    public function actionGetNetParent($netId)
+    {
+        try {
+            $network = Network::findByPK($netId);
+            if (!($network instanceof Network)) {
+                throw new \Exception('Update after submit: Invalid network ID: ' . $id);
+            }
+            $this->data->parentNetId = $network->parentNetwork === false ? false : $network->parentNetwork->getPk();
+        } catch (\Exception $e) {
+            $this->data->errors = [$e->getMessage()];
+        }
+        
     }
     
 }
