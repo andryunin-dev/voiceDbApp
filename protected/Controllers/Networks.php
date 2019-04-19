@@ -29,7 +29,7 @@ class Networks extends Controller
         $expression = $searcher->expression;
         $params = $searcher->parameters;
         
-        $query = 'SELECT *, network.ip_path(t1.ip, t1.rec_type) FROM api_view.ip_search t1
+        $query = 'SELECT *, usr_ip_path(t1.ip, t1.rec_type) ip_path FROM api_view.ip_search t1
                     WHERE ' . $expression . '
                     ORDER BY ip';
     
@@ -51,7 +51,7 @@ class Networks extends Controller
     public function actionRootElements()
     {
         $connection = Network::getDbConnection();
-        $rootSql = 'SELECT * FROM root_ids()';
+        $rootSql = 'SELECT * FROM usr_root_ids()';
         $this->data->rootElementsIds = $connection->query($rootSql)->fetch(\PDO::FETCH_ASSOC);
 
     }
@@ -67,11 +67,6 @@ class Networks extends Controller
      */
     public function actionNetElementsByIds($netsIds = '')
     {
-        /**
-         * for test only!!!
-         */
-//        $netsIds = ' 4039,2995 ,3274,3146,4093,4094,3334,3275,26127';
-
         $netsIds = array_map('trim', explode(',', $netsIds));
         $connection = NetworksView::getDbConnection();
         $table = NetworksView::getTableName();
@@ -84,9 +79,9 @@ class Networks extends Controller
             '"vrfId"',
             '"vrfName"',
             '"vrfRd"',
-            'network_locations(' . $idField . ') as "netLocations"',
-            'net_children(' . $idField . ')',
-            'host_children(' . $idField . ')',
+            'usr_network_locations_json(' . $idField . ') as "netLocations"',
+            'usr_net_children(' . $idField . ') "net_children"',
+            'usr_host_children(' . $idField . ') "host_children"',
         ];
         $joinSelect = 'SELECT '. array_pop($netsIds) .' AS src_id';
         foreach ($netsIds as $id) {
