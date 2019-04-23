@@ -124,19 +124,11 @@ class Network extends Model
      *  vlan_id bigint
      * @return Network
      */
-    protected function sanitizeNetworkData(array $data)
+    protected function sanitizeNetworkData()
     {
         $this->address = trim($this->address);
         $this->comment = trim($this->comment);
         return $this;
-        
-//        $res = new Std($data);
-//        $res->net_id = is_numeric($res->net_id) ? intval($res->net_id) : null;
-//        $res->address = trim($res->address);
-//        $res->comment = trim($res->comment);
-//        $res->vrf_id = is_numeric($res->vrf_id) ? intval($res->vrf_id) : null;
-//        $res->vlan_id = is_numeric($res->vlan_id) ? intval($res->vlan_id) : null;
-//        return $res;
     }
     
     /**
@@ -159,6 +151,7 @@ class Network extends Model
             if ($this->checkNetworkIpFormat($this->address) === false) {
                 return false;
             }
+          
             if ( ! is_numeric($this->getPk())) {
                 // if id is null this data will be used for creation a new network
                 return $this->checkAbilityCreateNetwork($this->address, $this->vrf->getPk());
@@ -243,7 +236,7 @@ class Network extends Model
             return $res;
         } catch (\Exception $e) {
             $this->errors[] = $e->getMessage();
-            throw new Exception(implode($this->errors, ', '));
+            throw new \Exception(implode($this->errors, ', '));
         }
         
     }
@@ -341,7 +334,7 @@ class Network extends Model
         $this->ipCheckResult = $this->checkIpAddress();
         $this->vrfCheckResult = $this->checkVrf();
         if (! $this->ipCheckResult || ! $this->vrfCheckResult) {
-            throw new Exception(implode($this->errors, ', '));
+            throw new \Exception(implode($this->errors, ', '));
             
         }
         return parent::beforeSave();
@@ -351,97 +344,11 @@ class Network extends Model
     {
         if (! $this->checkAbilityDeleteNetwork($this))
         {
-            throw new Exception(implode($this->errors, ', '));
+            throw new \Exception(implode($this->errors, ', '));
         }
         return parent::beforeDelete();
     }
     
-    
-//    ===============LEGACY CODE
-//    protected function validateAddress($val)
-//    {
-//        if (!is_string($val)) {
-//            throw new Exception('Неверный тип свойства network->address');
-//        }
-//        $ip = new IpTools($val);
-//
-//        if (false === $ip->network || false === $ip->is_networkIp) {
-//            throw new Exception('Неверный адрес подсети');
-//        }
-//        return true;
-//    }
-
-//    protected function sanitizeAddress($val)
-//    {
-//        return (new Ip($val))->cidrAddress;
-//    }
-
-//    public function validate()
-//    {
-//        if (null === $this->vrf) {
-//            throw new Exception('VRF не задан');
-//        }
-//        if (! $this->vrf instanceof Vrf) {
-//            throw new Exception('VRF не найден');
-//        }
-//        if (true === $this->isNew && false !== self::findByAddressVrf($this->address, $this->vrf)) {
-//            throw new Exception('Сеть с адресом ' . $this->address . '(VRF: ' . $this->vrf . ') уже существует');
-//        }
-//        if (true === $this->isUpdated && false !== $existedNet = self::findByAddressVrf($this->address, $this->vrf)) {
-//            return ($existedNet->getPk() === $this->getPk());
-//        }
-//        return true;
-//    }
-
-//    protected function beforeSave()
-//    {
-//        if (true === $this->isNew) {
-//            $this->parent = $this->findParentNetwork();
-//            if (false === $this->parent) {
-//                return parent::beforeSave();
-//            }
-//            if ($this->parent->hosts->count() > 0) {
-//                throw new Exception('Родительская подсеть ' . $this->parent->address . ' содержит IP хостов.Разбиение на подсети невозможно. Ошибка вставки дочерней подсети ' . $this->address);
-//            }
-//        }
-//        return parent::beforeSave();
-//    }
-
-//    protected function afterSave()
-//    {
-//        if (true === $this->wasUpdated || true === $this->wasNew) {
-//            if (false !== $this->parent) {
-//                foreach ($this->parent->children as $child) {
-//                    if (true === (new Ip($this->address))->is_parent(new Ip($child->address)) && $this->vrf->getPk() == $child->vrf->getPk()) {
-//                        $child->parent = $this;
-//                        $child->save();
-//                    }
-//                }
-//            } else {
-//                foreach (self::__callStatic('findAllRoots', []) as $rootItem) {
-//                    if (true === (new Ip($this->address))->is_parent(new Ip($rootItem->address)) && $this->vrf->getPk() == $rootItem->vrf->getPk()) {
-//                        $rootItem->parent = $this;
-//                        $rootItem->save();
-//                    }
-//                }
-//            }
-//        }
-//        return parent::afterSave();
-//    }
-
-//    protected function beforeDelete()
-//    {
-//        if ($this->hosts->count() > 0) {
-//            throw new Exception('Подсеть ' . $this->address . ' содержит хостовые IP. Удаление невозможно');
-//        }
-//        if (false === $this->isNew) {
-//            foreach ($this->children as $child) {
-//                $child->parent = $this->parent;
-//                $child->save();
-//            }
-//        }
-//        return parent::beforeDelete();
-//    }
     public static function findAllSortedByVrfIp ($vrfDirect = 'asc', $ipDirect = 'asc')
     {
         $query = self::SQL['findAllNetworks'];
@@ -451,78 +358,15 @@ class Network extends Model
         $networks = Network::findAllByQuery($query);
         return $networks;
     }
-
-    public static function findAll($options = [])
+    public static function findAllSortedByIpVrf ($ipDirect = 'asc',$vrfDirect = 'asc')
     {
-        $allowedSortFields = [
-            'address',
-            'vrf'
-        ];
-        $directions = [
-            'asc',
-            'desc'
-        ];
-        $sortOrder = [];
-        if (is_array($options)) {
-            foreach ($options as $field => $direction) {
-                if (
-                    ! in_array(strtolower($field), $allowedSortFields) ||
-                    ! in_array(strtolower($direction), $directions)
-                ) {
-                    continue;
-                }
-                $sortOrder[strtolower($field)] = strtolower($direction);
-                unset($options[$field]);
-            }
-        }
-
-        $networks = parent::findAll($options);
-        if (empty($sortOrder)) {
-            return $networks;
-        }
-
-        $networks = $networks->uasort(function (Network $network1, Network $network2) use (&$sortOrder) {
-            $result = 1;
-            foreach ($sortOrder as $field => $direction) {
-                switch ($field) {
-                    case 'address':
-                        $net1 = new Ip($network1->address);
-                        $net2 = new Ip($network2->address);
-                        $result = ip2long($net1->address) <=> ip2long($net2->address);
-                        //if addresses equal compare masklen
-                        $result = $result ?: $net1->masklen <=> $net2->masklen;
-                        break;
-                    case 'vrf':
-                        $vrf1 = $network1->vrf->name;
-                        $vrf2 = $network2->vrf->name;
-                        if (Vrf::GLOBAL_VRF_NAME == $vrf1 && Vrf::GLOBAL_VRF_NAME != $vrf2) {
-                            $result = -1;
-                        } elseif (Vrf::GLOBAL_VRF_NAME != $vrf1 && Vrf::GLOBAL_VRF_NAME == $vrf2) {
-                            $result = 1;
-                        } else {
-                            $result = strnatcmp(strtolower($network1->vrf->name), strtolower($network2->vrf->name));
-                        }
-                        break;
-                }
-                if (0 != $result) {
-                    $result = ('asc' == $direction) ? $result : (-1) * $result;
-                    break;
-                }
-            }
-            return $result ?: 1;
-        });
+        $query = self::SQL['findAllNetworks'];
+        $order = "ORDER BY net_ip ${ipDirect}, vrf_name ${vrfDirect}";
+        $query .= "\n" . $order;
+        $query = new Query($query);
+        $networks = Network::findAllByQuery($query);
         return $networks;
     }
-
-//    /**
-//     * @return Network|bool
-//     */
-//    public function findParentNetwork()
-//    {
-//        $query = 'WITH parents AS (SELECT DISTINCT * FROM network.networks WHERE address >> :subnet) SELECT * FROM parents WHERE address=(SELECT max(address) FROM parents) AND __vrf_id = :vrf';
-//        return static::findByQuery($query, [':subnet' => $this->address, ':vrf' => $this->vrf->getPk()]);
-//    }
-
     /**
      * @param $address
      * @param Vrf $vrf
@@ -533,13 +377,79 @@ class Network extends Model
         $query = new Query(self::SQL['findNetworkBy_Ip_VrfId']);
         $result = Network::findByQuery($query, [':address' => $address, ':vrf_id' => $vrf->getPk()]);
         return $result;
-        
-//        $result = Network::findAllByColumn('address', $address)->filter(function (Network $network) use ($vrf) {
-//            return ($network->vrf->getPk() == $vrf->getPk());
-//        });
-//        $result = $result->first();
-//        return (null === $result) ? false : $result;
     }
+//    public static function findAll($options = [])
+//    {
+//        $allowedSortFields = [
+//            'address',
+//            'vrf'
+//        ];
+//        $directions = [
+//            'asc',
+//            'desc'
+//        ];
+//        $sortOrder = [];
+//        if (is_array($options)) {
+//            foreach ($options as $field => $direction) {
+//                if (
+//                    ! in_array(strtolower($field), $allowedSortFields) ||
+//                    ! in_array(strtolower($direction), $directions)
+//                ) {
+//                    continue;
+//                }
+//                $sortOrder[strtolower($field)] = strtolower($direction);
+//                unset($options[$field]);
+//            }
+//        }
+//
+//        $networks = parent::findAll($options);
+//        if (empty($sortOrder)) {
+//            return $networks;
+//        }
+//
+//        $networks = $networks->uasort(function (Network $network1, Network $network2) use (&$sortOrder) {
+//            $result = 1;
+//            foreach ($sortOrder as $field => $direction) {
+//                switch ($field) {
+//                    case 'address':
+//                        $net1 = new Ip($network1->address);
+//                        $net2 = new Ip($network2->address);
+//                        $result = ip2long($net1->address) <=> ip2long($net2->address);
+//                        //if addresses equal compare masklen
+//                        $result = $result ?: $net1->masklen <=> $net2->masklen;
+//                        break;
+//                    case 'vrf':
+//                        $vrf1 = $network1->vrf->name;
+//                        $vrf2 = $network2->vrf->name;
+//                        if (Vrf::GLOBAL_VRF_NAME == $vrf1 && Vrf::GLOBAL_VRF_NAME != $vrf2) {
+//                            $result = -1;
+//                        } elseif (Vrf::GLOBAL_VRF_NAME != $vrf1 && Vrf::GLOBAL_VRF_NAME == $vrf2) {
+//                            $result = 1;
+//                        } else {
+//                            $result = strnatcmp(strtolower($network1->vrf->name), strtolower($network2->vrf->name));
+//                        }
+//                        break;
+//                }
+//                if (0 != $result) {
+//                    $result = ('asc' == $direction) ? $result : (-1) * $result;
+//                    break;
+//                }
+//            }
+//            return $result ?: 1;
+//        });
+//        return $networks;
+//    }
+
+//    /**
+//     * @return Network|bool
+//     */
+//    public function findParentNetwork()
+//    {
+//        $query = 'WITH parents AS (SELECT DISTINCT * FROM network.networks WHERE address >> :subnet) SELECT * FROM parents WHERE address=(SELECT max(address) FROM parents) AND __vrf_id = :vrf';
+//        return static::findByQuery($query, [':subnet' => $this->address, ':vrf' => $this->vrf->getPk()]);
+//    }
+
+
 
 //    public static function findAllRootsByVrf($vrf = null, $options = [])
 //    {        $allowedSortFields = [
