@@ -25,6 +25,8 @@ class Test extends Controller
 {
     public function actionNetTest()
     {
+        $dport = new DataPort();
+        var_dump($dport->getPk());die;
         $vrf = Vrf::instanceGlobalVrf();
         var_dump(DataPort::findByIpVrf('10.102.66.52', $vrf));
         var_dump(DataPort::findAllByIpVrf('10.102.66.52', $vrf));

@@ -15,6 +15,7 @@ use T4\Orm\Model;
  * Class Network
  * @package App\Models
  *
+ * @property string[] $errors
  * @property string $address
  * @property string $comment
  * @property Collection|DataPort[] $hosts

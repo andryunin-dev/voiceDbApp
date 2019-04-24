@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Components\Ip;
 use App\Components\IpTools;
+use phpDocumentor\Reflection\Types\This;
 use T4\Core\Collection;
 use T4\Core\Exception;
 use T4\Core\IArrayable;
@@ -156,46 +157,75 @@ class DataPort extends Model
         return null;
     }
     
+    /**
+     * @param string $ipCidr
+     * @param Vrf $vrf
+     * @return Network|bool
+     */
+    protected function createNetworkIfNotExists($ipCidr, $vrf)
+    {
+        $network = Network::findByAddressVrf($ipCidr, $vrf);
+        if ($network === false) {
+            try {
+                $network = new Network();
+                $network->fill([
+                    'address' => $ipCidr,
+                    'vrf' => $this->vrf,
+                ])
+                    ->save();
+            } catch (\Exception $e) {
+            }
+        }
+        return $network;
+    }
+    
     protected function checkAbilityCreatePort()
     {
     
     }
     
-    protected function checkData()
+    protected function checkDataBeforeUpdateCreate()
     {
         try {
-            $errors = [];
+            $localErrors = [];
             $checkIp = $this->checkIpAddress();
             $checkMac = $this->checkMacAddress();
             $checkVrf = $this->checkVrf();
-            if($checkIp || $checkMac || $checkVrf) {
-                throw new \Exception(implode($this->errors, ', '));
+            if(!$checkIp || !$checkMac || !$checkVrf) {
+                return false;
             }
-            if ( ! is_numeric($this->getPk())) {
-                //this is new DataPort
-                if (!($this->appliance instanceof Appliance)) {
-                    $errors[] = 'Appliance for data port is not found';
-                }
-                if (!($this->portType instanceof  DPortType)) {
-                    $errors[] = 'Invalid port type';
-                }
-                //find existed by ip vrf
-                if (self::countByIpVrf($this->ipAddress, $this->vrf) > 0) {
-                    $errors[] = 'IP address ' . $this->cidrIpAddress . ' already in use';
-                }
-                //find network
-                
-                
-                if (count($errors) > 0) {
-                    array_merge($this->errors, $errors);
-                    return false;
-                }
-                return true;
+            $ip = new IpTools($this->ipAddress, $this->macAddress);
+            
+            if (!($this->appliance instanceof Appliance)) {
+                $localErrors[] = 'Appliance for data port is not found';
+            }
+            if (!($this->portType instanceof  DPortType)) {
+                $localErrors[] = 'Invalid port type';
+            }
+            //find existed by ip vrf
+            $dPortFromDb = self::findByIpVrf($this->ipAddress, $this->vrf);
+            if ($dPortFromDb instanceof DataPort && $dPortFromDb->getPk() !== $this->getPk()) {
+                $localErrors[] = 'IP address ' . $this->cidrIpAddress . ' already in use';
+            }
+            
+            if (count($localErrors) > 0) {
+                array_merge($this->errors, $localErrors);
+                return false;
+            }
+            // if there are not errors, try to create network for this host IP if it not exists
+            //try to create network if not exists
+            $network = $this->createNetworkIfNotExists($ip->cidrNetwork, $this->vrf);
+            if (count($network->errors) == 0) {
+                $this->network = $network;
             } else {
-                //update existed data port
-                //TODO
-                return true;
+                array_merge($localErrors, $network->errors);
             }
+            
+            if (count($localErrors) > 0) {
+                array_merge($this->errors, $localErrors);
+                return false;
+            }
+            return true;
         } catch (\Throwable $e) {
             $this->errors[] = $e->getMessage();
             return false;
