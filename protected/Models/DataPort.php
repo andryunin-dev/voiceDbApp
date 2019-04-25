@@ -261,9 +261,38 @@ class DataPort extends Model
         $res = self::countAllByQuery($query, [':address' => $ip, ':vrf_id' => $vrf->getPk()]);
         return $res;
     }
+    
+    public function isManagement()
+    {
+        $this->isManagement = true;
+    }
+    
+    public function isNotManagement()
+    {
+        $this->isManagement = false;
+    }
+    
+    
+    protected function beforeSave()
+    {
+        return $this->checkDataBeforeUpdateCreate();
+    }
+    
+    protected function afterDelete()
+    {
+        if (null !== $this->network && 32 == (new IpTools($this->network->address))->masklen) {
+            $this->network->delete();
+        }
+        return parent::afterDelete();
+    }
+    protected function validate()
+    {
+        return parent::validate();
+    }
+
 
 //    ==============LEGACY CODE==================
-    public function s__set($key, $val)
+    public function _set($key, $val)
     {
         if ('ipAddress' == $key) {
             //перенес из фреймворка
@@ -300,14 +329,6 @@ class DataPort extends Model
             parent::__set($key, $val);
         }
     }
-
-    
-
-
-    
-
-
-    
 
     public function _fill($data)
     {
@@ -431,7 +452,7 @@ class DataPort extends Model
      * @return bool
      * @throws Exception
      */
-    protected function beforeSave()
+    protected function _beforeSave()
     {
         $ip = (new IpTools($this->ipAddress, $this->masklen));
         //если маска не нулевая, то ищем сетку для него
@@ -492,7 +513,7 @@ class DataPort extends Model
         return parent::beforeSave();
     }
 
-    public function save()
+    public function _save()
     {
         if ($this->isUpdated) {
             $oldNetwork = (DataPort::findByPK($this->getPk()))->network;
@@ -509,13 +530,6 @@ class DataPort extends Model
         }
     }
 
-    protected function afterDelete()
-    {
-        if (null !== $this->network && 32 == (new IpTools($this->network->address))->masklen) {
-            $this->network->delete();
-        }
-        return parent::afterDelete();
-    }
 
     /**
      * @param $ip
@@ -569,15 +583,6 @@ class DataPort extends Model
         return (null === $result) ? false : $result;
     }
 
-    public function isManagement()
-    {
-        $this->isManagement = true;
-    }
-
-    public function isNotManagement()
-    {
-        $this->isManagement = false;
-    }
 
     public function _trimIpAddress()
     {

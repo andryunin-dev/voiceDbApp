@@ -8,6 +8,7 @@ use App\MappingModels\LotusLocation;
 use App\Models\Appliance;
 use App\Models\ApplianceType;
 use App\Models\DataPort;
+use App\Models\DPortType;
 use App\Models\Network;
 use App\Models\Network2;
 use App\Models\Vrf;
@@ -25,9 +26,19 @@ class Test extends Controller
 {
     public function actionNetTest()
     {
-        $dport = new DataPort();
-        var_dump($dport->getPk());die;
         $vrf = Vrf::instanceGlobalVrf();
+        $app = Appliance::findByPK(7494);
+        $portType = DPortType::findByPK(6);
+        $dport = (new DataPort())
+            ->fill([
+                'ipAddress' => '1.1.1.1',
+                'masklen' => 32,
+                'vrf' => $vrf,
+                'appliance' => $app,
+                'portType' =>$portType,
+            ]);
+        $dport->save();
+        var_dump($dport->getPk());die;
         var_dump(DataPort::findByIpVrf('10.102.66.52', $vrf));
         var_dump(DataPort::findAllByIpVrf('10.102.66.52', $vrf));
         var_dump(DataPort::countByIpVrf('10.102.66.52', $vrf));
