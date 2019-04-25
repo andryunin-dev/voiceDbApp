@@ -32,13 +32,15 @@ class Test extends Controller
         $dport = (new DataPort())
             ->fill([
                 'ipAddress' => '1.1.1.1',
-                'masklen' => 32,
+                'masklen' => 30,
                 'vrf' => $vrf,
                 'appliance' => $app,
                 'portType' =>$portType,
             ]);
         $dport->save();
-        var_dump($dport);die;
+        var_dump($dport);
+        $dport->delete();
+        die;
         var_dump(DataPort::findByIpVrf('10.102.66.52', $vrf));
         var_dump(DataPort::findAllByIpVrf('10.102.66.52', $vrf));
         var_dump(DataPort::countByIpVrf('10.102.66.52', $vrf));

@@ -102,13 +102,6 @@ class DataPort extends Model
         }
         $this->ipAddress = $ip->address;
         $this->masklen = $ip->masklen;
-        //if this->ipAddress contains mask part - cut and move it into masklen property
-//        if ($ip->is_maskNull !== false) {
-//            $this->ipAddress = $ip->address;
-//            $this->masklen = $ip->masklen;
-//        }
-        
-//        $ip = new IpTools($this->ipAddress, $this->masklen);
         
         if ($ip->is_valid && false === $ip->is_maskNull && false === $ip->is_hostIp) {
             $this->errors[] = "${ip} is not host IP";
@@ -352,7 +345,7 @@ class DataPort extends Model
                 array_merge($this->errors, $localErrors);
                 return false;
             }
-            return true;
+            return parent::beforeSave();
         } catch (\Exception $e) {
             $localErrors[] = $e->getMessage();
             array_merge($this->errors, $localErrors);
