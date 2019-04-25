@@ -38,7 +38,7 @@ class Test extends Controller
                 'portType' =>$portType,
             ]);
         $dport->save();
-        var_dump($dport->getPk());die;
+        var_dump($dport);die;
         var_dump(DataPort::findByIpVrf('10.102.66.52', $vrf));
         var_dump(DataPort::findAllByIpVrf('10.102.66.52', $vrf));
         var_dump(DataPort::countByIpVrf('10.102.66.52', $vrf));

@@ -18,6 +18,7 @@ use T4\Orm\Model;
  * @package App\Models
  * имя порта писать в details->portName
  *
+ * @property array $errors
  * @property string $ipAddress
  * @property string $cidrIpAddress
  * @property int $masklen
@@ -78,6 +79,10 @@ class DataPort extends Model
     public $vrf;
     protected $errors;
 
+    protected function getErrors()
+    {
+        return $this->errors;
+    }
     protected function getCidrIpAddress()
     {
         $ip = new IpTools($this->ipAddress, $this->masklen);
@@ -90,17 +95,20 @@ class DataPort extends Model
 
     public function checkIpAddress()
     {
-        $ip = new IpTools($this->ipAddress);
-        if (false === $ip->is_valid) {
-            $this->errors[] = "Invalid IP address: ${$ip}";
-        }
-        //if this->ipAddress contains mask part - cut and move it into masklen property
-        if ($ip->is_maskNull !== false) {
-            $this->ipAddress = $ip->address;
-            $this->masklen = $ip->masklen;
-        }
-        
         $ip = new IpTools($this->ipAddress, $this->masklen);
+        if (false === $ip->is_valid) {
+            $this->errors[] = 'Invalid IP address: ' . $this->ipAddress;
+            return false;
+        }
+        $this->ipAddress = $ip->address;
+        $this->masklen = $ip->masklen;
+        //if this->ipAddress contains mask part - cut and move it into masklen property
+//        if ($ip->is_maskNull !== false) {
+//            $this->ipAddress = $ip->address;
+//            $this->masklen = $ip->masklen;
+//        }
+        
+//        $ip = new IpTools($this->ipAddress, $this->masklen);
         
         if ($ip->is_valid && false === $ip->is_maskNull && false === $ip->is_hostIp) {
             $this->errors[] = "${ip} is not host IP";
@@ -121,11 +129,26 @@ class DataPort extends Model
         }
         return true;
     }
-    
     public function checkVrf()
     {
         if (!($this->vrf instanceof Vrf)) {
             $this->errors[] = 'Invalid VRF';
+            return false;
+        }
+        return true;
+    }
+    public function checkAppliance()
+    {
+        if (!($this->appliance instanceof Appliance)) {
+            $this->errors[] = 'Invalid appliance';
+            return false;
+        }
+        return true;
+    }
+    public function checkDPortType()
+    {
+        if (!($this->portType instanceof DPortType)) {
+            $this->errors[] = 'Invalid port type';
             return false;
         }
         return true;
@@ -272,10 +295,70 @@ class DataPort extends Model
         $this->isManagement = false;
     }
     
+    protected function validate()
+    {
+        try {
+            $localErrors = [];
+            $checkApp = $this->checkAppliance();
+            $checkIp = $this->checkIpAddress();
+            $checkMac = $this->checkMacAddress();
+            $checkVrf = $this->checkVrf();
+            $checkPortType = $this->checkDPortType();
+            if(!$checkApp || !$checkIp ||  !$checkMac || !$checkVrf || !$checkPortType) {
+                return false;
+            }
     
+            if (!($this->appliance instanceof Appliance)) {
+                $localErrors[] = 'Appliance for data port is not found';
+            }
+            if (!($this->portType instanceof  DPortType)) {
+                $localErrors[] = 'Invalid port type';
+            }
+            //find existed by ip vrf
+            $dPortFromDb = self::findByIpVrf($this->ipAddress, $this->vrf);
+            if ($dPortFromDb instanceof DataPort && $dPortFromDb->getPk() !== $this->getPk()) {
+                $localErrors[] = 'IP address ' . $this->cidrIpAddress . ' already in use';
+            }
+    
+            if (count($localErrors) > 0) {
+                array_merge($this->errors, $localErrors);
+                return false;
+            }
+            return true;
+        } catch (\Exception $e) {
+            $localErrors[] = $e->getMessage();
+            array_merge($this->errors, $localErrors);
+            return false;
+        }
+    }
     protected function beforeSave()
     {
-        return $this->checkDataBeforeUpdateCreate();
+        $localErrors = [];
+        try {
+            if (count($this->errors) > 0) {
+                return false;
+            }
+            // if there are not errors, try to create network for this host IP if it not exists
+            //try to create network if not exists
+            $ip = new IpTools($this->ipAddress, $this->masklen);
+            $network = $this->createNetworkIfNotExists($ip->cidrNetwork, $this->vrf);
+            if (count($network->errors) == 0) {
+                $this->network = $network;
+            } else {
+                array_merge($localErrors, $network->errors);
+            }
+    
+            if (count($localErrors) > 0) {
+                array_merge($this->errors, $localErrors);
+                return false;
+            }
+            return true;
+        } catch (\Exception $e) {
+            $localErrors[] = $e->getMessage();
+            array_merge($this->errors, $localErrors);
+            return false;
+        }
+        
     }
     
     protected function afterDelete()
@@ -285,11 +368,6 @@ class DataPort extends Model
         }
         return parent::afterDelete();
     }
-    protected function validate()
-    {
-        return parent::validate();
-    }
-
 
 //    ==============LEGACY CODE==================
     public function _set($key, $val)
