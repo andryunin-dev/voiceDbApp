@@ -22,7 +22,7 @@ class Vrf extends Model
     protected static $schema = [
         'table' => 'network.vrfs',
         'columns' => [
-            'name' => ['type' => 'string'], //VRF name in lower case (not unique)
+            'name' => ['type' => 'string'], //VRF name in lower case (unique)
             'rd' => ['type' => 'string'], //RD (i.e '123:12', '10.1.1.2:125')
             'comment' => ['type' => 'string']
         ],
@@ -129,9 +129,6 @@ class Vrf extends Model
         return parent::beforeDelete();
     }
 
-    /**
-     * @return Vrf
-     */
     public static function instanceGlobalVrf()
     {
         $gVrf = self::findByColumn('name', self::GLOBAL_VRF_NAME);

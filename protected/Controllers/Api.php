@@ -393,7 +393,7 @@ class Api extends Controller
         $filters = new Std(json_decode(file_get_contents('php://input')));
         $condition = [];
         $fields = ['vrf_id', 'vrf_name', 'vrf_rd', 'vrf_comment'];
-        $order = ['vrf_id'];
+        $order = ['vrf_name'];
         if (!empty($filters->value)) {
             $condition[] = $filters->accessor . $filters->statement . $filters->value;
         }
@@ -481,16 +481,6 @@ class Api extends Controller
                 $this->errors[] = 'Invalid input data';
                 throw new \Exception();
             }
-//            $this->netData = new Std();
-//            $this->netData->fill([
-//                'newNet' => false,
-//                'netId' => 125921,
-////                'netId' => '',
-//                'netIp' => '192.169.1.0/25',
-//                'netComment' => '',
-//                'vrfId' => 1
-//            ]);
-            //$this->netData = new NetData($this->netData);
             if (is_numeric($this->netData->vrfId)) {
                 $this->netData->vrf = Vrf::findByPK($this->netData->vrfId);
             } else {
