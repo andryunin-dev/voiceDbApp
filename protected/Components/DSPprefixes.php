@@ -1,145 +1,285 @@
 <?php
 namespace App\Components;
 
-use App\Exceptions\DblockException;
+use App\Models\Appliance;
 use App\Models\DataPort;
 use App\Models\DPortType;
 use App\Models\Vrf;
-use T4\Core\Exception;
-use T4\Core\MultiException;
 use T4\Core\Std;
 
 class DSPprefixes extends Std
 {
-    const DB_LOCK_FILE = ROOT_PATH_PROTECTED . '/db.lock';
-    const SLEEP_TIME = 500; // микросекунды
-    const ITERATIONS = 6000000; // Колличество попыток получить доступ к db.lock файлу
+    private $logger;
 
-    private $dbLockFile;
+    private $appliance;
+    private $managementIp;
+    private $dataPortsFromDb = [];
+    private $inputDataPorts = [];
+
+
+    public function __construct()
+    {
+        $this->logger = RLogger::getInstance('DS-prefixes');
+    }
 
     /**
-     * @param Std $data
-     * @return bool
-     * @throws Exception
-     * @throws MultiException
+     * Update DataPorts of the Appliance
+     *
+     * @param Std $inputDataPorts
+     * @throws \Exception
      */
-    public function process(Std $data)
+    public function process(Std $inputDataPorts)
     {
-        // At the moment, we do not support the uniqueness of VRF within only one device,
-        // so we'll find the Appliance by the managementIP
-        $managementDataPortIp = $data->ip;
-        $managementDataPortVrf = Vrf::findByColumn('name', $data->vrf_name);
-        $foundDataPort = DataPort::findByIpVrf($managementDataPortIp, $managementDataPortVrf);
-        if (!is_null($foundDataPort) && $foundDataPort->isManagement) {
-            $appliance = $foundDataPort->appliance;
-        } else {
-            throw new Exception('PREFIXES: [message]=Management dataport does not found; [managementIp]=' . $managementDataPortIp);
+        // Validate input data structure
+        if (!$this->validateInputDataStructure($inputDataPorts)) {
+            throw new \Exception("Not valid input data structure");
         }
 
-        // Update or create the appliances's dataports
-        $errors = new MultiException();
-        foreach ($data->networks as $dataPortData) {
-            try {
-                $dataPortIp = (new IpTools($dataPortData->ip_address))->address;
-                $dataPortMasklen = (new IpTools($dataPortData->ip_address))->masklen;
-                if (!empty($dataPortData->vrf_rd)) {
-                    $dataPortVrf = Vrf::findByColumn('rd', $dataPortData->vrf_rd);
-                } else {
-                    $dataPortVrf = Vrf::instanceGlobalVrf();
-                }
-                $foundDataPort = DataPort::findByIpVrf($dataPortIp, $dataPortVrf);
-                $foundDataPortMac = mb_strtolower(preg_replace('~[:|\-|.]~','',$foundDataPort->macAddress));
-                $dataPortDataMac = mb_strtolower(preg_replace('~[:|\-|.]~','',$dataPortData->mac));
+        // Get InputDataPorts
+        $this->inputDataPorts = $inputDataPorts->networks->toArray();
 
-                // Start transaction
-                if (false === $this->dbLock()) {
-                    throw new DblockException('PREFIXES: Can not get the lock file');
-                }
-                DataPort::getDbConnection()->beginTransaction();
+        // Get management IpAddress
+        $this->managementIp = $inputDataPorts->ip;
 
-                if (false != $foundDataPort) {
-                    if ($foundDataPortMac == $dataPortDataMac) {
-                        $dataPort = $foundDataPort;
-                    } else {
-                        $foundDataPort->delete();
-                        $dataPort = new DataPort();
-                    }
-                } else {
-                    $dataPort = new DataPort();
-                }
+        // Find Appliance by managementIp from Db
+        $this->appliance = Appliance::findByManagementIP($this->managementIp);
+        if (false === $this->appliance) {
+            throw new \Exception("Appliance not found");
+        }
 
-                $dataPort->fill([
-                    'appliance' => $appliance,
-                    'portType' => DPortType::getEmpty(),
-                    'macAddress' => implode(':', str_split($dataPortDataMac, 2)),
-                    'ipAddress' => $dataPortIp,
-                    'vrf' => $dataPortVrf,
-                    'masklen' => $dataPortMasklen,
-                    'isManagement' => ($dataPortIp == $managementDataPortIp) ? true : false,
-                    'lastUpdate'=> (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P'),
-                ]);
-                if (!is_null($dataPort->details) && ($dataPort->details instanceof Std)) {
-                    $dataPort->details->portName = $dataPortData->interface;
-                    $dataPort->details->description = $dataPortData->description;
-                } else {
-                    $dataPort->details = new Std([
-                        'portName' => $dataPortData->interface,
-                        'description' => $dataPortData->description,
-                    ]);
-                }
-                $dataPort->save();
+        // Get Appliance's dataPorts from Db
+        $this->appliance->dataPorts->map(
+            function ($dataPort) {
+                $this->dataPortsFromDb[$dataPort->getPk()] = $dataPort;
+            }
+        );
 
-                // End transaction
-                DataPort::getDbConnection()->commitTransaction();
-                $this->dbUnLock();
-            } catch (\Throwable $e) {
-                DataPort::getDbConnection()->rollbackTransaction();
-                $this->dbUnLock();
-                $errors->addException($e->getMessage());
-            } catch (DblockException $e) {
-                $errors->addException($e->getMessage());
+        // Find the correspondence between the DataPorts of the Appliance and the DataPorts from the input data
+        $matchedDataPorts = $this->dataPortMap($this->dataPortsFromDb, $this->inputDataPorts);
+
+        // Update Appliance's DataPorts
+        $this->updateDataPortsMatchedByNameAndIp($matchedDataPorts["matchedByNameAndIp"]);
+        $this->updateDataPortsMatchedByName($matchedDataPorts["matchedByName"]);
+        $this->createDataPorts($matchedDataPorts["notMatched"]);
+
+        // Delete not updated DataPorts of the Appliance
+        $this->deleteNotUpdatedDataPortsFromDb($matchedDataPorts["notUpdated"]);
+    }
+
+    /**
+     * Determine the match DataPorts from the Input Data to DataPorts of the Appliance
+     *
+     * @param array $dataPortsFromDb
+     * @param array $inputDataPorts
+     * @return array
+     */
+    private function dataPortMap(array $dataPortsFromDb, array $inputDataPorts): array
+    {
+        $dataPorts = [
+            "matchedByNameAndIp" => [],
+            "matchedByName" => [],
+            "notMatched" => [],
+            "notUpdated" => [],
+        ];
+
+        // Determine the match DataPorts from the Input Data and DataPorts of the Appliance by the INTERFACE NAME AND IPADDRESS
+        foreach ($inputDataPorts as $k => $inputDataPort) {
+            foreach ($dataPortsFromDb as $pk => $dataPortFromDb) {
+                if ($inputDataPort["interface"] == $dataPortFromDb->details->portName &&
+                    (new IpTools($inputDataPort["ip_address"]))->address == $dataPortFromDb->ipAddress
+                ) {
+                    $dataPorts["matchedByNameAndIp"][$k] = $pk;
+
+                    $dataPortsFromDb = array_diff_key($dataPortsFromDb, array_fill_keys([$pk], ""));
+                    $inputDataPorts = array_diff_key($inputDataPorts, array_fill_keys([$k], ""));
+                }
             }
         }
-        if (!$errors->isEmpty()) {
-            throw $errors;
+
+        // Determine the match DataPorts from the Input Data and DataPorts of the Appliance by the INTERFACE NAME
+        foreach ($inputDataPorts as $k => $inputDataPort) {
+            foreach ($dataPortsFromDb as $pk => $dataPortFromDb) {
+                if ($inputDataPort["interface"] == $dataPortFromDb->details->portName) {
+                    $dataPorts["matchedByName"][$k] = $pk;
+
+                    $dataPortsFromDb = array_diff_key($dataPortsFromDb, array_fill_keys([$pk], ""));
+                    $inputDataPorts = array_diff_key($inputDataPorts, array_fill_keys([$k], ""));
+                }
+            }
         }
-        return true;
+
+        // Determine the not matched DataPorts from the Input Data
+        foreach ($inputDataPorts as $k => $inputDataPort) {
+            $dataPorts["notMatched"][] = $k;
+        }
+
+        // Determine the not updated DataPorts of the Appliance
+        foreach ($dataPortsFromDb as $pk => $dataPortFromDb) {
+            $dataPorts["notUpdated"][] = $pk;
+        }
+
+        return $dataPorts;
     }
 
     /**
-     * Заблокировать db.lock файл
+     * Update DataPorts of the Appliance for which there are corresponding DataPorts from the Input Data matched by Name And Ip
      *
-     * @return bool
-     * @throws Exception
+     * @param array $matchedDataPorts
      */
-    protected function dbLock()
+    private function updateDataPortsMatchedByNameAndIp(array $matchedDataPorts)
     {
-        $this->dbLockFile = fopen(self::DB_LOCK_FILE, 'w');
-        if (false === $this->dbLockFile) {
-            throw new Exception('PHONE: Can not open the lock file');
+        foreach ($matchedDataPorts as $inputDataPortPk => $dataPortFromDbPk) {
+            $inputDataPort = $this->inputDataPorts[$inputDataPortPk];
+            $dataPortFromDb = $this->dataPortsFromDb[$dataPortFromDbPk];
+            $this->updateDataPort($dataPortFromDb, $inputDataPort);
         }
-        $n = self::ITERATIONS;
-        $blockedFile = flock($this->dbLockFile, LOCK_EX | LOCK_NB);
-        while (false === $blockedFile && 0 !== $n--) {
-            usleep(self::SLEEP_TIME);
-            $blockedFile = flock($this->dbLockFile, LOCK_EX | LOCK_NB);
+    }
+
+    /**
+     * Update DataPorts of the Appliance for which there are corresponding DataPorts from the Input Data matched by Name
+     *
+     * @param array $matchedDataPorts
+     */
+    private function updateDataPortsMatchedByName(array $matchedDataPorts)
+    {
+        foreach ($matchedDataPorts as $inputDataPortPk => $dataPortFromDbPk) {
+            $inputDataPort = $this->inputDataPorts[$inputDataPortPk];
+            $dataPortFromDb = $this->dataPortsFromDb[$dataPortFromDbPk];
+
+            $this->deleteDataPortDuplicateIfExists($inputDataPort);
+            $this->updateDataPort($dataPortFromDb, $inputDataPort);
         }
-        if (false === $blockedFile) {
-            fclose($this->dbLockFile);
+    }
+
+    /**
+     * Create new DataPorts of the Appliance
+     *
+     * @param array $notMatchedDataPorts
+     */
+    private function createDataPorts(array $notMatchedDataPorts)
+    {
+        foreach ($notMatchedDataPorts as $inputDataPortPk) {
+            $inputDataPort = $this->inputDataPorts[$inputDataPortPk];
+            $dataPort = new DataPort();
+
+            $this->deleteDataPortDuplicateIfExists($inputDataPort);
+            $this->updateDataPort($dataPort, $inputDataPort);
+        }
+    }
+
+    /**
+     * Delete not updated DataPorts of the Appliance
+     *
+     * @param array $notUpdatedDataPortsFromDb
+     */
+    private function deleteNotUpdatedDataPortsFromDb(array $notUpdatedDataPortsFromDb)
+    {
+        foreach ($notUpdatedDataPortsFromDb as $pk) {
+            $dataPort = $this->dataPortsFromDb[$pk];
+            $dataPort->delete();
+        }
+    }
+
+    /**
+     * Update DataPorts of the Appliance
+     *
+     * @param DataPort $dataPort
+     * @param array $data
+     */
+    private function updateDataPort(DataPort $dataPort, array $data)
+    {
+        try {
+            $type = [];
+            mb_ereg('^\D+', $data['interface'], $type);
+            $type = (!empty($type)) ? DPortType::getInstanceByType($type[0]) : DPortType::getEmpty();
+
+            $mac = implode(':', str_split(mb_strtolower(mb_ereg_replace(':|\-|\.', '', $data['mac'])), 2));
+            $ipTool = new IpTools($data['ip_address']);
+            $vrf = $this->updateVrf($data['vrf_name'], $data['vrf_rd']);
+            $isManagement = ($ipTool->address == $this->managementIp) ? true : false;
+            $currentDate = (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P');
+
+            $dataPort->fill([
+                'appliance' => $this->appliance,
+                'portType' => $type,
+                'macAddress' => $mac,
+                'ipAddress' => $ipTool->address,
+                'masklen' => $ipTool->masklen,
+                'vrf' => $vrf,
+                'isManagement' => $isManagement,
+                'lastUpdate' => $currentDate,
+            ]);
+            $dataPort->details->portName = $data['interface'];
+            $dataPort->details->description = $data['description'];
+            $dataPort->save();
+        } catch (\Throwable $e) {
+            $this->logger->error('[ip]='.$data['ip_address'].'; [message]='.$e->getMessage());
+        }
+    }
+
+    /**
+     * Delete DataPort duplicate by IpAddress
+     *
+     * @param array $data
+     */
+    private function deleteDataPortDuplicateIfExists(array $data)
+    {
+        $ip = (new IpTools($data['ip_address']))->address;
+        $vrf = Vrf::getInstanceByName($data['vrf_name']);
+
+        $duplicateDataPort = DataPort::findByIpVrf($ip, $vrf);
+        if (false !== $duplicateDataPort) {
+            $duplicateDataPort->delete();
+        }
+    }
+
+    /**
+     * Update Vrf
+     *
+     * @param $name
+     * @param $rd
+     * @return Vrf
+     */
+    private function updateVrf($name, $rd): Vrf
+    {
+        $vrf = Vrf::getInstanceByName($name);
+        if ($vrf->rd !== $rd) {
+            $vrf->rd = $rd;
+            $vrf->save();
+        }
+        return $vrf;
+    }
+
+    /**
+     * Validate structure of the input data set
+     *
+     * @param Std $data
+     * {
+     *   "dataSetType",
+     *   "ip",
+     *   "networks": [
+     *     {
+     *        "interface",
+     *        "ip_address",
+     *        "vrf_name",
+     *        "vrf_rd",
+     *        "description",
+     *        "mac",
+     *     }
+     *   ]
+     * }
+     * @return boolean
+     */
+    private function validateInputDataStructure(Std $data): bool
+    {
+        if (!isset($data->dataSetType) || !isset($data->ip) || !isset($data->networks)) {
             return false;
         }
-        return true;
-    }
-
-    /**
-     * Разблокировать db.lock файл
-     *
-     * @return bool
-     */
-    protected function dbUnLock()
-    {
-        flock($this->dbLockFile, LOCK_UN);
-        fclose($this->dbLockFile);
+        foreach ($data->networks as $network) {
+            if (!isset($network->interface) || !isset($network->ip_address) || !isset($network->vrf_name) || !isset($network->vrf_rd) || !isset($network->description) || !isset($network->mac)) {
+                return false;
+            }
+        }
         return true;
     }
 }
