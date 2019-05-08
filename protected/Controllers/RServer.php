@@ -26,6 +26,7 @@ class RServer extends Controller
     public function actionDefault()
     {
         $logger = RLogger::getInstance('R-Server');
+        $result = true;
 
         try {
             $rawInput = file_get_contents('php://input');
@@ -48,7 +49,7 @@ class RServer extends Controller
                     break;
                 case 'prefixes':
                     $logger = RLogger::getInstance('DS-prefixes');
-                    $result = (new DSPprefixes())->process($inputDataset);
+                    (new DSPprefixes())->process($inputDataset);
                     break;
                 default:
                     throw new Exception('DATASET: Not known dataSetType');
