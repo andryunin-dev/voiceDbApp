@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Storage1CModels\Appliance1C;
 use T4\Core\Collection;
 use T4\Core\Exception;
+use T4\Dbal\Query;
 use T4\Orm\Model;
 
 /**
@@ -195,8 +196,19 @@ class Appliance extends Model
      */
     public static function findByManagementIP(string $ip)
     {
-        $dataPort = DataPort::findByColumn('ipAddress', $ip);
-        return (false !== $dataPort && true === $dataPort->isManagement) ? $dataPort->appliance : false;
+        // Find dataPort by management Ip
+        $isManagement = true;
+        $query = (new Query())
+            ->select()
+            ->from(DataPort::getTableName())
+            ->where('"ipAddress" = :ipAddress AND "isManagement" = :isManagement')
+            ->params([
+                ':ipAddress' => $ip,
+                ':isManagement' => $isManagement,
+            ]);
+        $dataPort = DataPort::findByQuery($query);
+
+        return (false !== $dataPort) ? $dataPort->appliance : false;
     }
 
     public function delete()

@@ -22,7 +22,7 @@ class Vrf extends Model
     protected static $schema = [
         'table' => 'network.vrfs',
         'columns' => [
-            'name' => ['type' => 'string'], //VRF name in lower case (not unique)
+            'name' => ['type' => 'string'], //VRF name in lower case (unique)
             'rd' => ['type' => 'string'], //RD (i.e '123:12', '10.1.1.2:125')
             'comment' => ['type' => 'string']
         ],
@@ -48,77 +48,21 @@ class Vrf extends Model
         return strtolower(trim($val));
     }
 
-    /**
-     * @param $val
-     * @return bool
-     * @throws Exception
-     * examples valid formats RD - '123:12', '10.1.1.2:125'
-     */
-    protected function validateRd($val)
-    {
-        if (!is_string($val)) {
-            throw new Exception('Недопустимый тип свойства RD');
-        }
-        $val = trim($val);
-        $rdArray = explode(':', $val);
-        foreach ($rdArray as $key => $rdValue) {
-            $rdArray[$key] = trim($rdValue);
-        }
-        //RD must consist from 2 part
-        if (2 != count($rdArray)) {
-            throw new Exception('Неверный формат RD');
-        }
-        //check second part of RD (it must be integer string)
-        $second = trim(array_pop($rdArray));
-        if (0 == strlen($second)) {
-            throw new Exception('Неверный формат RD');
-        }
-        if (!(is_numeric($second) && (int)$second == $second)) {
-            throw new Exception('Неверный формат RD');
-        }
-        //check first part of RD (it must be not empty, integer or IP string)
-        $first = trim(array_pop($rdArray));
-        if (0 == strlen($first)) {
-            throw new Exception('Неверный формат RD');
-        }
-        if (!(true === (new Ip($first, 1))->is_valid || $first == (int)$first)) {
-            throw new Exception('Неверный формат RD');
-        }
-        return true;
-    }
-
-    protected function sanitizeRd($val)
-    {
-        $rdArray = explode(':', $val);
-        foreach ($rdArray as $key => $rdValue) {
-            $rdArray[$key] = trim($rdValue);
-        }
-        return implode(':', $rdArray);
-    }
-
-
-
     protected function validate()
     {
-        $fromDb = self::findByColumn('rd', $this->rd);
+        $fromDb = self::findByColumn('name', $this->name);
         if ($this->isNew && false !== $fromDb) {
-            throw new Exception('VRF с данным RD уже существует');
+            throw new Exception('VRF с данным NAME уже существует');
         }
         if ($this->isUpdated && false !== $fromDb && $this->getPk() != $fromDb->getPk()) {
-            throw new Exception('VRF с данным RD уже существует');
-        }
-        if (strtolower(self::GLOBAL_VRF_NAME) == strtolower($this->name) && self::GLOBAL_VRF_RD != $this->rd) {
-            throw new Exception('Данное имя зарезервировано для Global VRF');
-        }
-        if (self::GLOBAL_VRF_RD == $this->rd && self::GLOBAL_VRF_NAME != strtolower($this->name)) {
-            throw new Exception('Данное RD зарезервировано для Global VRF');
+            throw new Exception('VRF с данным NAME уже существует');
         }
         return true;
     }
 
     public function __toString()
     {
-        return $this->name . ((self::GLOBAL_VRF_RD != $this->rd) ? '(' . $this->rd . ')' : '');
+        return $this->name . (!empty($this->rd) ? '(' . $this->rd . ')' : '');
     }
 
     protected function beforeDelete()
@@ -129,9 +73,6 @@ class Vrf extends Model
         return parent::beforeDelete();
     }
 
-    /**
-     * @return Vrf
-     */
     public static function instanceGlobalVrf()
     {
         $gVrf = self::findByColumn('name', self::GLOBAL_VRF_NAME);
@@ -208,5 +149,15 @@ class Vrf extends Model
         });
         return $vrfs;
 
+    }
+
+    /**
+     * @param $name
+     * @return Vrf
+     */
+    public static function getInstanceByName($name): self
+    {
+        $vrf = self::findByColumn('name', $name);
+        return (false === $vrf) ? (new self(['name' => $name]))->save() : $vrf;
     }
 }

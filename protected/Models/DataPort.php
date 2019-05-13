@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Components\Ip;
 use App\Components\IpTools;
+use phpDocumentor\Reflection\Types\This;
 use T4\Core\Collection;
 use T4\Core\Exception;
 use T4\Core\IArrayable;
@@ -17,6 +18,7 @@ use T4\Orm\Model;
  * @package App\Models
  * имя порта писать в details->portName
  *
+ * @property array $errors
  * @property string $ipAddress
  * @property string $cidrIpAddress
  * @property int $masklen
@@ -35,13 +37,23 @@ class DataPort extends Model
 {
     const DEFAULT_PORTNAME = '';
     const DEFAULT_MACADDRESS = '00:00:00:00:00:00';
-
+    const SQL = [
+        'findPortBy_Ip_VrfId' => '
+        SELECT dp.* FROM equipment."dataPorts" dp
+          JOIN network.networks net ON dp.__network_id = net.__id
+          JOIN network.vrfs vrf ON net.__vrf_id = vrf.__id
+          WHERE host(dp."ipAddress") = host(:address) AND vrf.__id = :vrf_id',
+        'countPortsBy_Ip_VrfId' => '
+        SELECT count(1) FROM equipment."dataPorts" dp
+          JOIN network.networks net ON dp.__network_id = net.__id
+          JOIN network.vrfs vrf ON net.__vrf_id = vrf.__id
+          WHERE host(dp."ipAddress") = host(:address) AND vrf.__id = :vrf_id'
+    ];
 
     public function __construct($data = null)
     {
+        $this->errors = [];
         $this->details = new Std(['portName' => self::DEFAULT_PORTNAME]);
-        $this->macAddress = self::DEFAULT_MACADDRESS;
-
         parent::__construct($data);
     }
 
@@ -65,7 +77,12 @@ class DataPort extends Model
     ];
 
     public $vrf;
+    protected $errors;
 
+    protected function getErrors()
+    {
+        return $this->errors;
+    }
     protected function getCidrIpAddress()
     {
         $ip = new IpTools($this->ipAddress, $this->masklen);
@@ -74,22 +91,279 @@ class DataPort extends Model
         } else {
             return null;
         }
-//        $key = 'ipAddress';
-//        $masklen = $this->masklen;
-//        $address = isset($this->__data[$key]) ? $this->__data[$key] : null;
-//        $ip = new IpTools($address, $masklen);
-//        if ($ipObj->is_valid) {
-//            return $ipObj->cidrAddress;
-//        } else {
-//            return null;
-//        }
-//        if (empty($masklen)) {
-//            return isset($this->__data[$key]) ? $this->__data[$key] : null;
-//        } else {
-//            return isset($this->__data[$key]) ? ($this->__data[$key] . '/' . $masklen) : null;
-//        }
     }
-    public function __set($key, $val)
+
+    public function checkIpAddress()
+    {
+        $ip = new IpTools($this->ipAddress, $this->masklen);
+        if (false === $ip->is_valid) {
+            $this->errors[] = 'Invalid IP address: ' . $this->ipAddress;
+            return false;
+        }
+        $this->ipAddress = $ip->address;
+        $this->masklen = $ip->masklen;
+        
+        if ($ip->is_valid && false === $ip->is_maskNull && false === $ip->is_hostIp) {
+            $this->errors[] = "${ip} is not host IP";
+            return false;
+        }
+        return true;
+    }
+    public function checkMacAddress()
+    {
+        $this->macAddress = trim($this->macAddress);
+        if (empty($this->macAddress)) {
+            $this->macAddress = self::DEFAULT_MACADDRESS;
+            return true;
+        }
+        if (!empty($this->macAddress) && false === filter_var(trim($this->macAddress), FILTER_VALIDATE_MAC)) {
+            $this->errors[] = 'Invalid MAC address: ' . $this->macAddress;
+            return false;
+        }
+        return true;
+    }
+    public function checkVrf()
+    {
+        if (!($this->vrf instanceof Vrf)) {
+            $this->errors[] = 'Invalid VRF';
+            return false;
+        }
+        return true;
+    }
+    public function checkAppliance()
+    {
+        if (!($this->appliance instanceof Appliance)) {
+            $this->errors[] = 'Invalid appliance';
+            return false;
+        }
+        return true;
+    }
+    public function checkDPortType()
+    {
+        if (!($this->portType instanceof DPortType)) {
+            $this->errors[] = 'Invalid port type';
+            return false;
+        }
+        return true;
+    }
+    
+    protected function getVrf()
+    {
+        return empty($this->vrf) ? $this->vrf = $this->network->vrf : $this->vrf;
+    }
+    
+    protected function getPortName()
+    {
+        return $this->details->portName;
+    }
+    
+    public function formatMacAddress()
+    {
+        $key = 'macAddress';
+        if (isset($this->__data[$key]) && !empty($this->__data[$key])) {
+            $data = preg_replace('~:~', '', $this->__data[$key]);
+            
+            return implode('.', [
+                substr($data,0,4),
+                substr($data,4,4),
+                substr($data,8,4),
+            ]);
+        }
+        
+        return null;
+    }
+    
+    /**
+     * @param string $ipCidr
+     * @param Vrf $vrf
+     * @return Network|bool
+     */
+    protected function createNetworkIfNotExists($ipCidr, $vrf)
+    {
+        $network = Network::findByAddressVrf($ipCidr, $vrf);
+        if ($network === false) {
+            try {
+                $network = new Network();
+                $network->fill([
+                    'address' => $ipCidr,
+                    'vrf' => $this->vrf,
+                ])
+                    ->save();
+            } catch (\Exception $e) {
+            }
+        }
+        return $network;
+    }
+    
+    protected function checkAbilityCreatePort()
+    {
+    
+    }
+    
+    protected function checkDataBeforeUpdateCreate()
+    {
+        try {
+            $localErrors = [];
+            $checkIp = $this->checkIpAddress();
+            $checkMac = $this->checkMacAddress();
+            $checkVrf = $this->checkVrf();
+            if(!$checkIp || !$checkMac || !$checkVrf) {
+                return false;
+            }
+            $ip = new IpTools($this->ipAddress, $this->macAddress);
+            
+            if (!($this->appliance instanceof Appliance)) {
+                $localErrors[] = 'Appliance for data port is not found';
+            }
+            if (!($this->portType instanceof  DPortType)) {
+                $localErrors[] = 'Invalid port type';
+            }
+            //find existed by ip vrf
+            $dPortFromDb = self::findByIpVrf($this->ipAddress, $this->vrf);
+            if ($dPortFromDb instanceof DataPort && $dPortFromDb->getPk() !== $this->getPk()) {
+                $localErrors[] = 'IP address ' . $this->cidrIpAddress . ' already in use';
+            }
+            
+            if (count($localErrors) > 0) {
+                array_merge($this->errors, $localErrors);
+                return false;
+            }
+            // if there are not errors, try to create network for this host IP if it not exists
+            //try to create network if not exists
+            $network = $this->createNetworkIfNotExists($ip->cidrNetwork, $this->vrf);
+            if (count($network->errors) == 0) {
+                $this->network = $network;
+            } else {
+                array_merge($localErrors, $network->errors);
+            }
+            
+            if (count($localErrors) > 0) {
+                array_merge($this->errors, $localErrors);
+                return false;
+            }
+            return true;
+        } catch (\Throwable $e) {
+            $this->errors[] = $e->getMessage();
+            return false;
+        }
+    }
+    
+    /**
+     * @param string $ip IP address cidr or only host part
+     * @param Vrf $vrf
+     * @return Collection
+     */
+    public static function findAllByIpVrf($ip, $vrf)
+    {
+        $query = new Query(self::SQL['findPortBy_Ip_VrfId']);
+        $res = self::findAllByQuery($query, [':address' => $ip, ':vrf_id' => $vrf->getPk()]);
+        return $res;
+    }
+    /**
+     * @param string $ip IP address cidr or only host part
+     * @param Vrf $vrf
+     * @return DataPort
+     */
+    public static function findByIpVrf($ip, $vrf)
+    {
+        $query = new Query(self::SQL['findPortBy_Ip_VrfId']);
+        $res = self::findByQuery($query, [':address' => $ip, ':vrf_id' => $vrf->getPk()]);
+        return $res;
+    }
+    
+    public static function countByIpVrf($ip, $vrf)
+    {
+        $query = new Query(self::SQL['countPortsBy_Ip_VrfId']);
+        $res = self::countAllByQuery($query, [':address' => $ip, ':vrf_id' => $vrf->getPk()]);
+        return $res;
+    }
+    
+    public function isManagement()
+    {
+        $this->isManagement = true;
+    }
+    
+    public function isNotManagement()
+    {
+        $this->isManagement = false;
+    }
+    
+    protected function validate()
+    {
+        try {
+            $localErrors = [];
+            $checkApp = $this->checkAppliance();
+            $checkIp = $this->checkIpAddress();
+            $checkMac = $this->checkMacAddress();
+            $checkVrf = $this->checkVrf();
+            $checkPortType = $this->checkDPortType();
+            if(!$checkApp || !$checkIp ||  !$checkMac || !$checkVrf || !$checkPortType) {
+                return false;
+            }
+    
+            if (!($this->appliance instanceof Appliance)) {
+                $localErrors[] = 'Appliance for data port is not found';
+            }
+            if (!($this->portType instanceof  DPortType)) {
+                $localErrors[] = 'Invalid port type';
+            }
+            //find existed by ip vrf
+            $dPortFromDb = self::findByIpVrf($this->ipAddress, $this->vrf);
+            if ($dPortFromDb instanceof DataPort && $dPortFromDb->getPk() !== $this->getPk()) {
+                $localErrors[] = 'IP address ' . $this->cidrIpAddress . ' already in use';
+            }
+    
+            if (count($localErrors) > 0) {
+                array_merge($this->errors, $localErrors);
+                return false;
+            }
+            return true;
+        } catch (\Exception $e) {
+            $localErrors[] = $e->getMessage();
+            array_merge($this->errors, $localErrors);
+            return false;
+        }
+    }
+    protected function beforeSave()
+    {
+        $localErrors = [];
+        try {
+            if (count($this->errors) > 0) {
+                return false;
+            }
+            // if there are not errors, try to create network for this host IP if it not exists
+            //try to create network if not exists
+            $ip = new IpTools($this->ipAddress, $this->masklen);
+            $network = $this->createNetworkIfNotExists($ip->cidrNetwork, $this->vrf);
+            if (count($network->errors) == 0) {
+                $this->network = $network;
+            } else {
+                array_merge($localErrors, $network->errors);
+            }
+    
+            if (count($localErrors) > 0) {
+                array_merge($this->errors, $localErrors);
+                return false;
+            }
+            return parent::beforeSave();
+        } catch (\Exception $e) {
+            $localErrors[] = $e->getMessage();
+            array_merge($this->errors, $localErrors);
+            return false;
+        }
+        
+    }
+    
+    protected function afterDelete()
+    {
+        if (null !== $this->network && 32 == (new IpTools($this->network->address))->masklen) {
+            $this->network->delete();
+        }
+        return parent::afterDelete();
+    }
+
+//    ==============LEGACY CODE==================
+    public function _set($key, $val)
     {
         if ('ipAddress' == $key) {
             //перенес из фреймворка
@@ -127,44 +401,13 @@ class DataPort extends Model
         }
     }
 
-    protected function getVrf()
+    public function _fill($data)
     {
-        return empty($this->vrf) ? $this->vrf = $this->network->vrf : $this->vrf;
-    }
-
-
-    protected function getPortName()
-    {
-        return $this->details->portName;
-    }
-
-
-    public function formatMacAddress()
-    {
-        $key = 'macAddress';
-        if (isset($this->__data[$key]) && !empty($this->__data[$key])) {
-            $data = preg_replace('~:~', '', $this->__data[$key]);
-
-            return implode('.', [
-                substr($data,0,4),
-                substr($data,4,4),
-                substr($data,8,4),
-            ]);
-        }
-
-        return null;
-    }
-
-    public function fill($data)
-    {
-//        var_dump($data);
         if ($data instanceof IArrayable) {
             $data = $data->toArray();
         } else {
             $data = (array)$data;
         }
-//        var_dump($data['vrf']);
-//        var_dump($data['vrf'] instanceof Vrf);die;
 
         if (array_key_exists('vrf', $data) && ($data['vrf'] instanceof Vrf) || null === ($data['vrf'])) {
             $this->vrf = $data['vrf'];
@@ -187,7 +430,7 @@ class DataPort extends Model
      * @throws Exception
      *
      */
-    protected function validateIpAddress($val)
+    protected function _validateIpAddress($val)
     {
         $ip = new IpTools($val);
         if (false === $ip->is_valid) {
@@ -207,7 +450,7 @@ class DataPort extends Model
      * @return bool
      * @throws Exception
      */
-    protected function validateMacAddress($val)
+    protected function _validateMacAddress($val)
     {
         if (empty(trim($val))) {
             return true;
@@ -219,7 +462,7 @@ class DataPort extends Model
     }
 
 
-    protected function sanitizeMacAddress($val)
+    protected function _sanitizeMacAddress($val)
     {
         if (empty($val)) {
             $val = self::DEFAULT_MACADDRESS;
@@ -228,12 +471,12 @@ class DataPort extends Model
         return filter_var(trim($val), FILTER_VALIDATE_MAC);
     }
 
-    protected function sanitizeComment($val)
+    protected function _sanitizeComment($val)
     {
         return trim($val);
     }
 
-    protected function sanitizeDetails($details)
+    protected function _sanitizeDetails($details)
     {
         if (is_array($details)) {
             foreach ($details as $key => $item) {
@@ -248,7 +491,7 @@ class DataPort extends Model
         return $details;
     }
 
-    protected function validate()
+    protected function _validate()
     {
         $ip = new IpTools($this->ipAddress, $this->masklen);
 
@@ -280,7 +523,7 @@ class DataPort extends Model
      * @return bool
      * @throws Exception
      */
-    protected function beforeSave()
+    protected function _beforeSave()
     {
         $ip = (new IpTools($this->ipAddress, $this->masklen));
         //если маска не нулевая, то ищем сетку для него
@@ -341,7 +584,7 @@ class DataPort extends Model
         return parent::beforeSave();
     }
 
-    public function save()
+    public function _save()
     {
         if ($this->isUpdated) {
             $oldNetwork = (DataPort::findByPK($this->getPk()))->network;
@@ -358,20 +601,13 @@ class DataPort extends Model
         }
     }
 
-    protected function afterDelete()
-    {
-        if (null !== $this->network && 32 == (new IpTools($this->network->address))->masklen) {
-            $this->network->delete();
-        }
-        return parent::afterDelete();
-    }
 
     /**
      * @param $ip
      * @param Vrf $vrf
      * @return int
      */
-    public static function countAllByIpVrf($ip, Vrf $vrf)
+    public static function _countAllByIpVrf($ip, Vrf $vrf)
     {
         return self::findAllByIpVrf($ip, $vrf)->count();
     }
@@ -381,7 +617,7 @@ class DataPort extends Model
      * @param Vrf $vrf
      * @return bool|Collection|DataPort[]
      */
-    public static function findAllByIpVrf($ip, $vrf)
+    public static function _findAllByIpVrf($ip, $vrf)
     {
         $query = (new Query())
             ->select()
@@ -401,7 +637,7 @@ class DataPort extends Model
             if (null === $dPort->network) {
                 return true;
             } else {
-                return ($dPort->network->vrf->rd == $vrf->rd);
+                return ($dPort->network->vrf->name == $vrf->name);
             }
         });
         return (null === $result) ? false : $result;
@@ -412,23 +648,14 @@ class DataPort extends Model
      * @param Vrf $vrf
      * @return DataPort|bool
      */
-    public static function findByIpVrf($ip, $vrf)
+    public static function _findByIpVrf($ip, $vrf)
     {
         $result = self::findAllByIpVrf($ip, $vrf)->first();
         return (null === $result) ? false : $result;
     }
 
-    public function isManagement()
-    {
-        $this->isManagement = true;
-    }
 
-    public function isNotManagement()
-    {
-        $this->isManagement = false;
-    }
-
-    public function trimIpAddress()
+    public function _trimIpAddress()
     {
         return preg_replace('~/.+~', '', $this->ipAddress);
     }

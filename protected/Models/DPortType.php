@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use function PHPSTORM_META\type;
 use T4\Core\Collection;
 use T4\Core\Exception;
-use T4\Core\MultiException;
 use T4\Orm\Model;
 
 /**
@@ -18,6 +18,7 @@ use T4\Orm\Model;
 class DPortType extends Model
 {
     const TYPE_ETHERNET = 'Ethernet';
+    const EMPTY = '';
 
     protected static $schema = [
         'table' => 'equipment.dataPortTypes',
@@ -53,8 +54,22 @@ class DPortType extends Model
         return true;
     }
 
-    public static function getEmpty()
+    /**
+     * @return DPortType
+     */
+    public static function getEmpty(): self
     {
-        return self::findByColumn('type','');
+        $dPortType = DPortType::findByColumn('type', self::EMPTY);
+        return (false === $dPortType) ? (new self(['type' => self::EMPTY]))->save() : $dPortType;
+    }
+
+    /**
+     * @param $type
+     * @return DPortType
+     */
+    public static function getInstanceByType($type): self
+    {
+        $dPortType = DPortType::findByColumn('type', $type);
+        return (false === $dPortType) ? (new self(['type' => $type]))->save() : $dPortType;
     }
 }
