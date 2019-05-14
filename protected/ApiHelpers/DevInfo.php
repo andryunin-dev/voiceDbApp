@@ -258,6 +258,18 @@ class DevInfo extends Std
                 }
                 $portType = DPortType::findByPK($updatedPort->port_type_id);
                 $ip = new IpTools($updatedPort->port_ip, $updatedPort->port_mask_len);
+                if (!$ip->is_ipValid) {
+                    $this->errors[] = 'Invalid IP ' . $updatedPort->port_ip;
+                    continue;
+                }
+                if ($ip->is_maskNull || !$ip->is_maskValid) {
+                    $this->errors[] = 'Invalid mask for IP ' . $ip->address;
+                    continue;
+                }
+                if (!$ip->is_hostIp) {
+                    $this->errors[] = 'IP ' . $ip->cidrAddress . ' is not valid host IP';
+                    continue;
+                }
                 if ($updatedPort->newPort === true) {
                     if ($updatedPort->deleted === true) {
                         continue;
@@ -282,7 +294,9 @@ class DevInfo extends Std
                         'comment' => $updatedPort->port_comment,
                         'details' => $updatedPort->port_details,
                     ]);
-                    $newPort->save();
+                    if ($this->errors->count() === 0) {
+                        $newPort->save();
+                    }
                 } else {
                     $currentPort = DataPort::findByPK($updatedPort->port_id);
                     if (!$ip->is_valid) {
@@ -300,7 +314,9 @@ class DevInfo extends Std
                         'comment' => $updatedPort->port_comment,
                         'details' => $updatedPort->port_details,
                     ]);
-                    $currentPort->save();
+                    if ($this->errors->count() === 0) {
+                        $currentPort->save();
+                    }
                 }
             }
             if ($this->errors->count() === 0) {

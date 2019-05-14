@@ -426,6 +426,10 @@ class Api extends Controller
             }
             if ($this->devData->errors->count() === 0) {
                 $this->devData->saveDev();
+                if ($this->devData->errors->count() !== 0) {
+                    $this->errors = array_merge($this->errors, $this->devData->errors->toArray());
+                    throw new Exception();
+                }
                 $this->data->result = 'OK';
             } else {
                 $this->errors = array_merge($this->errors, $this->devData->errors->toArray());
