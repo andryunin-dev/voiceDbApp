@@ -131,6 +131,8 @@ class DSPprefixes extends Std
         foreach ($matchedDataPorts as $inputDataPortPk => $dataPortFromDbPk) {
             $inputDataPort = $this->inputDataPorts[$inputDataPortPk];
             $dataPortFromDb = $this->dataPortsFromDb[$dataPortFromDbPk];
+
+            $this->deleteDuplicatesOneDataPort($dataPortFromDb);
             $this->updateDataPort($dataPortFromDb, $inputDataPort);
         }
     }
@@ -146,7 +148,7 @@ class DSPprefixes extends Std
             $inputDataPort = $this->inputDataPorts[$inputDataPortPk];
             $dataPortFromDb = $this->dataPortsFromDb[$dataPortFromDbPk];
 
-            $this->deleteDataPortDuplicateIfExists($inputDataPort);
+            $this->deleteFakeDataPortsByIp($inputDataPort);
             $this->updateDataPort($dataPortFromDb, $inputDataPort);
         }
     }
@@ -162,7 +164,7 @@ class DSPprefixes extends Std
             $inputDataPort = $this->inputDataPorts[$inputDataPortPk];
             $dataPort = new DataPort();
 
-            $this->deleteDataPortDuplicateIfExists($inputDataPort);
+            $this->deleteFakeDataPortsByIp($inputDataPort);
             $this->updateDataPort($dataPort, $inputDataPort);
         }
     }
@@ -218,18 +220,32 @@ class DSPprefixes extends Std
     }
 
     /**
-     * Delete DataPort duplicate by IpAddress
+     * Delete fake DataPorts by IpAddress
      *
      * @param array $data
      */
-    private function deleteDataPortDuplicateIfExists(array $data)
+    private function deleteFakeDataPortsByIp(array $data)
     {
         $ip = (new IpTools($data['ip_address']))->address;
-        $vrf = Vrf::getInstanceByName($data['vrf_name']);
 
-        $duplicateDataPort = DataPort::findByIpVrf($ip, $vrf);
-        if (false !== $duplicateDataPort) {
-            $duplicateDataPort->delete();
+        $fakeDataPorts = DataPort::findAllByIp($ip);
+        foreach ($fakeDataPorts as $fakeDataPort) {
+            $fakeDataPort->delete();
+        }
+    }
+
+    /**
+     * Delete duplicates one DataPort
+     *
+     * @param DataPort $dataPort
+     */
+    private function deleteDuplicatesOneDataPort(DataPort $dataPort)
+    {
+        $duplicatedDataPorts = DataPort::findAllByIp($dataPort->ipAddress);
+        foreach ($duplicatedDataPorts as $duplicateDataPort) {
+            if ($duplicateDataPort->getPk() != $dataPort->getPk()) {
+                $duplicateDataPort->delete();
+            }
         }
     }
 
