@@ -43,6 +43,9 @@ class DataPort extends Model
           JOIN network.networks net ON dp.__network_id = net.__id
           JOIN network.vrfs vrf ON net.__vrf_id = vrf.__id
           WHERE host(dp."ipAddress") = host(:address) AND vrf.__id = :vrf_id',
+        'findPortBy_Ip' => '
+        SELECT dp.* FROM equipment."dataPorts" dp
+          WHERE host(dp."ipAddress") = host(:address)',
         'countPortsBy_Ip_VrfId' => '
         SELECT count(1) FROM equipment."dataPorts" dp
           JOIN network.networks net ON dp.__network_id = net.__id
@@ -268,6 +271,28 @@ class DataPort extends Model
     {
         $query = new Query(self::SQL['findPortBy_Ip_VrfId']);
         $res = self::findByQuery($query, [':address' => $ip, ':vrf_id' => $vrf->getPk()]);
+        return $res;
+    }
+
+    /**
+     * @param string $ip IP address cidr or only host part
+     * @return mixed
+     */
+    public static function findAllByIp($ip)
+    {
+        $query = new Query(self::SQL['findPortBy_Ip']);
+        $res = self::findAllByQuery($query, [':address' => $ip]);
+        return $res;
+    }
+
+    /**
+     * @param string $ip IP address cidr or only host part
+     * @return mixed
+     */
+    public static function findByIp($ip)
+    {
+        $query = new Query(self::SQL['findPortBy_Ip']);
+        $res = self::findByQuery($query, [':address' => $ip]);
         return $res;
     }
     
