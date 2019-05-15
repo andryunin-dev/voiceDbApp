@@ -561,7 +561,7 @@ class Api extends Controller
         try {
             $network = Network::findByPK($netId);
             if (!($network instanceof Network)) {
-                throw new \Exception('Update after submit: Invalid network ID: ' . $id);
+                throw new \Exception('Update after submit: Invalid network ID: ' . $netId);
             }
             $this->data->parentNetId = $network->parentNetwork === false ? false : $network->parentNetwork->getPk();
         } catch (\Exception $e) {

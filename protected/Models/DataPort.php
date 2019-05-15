@@ -98,18 +98,22 @@ class DataPort extends Model
 
     public function checkIpAddress()
     {
+        $localErrors = [];
         $ip = new IpTools($this->ipAddress, $this->masklen);
         if (false === $ip->is_valid) {
-            $this->errors[] = 'Invalid IP address: ' . $this->ipAddress;
+            $localErrors[] = 'Invalid IP address: ' . $this->ipAddress;
+        }
+        if (true === $ip->is_maskNull) {
+            $localErrors[] = 'mask is not set for IP: ' . $this->ipAddress;
+        } elseif (false === $ip->is_hostIp) {
+            $localErrors[] = $ip->cidrAddress . ' is not host IP';
+        }
+        if (count($localErrors) > 0) {
+            $this->errors = array_merge($this->errors, $localErrors);
             return false;
         }
         $this->ipAddress = $ip->address;
         $this->masklen = $ip->masklen;
-        
-        if ($ip->is_valid && false === $ip->is_maskNull && false === $ip->is_hostIp) {
-            $this->errors[] = "${ip} is not host IP";
-            return false;
-        }
         return true;
     }
     public function checkMacAddress()
