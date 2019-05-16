@@ -42,7 +42,7 @@ class DSPprefixes extends Std
         $this->managementIp = $inputDataPorts->ip;
 
         // Find Appliance by managementIp from Db
-        $this->appliance = Appliance::findByManagementIP($this->managementIp);
+        $this->appliance = Appliance::findByManagementIpVrf($this->managementIp, $inputDataPorts->vrf_name);
         if (false === $this->appliance) {
             throw new \Exception("Appliance not found");
         }
@@ -214,6 +214,11 @@ class DSPprefixes extends Std
             $dataPort->details->portName = $data['interface'];
             $dataPort->details->description = $data['description'];
             $dataPort->save();
+
+            // Check errors (особенности реализации DataPort)
+            if (count($dataPort->errors) > 0) {
+                $this->logger->error('[ip]='.$ipTool->address.'; [message]='.$dataPort->errors);
+            }
         } catch (\Throwable $e) {
             $this->logger->error('[ip]='.$data['ip_address'].'; [message]='.$e->getMessage());
         }
@@ -228,7 +233,7 @@ class DSPprefixes extends Std
     {
         $ip = (new IpTools($data['ip_address']))->address;
 
-        $fakeDataPorts = DataPort::findAllByIp($ip);
+        $fakeDataPorts = DataPort::findAllByIp_VrfName($ip, $data['vrf_name']);
         foreach ($fakeDataPorts as $fakeDataPort) {
             $fakeDataPort->delete();
         }
@@ -241,7 +246,7 @@ class DSPprefixes extends Std
      */
     private function deleteDuplicatesOneDataPort(DataPort $dataPort)
     {
-        $duplicatedDataPorts = DataPort::findAllByIp($dataPort->ipAddress);
+        $duplicatedDataPorts = DataPort::findAllByIp_VrfName($dataPort->ipAddress, $dataPort->network->vrf->name);
         foreach ($duplicatedDataPorts as $duplicateDataPort) {
             if ($duplicateDataPort->getPk() != $dataPort->getPk()) {
                 $duplicateDataPort->delete();
@@ -273,6 +278,7 @@ class DSPprefixes extends Std
      * {
      *   "dataSetType",
      *   "ip",
+     *   "vrf_name",
      *   "networks": [
      *     {
      *        "interface",
