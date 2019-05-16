@@ -33,6 +33,23 @@ use T4\Orm\Model;
  */
 class Appliance extends Model
 {
+    const SQL = [
+        'findBy_Vendor_SerialNumber' => '
+            SELECT appliance.*
+            FROM equipment.appliances appliance
+              JOIN equipment."platformItems" platformItem ON platformItem.__id = appliance.__platform_item_id
+              JOIN equipment.platforms platform ON platform.__id = platformItem.__platform_id
+              JOIN equipment.vendors vendor ON vendor.__id = platform.__vendor_id
+            WHERE platformItem."serialNumber" = :serialnumber AND vendor.title = :vendor_title',
+        'findBy_ManagementIp_Vrf' => '
+            SELECT appliance.*
+            FROM equipment.appliances appliance
+              JOIN equipment."dataPorts" dataport ON dataport.__appliance_id = appliance.__id
+              JOIN network.networks network ON network.__id = dataport.__network_id
+              JOIN network.vrfs vrf ON vrf.__id = network.__vrf_id
+            WHERE dataport."ipAddress" = :ip AND dataport."isManagement" IS TRUE AND vrf.name = :vrf_name',
+    ];
+
     protected static $schema = [
         'table' => 'equipment.appliances',
         'columns' => [
@@ -147,38 +164,16 @@ class Appliance extends Model
     }
 
     /**
+     * Find Appliance by SerialNumber and VendorTitle
+     *
+     * @param string $serialNumber
      * @param string $vendorTitle
-     * @param string $platformSerial
-     * @return Appliance|bool
+     * @return mixed
      */
-    public static function findByVendorTitlePlatformSerial(string $vendorTitle, string $platformSerial)
+    public static function findBySerialVendor(string $serialNumber, string $vendorTitle)
     {
-        $platformItems = PlatformItem::findAllByColumn('serialNumber', $platformSerial);
-        $platformItem = $platformItems->filter(
-            function ($platformItem) use ($vendorTitle) {
-                return $vendorTitle == $platformItem->platform->vendor->title;
-            }
-        )->first();
-
-        if (is_null($platformItem)) {
-            return false;
-        } else {
-            return $platformItem->appliance;
-        }
-    }
-
-    /**
-     * @param string $type
-     * @param string $platformSerial
-     * @return Appliance|bool
-     */
-    public static function findByTypeSerial(string $type, string $platformSerial)
-    {
-        return (self::findAll())->filter(
-            function($appliance) use ($type, $platformSerial) {
-                return $type == $appliance->type->type && $platformSerial == $appliance->platform->serialNumber;
-            }
-        )->first();
+        $query = new Query(self::SQL['findBy_Vendor_SerialNumber']);
+        return self::findByQuery($query, [':serialnumber' => $serialNumber, ':vendor_title' => $vendorTitle]);
     }
 
     /**
@@ -192,23 +187,13 @@ class Appliance extends Model
 
     /**
      * @param string $ip
-     * @return Appliance|bool
+     * @param string $vrf_name
+     * @return mixed
      */
-    public static function findByManagementIP(string $ip)
+    public static function findByManagementIpVrf(string $ip, string $vrf_name)
     {
-        // Find dataPort by management Ip
-        $isManagement = true;
-        $query = (new Query())
-            ->select()
-            ->from(DataPort::getTableName())
-            ->where('"ipAddress" = :ipAddress AND "isManagement" = :isManagement')
-            ->params([
-                ':ipAddress' => $ip,
-                ':isManagement' => $isManagement,
-            ]);
-        $dataPort = DataPort::findByQuery($query);
-
-        return (false !== $dataPort) ? $dataPort->appliance : false;
+        $query = new Query(self::SQL['findBy_ManagementIp_Vrf']);
+        return self::findByQuery($query, [':ip' => $ip, ':vrf_name' => $vrf_name]);
     }
 
     public function delete()
