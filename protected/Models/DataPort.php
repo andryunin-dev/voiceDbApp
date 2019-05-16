@@ -43,9 +43,12 @@ class DataPort extends Model
           JOIN network.networks net ON dp.__network_id = net.__id
           JOIN network.vrfs vrf ON net.__vrf_id = vrf.__id
           WHERE host(dp."ipAddress") = host(:address) AND vrf.__id = :vrf_id',
-        'findPortBy_Ip' => '
-        SELECT dp.* FROM equipment."dataPorts" dp
-          WHERE host(dp."ipAddress") = host(:address)',
+        'findPortBy_Ip_VrfName' => '
+        SELECT dataport.*
+        FROM equipment."dataPorts" dataport
+          JOIN network.networks network ON network.__id = dataport.__network_id
+          JOIN network.vrfs vrf ON vrf.__id = network.__vrf_id
+        WHERE host(dataport."ipAddress") = host(:ip) AND vrf.name = :vrf_name',
         'countPortsBy_Ip_VrfId' => '
         SELECT count(1) FROM equipment."dataPorts" dp
           JOIN network.networks net ON dp.__network_id = net.__id
@@ -79,7 +82,7 @@ class DataPort extends Model
         ]
     ];
 
-    public $vrf;
+    protected $vrf;
     protected $errors;
 
     protected function getErrors()
@@ -157,6 +160,12 @@ class DataPort extends Model
     protected function getVrf()
     {
         return empty($this->vrf) ? $this->vrf = $this->network->vrf : $this->vrf;
+    }
+
+    protected function setVrf(Vrf $vrf)
+    {
+       $this->vrf = $vrf;
+       return $this;
     }
     
     protected function getPortName()
@@ -279,27 +288,33 @@ class DataPort extends Model
     }
 
     /**
+     * Find DataPorts by IpAddress and Vrf_Name
+     *
      * @param string $ip IP address cidr or only host part
+     * @param string $vrf_name
      * @return mixed
      */
-    public static function findAllByIp($ip)
+    public static function findAllByIp_VrfName(string $ip, string $vrf_name)
     {
-        $query = new Query(self::SQL['findPortBy_Ip']);
-        $res = self::findAllByQuery($query, [':address' => $ip]);
+        $query = new Query(self::SQL['findPortBy_Ip_VrfName']);
+        $res = self::findAllByQuery($query, [':ip' => $ip, 'vrf_name' => $vrf_name]);
         return $res;
     }
 
     /**
+     * Find DataPort by IpAddress and Vrf_Name
+     *
      * @param string $ip IP address cidr or only host part
+     * @param string $vrf_name
      * @return mixed
      */
-    public static function findByIp($ip)
+    public static function findByIp_VrfName(string $ip, string $vrf_name)
     {
-        $query = new Query(self::SQL['findPortBy_Ip']);
-        $res = self::findByQuery($query, [':address' => $ip]);
+        $query = new Query(self::SQL['findPortBy_Ip_VrfName']);
+        $res = self::findByQuery($query, [':ip' => $ip, 'vrf_name' => $vrf_name]);
         return $res;
     }
-    
+
     public static function countByIpVrf($ip, $vrf)
     {
         $query = new Query(self::SQL['countPortsBy_Ip_VrfId']);
