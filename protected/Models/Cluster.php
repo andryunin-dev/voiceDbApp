@@ -37,6 +37,7 @@ class Cluster extends Model
         }
         return true;
     }
+
     public function validate()
     {
         $cluster = Cluster::findByColumn('title', $this->title);
@@ -47,5 +48,19 @@ class Cluster extends Model
             throw new Exception('Такой кластер уже существует');
         }
         return true;
+    }
+
+    /**
+     * @param string $title
+     * @return Cluster
+     * @throws \T4\Core\MultiException
+     */
+    public static function getInstanceByTitle(string $title): Cluster
+    {
+        $cluster = self::findByColumn('title', $title);
+        if (false === $cluster) {
+            $cluster = (new self())->fill(['title' => $title])->save();
+        }
+        return $cluster;
     }
 }

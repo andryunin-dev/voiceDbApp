@@ -48,6 +48,11 @@ class Appliance extends Model
               JOIN network.networks network ON network.__id = dataport.__network_id
               JOIN network.vrfs vrf ON vrf.__id = network.__vrf_id
             WHERE dataport."ipAddress" = :ip AND dataport."isManagement" IS TRUE AND vrf.name = :vrf_name',
+        'findManagementDPort' => '
+            SELECT dataport.*
+            FROM equipment."dataPorts" dataport
+              JOIN equipment.appliances appliance ON appliance.__id = dataport.__appliance_id
+            WHERE appliance.__id = :appliance_pk AND dataport."isManagement" IS TRUE',
     ];
 
     protected static $schema = [
@@ -148,21 +153,6 @@ class Appliance extends Model
         );
         return $result;
     }
-    public function getManagementIpPort()
-    {
-        $dataPort = $this->dataPorts->filter(
-            function($dataPort) {
-                return true === $dataPort->isManagement;
-            }
-        )->first();
-
-        if (!is_null($dataPort)) {
-            return $dataPort;
-        }
-
-        return false;
-    }
-
     /**
      * Find Appliance by SerialNumber and VendorTitle
      *
@@ -178,7 +168,7 @@ class Appliance extends Model
 
     /**
      * @param string $type
-     * @return Collection Appliance|bool
+     * @return mixed
      */
     public static function findAllByType(string $type)
     {
@@ -205,9 +195,7 @@ class Appliance extends Model
         foreach ($this->modules as $module) {
             $module->delete();
         }
-        foreach ($this->dataPorts as $dataPort) {
-            $dataPort->delete();
-        }
+        $this->deleteDataPorts();
         if (! empty($phoneInfo = $this->phoneInfo)) {
             $phoneInfo->delete();
         }
@@ -218,5 +206,29 @@ class Appliance extends Model
         $this->software->delete();
         $this->platform->delete();
         return $result;
+    }
+
+    public function deleteDataPorts(): void
+    {
+        foreach ($this->dataPorts as $dataPort) {
+            $dataPort->delete();
+        }
+    }
+
+    public function getManagementDPort()
+    {
+        $query = new Query(self::SQL['findManagementDPort']);
+        return DataPort::findByQuery($query, [':appliance_pk' => $this->getPk()]);
+    }
+
+    public function uncheckExistManagementDPort(): void
+    {
+        $existManagementDPort = $this->getManagementDPort();
+        if (false !== $existManagementDPort) {
+            $existManagementDPort->fill(['isManagement' => false, 'vrf' => $existManagementDPort->vrf])->save();
+            if (count($existManagementDPort->errors) > 0) {
+                throw new \Exception($existManagementDPort->errors);
+            }
+        }
     }
 }

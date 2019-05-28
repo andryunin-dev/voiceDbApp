@@ -19,6 +19,14 @@ use T4\Orm\Model;
  */
 class Software extends Model
 {
+    const SQL = [
+        'findBy_Vendor_Title' => '
+            SELECT software.*
+            FROM equipment.software software
+              JOIN equipment.vendors vendor ON vendor.__id = software.__vendor_id
+            WHERE vendor.__id = :vendor_id AND software.title = :title',
+    ];
+
     protected static $schema = [
         'table' => 'equipment.software',
         'columns' => [
@@ -32,10 +40,6 @@ class Software extends Model
 
     public function validateTitle($val)
     {
-//        if (empty(trim($val))) {
-//            throw new Exception('Пустое название ПО');
-//        }
-
         return true;
     }
 
@@ -58,27 +62,33 @@ class Software extends Model
         return true;
     }
 
-    /**
-     * @param Vendor $vendor
-     * @param $title
-     * @return Software|bool
-     */
-    public static function findByVendorTitle(Vendor $vendor, $title) {
-        $software = $vendor->software->filter(
-            function ($software) use ($title) {
-                return $title == $software->title;
-            }
-        )->first();
-
-        if (is_null($software)) {
-            return false;
-        } else {
-            return $software;
-        }
-    }
-
     public static function getEmpty()
     {
         return self::findByColumn('title', '');
+    }
+
+    /**
+     * @param Vendor $vendor
+     * @param $title
+     * @return Platform|bool
+     */
+    public static function findByVendorTitle(Vendor $vendor, string $title) {
+        $query = new Query(self::SQL['findBy_Vendor_Title']);
+        return self::findByQuery($query, [':vendor_id' => $vendor->getPk(), ':title' => $title]);
+    }
+
+    /**
+     * @param Vendor $vendor
+     * @param string $title
+     * @return Software
+     * @throws MultiException
+     */
+    public static function getInstanceByVendorTitle(Vendor $vendor, string $title): Software
+    {
+        $software = self::findByVendorTitle($vendor, $title);
+        if (false === $software) {
+            $software = (new self())->fill(['vendor' => $vendor, 'title' => $title])->save();
+        }
+        return $software;
     }
 }
