@@ -19,6 +19,14 @@ use T4\Orm\Model;
  */
 class Platform extends Model
 {
+    const SQL = [
+        'findBy_Vendor_Title' => '
+            SELECT platform.*
+            FROM equipment.platforms platform
+              JOIN equipment.vendors vendor ON vendor.__id = platform.__vendor_id
+            WHERE vendor.__id = :vendor_id AND platform.title = :title',
+    ];
+
     public function __construct($data = null)
     {
         $this->isHW = true;
@@ -82,22 +90,28 @@ class Platform extends Model
      * @param $title
      * @return Platform|bool
      */
-    public static function findByVendorTitle(Vendor $vendor, $title) {
-        $platform = $vendor->platforms->filter(
-            function ($platform) use ($title) {
-                return $title == $platform->title;
-            }
-        )->first();
-
-        if (is_null($platform)) {
-            return false;
-        } else {
-            return $platform;
-        }
+    public static function findByVendorTitle(Vendor $vendor, string $title) {
+        $query = new Query(self::SQL['findBy_Vendor_Title']);
+        return self::findByQuery($query, [':vendor_id' => $vendor->getPk(), ':title' => $title]);
     }
 
     public static function getEmpty()
     {
         return self::findByColumn('title', '');
+    }
+
+    /**
+     * @param Vendor $vendor
+     * @param string $title
+     * @return Platform
+     * @throws MultiException
+     */
+    public static function getInstanceByVendorTitle(Vendor $vendor, string $title): Platform
+    {
+        $platform = self::findByVendorTitle($vendor, $title);
+        if (false === $platform) {
+            $platform = (new self())->fill(['vendor' => $vendor, 'title' => $title])->save();
+        }
+        return $platform;
     }
 }

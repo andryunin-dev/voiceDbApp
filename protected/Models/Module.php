@@ -21,6 +21,14 @@ use T4\Orm\Model;
  */
 class Module extends Model
 {
+    const SQL = [
+        'findBy_Vendor_Title' => '
+            SELECT module.*
+            FROM equipment.modules module
+              JOIN equipment.vendors vendor ON vendor.__id = module.__vendor_id
+            WHERE vendor.__id = :vendor_id AND module.title = :title',
+    ];
+
     protected static $schema = [
         'table' => 'equipment.modules',
         'columns' => [
@@ -68,24 +76,30 @@ class Module extends Model
     /**
      * @param Vendor $vendor
      * @param $title
-     * @return self|bool
+     * @return mixed
      */
     public static function findByVendorTitle(Vendor $vendor, $title) {
-        $modules = self::findAllByColumn('title', $title);
-        $module = $modules->filter(
-            function ($module) use ($vendor) {
-                return $module->vendor->title == $vendor->title;
-            }
-        )->first();
-        if (is_null($module)) {
-            return false;
-        } else {
-            return $module;
-        }
+        $query = new Query(self::SQL['findBy_Vendor_Title']);
+        return self::findByQuery($query, [':vendor_id' => $vendor->getPk(), ':title' => $title]);
     }
 
     public static function getEmpty()
     {
         return self::findByColumn('type','');
+    }
+
+    /**
+     * @param Vendor $vendor
+     * @param string $title
+     * @return Module
+     * @throws MultiException
+     */
+    public static function getInstanceByVendorTitle(Vendor $vendor, string $title): Module
+    {
+        $module = self::findByVendorTitle($vendor, $title);
+        if (false === $module) {
+            $module = (new self())->fill(['vendor' => $vendor, 'title' => $title ])->save();
+        }
+        return $module;
     }
 }

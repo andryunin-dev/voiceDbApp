@@ -1,54 +1,47 @@
 <?php
 namespace App\Components;
 
-use Monolog\Handler\StreamHandler;
-use Monolog\Logger;
-use T4\Core\Exception;
-use T4\Core\Std;
-
-
-class DSPerror extends Std
+class DSPerror
 {
-    protected $dataSet;
+    protected $data;
+    private $logger;
 
     /**
      * DSPerror constructor.
-     * @param null $dataSet
+     * @param $data
+     * @throws \Exception
      */
-    public function __construct($dataSet = null)
+    public function __construct($data)
     {
-        $this->dataSet = $dataSet;
+        $this->data = $data;
+        $this->logger = StreamLogger::getInstance('DS-ERRORS');
     }
 
-
-    public function run()
+    public function log()
     {
-        $this->verifyDataSet();
-
-        $logger = new Logger('DS-error');
-        $logger->pushHandler(new StreamHandler(ROOT_PATH . '/Logs/surveyOfAppliances.log', Logger::DEBUG));
-        $logger->error('[host]=' . ($this->dataSet->hostname ?? '""') . ' [manageIP]=' . ($this->dataSet->ip ?? '""') . ' [message]=' . ($this->dataSet->message ?? '""'));
-
-        return true;
+        try {
+            if (!$this->validateDataStructure()) {
+                throw new \Exception("Not valid input data structure");
+            }
+            $this->logger->error('[host]='.$this->data->hostname.' [ip]='.$this->data->ip.' [message]='.$this->data->message);
+        } catch (\Throwable $e) {
+            $this->logger->error('[ip]='.$this->data->ip.'; [message]='.$e->getMessage().' [dataset]='.json_encode($this->data));
+            throw new \Exception("Error: [ip]=".$this->data->ip);
+        }
     }
-
 
     /**
-     * @throws Exception
+     * Validate data structure
+     * {
+     *   "dataSetType",
+     *   "ip",
+     *   "hostname",
+     *   "message"
+     * }
+     * @return boolean
      */
-    protected function verifyDataSet()
+    private function validateDataStructure(): bool
     {
-        if (0 == count($this->dataSet)) {
-            throw new Exception('DATASET: Empty an input dataset');
-        }
-        if (!isset($this->dataSet->ip)) {
-            throw new Exception('DATASET: No field ip');
-        }
-        if (!isset($this->dataSet->hostname)) {
-            throw new Exception('DATASET: No field hostname');
-        }
-        if (!isset($this->dataSet->message)) {
-            throw new Exception('DATASET: No field message');
-        }
+        return (isset($this->data->hostname) || isset($this->data->ip) || isset($this->data->message));
     }
 }
