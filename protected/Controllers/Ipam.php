@@ -132,7 +132,6 @@ class Ipam extends Controller
 
     public function actionSearch()
     {
-        //example hostConditional
         $hostClause = 'concat_ws(\',\', port_ip_cidr, dev_location, port_desc, dev_title, dev_type, dev_hostname, vrf_name)::citext LIKE :arg';
         $netClause = 'concat_ws(\',\', net_ip, net_comment, vrf_name, vrf_comment, net_location_str)::citext LIKE :arg';
         // respond to preflights
@@ -141,12 +140,16 @@ class Ipam extends Controller
         }
         $filters = json_decode(file_get_contents('php://input'));
         $filter = array_pop($filters);
-        $value = $filter->value;
-        $params = [':arg' => '%' . $value . '%'];
-        $sql = sprintf(self::SQL['searchTemplate'], $hostClause, $netClause);
-        $con = Network::getDbConnection();
-        $stm = $con->query($sql, $params);
-        $result = $stm->fetchAll(\PDO::FETCH_ASSOC);
+        if (!empty($filter->value)) {
+            $params = [':arg' => '%' . $filter->value . '%'];
+            $sql = sprintf(self::SQL['searchTemplate'], $hostClause, $netClause);
+            $con = Network::getDbConnection();
+            $stm = $con->query($sql, $params);
+            $result = $stm->fetchAll(\PDO::FETCH_ASSOC);
+        } else {
+            $result = [];
+        }
+
         $this->data->searchResult = $result;
     }
 
