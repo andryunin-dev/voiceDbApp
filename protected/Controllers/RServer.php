@@ -4,7 +4,7 @@ namespace App\Controllers;
 use App\Components\DSPerror;
 use App\Components\WorkAppliance;
 use App\Components\WorkCluster;
-use App\Components\WorkPprefixes;
+use App\Components\WorkPrefixes;
 use T4\Core\Collection;
 use T4\Core\Exception;
 use T4\Mvc\Controller;
@@ -36,7 +36,7 @@ class RServer extends Controller
                     (new WorkCluster($inputData))->update();
                     break;
                 case 'prefixes':
-                    (new WorkPprefixes($inputData))->update();
+                    (new WorkPrefixes($inputData))->update();
                     break;
                 case 'error':
                     (new DSPerror($inputData))->log();

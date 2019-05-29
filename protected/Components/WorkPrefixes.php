@@ -7,7 +7,7 @@ use App\Models\DataPort;
 use App\Models\DPortType;
 use App\Models\Vrf;
 
-class WorkPprefixes
+class WorkPrefixes
 {
     private $appliance;
     private $data;
