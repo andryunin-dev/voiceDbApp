@@ -175,7 +175,8 @@ class WorkAppliance
         if (!is_null($this->cluster)) {
             return;
         }
-        $updatedManagementDPort = DataPort::findByIpVrf($this->data->ip, Vrf::getInstanceByName($this->data->vrf_name));
+        $ip = (new IpTools($this->data->ip))->address;
+        $updatedManagementDPort = DataPort::findByIpVrf($ip, Vrf::getInstanceByName($this->data->vrf_name));
         if (false === $updatedManagementDPort) {
             throw new \Exception("Management DataPort is not found");
         }
@@ -185,7 +186,7 @@ class WorkAppliance
             $updatedManagementDPort = (new DataPort)->fill([
                 'appliance' => $this->appliance,
                 'portType' => DPortType::getEmpty(),
-                'ipAddress' => (new IpTools($this->data->ip))->address,
+                'ipAddress' => $ip,
             ]);
         }
         $updatedManagementDPort->fill([
