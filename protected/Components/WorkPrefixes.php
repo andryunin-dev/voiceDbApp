@@ -100,7 +100,9 @@ class WorkPrefixes
         $dataPort->details->description = $data->description;
         $dataPort->save();
         if (count($dataPort->errors) > 0) {
-            $this->logger->error('[ip]='.$data->ip_address.'; [message]='.$dataPort->errors.' [dataset]='.json_encode($this->data));
+            foreach ($dataPort->errors as $error) {
+                $this->logger->error('[ip]='.$data->ip_address.'; [message]='.$error.' [dataset]='.json_encode($this->data));
+            }
         }
         $this->updatedDataPorts[] = $dataPort->getPk();
     }

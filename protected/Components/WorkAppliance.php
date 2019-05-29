@@ -195,7 +195,7 @@ class WorkAppliance
         ]);
         $updatedManagementDPort->save();
         if (count($updatedManagementDPort->errors) > 0) {
-            throw new \Exception($updatedManagementDPort->errors);
+            throw new \Exception($updatedManagementDPort->errors[0]);
         }
     }
 
