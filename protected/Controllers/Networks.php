@@ -50,6 +50,10 @@ class Networks extends Controller
      */
     public function actionRootElements()
     {
+        // respond to preflights
+        if($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+            exit;
+        }
         $connection = Network::getDbConnection();
         $rootSql = 'SELECT * FROM usr_root_ids()';
         $this->data->rootElementsIds = $connection->query($rootSql)->fetch(\PDO::FETCH_ASSOC);
@@ -67,6 +71,10 @@ class Networks extends Controller
      */
     public function actionNetElementsByIds($netsIds = '')
     {
+        // respond to preflights
+        if($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+            exit;
+        }
         $netsIds = array_map('trim', explode(',', $netsIds));
         $connection = NetworksView::getDbConnection();
         $table = NetworksView::getTableName();
@@ -102,6 +110,10 @@ class Networks extends Controller
 
     public function actionHostElementsByIds($hostsIds='')
     {
+        // respond to preflights
+        if($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+            exit;
+        }
         $hostsIds = array_map('trim', explode(',', $hostsIds));
         $connection = DataPort::getDbConnection();
         $table = 'equipment."dataPorts"';
