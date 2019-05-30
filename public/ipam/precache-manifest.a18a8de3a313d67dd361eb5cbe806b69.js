@@ -1,10 +1,10 @@
 self.__precacheManifest = [
   {
-    "revision": "f4769f9bdb7466be65088239c12046d1",
-    "url": "/ipam/static/media/glyphicons-halflings-regular.f4769f9b.eot"
+    "revision": "fa2772327f55d8198301fdb8bcfc8158",
+    "url": "/ipam/static/media/glyphicons-halflings-regular.fa277232.woff"
   },
   {
-    "revision": "a176dc46af1941549d98",
+    "revision": "aa534dad03b37b429e32",
     "url": "/ipam/static/css/main.c117ec57.chunk.css"
   },
   {
@@ -16,20 +16,20 @@ self.__precacheManifest = [
     "url": "/ipam/static/js/2.1cc4929f.chunk.js"
   },
   {
-    "revision": "448c34a56d699c29117adc64c43affeb",
-    "url": "/ipam/static/media/glyphicons-halflings-regular.448c34a5.woff2"
+    "revision": "f4769f9bdb7466be65088239c12046d1",
+    "url": "/ipam/static/media/glyphicons-halflings-regular.f4769f9b.eot"
   },
   {
-    "revision": "a176dc46af1941549d98",
-    "url": "/ipam/static/js/main.e627865b.chunk.js"
-  },
-  {
-    "revision": "fa2772327f55d8198301fdb8bcfc8158",
-    "url": "/ipam/static/media/glyphicons-halflings-regular.fa277232.woff"
+    "revision": "aa534dad03b37b429e32",
+    "url": "/ipam/static/js/main.acbc6c52.chunk.js"
   },
   {
     "revision": "e18bbf611f2a2e43afc071aa2f4e1512",
     "url": "/ipam/static/media/glyphicons-halflings-regular.e18bbf61.ttf"
+  },
+  {
+    "revision": "448c34a56d699c29117adc64c43affeb",
+    "url": "/ipam/static/media/glyphicons-halflings-regular.448c34a5.woff2"
   },
   {
     "revision": "89889688147bd7575d6327160d64e760",
@@ -40,7 +40,7 @@ self.__precacheManifest = [
     "url": "/ipam/static/media/logo_brs_small.9f0fd020.png"
   },
   {
-    "revision": "f6e75bedda3103120a4dfc595a9cfe01",
+    "revision": "818e94f7f2f02b42b577efc2ce9376a5",
     "url": "/ipam/index.html"
   }
 ];
