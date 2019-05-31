@@ -66,9 +66,9 @@ class Ipam extends Controller
             'vrf_name',
             'vrf_rd',
             'vrf_comment',
-            'net_children',
-            'host_children',
-            'net_location',
+            'usr_net_children(' . $pk . ') net_children',
+            'usr_host_children(' . $pk . ') host_children',
+            'usr_network_locations_json(' . $pk . ') net_location',
             'bgp_as'
         ];
         $joinSelect = 'SELECT '. array_pop($netsIds) .' AS src_id';
@@ -132,8 +132,9 @@ class Ipam extends Controller
 
     public function actionSearch()
     {
+        $pk = IpamView_Networks::PK;
         $hostClause = 'concat_ws(\',\', port_ip_cidr, dev_location, port_desc, dev_title, dev_type, dev_hostname, vrf_name)::citext LIKE :arg';
-        $netClause = 'concat_ws(\',\', net_ip, net_comment, vrf_name, vrf_comment, net_location_str)::citext LIKE :arg';
+        $netClause = 'concat_ws(\',\', net_ip, net_comment, vrf_name, vrf_comment, usr_network_locations_string(' . $pk . '))::citext LIKE :arg';
         // respond to preflights
         if($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
             exit;

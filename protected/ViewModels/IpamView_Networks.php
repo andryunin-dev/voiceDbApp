@@ -24,9 +24,6 @@ class IpamView_Networks extends Model
             'vrf_name' => ['type' => 'text'],
             'vrf_rd' => ['type' => 'text'],
             'vrf_comment' => ['type' => 'text'],
-            'net_children' => ['type' => 'text'],
-            'host_children' => ['type' => 'text'],
-            'net_location' => ['type' => 'json'],
             'bgp_as' => ['type' => 'int'],
         ]
     ];
