@@ -112,9 +112,9 @@ class Export extends Controller
     }
 
 
-    public function actionPhonesErrorsLogs()
+    public function actionPhonesLog()
     {
-        $errorLogFile = ROOT_PATH.DS.'Logs'.DS.Logs::PHONES_ERRORS_LOG_FILE_NAME;
+        $errorLogFile = ROOT_PATH.DS.'Logs'.DS.Log::PHONES_ERRORS_LOG_FILE_NAME;
 
         if (!file_exists($errorLogFile)) {
             throw new Exception("No errors logs file found");
@@ -126,7 +126,7 @@ class Export extends Controller
 
         header('Content-Description: File Transfer');
         header('Content-Type: application/octet-stream');
-        header('Content-Disposition: attachment; filename=' . Logs::PHONES_ERRORS_LOG_FILE_NAME);
+        header('Content-Disposition: attachment; filename=' . Log::PHONES_ERRORS_LOG_FILE_NAME);
         header('Content-Transfer-Encoding: binary');
         header('Expires: 0');
         header('Cache-Control: no-cache');
@@ -141,7 +141,7 @@ class Export extends Controller
      */
     public function actionHardInvExcel()
     {
-        $logFile = ROOT_PATH . DS . 'Logs' . DS . 'exportExcel.log';
+        $logFile = ROOT_PATH . DS . 'Log' . DS . 'exportExcel.log';
         $logger = RLogger::getInstance('EXPORT_EXCEL', $logFile);
 
         try {

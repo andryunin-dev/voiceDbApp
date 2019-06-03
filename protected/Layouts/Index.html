@@ -120,20 +120,13 @@
                 {% block navBarInfo %}
                 {% endblock %}
                 <ul class="nav navbar-nav navbar-right">
-                    <li>
-                        <p class="navbar-btn-custom">
-                            <a id="eraseLog" class="btn btn-success btn-xs hidden" href="#" title="Очистить Logs">Очистить</a>
-                        </p>
-                    </li>
-                    <li>
-                        <p class="navbar-btn-custom">
-                            <a id="excelExport" class="btn btn-success btn-xs hidden" href="#" title="Экспорт в Excel">Экспорт</a>
-                        </p>
-                    </li>
-                    <li>
-                        <p class="navbar-btn-custom">
-                            <a id="phonesErrorsExport" class="btn btn-success btn-xs hidden" href="#" title="Экспорт Phones Errors Logs">Экспорт</a>
-                        </p>
+                    <li class="dropdown {% if activeLink.dictionary == true %} active {% endif %}">
+                        <a href="#" class="dropdown-toggle active" data-toggle="dropdown">Actions <b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            <li><a id="eraseLog" class="hidden" title="Очистить Log">Очистить</a></li>
+                            <li><a id="excelExport" class="hidden" href="#" title="Экспорт в Excel">Экспорт -> EXCEL</a></li>
+                            <li><a id="exportLogTxt" class="hidden" href="#" title="Экспорт Log">Экспорт -> TXT</a></li>
+                        </ul>
                     </li>
                     <li class="dropdown {% if activeLink.dictionary == true %} active {% endif %}">
                         <a href="#" class="dropdown-toggle active" data-toggle="dropdown">Справочники <b class="caret"></b></a>
@@ -149,8 +142,8 @@
                             <li><a href="/admin/NetworksTab">Networks(Table)</a></li>
                             <li><a href="/admin/NetworksTree">Networks(Tree)</a></li>
                             <li role="separator" class="divider"></li>
-                            <li><a href="/logs">Логи Hardware</a></li>
-                            <li><a href="/logs/phones">Логи Phones</a></li>
+                            <li><a href="/log/appliance">Логи Hardware</a></li>
+                            <li><a href="/log/phone">Логи Phones</a></li>
                         </ul>
                     </li>
                 </ul>
