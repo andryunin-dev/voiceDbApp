@@ -108,13 +108,9 @@
     <script>
         var APP = APP || {};
         if ("{{exportUrl}}") {
+            $("#actions").removeClass("hidden");
             $("#excelExport").removeClass("hidden");
             APP.setLink("#excelExport", "{{ exportUrl }}");
         }
-        if ("{{eraseLogUrl}}") {
-        $("#eraseLog").removeClass("hidden");
-        APP.setLink("#eraseLog", "{{ eraseLogUrl }}");
-        }
-
     </script>
 {% endblock %}
