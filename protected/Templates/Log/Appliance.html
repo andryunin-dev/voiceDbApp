@@ -30,6 +30,7 @@
     <script>
         var APP = APP || {};
         if ("{{ eraseApplianceLogUrl }}") {
+            $("#actions").removeClass("hidden");
             $("#eraseLog").removeClass("hidden");
             APP.setLink("#eraseLog", "{{ eraseApplianceLogUrl }}");
         }

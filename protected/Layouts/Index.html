@@ -120,7 +120,7 @@
                 {% block navBarInfo %}
                 {% endblock %}
                 <ul class="nav navbar-nav navbar-right">
-                    <li class="dropdown {% if activeLink.dictionary == true %} active {% endif %}">
+                    <li id="actions" class="dropdown hidden {% if activeLink.dictionary == true %} active {% endif %}">
                         <a href="#" class="dropdown-toggle active" data-toggle="dropdown">Actions <b class="caret"></b></a>
                         <ul class="dropdown-menu">
                             <li><a id="eraseLog" class="hidden" title="Очистить Log">Очистить</a></li>
