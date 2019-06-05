@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\ApiHelpers\DevInfo;
 use App\ApiHelpers\NetData;
 use App\Models\Appliance;
+use App\Models\DataPort;
 use App\Models\Network;
 use App\Models\Office;
 use App\Models\Vendor;
@@ -27,6 +28,33 @@ class Api extends Controller
     protected $devData;
     protected $netData;
     protected $errors = [];
+    const SQL = [
+        'getDPortInfoById' => '
+        SELECT
+          port_id port_id,
+          port_ip ip,
+          port_mask_len masklen,
+          netmask(set_masklen(port_ip, port_mask_len)) mask,
+          geo.office_id location_id,
+          geo.office,
+          port_comment,
+          port_details->>\'description\' port_desc,
+          port_details->>\'portName\' port_name,
+          dev.dev_id dev_id,
+          concat_ws(\' \', dev.vendor, dev.platform) device,
+          dev_type,
+          dev_details->>\'hostname\' hostyname,
+          vrf_name,
+          null bgp_as,
+          null dns
+        FROM api_view.dports dp
+        JOIN api_view.vrfs vrf ON dp.port_vrf_id = vrf.vrf_id
+        JOIN api_view.devices dev USING (dev_id)
+        JOIN api_view.geo geo ON dev.location_id = geo.office_id
+        WHERE dp.port_id = :port_id
+        '
+    ];
+
     public function actionGetRegCenters()
     {
         // respond to preflights
@@ -426,6 +454,10 @@ class Api extends Controller
             }
             if ($this->devData->errors->count() === 0) {
                 $this->devData->saveDev();
+                if ($this->devData->errors->count() !== 0) {
+                    $this->errors = array_merge($this->errors, $this->devData->errors->toArray());
+                    throw new Exception();
+                }
                 $this->data->result = 'OK';
             } else {
                 $this->errors = array_merge($this->errors, $this->devData->errors->toArray());
@@ -455,21 +487,7 @@ class Api extends Controller
             $this->data->exception = $e->getMessage();
         }
     }
-    
-    public function actionGetApp($id) {
-        $app = Appliance::findByPK($id);
-        var_dump($app);
-        var_dump('============OFFICE============');
-        $office = ($app instanceof Appliance) ? $app->location : null;
-        var_dump($office);
-        var_dump('============MODULES============');
-        $modules = ($app instanceof Appliance) ? $app->modules : null;
-        var_dump($modules);
-        var_dump('============PORTS============');
-        $ports = ($app instanceof Appliance) ? $app->dataPorts : null;
-        var_dump($ports);
-        die;
-    }
+
     public function actionSaveNetData()
     {
         if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
@@ -557,7 +575,7 @@ class Api extends Controller
         try {
             $network = Network::findByPK($netId);
             if (!($network instanceof Network)) {
-                throw new \Exception('Update after submit: Invalid network ID: ' . $id);
+                throw new \Exception('Update after submit: Invalid network ID: ' . $netId);
             }
             $this->data->parentNetId = $network->parentNetwork === false ? false : $network->parentNetwork->getPk();
         } catch (\Exception $e) {

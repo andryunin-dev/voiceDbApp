@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Storage1CModels\Module1C;
 use T4\Core\Exception;
+use T4\Dbal\Query;
 use T4\Orm\Model;
 
 /**
@@ -25,6 +26,15 @@ use T4\Orm\Model;
  */
 class ModuleItem extends Model
 {
+    const SQL = [
+        'findByVendor_Serial' => '
+            SELECT module_item.*
+            FROM equipment."moduleItems" module_item
+              JOIN equipment.modules module ON module.__id = module_item.__module_id
+              JOIN equipment.vendors vendor ON vendor.__id = module.__vendor_id
+            WHERE module_item."serialNumber" = :serial_number AND vendor.title = :vendor_title',
+    ];
+
     protected static $schema = [
         'table' => 'equipment.moduleItems',
         'columns' => [
@@ -141,22 +151,13 @@ class ModuleItem extends Model
 
     /**
      * @param Vendor $vendor
-     * @param $serialNumber
+     * @param string $serialNumber
      * @return self|bool
      */
-    public static function findByVendorSerial(Vendor $vendor, $serialNumber)
+    public static function findByVendorSerial(Vendor $vendor, string $serialNumber)
     {
-        $moduleItems = self::findAllByColumn('serialNumber', $serialNumber);
-        $moduleItem = $moduleItems->filter(
-            function($moduleItem) use ($vendor) {
-                return $moduleItem->module->vendor->title == $vendor->title;
-            }
-        )->first();
-        if (is_null($moduleItem)) {
-            return false;
-        } else {
-            return $moduleItem;
-        }
+        $query = new Query(self::SQL['findByVendor_Serial']);
+        return self::findByQuery($query, [':serial_number' => $serialNumber, ':vendor_title' => $vendor->title]);
     }
 
     public function lastUpdateDate()

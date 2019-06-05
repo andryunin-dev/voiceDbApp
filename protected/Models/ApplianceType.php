@@ -75,4 +75,13 @@ class ApplianceType extends Model
 
         return true;
     }
+
+    public static function getInstanceByType(string $type)
+    {
+        $applianceType = self::findByColumn('type', $type);
+        if (false === $applianceType) {
+            $applianceType = (new self())->fill(['type' => $type])->save();
+        }
+        return $applianceType;
+    }
 }

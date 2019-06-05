@@ -2,45 +2,74 @@
 
 namespace App\Controllers;
 
+use App\Components\Log\ApplianceLog;
+use App\Components\Log\DisplayedLog;
+use App\Components\Log\LevelLog;
+use App\Components\Log\PhoneLog;
 use T4\Mvc\Controller;
 
-class Logs extends Controller
+class Log extends Controller
 {
     const LOGFILE = ROOT_PATH . '/Logs/surveyOfAppliances.log';
     const PHONES_ERRORS_LOG_FILE_NAME = 'phoneErrors.txt';
 
-    public function actionDefault()
+    public function actionErase($type)
     {
-        $logs = file(self::LOGFILE, FILE_IGNORE_NEW_LINES);
-        $records = array_reverse($logs);
-        $logAsArray = [];
-        foreach ($records as $key => $value) {
-            $logAsArray[$key] = preg_split('~\[host\]=|\[manageIP\]=|\[message\]=|\[dataset\]=~', $value);
-            $logAsArray[$key][0] = preg_replace('~(\[.+\])~','$0<br>', $logAsArray[$key][0]);
+        switch ($type) {
+            case "appliance":
+                (new ApplianceLog())->erase();
+                break;
+            case "phone":
+                (new PhoneLog())->erase();
+                break;
+            default:
         }
-
-        foreach ($logAsArray as $k1 => $items) {
-            foreach ($items as $k2 => $item) {
-                $logAsArray[$k1][$k2] = trim(preg_replace('~\[\]~', '',$item));
-            }
-        }
-
-        $this->data->records = $logAsArray;
-        $this->data->eraseLogUrl = '/logs/erase';
-    }
-
-    public function actionErase()
-    {
-        $logfile = fopen(self::LOGFILE, 'w');
-        ftruncate($logfile,0);
-        fclose($logfile);
-        header('Location: /logs');
+        header('Location: /log/'.$type);
         die;
     }
 
-    public function actionPhones()
+    public function actionAppliance()
     {
-        $this->data->phonesErrorsLogs = '/export/phonesErrorsLogs';
+        $level = 'error';
+        $fields = ['header', 'ip', 'message'];
+        $this->data->records = (
+            new DisplayedLog(
+                $fields,
+                new LevelLog(
+                    $level,
+                    new ApplianceLog()
+                )
+            )
+        )->list();
+        $this->data->eraseApplianceLogUrl = '/log/erase?type=appliance';
+    }
+
+    /**
+     * Для использования этого action
+     * todo - Изменить вывод логов в телефонных скриптах
+     */
+    public function actionPhone_NEW()
+    {
+        die;
+
+        $level = 'error';
+        $fields = ['header', 'ip', 'message', 'class', 'model', 'name', 'publisher', 'number', 'office', 'city', 'address'];
+        $this->data->records = (
+        new DisplayedLog(
+            $fields,
+            new LevelLog(
+                $level,
+                new PhoneLog()
+            )
+        )
+        )->list();
+        $this->data->erasePhoneLogUrl = '/log/erase?type=phone';
+        $this->data->phonesLog = '/export/phonesLog'; // todo - экспорт в ТХТ переделать как в actionAppliance()
+    }
+
+    public function actionPhone()
+    {
+        $this->data->phonesLog = '/export/phonesLog';
         $errorLogFile = ROOT_PATH.DS.'Logs'.DS.self::PHONES_ERRORS_LOG_FILE_NAME;
 
         // Фильтруем логи

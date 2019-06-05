@@ -4,7 +4,6 @@ namespace App\Controllers;
 
 use App\Components\Export\ApplianceToExcel;
 use App\Components\RLogger;
-use App\ViewModels\DevModulePortGeo;
 use App\ViewModels\MappedLocations_View;
 use T4\Core\Exception;
 use T4\Dbal\Query;
@@ -18,94 +17,104 @@ class Export extends Controller
     private const NEXUS = 'Nexus';
 
 
-    public function actionIpNexus($ip = null)
-    {
-        $tableColumns = ['hostname','portInfo','lotusId'];
-
-        if (!is_null($ip)) {
-            $query = (new Query())
-                ->select($tableColumns)
-                ->from(DevModulePortGeo::getTableName())
-                ->where('"managementIp" = :ip AND "appType" IN (:nexus)')
-                ->params([
-                    ':ip' => $ip,
-                    ':nexus' => self::NEXUS,
-                ]);
-        } else {
-            $query = (new Query())
-                ->select($tableColumns)
-                ->from(DevModulePortGeo::getTableName())
-                ->where('"appType" IN (:nexus)')
-                ->params([
-                    ':nexus' => self::NEXUS,
-                ]);
-        }
-        $appliances = DevModulePortGeo::findAllByQuery($query);
-
-        // Semicolon format
-        $outputData = '';
-        foreach ($appliances as $appliance) {
-            $dataPorts = json_decode($appliance->portInfo);
-            if (!is_null($dataPorts)) {
-                foreach ($dataPorts as $dataPort) {
-                    if (true == $dataPort->isManagement) {
-                        $outputData .= $appliance->hostname . ',' . $dataPort->ipAddress . ',' . $appliance->lotusId . ';';
-                    }
-                }
-            }
-        }
-        echo $outputData;
-        die;
-    }
-
     public function actionIpAppliances($ip = null)
     {
-        $tableColumns = ['hostname','portInfo','lotusId'];
-
-        if (!is_null($ip)) {
-            $query = (new Query())
-                ->select($tableColumns)
-                ->from(DevModulePortGeo::getTableName())
-                ->where('"managementIp" = :ip AND "appType" IN (:switch, :router, :vg)')
-                ->params([
-                    ':ip' => $ip,
-                    ':switch' => self::SWITCH,
-                    ':router' => self::ROUTER,
-                    ':vg' => self::VG,
-                ]);
-        } else {
-            $query = (new Query())
-                ->select($tableColumns)
-                ->from(DevModulePortGeo::getTableName())
-                ->where('"appType" IN (:switch, :router, :vg)')
-                ->params([
-                    ':switch' => self::SWITCH,
-                    ':router' => self::ROUTER,
-                    ':vg' => self::VG,
-                ]);
-        }
-        $appliances = DevModulePortGeo::findAllByQuery($query);
-
-        // Semicolon format
-        $outputData = '';
-        foreach ($appliances as $appliance) {
-            $dataPorts = json_decode($appliance->portInfo);
-            if (!is_null($dataPorts)) {
-                foreach ($dataPorts as $dataPort) {
-                    if (true == $dataPort->isManagement) {
-                        $outputData .= $appliance->hostname . ',' . $dataPort->ipAddress . ',' . $appliance->lotusId . ';';
-                    }
-                }
-            }
-        }
-        echo $outputData;
+        $types = [self::ROUTER, self::SWITCH, self::VG];
+        echo $this->outputManagementIpByApplianceTypes($types, $ip);
         die;
     }
 
-
-    public function actionPhonesErrorsLogs()
+    public function actionIpNexus($ip = null)
     {
-        $errorLogFile = ROOT_PATH.DS.'Logs'.DS.Logs::PHONES_ERRORS_LOG_FILE_NAME;
+        $types = [self::NEXUS];
+        echo $this->outputManagementIpByApplianceTypes($types, $ip);
+        die;
+    }
+
+    /**
+     * Output all managementIp by Appliances Types and Ip
+     *
+     * @param array|null $types - Appliances Types
+     * @param null $ip - ip address
+     * @return string
+     */
+    private function outputManagementIpByApplianceTypes(array $types = null, $ip = null): string
+    {
+        $ipAddresses = $this->findAllManagementIpByApplianceTypes($types, $ip);
+        return $this->formatOutputManagementIp($ipAddresses);
+    }
+
+    /**
+     * Format output managementIp
+     *
+     * @param array $data
+     * @return string
+     */
+    private function formatOutputManagementIp(array $data): string
+    {
+        $output = '';
+        if (count($data) > 0) {
+            foreach ($data as $item) {
+                $output .= trim($item['hostname'],'"').','.$item['ipAddress'].','.$item['lotusId'].','.$item['vrf_name'].';';
+            }
+        }
+        return $output;
+    }
+
+    /**
+     * Find all managementIp by Appliances Types and Ip
+     *
+     * @param array|null $types - Appliances Types
+     * @param null $ip - ip address
+     * @return mixed
+     */
+    private function findAllManagementIpByApplianceTypes(array $types = null, $ip = null): array
+    {
+        $ipCondition = !is_null($ip) ? 'dP."ipAddress" = :ip AND ' : '';
+
+        $typesCondition = '';
+        if (!is_null($types)) {
+            foreach ($types as $type) {
+                $comma = empty($typesCondition) ? '' : ',';
+                $typesCondition .= $comma.':'.$type;
+            }
+        }
+
+        $sql = '
+            SELECT
+                appl.details->\'hostname\' AS hostname,
+                dP."ipAddress",
+                office."lotusId",
+                vrf.name AS vrf_name
+            FROM equipment."dataPorts" dP
+            JOIN network.networks nt ON nt.__id = dP.__network_id
+            JOIN network.vrfs vrf ON vrf.__id = nt.__vrf_id
+            JOIN equipment.appliances appl ON appl.__id = dP.__appliance_id
+            JOIN equipment."applianceTypes" applType ON applType.__id = appl.__type_id
+            JOIN company.offices office ON office.__id = appl.__location_id
+            WHERE '.$ipCondition.'dP."isManagement" IS TRUE AND applType.type IN ('.$typesCondition.')
+        ';
+
+        $params = [];
+        if (!is_null($types)) {
+            foreach ($types as $type) {
+                $params[':'.$type] = $type;
+            }
+        }
+        if (!is_null($ip)) {
+            $params[':ip'] = $ip;
+        }
+
+        $dbh = $this->app->db->default;
+        $stm = $dbh->prepare(new Query($sql));
+        $stm->execute($params);
+        return $stm->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+
+    public function actionPhonesLog()
+    {
+        $errorLogFile = ROOT_PATH.DS.'Logs'.DS.Log::PHONES_ERRORS_LOG_FILE_NAME;
 
         if (!file_exists($errorLogFile)) {
             throw new Exception("No errors logs file found");
@@ -117,7 +126,7 @@ class Export extends Controller
 
         header('Content-Description: File Transfer');
         header('Content-Type: application/octet-stream');
-        header('Content-Disposition: attachment; filename=' . Logs::PHONES_ERRORS_LOG_FILE_NAME);
+        header('Content-Disposition: attachment; filename=' . Log::PHONES_ERRORS_LOG_FILE_NAME);
         header('Content-Transfer-Encoding: binary');
         header('Expires: 0');
         header('Cache-Control: no-cache');
@@ -132,7 +141,7 @@ class Export extends Controller
      */
     public function actionHardInvExcel()
     {
-        $logFile = ROOT_PATH . DS . 'Logs' . DS . 'exportExcel.log';
+        $logFile = ROOT_PATH . DS . 'Log' . DS . 'exportExcel.log';
         $logger = RLogger::getInstance('EXPORT_EXCEL', $logFile);
 
         try {

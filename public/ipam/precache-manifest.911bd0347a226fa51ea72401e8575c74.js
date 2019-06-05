@@ -4,7 +4,7 @@ self.__precacheManifest = [
     "url": "/ipam/static/media/glyphicons-halflings-regular.fa277232.woff"
   },
   {
-    "revision": "36cd4e2b709c30ffb2a1",
+    "revision": "a505bc47a7f2ce906347",
     "url": "/ipam/static/css/main.c117ec57.chunk.css"
   },
   {
@@ -12,16 +12,16 @@ self.__precacheManifest = [
     "url": "/ipam/static/js/runtime~main.2d643b9f.js"
   },
   {
-    "revision": "bbb55364f60a2e455f42",
-    "url": "/ipam/static/js/2.164df534.chunk.js"
+    "revision": "f55f85a8331e7061a40a",
+    "url": "/ipam/static/js/2.1cc4929f.chunk.js"
   },
   {
     "revision": "448c34a56d699c29117adc64c43affeb",
     "url": "/ipam/static/media/glyphicons-halflings-regular.448c34a5.woff2"
   },
   {
-    "revision": "36cd4e2b709c30ffb2a1",
-    "url": "/ipam/static/js/main.d97af83a.chunk.js"
+    "revision": "a505bc47a7f2ce906347",
+    "url": "/ipam/static/js/main.5d7cc78b.chunk.js"
   },
   {
     "revision": "f4769f9bdb7466be65088239c12046d1",
@@ -40,7 +40,7 @@ self.__precacheManifest = [
     "url": "/ipam/static/media/logo_brs_small.9f0fd020.png"
   },
   {
-    "revision": "491c46d2540229d2692805c161f23352",
+    "revision": "9ab8ffb1ad7d718b42b8c5ce08b37353",
     "url": "/ipam/index.html"
   }
 ];

@@ -159,7 +159,7 @@ class CucmsPhones extends Command
     public function actionUpdateCdpNeighborsFromSwitchesBySsh()
     {
         // Define logger
-        $logFile = ROOT_PATH . DS . 'Logs' . DS . 'switchesNeighborsBySsh.log';
+        $logFile = ROOT_PATH . DS . 'Logs' . DS . 'phones.log';
         file_put_contents($logFile, '');
         $logger = RLogger::getInstance('CDP_NEIGHBORS', $logFile);
 

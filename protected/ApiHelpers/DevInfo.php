@@ -257,7 +257,19 @@ class DevInfo extends Std
                     continue;
                 }
                 $portType = DPortType::findByPK($updatedPort->port_type_id);
-                $ip = new IpTools($updatedPort->port_ip, $updatedPort->port_mask_len);
+//                $ip = new IpTools($updatedPort->port_ip, $updatedPort->port_mask_len);
+//                if (!$ip->is_ipValid) {
+//                    $this->errors[] = 'Invalid IP ' . $updatedPort->port_ip;
+//                    continue;
+//                }
+//                if ($ip->is_maskNull || !$ip->is_maskValid) {
+//                    $this->errors[] = 'Invalid mask for IP ' . $ip->address;
+//                    continue;
+//                }
+//                if (!$ip->is_hostIp) {
+//                    $this->errors[] = 'IP ' . $ip->cidrAddress . ' is not valid host IP';
+//                    continue;
+//                }
                 if ($updatedPort->newPort === true) {
                     if ($updatedPort->deleted === true) {
                         continue;
@@ -265,15 +277,19 @@ class DevInfo extends Std
                     if (!($vrf instanceof Vrf)) {
                         $this->errors[] = 'VRF error for new port';
                     }
+                    if (!(new IpTools($updatedPort->port_ip))->is_ipValid) {
+                        $this->errors[] = 'Invalid IP address: ' . $updatedPort->port_ip;
+                        continue;
+                    }
                     $existedPort = DataPort::findByIpVrf($updatedPort->port_ip, $vrf);
                     if ($existedPort instanceof DataPort) {
-                        $this->errors[] = 'Port with IP ' . $updatedPort->port_ip . 'and VRF ' . $vrf->name . ' already exists';
+                        $this->errors[] = 'Port with IP ' . $updatedPort->port_ip . ' and VRF ' . $vrf->name . ' already exists';
                         continue;
                     }
                     $portType = $portType === false ? $defaultPortType : $portType;
                     $newPort = (new DataPort())->fill([
                         'ipAddress' => $updatedPort->port_ip,
-                        'masklen' => $ip->masklen,
+                        'masklen' => $updatedPort->port_mask_len,
                         'appliance' => $this->currentAppliance,
                         'vrf' => $vrf,
                         'portType' => $portType,
@@ -282,16 +298,21 @@ class DevInfo extends Std
                         'comment' => $updatedPort->port_comment,
                         'details' => $updatedPort->port_details,
                     ]);
-                    $newPort->save();
+                    if ($this->errors->count() === 0) {
+                        $newPort->save();
+                    }
+                    if (count($newPort->errors) > 0) {
+                        $this->errors->merge($newPort->errors);
+                    }
                 } else {
                     $currentPort = DataPort::findByPK($updatedPort->port_id);
-                    if (!$ip->is_valid) {
-                        $this->errors[] = 'Invalid IP address: $updatedPort->port_ip' . ' or mask: ' . $updatedPort->port_mask_len;
-                        continue;
-                    }
+//                    if (!$ip->is_valid) {
+//                        $this->errors[] = 'Invalid IP address: ' . $updatedPort->port_ip . ' or mask: ' . $updatedPort->port_mask_len;
+//                        continue;
+//                    }
                     $currentPort->fill([
-                        'ipAddress' => $ip->address,
-                        'masklen' => $ip->masklen,
+                        'ipAddress' => $updatedPort->port_ip,
+                        'masklen' => $updatedPort->port_mask_len,
                         'appliance' => $this->currentAppliance,
                         'vrf' => $vrf,
                         'portType' => $portType,
@@ -300,7 +321,12 @@ class DevInfo extends Std
                         'comment' => $updatedPort->port_comment,
                         'details' => $updatedPort->port_details,
                     ]);
-                    $currentPort->save();
+                    if ($this->errors->count() === 0) {
+                        $currentPort->save();
+                    }
+                    if (count($currentPort->errors) > 0) {
+                        $this->errors->merge($currentPort->errors);
+                    }
                 }
             }
             if ($this->errors->count() === 0) {

@@ -1,7 +1,6 @@
 {% extends 'Index.html' %}
 
 {% block main %}
-
     {#<div class="panel panel-default">#}
         {#<div class="panel-body">#}
             {#{% for record in records %}#}
@@ -15,20 +14,25 @@
                 <tbody style="border: 1px solid #ddd">
                 {% for record in records %}
                     <tr style="border: 1px solid #ddd; vertical-align: top">
-                        <td class="col-15">{{ record['title']|raw }}</td>
-                        <td><b>[message]</b>: {{ record['message'] }}<br><b>[name]</b>: {{ record['name'] }}<br><b>[ip]</b>: {{ record['ip'] }}<br><b>[number]</b>: {{ record['number'] }}<br><b>[model]</b>: {{ record['model'] }}<br><b>[class]</b>: {{ record['class'] }}<br><b>[office]</b>: {{ record['office'] }}<br><b>[city]</b>: {{ record['city'] }}<br><b>[address]</b>: {{ record['address'] }}</td>
+                        <td class="col-15">
+                            {{ record["header"]|raw }}
+                        </td>
+                        <td>
+                            [ip]: {{ record["ip"] }}<br>
+                            [message]: {{ record["message"] }}<br>
+                        </td>
                     </tr>
                 {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
-
     <script>
         var APP = APP || {};
-        if ("{{ phonesErrorsLogs }}") {
-            $("#phonesErrorsExport").removeClass("hidden");
-            APP.setLink("#phonesErrorsExport", "{{ phonesErrorsLogs }}");
+        if ("{{ eraseApplianceLogUrl }}") {
+            $("#actions").removeClass("hidden");
+            $("#eraseLog").removeClass("hidden");
+            APP.setLink("#eraseLog", "{{ eraseApplianceLogUrl }}");
         }
     </script>
 {% endblock %}
