@@ -51,9 +51,12 @@ class WorkPrefixes
                 if (false === $dataPort) {
                     $dataPort = new DataPort();
                 }
+                DataPort::getDbConnection()->beginTransaction();
                 $this->deleteDataPortDuplicate($dataPort, $data);
                 $this->updateDataPort($dataPort, $data);
+                DataPort::getDbConnection()->commitTransaction();
             } catch (\Throwable $e) {
+                DataPort::getDbConnection()->rollbackTransaction();
                 $this->logger->error('[ip]='.$data->ip_address.'; [message]='.$e->getMessage().' [dataset]='.json_encode($this->data));
             }
         }
