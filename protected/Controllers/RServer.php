@@ -24,22 +24,22 @@ class RServer extends Controller
     {
         try {
             $rawInput = file_get_contents('php://input');
-            $inputData = json_decode($rawInput);
-            if (empty($inputData->dataSetType)) {
+            $actualData = json_decode($rawInput);
+            if (empty($actualData->dataSetType)) {
                 throw new Exception('DATASET: No field dataSetType or empty dataSetType');
             }
-            switch ($inputData->dataSetType) {
+            switch ($actualData->dataSetType) {
                 case 'appliance':
-                    (new WorkAppliance($inputData))->update();
+                    (new WorkAppliance($actualData))->update();
                     break;
                 case 'cluster':
-                    (new WorkCluster($inputData))->update();
+                    (new WorkCluster($actualData))->update();
                     break;
                 case 'prefixes':
-                    (new WorkPrefixes($inputData))->update();
+                    (new WorkPrefixes($actualData))->update();
                     break;
                 case 'error':
-                    (new DSPerror($inputData))->log();
+                    (new DSPerror($actualData))->log();
                     break;
                 default:
                     throw new \Exception('DATASET: Not known dataSetType');
@@ -51,7 +51,7 @@ class RServer extends Controller
         // Вернуть ответ
         $httpStatusCode = (isset($err)) ? 400 : 202;
         $response = (new Collection())
-            ->merge(['ip' => $inputData->ip])
+            ->merge(['ip' => $actualData->ip])
             ->merge(['httpStatusCode' => $httpStatusCode])
             ->merge((400 == $httpStatusCode) ? $err : [] );
         echo(json_encode($response->toArray()));
