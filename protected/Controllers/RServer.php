@@ -2,9 +2,10 @@
 namespace App\Controllers;
 
 use App\Components\DSPerror;
+use App\Components\StreamLogger;
 use App\Components\WorkAppliance;
 use App\Components\WorkCluster;
-use App\Components\WorkPrefixes;
+use App\Components\WorkAppliancePrefixes;
 use T4\Core\Collection;
 use T4\Core\Exception;
 use T4\Mvc\Controller;
@@ -23,26 +24,28 @@ class RServer extends Controller
     public function actionDefault()
     {
         try {
+            $logger = StreamLogger::getInstance('DS-INPUT');
             $rawInput = file_get_contents('php://input');
-            $inputData = json_decode($rawInput);
-            if (empty($inputData->dataSetType)) {
-                throw new Exception('DATASET: No field dataSetType or empty dataSetType');
+            $actualData = json_decode($rawInput);
+            if (empty($actualData->dataSetType)) {
+                $logger->error('message]=No field dataSetType or empty dataSetType; [dataset]='.json_encode($actualData));
+                throw new Exception('No field dataSetType or empty dataSetType');
             }
-            switch ($inputData->dataSetType) {
-                case 'appliance':
-                    (new WorkAppliance($inputData))->update();
-                    break;
+            switch ($actualData->dataSetType) {
                 case 'cluster':
-                    (new WorkCluster($inputData))->update();
+                    (new WorkCluster($actualData))->update();
+                    break;
+                case 'appliance':
+                    (new WorkAppliance($actualData))->update();
                     break;
                 case 'prefixes':
-                    (new WorkPrefixes($inputData))->update();
+                    (new WorkAppliancePrefixes($actualData))->update();
                     break;
                 case 'error':
-                    (new DSPerror($inputData))->log();
+                    (new DSPerror($actualData))->log();
                     break;
                 default:
-                    throw new \Exception('DATASET: Not known dataSetType');
+                    throw new \Exception('Not known dataSetType');
             }
         } catch (\Throwable $e) {
             $err['errors'][] = $e->getMessage();
@@ -51,7 +54,7 @@ class RServer extends Controller
         // Вернуть ответ
         $httpStatusCode = (isset($err)) ? 400 : 202;
         $response = (new Collection())
-            ->merge(['ip' => $inputData->ip])
+            ->merge(['ip' => $actualData->ip])
             ->merge(['httpStatusCode' => $httpStatusCode])
             ->merge((400 == $httpStatusCode) ? $err : [] );
         echo(json_encode($response->toArray()));
