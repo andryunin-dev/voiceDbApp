@@ -74,33 +74,55 @@ class WorkCluster
     /**
      * @param Appliance $appliance
      * @param \stdClass $data
-     * @throws \T4\Core\MultiException
+     * @throws \Exception
      */
     private function updateApplianceManagementDataPort(Appliance $appliance, \stdClass $data): void
     {
-        $ip = (new IpTools($data->ip))->address;
-        $updatedManagementDPort = DataPort::findByIpVrf($ip, Vrf::getInstanceByName($data->vrf_name));
-        if (false === $updatedManagementDPort) {
+        $managementDPort = DataPort::findByIpVrf(
+            (new IpTools($data->ip))->address,
+            Vrf::getInstanceByName($data->vrf_name)
+        );
+        if (false === $managementDPort) {
             throw new \Exception("Management DataPort is not found");
         }
-        if ($updatedManagementDPort->appliance->getPk() != $appliance->getPk()) {
-            $updatedManagementDPort->delete();
-            $appliance->uncheckExistManagementDPort();
-            $updatedManagementDPort = (new DataPort)->fill([
-                'appliance' => $appliance,
-                'portType' => DPortType::getEmpty(),
-                'ipAddress' => $ip,
+        try {
+            DataPort::getDbConnection()->beginTransaction();
+            if ($managementDPort->appliance->getPk() != $appliance->getPk()) {
+                $managementDPort->delete();
+                $appliance->uncheckExistManagementDPort();
+                $managementDPort = $this->createNewManagementDataPort($appliance, $data);
+            }
+            $managementDPort->fill([
+                'lastUpdate' => (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P'),
+                'vrf' => Vrf::getInstanceByName($data->vrf_name),
             ]);
+            $managementDPort->save();
+            if (count($managementDPort->errors) > 0) {
+                throw new \Exception($managementDPort->errors[0]);
+            }
+            DataPort::getDbConnection()->commitTransaction();
+        } catch (\Throwable $e) {
+            DataPort::getDbConnection()->rollbackTransaction();
+            throw new \Exception($e->getMessage());
         }
-        $updatedManagementDPort->fill([
+    }
+
+    /**
+     * @param Appliance $appliance
+     * @param \stdClass $data
+     * @return DataPort
+     * @throws \T4\Core\MultiException
+     */
+    private function createNewManagementDataPort(Appliance $appliance, \stdClass $data): DataPort
+    {
+        $ipTools = (new IpTools($data->ip));
+        return (new DataPort)->fill([
+            'appliance' => $appliance,
+            'portType' => DPortType::getEmpty(),
+            'ipAddress' => $ipTools->address,
             'isManagement' => true,
-            'vrf' => Vrf::getInstanceByName($data->vrf_name),
-            'lastUpdate' => (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P'),
+            'masklen' => $ipTools->masklen,
         ]);
-        $updatedManagementDPort->save();
-        if (count($updatedManagementDPort->errors) > 0) {
-            throw new \Exception($updatedManagementDPort->errors[0]);
-        }
     }
 
     /**
