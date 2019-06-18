@@ -2,17 +2,15 @@
 
 namespace App\Commands;
 
-use App\Components\Connection\ConnectionImpl\SshConnectionHandler;
+use App\Components\Connection\SshConnection;
 use App\Components\DSPphones;
-use App\Components\Import\NeighborsImpl\PhonesCdpNeighborsFromSwitchesBySsh;
 use App\Components\RLogger;
+use App\Components\SshConnectableSwitch;
 use App\Models\Appliance;
 use App\Models\ApplianceType;
-use App\Models\Office;
 use App\Models\Phone;
 use App\Models\PhoneInfo;
 use App\ViewModels\DevModulePortGeo;
-use T4\Console\Application;
 use T4\Console\Command;
 use T4\Core\MultiException;
 use T4\Core\Std;
@@ -158,20 +156,61 @@ class CucmsPhones extends Command
      */
     public function actionUpdateCdpNeighborsFromSwitchesBySsh()
     {
-        // Define logger
-        $logFile = ROOT_PATH . DS . 'Logs' . DS . 'phones.log';
+        $logFile = ROOT_PATH . DS . 'Logs' . DS . 'phones_cdp_neighbors.log';
         file_put_contents($logFile, '');
         $logger = RLogger::getInstance('CDP_NEIGHBORS', $logFile);
-
-        // Define Ssh connection handler
-        $login = $this->app->config->ssh->login;
-        $password = $this->app->config->ssh->password;
-        $sshConnectionHandler = new SshConnectionHandler($login, $password);
-
-        // Import Phone neighbors from switches by ssh
-        (new PhonesCdpNeighborsFromSwitchesBySsh($sshConnectionHandler, $logger))->importNeighbors();
-
-        $this->writeLn('UPDATE CDP_NEIGHBORS - ok');
+        try {
+            $switches = function () {
+                $sql = '
+                    SELECT
+                       appliance.__id AS id,
+                       dataport."ipAddress" AS ip
+                    FROM equipment.appliances appliance
+                    JOIN equipment."applianceTypes" appliance_type ON appliance.__type_id = appliance_type.__id
+                    JOIN equipment."dataPorts" dataport ON appliance.__id = dataport.__appliance_id
+                    JOIN equipment."platformItems" platform_item ON appliance.__platform_item_id = platform_item.__id
+                    JOIN equipment.platforms platform ON platform_item.__platform_id = platform.__id
+                    WHERE appliance_type.type = :switch AND dataport."isManagement" IS TRUE AND platform.title NOT IN (:title1, :title2, :title3, :title4, :title5, :title6, :title7, :title8)
+                ';
+                $query = new Query($sql);
+                $params = [
+                    ':switch' => 'switch',
+                    ':title1' => 'WS-C4948',
+                    ':title2' => 'WS-C4948-10GE',
+                    ':title3' => 'WS-C4948E',
+                    ':title4' => 'WS-C6509-E',
+                    ':title5' => 'WS-C6513',
+                    ':title6' => 'N2K-C2232PP',
+                    ':title7' => 'N5K-C5548P',
+                    ':title8' => 'WS-CBS3110G-S-I',
+                ];
+                return Appliance::findAllByQuery($query, $params);
+            };
+            $login = $this->app->config->ssh->login;
+            $password = $this->app->config->ssh->password;
+            foreach ($switches() as $switch) {
+                try {
+                    $phoneNeighbors = (new SshConnectableSwitch(
+                        $switch->id,
+                        new SshConnection($switch->ip, $login, $password),
+                        $logger
+                    ))->phoneNeighbors();
+                    foreach ($phoneNeighbors as $phoneNeighbor) {
+                        try {
+                            $phoneNeighbor->update();
+                            $phoneNeighbor->checkWrongConnectionPort($logger);
+                        } catch (\Throwable $e) {
+                            $logger->error('[message]=' . $e->getMessage() . ' [ip]=' . $switch->ip);
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    $logger->error('[message]=' . $e->getMessage() . ' [ip]=' . $switch->ip);
+                }
+            }
+        } catch (\Throwable $e) {
+            $logger->error($e->getMessage());
+        }
+        $this->writeLn('Phones cdp neighbors has updated');
     }
 
     /**
