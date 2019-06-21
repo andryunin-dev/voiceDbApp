@@ -13,6 +13,7 @@ class StreamLogger
         'DS-ERRORS' => self::DIR.'DSerrors.log',
         'DS-CLUSTER' => self::DIR.'DScluster.log',
         'DS-APPLIANCE' => self::DIR.'DSappliance.log',
+        'DS-DNSNAMES' => self::DIR.'DSdnsnames.log',
     ];
 
     /**
