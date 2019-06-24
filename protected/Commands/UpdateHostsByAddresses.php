@@ -52,7 +52,7 @@ class UpdateHostsByAddresses extends Command
             try {
                 $dnsName = gethostbyaddr($ipAddress);
             } catch (\Throwable $e) {
-                $this->logger->error($e->getMessage());
+                $this->logger->error('[message]=' . $e->getMessage());
                 continue;
             }
             if ($dnsName == $ipAddress || false === $dnsName) {
@@ -72,7 +72,7 @@ class UpdateHostsByAddresses extends Command
             try {
                 $dataPort = DataPort::findByColumn('ipAddress', $ipAddress);
                 if (false === $dataPort) {
-                    throw new \Exception('[message]=DataPort is not exists [ip]=' . $ipAddress);
+                    throw new \Exception('DataPort is not exists [ip]=' . $ipAddress);
                 }
                 $dataPort->fill([
                     'dnsName' => $dnsName,
@@ -80,10 +80,10 @@ class UpdateHostsByAddresses extends Command
                     'vrf' => $dataPort->vrf,
                 ])->save();
                 if (count($dataPort->errors) > 0) {
-                    $this->logger->error($dataPort->errors[0]);
+                    $this->logger->error('[message]=' . $dataPort->errors[0]);
                 }
             } catch (\Throwable $e) {
-                $this->logger->error($e->getMessage());
+                $this->logger->error('[message]=' . $e->getMessage());
             }
         }
     }
