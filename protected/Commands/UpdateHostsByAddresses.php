@@ -13,14 +13,14 @@ class UpdateHostsByAddresses extends Command
         'host_ip' => '
             SELECT "ipAddress"
             FROM equipment."dataPorts"
-            WHERE (((date_part(\'epoch\' :: TEXT, age(now(), "dnsLastUpdate")) / (3600) :: DOUBLE PRECISION)) :: INTEGER) > :update_period  OR "dnsLastUpdate" ISNULL
+            WHERE masklen NOTNULL AND ((((date_part(\'epoch\' :: TEXT, age(now(), "dnsLastUpdate")) / (3600) :: DOUBLE PRECISION)) :: INTEGER) > :update_period  OR "dnsLastUpdate" ISNULL)
             LIMIT :limit',
     ];
     private $logger;
 
     public function actionDefault(): void
     {
-        $this->actionUpdateDnsNames($this->actionDnsNames($this->ipAddresses()));
+        $this->update($this->hostsBy($this->ipAddresses()));
         $this->writeLn('Hosts has updated');
     }
 
@@ -29,63 +29,56 @@ class UpdateHostsByAddresses extends Command
      */
     private function ipAddresses(): array
     {
-        $params = [
-            'limit' => self::LIMIT,
-            'update_period' => self::UPDATE_PERIOD,
-        ];
-        $dataPorts = DataPort::getDbConnection()->query(self::SQL['host_ip'], $params)->fetchAll(\PDO::FETCH_ASSOC);
-        $ipAddresses = [];
-        foreach ($dataPorts as $dataPort) {
-            $ipAddresses[] = $dataPort['ipAddress'];
-        }
-        return $ipAddresses;
+        return array_map(
+            function ($dataPort) {
+                return $dataPort['ipAddress'];
+            },
+            DataPort::getDbConnection()
+                ->query(self::SQL['host_ip'], ['limit' => self::LIMIT, 'update_period' => self::UPDATE_PERIOD])
+                ->fetchAll(\PDO::FETCH_ASSOC)
+        );
     }
 
     /**
      * @param array $ipAddresses
      * @return array
      */
-    private function actionDnsNames(array $ipAddresses): array
+    private function hostsBy(array $ipAddresses): array
     {
-        $dnsNames = [];
-        foreach ($ipAddresses as $ipAddress) {
-            try {
-                $dnsName = gethostbyaddr($ipAddress);
-            } catch (\Throwable $e) {
-                $this->logger->error('[message]=' . $e->getMessage());
-                continue;
-            }
-            if ($dnsName == $ipAddress || false === $dnsName) {
-                $dnsName = '';
-            }
-            $dnsNames[$ipAddress] = $dnsName;
-        }
-        return $dnsNames;
+        return array_map(
+            function ($ipAddress): array  {
+                return [
+                    'ipAddress' => $ipAddress,
+                    'dnsName' => (in_array($dnsName = gethostbyaddr($ipAddress), [$ipAddress, false])) ? '' : $dnsName,
+                ];
+            },
+            $ipAddresses
+        );
     }
 
     /**
-     * @param array $dnsNames
+     * @param array $hosts
      */
-    private function actionUpdateDnsNames(array $dnsNames): void
+    private function update(array $hosts): void
     {
-        foreach ($dnsNames as $ipAddress => $dnsName) {
-            try {
-                $dataPort = DataPort::findByColumn('ipAddress', $ipAddress);
-                if (false === $dataPort) {
-                    throw new \Exception('DataPort is not exists [ip]=' . $ipAddress);
+        $logger = $this->logger;
+        array_walk(
+            $hosts,
+            function ($host) use ($logger): void {
+                if (false !== $dataPort = DataPort::findByColumn('ipAddress', $host['ipAddress'])) {
+                    $dataPort
+                        ->fill([
+                            'dnsName' => $host['dnsName'],
+                            'dnsLastUpdate' => (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P'),
+                            'vrf' => $dataPort->vrf
+                        ])
+                        ->save();
+                    if (count($dataPort->errors) > 0) {
+                        $logger->error('[message]=' . $dataPort->errors[0] . ' [ip]=' . $dataPort->ipAddress);
+                    }
                 }
-                $dataPort->fill([
-                    'dnsName' => $dnsName,
-                    'dnsLastUpdate' => (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P'),
-                    'vrf' => $dataPort->vrf,
-                ])->save();
-                if (count($dataPort->errors) > 0) {
-                    $this->logger->error('[message]=' . $dataPort->errors[0]);
-                }
-            } catch (\Throwable $e) {
-                $this->logger->error('[message]=' . $e->getMessage());
             }
-        }
+        );
     }
 
     /**
