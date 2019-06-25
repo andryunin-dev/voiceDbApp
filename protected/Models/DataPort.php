@@ -79,7 +79,9 @@ class DataPort extends Model
             'details' => ['type' => 'json'],
             'comment' => ['type' => 'text'],
             'lastUpdate' => ['type' => 'datetime'],
-            'isManagement' => ['type' => 'boolean']
+            'isManagement' => ['type' => 'boolean'],
+            'dnsName' => ['type' => 'text'],
+            'dnsLastUpdate' => ['type' => 'datetime'],
         ],
         'relations' => [
             'appliance' => ['type' => self::BELONGS_TO, 'model' => Appliance::class],
