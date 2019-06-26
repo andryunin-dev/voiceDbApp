@@ -1,7 +1,7 @@
 self.__precacheManifest = [
   {
-    "revision": "fa2772327f55d8198301fdb8bcfc8158",
-    "url": "/ipam/static/media/glyphicons-halflings-regular.fa277232.woff"
+    "revision": "f4769f9bdb7466be65088239c12046d1",
+    "url": "/ipam/static/media/glyphicons-halflings-regular.f4769f9b.eot"
   },
   {
     "revision": "67083baee8f4163dca7e",
@@ -16,8 +16,8 @@ self.__precacheManifest = [
     "url": "/ipam/static/js/2.1cc4929f.chunk.js"
   },
   {
-    "revision": "f4769f9bdb7466be65088239c12046d1",
-    "url": "/ipam/static/media/glyphicons-halflings-regular.f4769f9b.eot"
+    "revision": "fa2772327f55d8198301fdb8bcfc8158",
+    "url": "/ipam/static/media/glyphicons-halflings-regular.fa277232.woff"
   },
   {
     "revision": "67083baee8f4163dca7e",
@@ -40,7 +40,7 @@ self.__precacheManifest = [
     "url": "/ipam/static/media/logo_brs_small.9f0fd020.png"
   },
   {
-    "revision": "e2555625ded0174c1e5f01fc81b74ca2",
+    "revision": "ce702c6fe9f20cb890ef3124f26a6066",
     "url": "/ipam/index.html"
   }
 ];
