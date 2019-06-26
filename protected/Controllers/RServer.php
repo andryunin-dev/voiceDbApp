@@ -2,10 +2,10 @@
 namespace App\Controllers;
 
 use App\Components\DSPerror;
+use App\Components\Prefixes;
 use App\Components\StreamLogger;
 use App\Components\WorkAppliance;
 use App\Components\WorkCluster;
-use App\Components\WorkAppliancePrefixes;
 use T4\Core\Collection;
 use T4\Core\Exception;
 use T4\Mvc\Controller;
@@ -28,7 +28,7 @@ class RServer extends Controller
             $rawInput = file_get_contents('php://input');
             $actualData = json_decode($rawInput);
             if (empty($actualData->dataSetType)) {
-                $logger->error('message]=No field dataSetType or empty dataSetType; [dataset]='.json_encode($actualData));
+                $logger->error('[message]=No field dataSetType or empty dataSetType; [dataset]='.json_encode($actualData));
                 throw new Exception('No field dataSetType or empty dataSetType');
             }
             switch ($actualData->dataSetType) {
@@ -39,7 +39,7 @@ class RServer extends Controller
                     (new WorkAppliance($actualData))->update();
                     break;
                 case 'prefixes':
-                    (new WorkAppliancePrefixes($actualData))->update();
+                    (new Prefixes($actualData))->upgrade();
                     break;
                 case 'error':
                     (new DSPerror($actualData))->log();
