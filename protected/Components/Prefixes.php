@@ -51,12 +51,14 @@ class Prefixes
         $empty = function ($val) {
             return '' === $val;
         };
-        if (!$empty($this->data->bgp) && (is_null($this->appliance->details->bgp) || $this->data->bgp != $this->appliance->details->bgp)) {
-            $this->appliance->details->bgp = $this->data->bgp;
+        if (!$empty($this->data->bgp_as) && (is_null($this->appliance->details->bgp_as) || $this->data->bgp_as != $this->appliance->details->bgp_as)) {
+            $this->appliance->details->bgp_as = $this->data->bgp_as;
+            $this->appliance->details->bgp_networks = $this->data->bgp_networks;
             $this->appliance->save();
         }
-        if ($empty($this->data->bgp) && !is_null($this->appliance->details->bgp)) {
-            unset($this->appliance->details->bgp);
+        if ($empty($this->data->bgp_as) && !is_null($this->appliance->details->bgp_as)) {
+            unset($this->appliance->details->bgp_as);
+            unset($this->appliance->details->bgp_networks);
             $this->appliance->save();
         }
     }
@@ -260,7 +262,7 @@ class Prefixes
      * Validate data structure
      * {
      *   "dataSetType",
-     *   "bgp",
+     *   "bgp_as",
      *   "ip",
      *   "vrf_name",
      *   "networks": [
@@ -281,7 +283,8 @@ class Prefixes
     {
         if (!isset(
             $this->data->dataSetType,
-            $this->data->bgp,
+            $this->data->bgp_as,
+            $this->data->bgp_networks,
             $this->data->ip,
             $this->data->vrf_name,
             $this->data->networks
