@@ -29,6 +29,35 @@ class Test extends Controller
         $vrf = Vrf::instanceGlobalVrf();
         $app = Appliance::findByPK(7494);
         $portType = DPortType::findByPK(6);
+        $app->save();
+        $dports = $app->dataPorts;
+        $dport = $dports[0];
+        $dport
+            ->fill([
+                'ipAddress' => '1.1.1.5'
+            ]);
+        $result = $dport->save();
+
+        $dportNew = (new DataPort())
+            ->fill([
+                'ipAddress' => '1.1.1.1',
+                'masklen' => 30,
+                'vrf' => $vrf,
+                'appliance' => $app,
+                'portType' =>$portType,
+            ]);
+        $result = $dportNew->save();
+        $pk = $dportNew->getPk();
+
+        $dport = DataPort::findByPK($dportNew->getPk());
+//        $vrf = $dport->vrf;
+        $dport
+            ->fill([
+                'ipAddress' => '1.1.1.2',
+            ]);
+        $dport->save();
+        var_dump($dport);
+        die;
         $dport = (new DataPort())
             ->fill([
                 'ipAddress' => '1.1.1.1',
@@ -37,7 +66,7 @@ class Test extends Controller
                 'appliance' => $app,
                 'portType' =>$portType,
             ]);
-        $dport->save();
+        $result = $dport->save();
         var_dump($dport);
         $dport->delete();
         die;
