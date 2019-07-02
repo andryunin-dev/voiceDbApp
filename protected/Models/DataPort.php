@@ -143,7 +143,7 @@ class DataPort extends Model
     }
     public function checkVrf()
     {
-        if (!($this->vrf instanceof Vrf)) {
+        if (!($this->getVrf() instanceof Vrf)) {
             $this->errors[] = 'Invalid VRF';
             return false;
         }
