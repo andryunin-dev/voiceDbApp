@@ -1,6 +1,7 @@
 <?php
 namespace App\Components;
 
+use App\Models\Appliance;
 use App\Models\DataPort;
 use App\Models\DPortType;
 use App\Models\Vrf;
@@ -27,10 +28,35 @@ class Prefixes
     public function upgrade(): void
     {
         try {
+            if (!$this->isDataValid()) { throw new \Exception('Not valid data'); }
+            $this->updateAppliance();
             $this->upgradeMapped($this->map());
         } catch (\Throwable $e) {
             $this->logger->error('[message]=' . $e->getMessage() . ' [ip]=' . $this->data->ip);
             throw new \Exception('Runtime error');
+        }
+    }
+
+    private function updateAppliance(): void
+    {
+        $empty = function ($val) {
+            return '' === $val;
+        };
+        if (!$empty($this->data->bgp_as) && (
+                is_null($this->appliance()->details->bgp_as)
+                || is_null($this->appliance()->details->bgp_networks)
+                || $this->data->bgp_as != $this->appliance()->details->bgp_as
+                || $this->data->bgp_networks != $this->appliance()->details->bgp_networks->toArray()
+            )
+        ) {
+            $this->appliance()->details->bgp_as = $this->data->bgp_as;
+            $this->appliance()->details->bgp_networks = $this->data->bgp_networks;
+            $this->appliance()->save();
+        }
+        if ($empty($this->data->bgp_as) && (!is_null($this->appliance()->details->bgp_as) || !is_null($this->appliance()->details->bgp_networks))) {
+            unset($this->appliance()->details->bgp_as);
+            unset($this->appliance()->details->bgp_networks);
+            $this->appliance()->save();
         }
     }
 
@@ -39,28 +65,10 @@ class Prefixes
      */
     private function upgradeMapped(array $map): void
     {
-        $this->updateAppliance();
         $this->updateMappedByPortNameIp($map['byPortNameIp']);
         $this->updateMappedByPortName($map['byPortName']);
         $this->create($map['new']);
         $this->delete($map['died']);
-    }
-
-    private function updateAppliance(): void
-    {
-        $empty = function ($val) {
-            return '' === $val;
-        };
-        if (!$empty($this->data->bgp_as) && (is_null($this->appliance->details->bgp_as) || $this->data->bgp_as != $this->appliance->details->bgp_as)) {
-            $this->appliance->details->bgp_as = $this->data->bgp_as;
-            $this->appliance->details->bgp_networks = $this->data->bgp_networks;
-            $this->appliance->save();
-        }
-        if ($empty($this->data->bgp_as) && !is_null($this->appliance->details->bgp_as)) {
-            unset($this->appliance->details->bgp_as);
-            unset($this->appliance->details->bgp_networks);
-            $this->appliance->save();
-        }
     }
 
     /**
@@ -150,7 +158,7 @@ class Prefixes
         $regs = [];
         $ipTool = new IpTools($data->ip_address);
         $dataPort->fill([
-            'appliance' => $this->appliance,
+            'appliance' => $this->appliance(),
             'portType' => (false !== mb_ereg('^\D+', $data->interface, $regs)) ? DPortType::getInstanceByType($regs[0]) : DPortType::getEmpty(),
             'macAddress' => implode(':', str_split(mb_strtolower(mb_ereg_replace(':|\-|\.', '', $data->mac)), 2)),
             'ipAddress' => $ipTool->address,
@@ -203,7 +211,6 @@ class Prefixes
      */
     private function map(): array
     {
-        if (!$this->isDataValid()) { throw new \Exception('Not valid data'); }
         $networks = array_map(
             function ($network) {
                 return [
@@ -213,10 +220,8 @@ class Prefixes
                 ];
             }, $this->data->networks
         );
-        $this->appliance = DataPort::findByColumn('ipAddress', $this->data->ip)->appliance;
-        if (is_null($this->appliance)) { throw new \Exception('Appliance not found'); }
         $dbDataPorts = DataPort::getDbConnection()
-            ->query(self::SQL['dataPorts'], ['appliance_id' => $this->appliance->getPk()])
+            ->query(self::SQL['dataPorts'], ['appliance_id' => $this->appliance()->getPk()])
             ->fetchAll(\PDO::FETCH_ASSOC);
         $map = ['byPortNameIp' => [], 'byPortName' => [], 'new' => [], 'died' => [],];
         $mappedNets = [];
@@ -259,10 +264,25 @@ class Prefixes
     }
 
     /**
+     * @return Appliance
+     * @throws \Exception
+     */
+    private function appliance(): Appliance
+    {
+        if (is_null($this->appliance)) {
+            if (is_null($this->appliance = DataPort::findByColumn('ipAddress', $this->data->ip)->appliance)) {
+                throw new \Exception('Appliance not found');
+            }
+        }
+        return $this->appliance;
+    }
+
+    /**
      * Validate data structure
      * {
      *   "dataSetType",
      *   "bgp_as",
+     *   "bgp_networks",
      *   "ip",
      *   "vrf_name",
      *   "networks": [
