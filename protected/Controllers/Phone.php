@@ -3,13 +3,27 @@
 namespace App\Controllers;
 
 use App\Components\DSPphones;
+use App\Models\PhoneInfo;
 use App\Storage1CModels\InventoryItem1C;
 use T4\Core\Std;
 use T4\Dbal\Query;
+use T4\Http\Request;
 use T4\Mvc\Controller;
 
 class Phone extends Controller
 {
+    private const SQL = [
+        'phone_css' => '
+            WITH
+                phones AS (
+                    SELECT (prefix || "phoneDN") AS number, css
+                    FROM equipment."phoneInfo"
+                )
+            SELECT phone.css
+            FROM phones phone
+            WHERE phone.number = :number',
+    ];
+
     public function actionPhoneData($name = null)
     {
         // Find the phone's data in the cucms
@@ -68,5 +82,25 @@ class Phone extends Controller
             $resultData['error'] = $e->getMessage();
         }
         $this->data->result = $resultData;
+    }
+
+    public function actionCss()
+    {
+        $arguments = (new Request())->get;
+        if (0 === $arguments->count() || is_null($arguments->number) || !is_numeric($arguments->number)) {
+            echo json_encode(['error' => 'Invalid request format']);
+            die;
+        }
+        echo json_encode(['css' =>
+            array_map(
+                function ($item) {
+                    return $item['css'];
+                },
+                PhoneInfo::getDbConnection()
+                    ->query(self::SQL['phone_css'], [':number' => $arguments->number])
+                    ->fetchAll(\PDO::FETCH_ASSOC)
+            )
+        ]);
+        die;
     }
 }
