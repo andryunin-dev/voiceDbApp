@@ -55,10 +55,9 @@ class Cluster extends Model
      * @return Cluster
      * @throws \T4\Core\MultiException
      */
-    public static function getInstanceByTitle(string $title): Cluster
+    public static function instanceWithTitle(string $title): Cluster
     {
-        $cluster = self::findByColumn('title', $title);
-        if (false === $cluster) {
+        if (false === $cluster = self::findByColumn('title', $title)) {
             $cluster = (new self())->fill(['title' => $title])->save();
         }
         return $cluster;

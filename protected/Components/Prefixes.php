@@ -6,6 +6,7 @@ use App\Models\DataPort;
 use App\Models\DPortType;
 use App\Models\Vrf;
 use T4\Core\MultiException;
+use T4\Core\Std;
 
 class Prefixes
 {
@@ -29,46 +30,86 @@ class Prefixes
     {
         try {
             if (!$this->isDataValid()) { throw new \Exception('Not valid data'); }
-            $this->updateAppliance();
-            $this->upgradeMapped($this->map());
+            $this
+                ->updateAppliance()
+                ->upgradeMapped($this->map());
         } catch (\Throwable $e) {
             $this->logger->error('[message]=' . $e->getMessage() . ' [ip]=' . $this->data->ip);
             throw new \Exception('Runtime error');
         }
     }
 
-    private function updateAppliance(): void
+    /**
+     * @return $this
+     * @throws \Exception
+     */
+    private function updateAppliance()
     {
-        $empty = function ($val) {
-            return '' === $val;
-        };
-        if (!$empty($this->data->bgp_as) && (
-                is_null($this->appliance()->details->bgp_as)
-                || is_null($this->appliance()->details->bgp_networks)
-                || $this->data->bgp_as != $this->appliance()->details->bgp_as
-                || $this->data->bgp_networks != $this->appliance()->details->bgp_networks->toArray()
-            )
-        ) {
+        if ($this->hasBgpDataChanged()) {
+            if (is_null($this->appliance()->details)) {
+                $this->appliance()->details = new Std();
+            }
             $this->appliance()->details->bgp_as = $this->data->bgp_as;
             $this->appliance()->details->bgp_networks = $this->data->bgp_networks;
             $this->appliance()->save();
         }
-        if ($empty($this->data->bgp_as) && (!is_null($this->appliance()->details->bgp_as) || !is_null($this->appliance()->details->bgp_networks))) {
+        if ($this->isNoBgpData() && $this->hasDustBgpData()) {
             unset($this->appliance()->details->bgp_as);
             unset($this->appliance()->details->bgp_networks);
             $this->appliance()->save();
         }
+        return $this;
+    }
+
+    /**
+     * @return bool
+     * @throws \Exception
+     */
+    private function isNoBgpData(): bool
+    {
+        $empty = function ($val) {
+            return '' === $val;
+        };
+        return $empty($this->data->bgp_as);
+    }
+
+    /**
+     * @return bool
+     * @throws \Exception
+     */
+    private function hasDustBgpData(): bool
+    {
+        return !is_null($this->appliance()->details->bgp_as) || !is_null($this->appliance()->details->bgp_networks);
+    }
+
+    /**
+     * @return bool
+     * @throws \Exception
+     */
+    private function hasBgpDataChanged(): bool
+    {
+        $empty = function ($val) {
+            return '' === $val;
+        };
+        return  !$empty($this->data->bgp_as) && (
+                is_null($this->appliance()->details->bgp_as) ||
+                is_null($this->appliance()->details->bgp_networks) ||
+                $this->data->bgp_as != $this->appliance()->details->bgp_as ||
+                $this->data->bgp_networks != $this->appliance()->details->bgp_networks->toArray()
+            );
     }
 
     /**
      * @param array $map
+     * @return $this
      */
-    private function upgradeMapped(array $map): void
+    private function upgradeMapped(array $map)
     {
         $this->updateMappedByPortNameIp($map['byPortNameIp']);
         $this->updateMappedByPortName($map['byPortName']);
         $this->create($map['new']);
         $this->delete($map['died']);
+        return $this;
     }
 
     /**
@@ -159,7 +200,7 @@ class Prefixes
         $ipTool = new IpTools($data->ip_address);
         $dataPort->fill([
             'appliance' => $this->appliance(),
-            'portType' => (false !== mb_ereg('^\D+', $data->interface, $regs)) ? DPortType::getInstanceByType($regs[0]) : DPortType::getEmpty(),
+            'portType' => (false !== mb_ereg('^\D+', $data->interface, $regs)) ? DPortType::instanceWithType($regs[0]) : DPortType::getEmpty(),
             'macAddress' => implode(':', str_split(mb_strtolower(mb_ereg_replace(':|\-|\.', '', $data->mac)), 2)),
             'ipAddress' => $ipTool->address,
             'masklen' => $ipTool->masklen,
@@ -167,6 +208,9 @@ class Prefixes
             'isManagement' => $ipTool->address == (new IpTools($this->data->ip))->address,
             'lastUpdate' => (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P'),
         ]);
+        if (is_null($dataPort->details)) {
+            $dataPort->details = new Std();
+        }
         $dataPort->details->portName = $data->interface . (!empty($data->vni) ? ' vni' . $data->vni : ''); // todo - "vni" сливается с "portname" до решения по "vni"
         $dataPort->details->description = $data->description;
         $dataPort->save();
@@ -188,10 +232,11 @@ class Prefixes
      * @param $name
      * @param $rd
      * @return Vrf
+     * @throws MultiException
      */
     private function updateVrf($name, $rd): Vrf
     {
-        $vrf = Vrf::getInstanceByName($name);
+        $vrf = Vrf::instanceWithName($name);
         if ($vrf->rd !== $rd) {
             $vrf->rd = $rd;
             $vrf->save();
@@ -271,7 +316,7 @@ class Prefixes
     {
         if (is_null($this->appliance)) {
             if (is_null($this->appliance = DataPort::findByColumn('ipAddress', $this->data->ip)->appliance)) {
-                throw new \Exception('Appliance not found');
+                throw new \Exception('Appliance is not found');
             }
         }
         return $this->appliance;

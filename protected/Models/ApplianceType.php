@@ -76,10 +76,14 @@ class ApplianceType extends Model
         return true;
     }
 
-    public static function getInstanceByType(string $type)
+    /**
+     * @param string $type
+     * @return ApplianceType
+     * @throws MultiException
+     */
+    public static function instanceWithType(string $type): ApplianceType
     {
-        $applianceType = self::findByColumn('type', $type);
-        if (false === $applianceType) {
+        if (false === $applianceType = self::findByColumn('type', $type)) {
             $applianceType = (new self())->fill(['type' => $type])->save();
         }
         return $applianceType;

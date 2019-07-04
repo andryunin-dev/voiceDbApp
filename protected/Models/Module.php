@@ -89,16 +89,15 @@ class Module extends Model
     }
 
     /**
-     * @param Vendor $vendor
      * @param string $title
+     * @param Vendor $vendor
      * @return Module
      * @throws MultiException
      */
-    public static function getInstanceByVendorTitle(Vendor $vendor, string $title): Module
+    public static function instanceWithTitleVendor(string $title, Vendor $vendor): Module
     {
-        $module = self::findByVendorTitle($vendor, $title);
-        if (false === $module) {
-            $module = (new self())->fill(['vendor' => $vendor, 'title' => $title ])->save();
+        if (false === $module = self::findByVendorTitle($vendor, $title)) {
+            $module = (new self())->fill(['title' => $title, 'vendor' => $vendor])->save();
         }
         return $module;
     }

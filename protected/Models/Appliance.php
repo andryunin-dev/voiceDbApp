@@ -53,6 +53,12 @@ class Appliance extends Model
             FROM equipment."dataPorts" dataport
               JOIN equipment.appliances appliance ON appliance.__id = dataport.__appliance_id
             WHERE appliance.__id = :appliance_pk AND dataport."isManagement" IS TRUE',
+        'find_dataport_by_ip_vrf' => '
+            SELECT dataport.*
+            FROM equipment."dataPorts" dataport
+              JOIN network.networks network ON dataport.__network_id = network.__id
+              JOIN network.vrfs vrf ON network.__vrf_id = vrf.__id
+            WHERE dataport.__appliance_id = :appliance_id AND dataport."ipAddress" = :ip AND vrf.__id = :vrf_id',
     ];
 
     protected static $schema = [
@@ -184,6 +190,17 @@ class Appliance extends Model
     {
         $query = new Query(self::SQL['findBy_ManagementIp_Vrf']);
         return self::findByQuery($query, [':ip' => $ip, ':vrf_name' => $vrf_name]);
+    }
+
+    /**
+     * @param string $ip
+     * @param Vrf $vrf
+     * @return mixed
+     */
+    public function findDataPortByIpVrf(string $ip, Vrf $vrf)
+    {
+        $query = new Query(self::SQL['find_dataport_by_ip_vrf']);
+        return DataPort::findByQuery($query, [':appliance_id' => $this->getPk(), ':ip' => $ip, ':vrf_id' => $vrf->getPk()]);
     }
 
     public function delete()
