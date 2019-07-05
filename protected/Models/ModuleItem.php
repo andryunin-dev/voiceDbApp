@@ -80,7 +80,7 @@ class ModuleItem extends Model
             throw new Exception('ModuleItem: Неверный тип Office');
         }
 
-        $moduleItem = ModuleItem::findByVendorSerial($this->module->vendor, $this->serialNumber);
+        $moduleItem = ModuleItem::findBySerialVendor($this->serialNumber, $this->module->vendor);
 
         if (true === $this->isNew && ($moduleItem instanceof ModuleItem)) {
             throw new Exception('Такой ModuleItem уже существует');
@@ -150,11 +150,11 @@ class ModuleItem extends Model
     }
 
     /**
-     * @param Vendor $vendor
      * @param string $serialNumber
-     * @return self|bool
+     * @param Vendor $vendor
+     * @return mixed
      */
-    public static function findByVendorSerial(Vendor $vendor, string $serialNumber)
+    public static function findBySerialVendor(string $serialNumber, Vendor $vendor)
     {
         $query = new Query(self::SQL['findByVendor_Serial']);
         return self::findByQuery($query, [':serial_number' => $serialNumber, ':vendor_title' => $vendor->title]);

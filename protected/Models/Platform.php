@@ -101,16 +101,15 @@ class Platform extends Model
     }
 
     /**
-     * @param Vendor $vendor
      * @param string $title
+     * @param Vendor $vendor
      * @return Platform
      * @throws MultiException
      */
-    public static function getInstanceByVendorTitle(Vendor $vendor, string $title): Platform
+    public static function instanceWithTitleVendor(string $title, Vendor $vendor): Platform
     {
-        $platform = self::findByVendorTitle($vendor, $title);
-        if (false === $platform) {
-            $platform = (new self())->fill(['vendor' => $vendor, 'title' => $title])->save();
+        if (false === $platform = self::findByVendorTitle($vendor, $title)) {
+            $platform = (new self())->fill(['title' => $title, 'vendor' => $vendor])->save();
         }
         return $platform;
     }
