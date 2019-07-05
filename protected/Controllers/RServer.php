@@ -2,10 +2,10 @@
 namespace App\Controllers;
 
 use App\Components\DSPerror;
+use App\Components\InventoryAppliance;
+use App\Components\InventoryCluster;
 use App\Components\Prefixes;
 use App\Components\StreamLogger;
-use App\Components\WorkAppliance;
-use App\Components\WorkCluster;
 use T4\Core\Collection;
 use T4\Core\Exception;
 use T4\Mvc\Controller;
@@ -33,10 +33,10 @@ class RServer extends Controller
             }
             switch ($actualData->dataSetType) {
                 case 'cluster':
-                    (new WorkCluster($actualData))->update();
+                    (new InventoryCluster($actualData))->update();
                     break;
                 case 'appliance':
-                    (new WorkAppliance($actualData))->update();
+                    (new InventoryAppliance($actualData))->update();
                     break;
                 case 'prefixes':
                     (new Prefixes($actualData))->upgrade();

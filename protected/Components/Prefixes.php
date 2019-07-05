@@ -315,7 +315,7 @@ class Prefixes
     private function appliance(): Appliance
     {
         if (is_null($this->appliance)) {
-            if (is_null($this->appliance = DataPort::findByColumn('ipAddress', $this->data->ip)->appliance)) {
+            if (is_null($this->appliance = DataPort::findByColumn('ipAddress', (new IpTools($this->data->ip))->address)->appliance)) {
                 throw new \Exception('Appliance is not found');
             }
         }

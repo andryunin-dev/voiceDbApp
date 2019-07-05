@@ -62,7 +62,7 @@ class InventoryCluster
             $this->deleteExistDataPorts($data);
             return;
         }
-        $port = $this->applianceWith($data)->findDataPortBy((new IpTools($data->ip))->address, Vrf::instanceWithName($data->vrf_name));
+        $port = $this->applianceWith($data)->findDataPortByIpVrf((new IpTools($data->ip))->address, Vrf::instanceWithName($data->vrf_name));
         if (false !== $port && $port->isManagement) {
             return;
         }
