@@ -6,6 +6,7 @@ use App\Components\Connection\SshConnection;
 use App\Components\DSPphones;
 use App\Components\RLogger;
 use App\Components\SshConnectableSwitch;
+use App\Components\StreamLogger;
 use App\Models\Appliance;
 use App\Models\ApplianceType;
 use App\Models\Phone;
@@ -18,6 +19,18 @@ use T4\Dbal\Query;
 
 class CucmsPhones extends Command
 {
+    private const SQL = [
+        'live_switches' => '
+            SELECT
+               appliance.__id AS id,
+               dataport."ipAddress" AS ip
+            FROM equipment.appliances appliance
+            JOIN equipment."applianceTypes" appliance_type ON appliance.__type_id = appliance_type.__id
+            JOIN equipment."dataPorts" dataport ON appliance.__id = dataport.__appliance_id
+            JOIN equipment."platformItems" platform_item ON appliance.__platform_item_id = platform_item.__id
+            JOIN equipment.platforms platform ON platform_item.__platform_id = platform.__id
+            WHERE appliance_type.type = :switch AND ((date_part(\'epoch\' :: TEXT, age(now(), appliance."lastUpdate")) / (3600) :: DOUBLE PRECISION)) :: INTEGER < :max_age AND dataport."isManagement" IS TRUE AND platform.title NOT IN (:title1, :title2, :title3, :title4, :title5, :title6, :title7, :title8)',
+    ];
     const SSH_PORT = 22;
     const COMMAND_CDP_NEIGHBORS = 'show cdp neighbors';
     const MAX_LENGTH = -1;
@@ -156,25 +169,13 @@ class CucmsPhones extends Command
      */
     public function actionUpdateCdpNeighborsFromSwitchesBySsh()
     {
-        $logFile = ROOT_PATH . DS . 'Logs' . DS . 'phones_cdp_neighbors.log';
-        file_put_contents($logFile, '');
-        $logger = RLogger::getInstance('CDP_NEIGHBORS', $logFile);
+        $logger = StreamLogger::instanceWith('CDP_NEIGHBORS');
         try {
             $switches = function () {
-                $sql = '
-                    SELECT
-                       appliance.__id AS id,
-                       dataport."ipAddress" AS ip
-                    FROM equipment.appliances appliance
-                    JOIN equipment."applianceTypes" appliance_type ON appliance.__type_id = appliance_type.__id
-                    JOIN equipment."dataPorts" dataport ON appliance.__id = dataport.__appliance_id
-                    JOIN equipment."platformItems" platform_item ON appliance.__platform_item_id = platform_item.__id
-                    JOIN equipment.platforms platform ON platform_item.__platform_id = platform.__id
-                    WHERE appliance_type.type = :switch AND dataport."isManagement" IS TRUE AND platform.title NOT IN (:title1, :title2, :title3, :title4, :title5, :title6, :title7, :title8)
-                ';
-                $query = new Query($sql);
+                $query = new Query(self::SQL['live_switches']);
                 $params = [
                     ':switch' => 'switch',
+                    ':max_age' => 73,
                     ':title1' => 'WS-C4948',
                     ':title2' => 'WS-C4948-10GE',
                     ':title3' => 'WS-C4948E',
@@ -207,10 +208,11 @@ class CucmsPhones extends Command
                     $logger->error('[message]=' . $e->getMessage() . ' [ip]=' . $switch->ip);
                 }
             }
+            $this->writeLn('Phones cdp neighbors has updated');
         } catch (\Throwable $e) {
             $logger->error($e->getMessage());
+            $this->writeLn('Error');
         }
-        $this->writeLn('Phones cdp neighbors has updated');
     }
 
     /**

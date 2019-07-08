@@ -24,7 +24,7 @@ class RServer extends Controller
     public function actionDefault()
     {
         try {
-            $logger = StreamLogger::getInstance('DS-INPUT');
+            $logger = StreamLogger::instanceWith('DS-INPUT');
             $rawInput = file_get_contents('php://input');
             $actualData = json_decode($rawInput);
             if (empty($actualData->dataSetType)) {

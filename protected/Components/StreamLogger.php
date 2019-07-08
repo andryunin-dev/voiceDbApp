@@ -14,6 +14,7 @@ class StreamLogger
         'DS-CLUSTER' => self::DIR.'DScluster.log',
         'DS-APPLIANCE' => self::DIR.'DSappliance.log',
         'DS-DNSNAMES' => self::DIR.'DSdnsnames.log',
+        'CDP_NEIGHBORS' => self::DIR.'phones_cdp_neighbors.log',
     ];
 
     /**
@@ -22,7 +23,7 @@ class StreamLogger
      * @return Logger
      * @throws \Exception
      */
-    public static function getInstance(string $name, string $logfile = null): Logger
+    public static function instanceWith(string $name, string $logfile = null): Logger
     {
         if (is_null($logfile)) {
             $logfile = self::LOG_FILE[$name] ?? self::LOG_FILE['DEFAULT'];

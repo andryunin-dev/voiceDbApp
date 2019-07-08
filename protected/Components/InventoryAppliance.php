@@ -408,6 +408,6 @@ class InventoryAppliance
     {
         $this->data = $data;
         $this->cluster = $cluster;
-        $this->logger = StreamLogger::getInstance('DS-APPLIANCE');
+        $this->logger = StreamLogger::instanceWith('DS-APPLIANCE');
     }
 }

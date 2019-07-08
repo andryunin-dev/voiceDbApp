@@ -375,6 +375,6 @@ class Prefixes
     public function __construct(\stdClass $data)
     {
         $this->data = $data;
-        $this->logger = StreamLogger::getInstance('DS-PREFIXES');
+        $this->logger = StreamLogger::instanceWith('DS-PREFIXES');
     }
 }
