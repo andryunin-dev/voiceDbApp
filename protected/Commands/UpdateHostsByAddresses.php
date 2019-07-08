@@ -88,6 +88,6 @@ class UpdateHostsByAddresses extends Command
     public function __construct()
     {
         parent::__construct();
-        $this->logger = StreamLogger::getInstance('DS-DNSNAMES');
+        $this->logger = StreamLogger::instanceWith('DS-DNSNAMES');
     }
 }

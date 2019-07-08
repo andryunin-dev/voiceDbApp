@@ -14,7 +14,7 @@ class DSPerror
     public function __construct($data)
     {
         $this->data = $data;
-        $this->logger = StreamLogger::getInstance('DS-ERRORS');
+        $this->logger = StreamLogger::instanceWith('DS-ERRORS');
     }
 
     public function log()

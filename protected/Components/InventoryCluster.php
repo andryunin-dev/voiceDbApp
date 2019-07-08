@@ -335,6 +335,6 @@ class InventoryCluster
     public function __construct(\stdClass $data)
     {
         $this->data = $data;
-        $this->logger = StreamLogger::getInstance('DS-CLUSTER');
+        $this->logger = StreamLogger::instanceWith('DS-CLUSTER');
     }
 }
