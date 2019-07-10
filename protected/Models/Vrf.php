@@ -152,12 +152,12 @@ class Vrf extends Model
     }
 
     /**
-     * @param $name
+     * @param string $name
      * @return Vrf
+     * @throws \T4\Core\MultiException
      */
-    public static function getInstanceByName($name): self
+    public static function instanceWithName(string $name): self
     {
-        $vrf = self::findByColumn('name', $name);
-        return (false === $vrf) ? (new self(['name' => $name]))->save() : $vrf;
+        return (false === $vrf = self::findByColumn('name', $name)) ? (new self())->fill(['name' => $name])->save() : $vrf;
     }
 }

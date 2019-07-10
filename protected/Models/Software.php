@@ -62,11 +62,6 @@ class Software extends Model
         return true;
     }
 
-    public static function getEmpty()
-    {
-        return self::findByColumn('title', '');
-    }
-
     /**
      * @param Vendor $vendor
      * @param $title
@@ -78,16 +73,15 @@ class Software extends Model
     }
 
     /**
-     * @param Vendor $vendor
      * @param string $title
+     * @param Vendor $vendor
      * @return Software
      * @throws MultiException
      */
-    public static function getInstanceByVendorTitle(Vendor $vendor, string $title): Software
+    public static function instanceWithTitleVendor(string $title, Vendor $vendor): Software
     {
-        $software = self::findByVendorTitle($vendor, $title);
-        if (false === $software) {
-            $software = (new self())->fill(['vendor' => $vendor, 'title' => $title])->save();
+        if (false === $software = self::findByVendorTitle($vendor, $title)) {
+            $software = (new self())->fill(['title' => $title, 'vendor' => $vendor])->save();
         }
         return $software;
     }

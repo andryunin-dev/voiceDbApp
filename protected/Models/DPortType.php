@@ -64,12 +64,15 @@ class DPortType extends Model
     }
 
     /**
-     * @param $type
+     * @param string $type
      * @return DPortType
+     * @throws \T4\Core\MultiException
      */
-    public static function getInstanceByType($type): self
+    public static function instanceWithType(string $type): self
     {
-        $dPortType = DPortType::findByColumn('type', $type);
-        return (false === $dPortType) ? (new self(['type' => $type]))->save() : $dPortType;
+        if (false === $dataPortType = self::findByColumn('type', $type)) {
+            $dataPortType = (new self())->fill(['type' => $type])->save();
+        }
+        return $dataPortType;
     }
 }

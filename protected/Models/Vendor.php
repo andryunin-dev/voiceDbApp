@@ -64,13 +64,12 @@ class Vendor extends Model
 
     /**
      * @param string $title
-     * @return mixed
+     * @return Vendor
      * @throws MultiException
      */
-    public static function getInstanceByTitle(string $title)
+    public static function instanceWithTitle(string $title): Vendor
     {
-        $vendor = self::findByColumn('title', $title);
-        if (false === $vendor) {
+        if (false === $vendor = self::findByColumn('title', $title)) {
             $vendor = (new self())->fill(['title' => $title])->save();
         }
         return $vendor;

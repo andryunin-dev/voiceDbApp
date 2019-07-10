@@ -55,7 +55,7 @@ class Export extends Controller
         $output = '';
         if (count($data) > 0) {
             foreach ($data as $item) {
-                $output .= trim($item['hostname'],'"').','.$item['ipAddress'].','.$item['lotusId'].','.$item['vrf_name'].';';
+                $output .= trim($item['hostname'],'"').','.$item['ipAddress'].'/'. ($item['masklen'] ?? 32) .','.$item['lotusId'].','.$item['vrf_name'].';';
             }
         }
         return $output;
@@ -84,6 +84,7 @@ class Export extends Controller
             SELECT
                 appl.details->\'hostname\' AS hostname,
                 dP."ipAddress",
+                dP."masklen",
                 office."lotusId",
                 vrf.name AS vrf_name
             FROM equipment."dataPorts" dP
