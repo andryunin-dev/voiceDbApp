@@ -29,6 +29,8 @@
             <th>Hostname</th>
             <th>Management IP</th>
             <th>Комментарий</th>
+            <th>Статус 1С</th>
+            <th>Комментарий 1С</th>
         </tr>
         </thead>
         <tbody>
@@ -61,6 +63,8 @@
                 <td>{{ item.hostname }}</td>
                 <td>{{ item.managementIP }}</td>
                 <td>{{ item.comment }}</td>
+                <td>{{ item.status_1c }}</td>
+                <td>{{ item.comment_1c }}</td>
             </tr>
         {% endfor %}
         </tbody>
