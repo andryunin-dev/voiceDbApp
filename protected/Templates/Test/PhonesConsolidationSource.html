@@ -35,6 +35,8 @@
             <th>МОЛ email</th>
             <th>Польз email</th>
             <th>МОЛ_польз</th>
+            <th>Статус 1С</th>
+            <th>Комментарий 1С</th>
         </tr>
         </thead>
         <tbody>
@@ -73,6 +75,8 @@
                 <td>{{ item.molEmail }}</td>
                 <td>{{ item.userEmail }}</td>
                 <td>{{ item.molIsUser }}</td>
+                <td>{{ item.status_1c }}</td>
+                <td>{{ item.comment_1c }}</td>
             </tr>
         {% endfor %}
         </tbody>
