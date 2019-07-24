@@ -134,7 +134,7 @@ class Ipam extends Controller
     {
         $pk = IpamView_Networks::PK;
         $hostClause = 'concat_ws(\',\', port_ip_cidr, dev_location, port_name, port_desc, dev_title, dev_type, dev_hostname, vrf_name, dns)::citext LIKE :arg';
-        $netClause = 'concat_ws(\',\', net_ip, net_comment, vrf_name, vrf_comment, usr_network_locations_string(' . $pk . '))::citext LIKE :arg';
+        $netClause = 'concat_ws(\',\', net_ip, net_comment, vrf_name, vrf_comment, usr_network_locations_string(' . $pk . '), bgp_as)::citext LIKE :arg';
         // respond to preflights
         if($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
             exit;
