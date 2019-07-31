@@ -8,13 +8,15 @@ class StreamLogger
 {
     private const DIR = ROOT_PATH.'/Logs/';
     private const LOG_FILE = [
-        'DEFAULT' => self::DIR.'DSerrors.log',
+        'DEFAULT' => self::DIR.'errors.log',
         'DS-PREFIXES' => self::DIR.'DSprefixes.log',
         'DS-ERRORS' => self::DIR.'DSerrors.log',
         'DS-CLUSTER' => self::DIR.'DScluster.log',
         'DS-APPLIANCE' => self::DIR.'DSappliance.log',
         'DS-DNSNAMES' => self::DIR.'DSdnsnames.log',
         'CDP_NEIGHBORS' => self::DIR.'phones_cdp_neighbors.log',
+        'PHONES_UPDATE' => self::DIR.'phones_update.log',
+        'CUCM' => self::DIR.'cucms.log',
     ];
 
     /**
