@@ -3,15 +3,16 @@
 namespace App\Commands;
 
 use App\Components\Connection\SshConnection;
+use App\Components\Cucm;
 use App\Components\DSPphones;
 use App\Components\RLogger;
 use App\Components\SshConnectableSwitch;
 use App\Components\StreamLogger;
 use App\Models\Appliance;
 use App\Models\ApplianceType;
-use App\Models\Phone;
 use App\Models\PhoneInfo;
 use App\ViewModels\DevModulePortGeo;
+use Monolog\Logger;
 use T4\Console\Command;
 use T4\Core\MultiException;
 use T4\Core\Std;
@@ -31,72 +32,10 @@ class CucmsPhones extends Command
             JOIN equipment.platforms platform ON platform_item.__platform_id = platform.__id
             WHERE appliance_type.type = :switch AND ((date_part(\'epoch\' :: TEXT, age(now(), appliance."lastUpdate")) / (3600) :: DOUBLE PRECISION)) :: INTEGER < :max_age AND dataport."isManagement" IS TRUE AND platform.title NOT IN (:title1, :title2, :title3, :title4, :title5, :title6, :title7, :title8)',
     ];
-    const SSH_PORT = 22;
-    const COMMAND_CDP_NEIGHBORS = 'show cdp neighbors';
-    const MAX_LENGTH = -1;
-    const FASTETHERNET_SHORT_NAME = 'FAS';
-    const FASTETHERNET_FULL_NAME = 'FastEthernet';
-    const GIGABITETHERNET_SHORT_NAME = 'GIG';
-    const GIGABITETHERNET_FULL_NAME = 'GigabitEthernet';
 
-
-    public function actionDefault()
-    {
-        $publishers = Appliance::findAllByType(ApplianceType::CUCM_PUBLISHER);
-        foreach ($publishers as $publisher) {
-            $publisherIp = $publisher->managementIp;
-            if (false !== $publisherIp) {
-                $logFile = ROOT_PATH . DS . 'Logs' . DS . 'phones_' . preg_replace('~\.~', '_', $publisherIp) . '.log';
-                file_put_contents($logFile, '');
-                $logger = RLogger::getInstance('CUCM-' . $publisherIp, $logFile);
-                try {
-                    $registeredPhonesData = Phone::findAllRegisteredIntoCucm($publisherIp);
-                    foreach ($registeredPhonesData as $phoneData) {
-                        try {
-                            $data = (new Std())->fromArray($phoneData->getData());
-                            (new DSPphones())->process($data);
-                        } catch (\Throwable $e) {
-                            $logger->error('UPDATE PHONE: [message]=' . ($e->getMessage() ?? '""') . '; [data]=' . json_encode($phoneData->getData()));
-                        }
-                    }
-                    $this->writeLn('[publisher]=' . $publisherIp . '; Get phones - OK');
-                } catch (MultiException $errs) {
-                    foreach ($errs as $e) {
-                        $logger->error('UPDATE PHONE: [message]=' . ($e->getMessage() ?? '""'));
-                    }
-                } catch (\Throwable $e) {
-                    $logger->error('UPDATE PHONE: [message]=' . ($e->getMessage() ?? '""'));
-                }
-            }
-        }
-        $this->writeLn('Get phones from all cucms - OK');
-    }
-
-    public function actionGetFrom($publisherIp)
-    {
-        $logFile = ROOT_PATH . DS . 'Logs' . DS . 'phones_' . preg_replace('~\.~', '_', $publisherIp) . '.log';
-        file_put_contents($logFile, '');
-        $logger = RLogger::getInstance('CUCM-' . $publisherIp, $logFile);
-        try {
-            $registeredPhonesData = Phone::findAllRegisteredIntoCucm($publisherIp);
-            foreach ($registeredPhonesData as $phoneData) {
-                try {
-                    $data = (new Std())->fromArray($phoneData->getData());
-                    (new DSPphones())->process($data);
-                } catch (\Throwable $e) {
-                    $logger->error('UPDATE PHONE: [message]=' . ($e->getMessage() ?? '""') . '; [data]=' . json_encode($phoneData->getData()));
-                }
-            }
-            $this->writeLn('[publisher]=' . $publisherIp . '; Get phones - OK');
-        } catch (MultiException $errs) {
-            foreach ($errs as $e) {
-                $logger->error('UPDATE PHONE: [message]=' . ($e->getMessage() ?? '""'));
-            }
-        } catch (\Throwable $e) {
-            $logger->error('UPDATE PHONE: [message]=' . ($e->getMessage() ?? '""'));
-        }
-    }
-
+    /**
+     * @throws \Exception
+     */
     public function actionGetNeighborsBySnmp()
     {
         $logFile = ROOT_PATH . DS . 'Logs' . DS . 'phones_neighbors.log';
@@ -163,8 +102,6 @@ class CucmsPhones extends Command
     }
 
     /**
-     * Update phone CDP neighbors from switches by ssh
-     *
      * @throws \Exception
      */
     public function actionUpdateCdpNeighborsFromSwitchesBySsh()
@@ -217,19 +154,11 @@ class CucmsPhones extends Command
 
     /**
      * @param string $name
-     * @throws \T4\Core\Exception
      */
     public function actionGetPhoneByName(string $name)
     {
         $childsPid = [];
-        $query = (new Query())
-            ->select('"managementIp"')
-            ->from(DevModulePortGeo::getTableName())
-            ->where('"appType" = :publisher AND "managementIp" IS NOT NULL')
-            ->params([':publisher' => ApplianceType::CUCM_PUBLISHER]);
-        $publishers = DevModulePortGeo::findAllByQuery($query);
-        foreach ($publishers as $publisher) {
-            // Branch the currently running process
+        foreach ($this->publishers() as $publisher) {
             switch ($pid = pcntl_fork()) {
                 case -1:
                     $this->writeln('Could not spawn child process');
@@ -237,14 +166,13 @@ class CucmsPhones extends Command
                 case 0:
                     // Child process - workhorse
                     try {
-                        $phone = Phone::findByNameIntoCucm($name, $publisher->managementIp);
-                        if (false !== $phone) {
-                            $this->writeLn(json_encode($phone->getData()));
+                        if (false !== $ip = $publisher->managementI) {
+                            if (false !== $phone = (new Cucm($ip))->phoneWithName($name)) {
+                                $this->writeLn($phone->toJson());
+                            }
                         }
-                    } catch (\SoapFault $e) {
-                        $this->writeLn(json_encode([
-                            'error' => [$publisher->managementIp => $e->getMessage()],
-                        ]));
+                    } catch (\Throwable $e) {
+                        $this->writeLn(json_encode(['error' => [$ip => $e->getMessage()]]));
                     }
                     exit();
                 default:
@@ -252,11 +180,64 @@ class CucmsPhones extends Command
                     $childsPid[] = $pid;
             }
         }
-
         // Wait for all child processes to complete
         foreach ($childsPid as $childPid) {
             pcntl_waitpid($childPid, $status);
         }
         exit();
+    }
+
+    /**
+     * @throws \Exception
+     */
+    public function actionUpdate(): void
+    {
+        foreach ($this->publishers() as $publisher) {
+            if (false !== $ip = $publisher->managementIp) {
+                $this->actionUpdateFrom($ip);
+            }
+        }
+        $this->writeLn('Phones updated');
+    }
+
+    /**
+     * @param string $ip
+     * @throws \Exception
+     */
+    public function actionUpdateFrom(string $ip): void
+    {
+        $logger = $this->cucmLogger($ip);
+        try {
+            foreach ((new Cucm($ip))->phones() as $phone) {
+                try {
+                    (new DSPphones())->process(new Std($phone->toArray()));
+                } catch (\Throwable $e) {
+                    $logger->error('[message]=' . $e->getMessage() . ' [publisher]=' . $ip);
+                }
+            }
+        } catch (\Throwable $e) {
+            $logger->error('[message]=' . $e->getMessage() . ' [publisher]=' . $ip);
+        }
+        $this->writeLn('Phones cucm '. $ip .' updated');
+    }
+
+    /**
+     * @return mixed
+     */
+    private function publishers()
+    {
+        return Appliance::findAllByType(ApplianceType::CUCM_PUBLISHER);
+    }
+
+    /**
+     * @param string $ip
+     * @return \Monolog\Logger
+     * @throws \Exception
+     */
+    private function cucmLogger(string $ip): Logger
+    {
+        $log = ROOT_PATH.DS.'Logs'.DS.'cucm_'.$ip.'.log';
+        file_put_contents($log, '');
+        return StreamLogger::instanceWith('CUCM', $log);
     }
 }
