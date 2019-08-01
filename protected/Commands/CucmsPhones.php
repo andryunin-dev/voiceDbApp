@@ -193,7 +193,7 @@ class CucmsPhones extends Command
     public function actionUpdate(): void
     {
         foreach ($this->publishers() as $publisher) {
-            if (false !== $ip = $publisher->managementI) {
+            if (false !== $ip = $publisher->managementIp) {
                 $this->actionUpdateFrom($ip);
             }
         }
