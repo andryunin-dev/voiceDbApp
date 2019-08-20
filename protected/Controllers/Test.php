@@ -24,6 +24,10 @@ use T4\Mvc\Route;
 
 class Test extends Controller
 {
+    public function actionPhpinfo()
+    {
+        phpinfo();
+    }
     public function actionNetTest()
     {
         $vrf = Vrf::instanceGlobalVrf();
