@@ -3,6 +3,7 @@ namespace App\Components\Export;
 
 use App\ViewModels\DevPhoneInfoGeo;
 use T4\Core\Exception;
+use T4\Core\Std;
 use T4\Dbal\Query;
 
 class ApplianceToExcel
@@ -196,10 +197,11 @@ class ApplianceToExcel
             $styleType = $this->getApplianceSellStyleType($appliance);
 
             // Cast Appliance Details
-            $applianceDetails = json_decode($appliance->app_details);
-
+            $applianceDetails = empty(json_decode($appliance->app_details)) ? new Std() : json_decode($appliance->app_details);
+            //site
+            $site = empty($applianceDetails->site) ? new Std() : $applianceDetails->site;
             // Cast Platform Details
-            $platformDetails = json_decode($appliance->app_platformDetails);
+            $platformDetails = empty(json_decode($appliance->app_platformDetails)) ? new Std() : json_decode($appliance->app_platformDetails);
 
             // define appliance columns
             $applianceColumns = [
@@ -219,13 +221,13 @@ class ApplianceToExcel
                 $appliance->app_softwareTitle,
                 $appliance->app_softwareVersion,
                 $appliance->app_lastUpdate,
-                $appliance->app_comment,
-                $applianceDetails->site->floor,
-                $applianceDetails->site->row,
-                $applianceDetails->site->rack,
-                $applianceDetails->site->rackSide,
-                $applianceDetails->site->unit,
-                $platformDetails->units,
+                strip_tags($appliance->app_comment),
+                strip_tags($site->floor),
+                strip_tags($site->row),
+                strip_tags($site->rack),
+                strip_tags($site->rackSide),
+                strip_tags($site->unit),
+                strip_tags($platformDetails->units),
             ];
 
             // Open row for the appliance to the worksheet
