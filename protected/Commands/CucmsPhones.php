@@ -166,7 +166,7 @@ class CucmsPhones extends Command
                 case 0:
                     // Child process - workhorse
                     try {
-                        if (false !== $ip = $publisher->managementI) {
+                        if (false !== $ip = $publisher->managementIp) {
                             if (false !== $phone = (new Cucm($ip))->phoneWithName($name)) {
                                 $this->writeLn($phone->toJson());
                             }
@@ -183,6 +183,21 @@ class CucmsPhones extends Command
         // Wait for all child processes to complete
         foreach ($childsPid as $childPid) {
             pcntl_waitpid($childPid, $status);
+        }
+        exit();
+    }
+    public function actionGetPhoneByName2(string $name)
+    {
+        foreach ($this->publishers() as $publisher) {
+            try {
+                if (false !== $ip = $publisher->managementIp) {
+                    if (false !== $phone = (new Cucm($ip))->phoneWithName($name)) {
+                        $this->writeLn($phone->toJson());
+                    }
+                }
+            } catch (\Throwable $e) {
+                $this->writeLn(json_encode(['error' => [$ip => $e->getMessage()]]));
+            }
         }
         exit();
     }
