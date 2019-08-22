@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Components\Cucm;
 use App\Components\IpTools;
 use App\ConsolidationTablesModels\ConsolidationTable_1;
 use App\MappingModels\LotusLocation;
@@ -24,9 +25,28 @@ use T4\Mvc\Route;
 
 class Test extends Controller
 {
-    public function actionPhpinfo()
+    public function actionInfo()
     {
         phpinfo();
+    }
+    public function actionSnmp($name)
+    {
+        $publishers = Appliance::findAllByType(ApplianceType::CUCM_PUBLISHER);
+        $result = [];
+        $errors = [];
+        foreach ($publishers as $publisher) {
+            try {
+                if (false !== $ip = $publisher->managementIp) {
+                    if (false !== $phone = (new Cucm($ip))->phoneWithName($name)) {
+                        $result[] = $phone->toJson();
+                    }
+                }
+            } catch (\Throwable $e) {
+                $errors[] = json_encode(['error' => [$ip => $e->getMessage()]]);
+            }
+        }
+        $this->data->results = $result;
+        $this->data->errors = $errors;
     }
     public function actionNetTest()
     {
