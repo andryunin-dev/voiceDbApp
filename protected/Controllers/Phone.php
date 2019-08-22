@@ -27,7 +27,7 @@ class Phone extends Controller
     public function actionPhoneData($name = null)
     {
         // Find the phone's data in the cucms
-        $cmd = 'php '.ROOT_PATH.DS.'protected'.DS.'t4.php cucmsPhones'.DS.'getPhoneByName --name='. $name;
+        $cmd = 'php '.ROOT_PATH.DS.'protected'.DS.'t4.php cucmsPhones'.DS.'getPhoneByName2 --name='. $name;
         exec($cmd, $output);
 
         // Separate error from data
