@@ -4,9 +4,7 @@ namespace App\Controllers;
 
 use App\Components\DSPphones;
 use App\Models\PhoneInfo;
-use App\Storage1CModels\InventoryItem1C;
 use T4\Core\Std;
-use T4\Dbal\Query;
 use T4\Http\Request;
 use T4\Mvc\Controller;
 
@@ -22,12 +20,16 @@ class Phone extends Controller
             SELECT phone.css
             FROM phones phone
             WHERE phone.number = :number',
+        'phone_inventoryNumber' => '
+            SELECT inventory_number
+            FROM storage_1c.foreign_1c
+            WHERE serial_number = :serial_number',
     ];
 
     public function actionPhoneData($name = null)
     {
         // Find the phone's data in the cucms
-        $cmd = 'php '.ROOT_PATH.DS.'protected'.DS.'t4.php cucmsPhones'.DS.'getPhoneByName2 --name='. $name;
+        $cmd = 'php '.ROOT_PATH.DS.'protected'.DS.'t4.php cucmsPhones/getPhoneByName2 --name='. $name;
         exec($cmd, $output);
 
         // Separate error from data
@@ -43,32 +45,28 @@ class Phone extends Controller
                 }
             }
         }
-
-        // Find inventory number
         if (!empty($phoneData)) {
-            $inventoryNumber = null;
-            if (isset($phoneData['serialNumber'])) {
-                $query = (new Query())
-                    ->select('"inventoryNumber"')
-                    ->from(InventoryItem1C::getTableName())
-                    ->where('"serialNumber" LIKE :serialNumber')
-                    ->params([':serialNumber' => '%'.mb_substr($phoneData['serialNumber'], 1)]);
-                $inventoryNumber = InventoryItem1C::findByQuery($query)->inventoryNumber;
+            $inventoryNumber = '';
+            if (!empty($phoneData['serialNumber'])) {
+                $items = PhoneInfo::getDbConnection()
+                    ->query(self::SQL['phone_inventoryNumber'], [':serial_number' => $phoneData['serialNumber']])
+                    ->fetchAll(\PDO::FETCH_ASSOC);
+                if (count($items) > 0) {
+                    $inventoryNumber = array_reduce($items,
+                        function ($carry, $item) {
+                            $mark = $carry == '' ? '' : ', ';
+                            return $carry . $mark . $item['inventory_number'];
+                        }, ''
+                    );
+                }
             }
-            $phoneData['inventoryNumber'] = (!is_null($inventoryNumber)) ? $inventoryNumber : '';
-            if (! empty($phoneData['serialNumber'])) {
-                $phoneData['inventoryNumber'] = $phoneData['inventoryNumber'] . ', SN: ' . $phoneData['serialNumber'];
-            }
+            $phoneData['inventoryNumber'] = 'InvN: ' . $inventoryNumber . '; SN: ' . $phoneData['serialNumber'];
         }
-
-        // Return result
-        $result = [
+        $this->data->result = [
             'errors' => $errors,
             'data' => $phoneData,
         ];
-        $this->data->result = $result;
     }
-
 
     public function actionPhoneUpdate($phoneData)
     {
