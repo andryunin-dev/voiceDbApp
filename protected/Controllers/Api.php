@@ -3,21 +3,16 @@
 namespace App\Controllers;
 
 use App\ApiHelpers\DevInfo;
-use App\ApiHelpers\NetData;
-use App\Models\Appliance;
-use App\Models\DataPort;
 use App\Models\Network;
-use App\Models\Office;
-use App\Models\Vendor;
 use App\Models\Vrf;
 use App\ViewModels\ApiView_Devices;
 use App\ViewModels\ApiView_DPorts;
+use App\ViewModels\ApiView_Employee;
 use App\ViewModels\ApiView_Geo;
 use App\ViewModels\ApiView_Modules;
 use App\ViewModels\ApiView_Networks;
 use App\ViewModels\ApiView_Vrfs;
 use App\ViewModels\Geo_View;
-use phpDocumentor\Reflection\Types\This;
 use T4\Core\Exception;
 use T4\Core\Std;
 use T4\Dbal\Query;
@@ -85,7 +80,7 @@ class Api extends Controller
         }
         $this->data->regCenters = $output;
     }
-    
+
     public function actionGetRegions()
     {
         // respond to preflights
@@ -116,7 +111,7 @@ class Api extends Controller
         }
         $this->data->regions = $output;
     }
-    
+
     public function actionGetCities()
     {
         // respond to preflights
@@ -135,7 +130,7 @@ class Api extends Controller
                 }
             }
         }
-        
+
         $query = (new Query())
             ->select(join(',',$fields))
             ->from($table)
@@ -152,7 +147,7 @@ class Api extends Controller
         }
         $this->data->cities = $output;
     }
-    
+
     public function actionGetOffices()
     {
         // respond to preflights
@@ -187,7 +182,7 @@ class Api extends Controller
         }
         $this->data->offices = $output;
     }
-    
+
     public function actionGetDevTypes()
     {
         // respond to preflights
@@ -218,7 +213,7 @@ class Api extends Controller
         }
         $this->data->devTypes = $output;
     }
-    
+
     public function actionGetPlatforms()
     {
         // respond to preflights
@@ -250,7 +245,7 @@ class Api extends Controller
         }
         $this->data->platforms = $output;
     }
-    
+
     public function actionGetSoftwareList()
     {
         // respond to preflights
@@ -282,7 +277,7 @@ class Api extends Controller
         }
         $this->data->softwareList = $output;
     }
-    
+
     public function actionGetDevData($id)
     {
         // respond to preflights
@@ -300,7 +295,7 @@ class Api extends Controller
         if (!empty($filters->value)) {
             $condition[] = $filters->accessor . $filters->statement . $filters->value;
         }
-        
+
         try {
             $query = (new Query())
                 ->select(join(',',$fields))
@@ -309,7 +304,7 @@ class Api extends Controller
                 ->group(join(',',$fields))
                 ->params([':dev_id' => $id]);
             $res = ApiView_Devices::findByQuery($query);
-            
+
             $this->data->devInfo = $res;
         } catch (Exception $e) {
             http_response_code(417);
@@ -346,7 +341,7 @@ class Api extends Controller
         } catch (Exception $e) {
             http_response_code(417);
         }
-        
+
     }
     public function actionGetDevPortsData($id)
     {
@@ -364,7 +359,7 @@ class Api extends Controller
         if (!empty($filters->value)) {
             $condition[] = $filters->accessor . $filters->statement . $filters->value;
         }
-        
+
         try {
             $query = (new Query())
                 ->select(join(',',$fields))
@@ -380,7 +375,7 @@ class Api extends Controller
         } catch (Exception $e) {
             http_response_code(417);
         }
-        
+
     }
     public function actionGetDevLocation($location_id)
     {
@@ -395,7 +390,7 @@ class Api extends Controller
         if (!empty($filters->value)) {
             $condition[] = $filters->accessor . $filters->statement . $filters->value;
         }
-        
+
         try {
             $query = (new Query())
                 ->select(join(',',$fields))
@@ -409,7 +404,7 @@ class Api extends Controller
         } catch (Exception $e) {
             http_response_code(417);
         }
-        
+
     }
     public function actionGetVrfList()
     {
@@ -425,21 +420,21 @@ class Api extends Controller
         if (!empty($filters->value)) {
             $condition[] = $filters->accessor . $filters->statement . $filters->value;
         }
-    
+
         try {
             $query = (new Query())
                 ->select(join(',',$fields))
                 ->from($table)
                 ->order(join(',',$order));
             $res = ApiView_Vrfs::findAllByQuery($query);
-        
+
             $this->data->vrfList= $res->toArrayRecursive();
         } catch (Exception $e) {
             http_response_code(417);
         }
-       
+
     }
-    
+
     public function actionSaveDev()
     {
         if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
@@ -469,7 +464,7 @@ class Api extends Controller
             $this->data->exception = $e->getMessage();
         }
     }
-    
+
     public function actionGetNetData($netId)
     {
         // respond to preflights
@@ -550,7 +545,7 @@ class Api extends Controller
             }
         }
     }
-    
+
     /**
      * Test only
      */
@@ -581,7 +576,32 @@ class Api extends Controller
         } catch (\Exception $e) {
             $this->data->errors = [$e->getMessage()];
         }
-        
+
     }
-    
+
+    public function actionEmployee()
+    {
+        if ($this->methodGET() && count($_GET) > 0) {
+            $data = [];
+            if (!empty($_GET['net_name']) && false !== $employee = ApiView_Employee::findByColumn('net_name', $_GET['net_name'])) {
+                $data = array_diff_key($employee->getData(), [
+                    'work_email' => '',
+                    'position' => '',
+                    'persons_code' => '',
+                    'net_name' => '',
+                    'domain' => '',
+                    'last_refresh' => '',
+                ]);
+            }
+            $this->data->employee = $data;
+        }
+    }
+
+    private function methodGET() {
+        return 'GET' == mb_strtoupper($_SERVER['REQUEST_METHOD']);
+    }
+
+    private function methodPOST() {
+        return 'POST' == mb_strtoupper($_SERVER['REQUEST_METHOD']);
+    }
 }
