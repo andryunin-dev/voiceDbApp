@@ -589,7 +589,6 @@ class Api extends Controller
             if (!empty($_GET['net_name']) && false !== $employee = ApiView_Employee::findByColumn('net_name', $_GET['net_name'])) {
                 $data = array_diff_key($employee->getData(), [
                     'work_email' => '',
-                    'position' => '',
                     'persons_code' => '',
                     'net_name' => '',
                     'domain' => '',
