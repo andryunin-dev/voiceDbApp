@@ -3,6 +3,8 @@
 namespace App\Controllers;
 
 use App\ApiHelpers\DevInfo;
+use App\MappingModels\LotusLocation;
+use App\Models\Appliance;
 use App\Models\Network;
 use App\Models\Vrf;
 use App\ViewModels\ApiView_Devices;
@@ -13,6 +15,7 @@ use App\ViewModels\ApiView_Modules;
 use App\ViewModels\ApiView_Networks;
 use App\ViewModels\ApiView_Vrfs;
 use App\ViewModels\Geo_View;
+use App\ViewModels\LotusDbData;
 use T4\Core\Exception;
 use T4\Core\Std;
 use T4\Dbal\Query;
@@ -594,6 +597,23 @@ class Api extends Controller
                 ]);
             }
             $this->data->employee = $data;
+        }
+    }
+
+    public function actionLocation()
+    {
+        if ($this->methodGET() && count($_GET) > 0) {
+            $data = [];
+            if (!empty($_GET['ip']) && false !== $router = Appliance::findRouterByNet($_GET['ip'])) {
+                $regCenter = LotusLocation::findByColumn('lotus_id', $router->location->lotusId);
+                if (false === $regCenter) {
+                    $regCenter = LotusDbData::findByColumn('lotus_id', $router->location->lotusId);
+                }
+                $data['reg_center'] = (false !== $regCenter) ? $regCenter->reg_center : '';
+                $data['office'] = $router->location->title;
+                $data['city'] = $router->location->address->city->title;
+            }
+            $this->data->location = $data;
         }
     }
 
