@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Components\IpTools;
 use App\Storage1CModels\Appliance1C;
 use T4\Core\Collection;
 use T4\Core\Exception;
@@ -59,6 +60,12 @@ class Appliance extends Model
               JOIN network.networks network ON dataport.__network_id = network.__id
               JOIN network.vrfs vrf ON network.__vrf_id = vrf.__id
             WHERE dataport.__appliance_id = :appliance_id AND dataport."ipAddress" = :ip AND vrf.__id = :vrf_id',
+        'find_by_net_type' => '
+            SELECT *
+            FROM equipment.appliances appliance
+               JOIN equipment."applianceTypes" appliance_type ON appliance.__type_id = appliance_type.__id
+               JOIN equipment."dataPorts" dataport ON appliance.__id = dataport.__appliance_id
+            WHERE appliance_type.type = :app_type AND ((date_part(\'epoch\' :: TEXT, age(now(), dataport."lastUpdate")) / (3600) :: DOUBLE PRECISION)) :: INTEGER < 73 AND dataport.__network_id = :net_id',
     ];
 
     protected static $schema = [
@@ -190,6 +197,23 @@ class Appliance extends Model
     {
         $query = new Query(self::SQL['findBy_ManagementIp_Vrf']);
         return self::findByQuery($query, [':ip' => $ip, ':vrf_name' => $vrf_name]);
+    }
+
+    /**
+     * @param string $cidrIp
+     * @return Appliance|bool - Router сети которой принадлежит $cidrIp
+     */
+    public static function findRouterByNet(string $cidrIp)
+    {
+        if (false === $cidrIp = new IpTools($cidrIp)) {
+            return false;
+        }
+        $appliances = false;
+        if (false !== $network = Network::findByColumn('address', $cidrIp->network.'/'.$cidrIp->masklen)) {
+            $query = new Query(self::SQL['find_by_net_type']);
+            $appliances = self::findByQuery($query, [':net_id' => $network->getPk(), ':app_type' => ApplianceType::ROUTER]);
+        }
+        return $appliances;
     }
 
     /**

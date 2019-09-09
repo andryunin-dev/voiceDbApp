@@ -288,8 +288,9 @@ class InventoryAppliance
      */
     private function appliance(): Appliance
     {
-        if (is_null($this->appliance) && false === $this->appliance = $this->findApplianceBySerialVendor()) {
-            if (false === $this->appliance = $this->findNewEmptyAppliance()) {
+        if (is_null($this->appliance)) {
+            $this->appliance = !empty($this->data->platformSerial) ? $this->findApplianceBySerialVendor() : $this->findNewEmptyAppliance();
+            if (false === $this->appliance) {
                 throw new \Exception("Appliance is not found");
             }
         }
