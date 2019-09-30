@@ -417,7 +417,7 @@ class Network extends Model
         return $result;
     }
 
-    public static function allLocation()
+    public static function allLocations()
     {
         return Network::findAllByQuery(new Query(self::SQL['networks_location']), []);
     }
