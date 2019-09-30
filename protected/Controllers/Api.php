@@ -621,7 +621,7 @@ class Api extends Controller
     public function actionNetworks()
     {
         $networks = [];
-        foreach (Network::findAllByQuery(new Query(self::SQL['networks']), []) as $network) {
+        foreach (Network::allLocations() as $network) {
             $networks[] = $network->toArray();
         }
         $this->data->networks = $networks;
