@@ -81,7 +81,44 @@ class Network extends Model
           WHERE address = network(:address) AND __vrf_id = :vrf_id',
         'findAllNetworks' => '
         SELECT net_id __id, net_ip address, net_comment "comment", vrf_id __vrf_id FROM api_view.networks
-        WHERE net_id NOTNULL AND vrf_id NOTNULL'
+        WHERE net_id NOTNULL AND vrf_id NOTNULL',
+        'networks_location' => '
+            WITH
+                locs AS (
+                    SELECT
+                        offices.__id AS location_id,
+                        offices.title AS office,
+                        addresses.address AS office_address,
+                        cities.title AS city
+                    FROM ((company.offices
+                        JOIN geolocation.addresses ON ((offices.__address_id = addresses.__id)))
+                        JOIN geolocation.cities ON ((addresses.__city_id = cities.__id)))
+                ),
+                devs AS (
+                    SELECT
+                        dv.__type_id AS dev_type_id,
+                        dv.__location_id AS location_id,
+                        net.__id AS net_id,
+                        (net.address)::INET AS network,
+                        regexp_replace((dv.details ->> \'hostname\'::TEXT), \'([a-z_0-9]+)-([a-z0-9]+)-.*\'::TEXT, \'\1-\2\'::TEXT) AS short_hostname,
+                        dp.masklen,
+                        apt.type AS dev_type,
+                        ((date_part(\'epoch\'::TEXT, age(now(), dp."lastUpdate")) / (3600)::DOUBLE PRECISION))::INTEGER AS port_age
+                    FROM (((equipment.appliances dv
+                        JOIN equipment."applianceTypes" apt ON ((dv.__type_id = apt.__id)))
+                        JOIN equipment."dataPorts" dp ON ((dv.__id = dp.__appliance_id)))
+                        JOIN network.networks net ON ((dp.__network_id = net.__id)))
+                )
+            SELECT
+                (host(devs.network))::INET AS network,
+                devs.masklen AS range,
+                host(broadcast(inet (host(network) || \'/\' || devs.masklen))) AS broadcast,
+                locs.office
+            FROM devs
+                JOIN locs USING (location_id)
+            WHERE (devs.dev_type_id = 6) AND (devs.masklen < 30) AND (devs.port_age < 72)
+            GROUP BY devs.network, devs.short_hostname, devs.masklen, locs.office, locs.city, locs.office_address
+            ORDER BY (host(devs.network))::INET'
     ];
     
     protected static $staticErrors = [];
@@ -379,6 +416,12 @@ class Network extends Model
         $result = Network::findByQuery($query, [':address' => $address, ':vrf_id' => $vrf->getPk()]);
         return $result;
     }
+
+    public static function allLocation()
+    {
+        return Network::findAllByQuery(new Query(self::SQL['networks_location']), []);
+    }
+
 //    public static function findAll($options = [])
 //    {
 //        $allowedSortFields = [
