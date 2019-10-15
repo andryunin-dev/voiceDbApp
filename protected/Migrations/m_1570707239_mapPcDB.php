@@ -16,7 +16,7 @@ class m_1570707239_mapPcDB
 
         $sql['create schema'] = 'CREATE SCHEMA IF NOT EXISTS pc';
         $sql['create server'] = '
-            CREATE SERVER IF NOT EXISTS pc_data
+            CREATE SERVER pc_data
             FOREIGN DATA WRAPPER postgres_fdw
             OPTIONS (host \'ts-it12.rs.ru\', dbname \'SysInfo\')';
         $sql['create user'] = '
