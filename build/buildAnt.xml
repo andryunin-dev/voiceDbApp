@@ -47,6 +47,11 @@
         <filter token="ssh.login" value="${ssh.login}" />
         <filter token="ssh.password" value="${ssh.password}" />
 
+        <filter token="pcData.host" value="${pcData.host}" />
+        <filter token="pcData.user" value="${pcData.user}" />
+        <filter token="pcData.password" value="${pcData.password}" />
+        <filter token="pcData.name" value="${pcData.name}" />
+
         <copy todir="${config.target.dir}" filtering="true" overwrite="true">
             <fileset file="${src.configTemplate}" />
         </copy>
