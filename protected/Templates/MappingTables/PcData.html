@@ -1,0 +1,75 @@
+{% extends 'SimpleBootstrap.html' %}
+{% block main %}
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>pc_mac</th>
+                <th>pc_os_name</th>
+                <th>pc_os_edition</th>
+                <th>pc_os_version</th>
+                <th>pc_os_spNumber</th>
+                <th>pc_os_bitsNumber</th>
+                <th>pc_kernel</th>
+                <th>pc_mstsc</th>
+                <th>pc_name</th>
+                <th>pc_ip</th>
+                <th>pc_drive_serial</th>
+                <th>pc_drive_size</th>
+                <th>pc_cpu</th>
+                <th>pc_memory</th>
+                <th>pc_last_update</th>
+                <th>pc_inv_number</th>
+                <th>pc_inv_update</th>
+                <th>pc_last_refresh</th>
+                <th>sw_port</th>
+                <th>clients_mac_amount</th>
+                <th>sw_hostname</th>
+                <th>sw_model</th>
+                <th>sw_serialNumber</th>
+                <th>sw_inventoryNumber</th>
+                <th>sw_ipAddress</th>
+                <th>sw_reg_center</th>
+                <th>sw_city</th>
+                <th>sw_office</th>
+                <th>phone_model</th>
+                <th>phone_d</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pc in pcData %}
+            <tr>
+                <td><pre>{{ pc.pc_mac }}</pre></td>
+                <td><pre>{{ pc.pc_os_name }}</pre></td>
+                <td><pre>{{ pc.pc_os_edition }}</pre></td>
+                <td><pre>{{ pc.pc_os_version }}</pre></td>
+                <td><pre>{{ pc.pc_os_sp }}</pre></td>
+                <td><pre>{{ pc.pc_os_bits }}</pre></td>
+                <td><pre>{{ pc.pc_kernel }}</pre></td>
+                <td><pre>{{ pc.pc_mstsc }}</pre></td>
+                <td><pre>{{ pc.pc_name }}</pre></td>
+                <td><pre>{{ pc.pc_ip }}</pre></td>
+                <td><pre>{{ pc.pc_drive_serial }}</pre></td>
+                <td><pre>{{ pc.pc_drive_size }}</pre></td>
+                <td><pre>{{ pc.pc_cpu }}</pre></td>
+                <td><pre>{{ pc.pc_memory }}</pre></td>
+                <td><pre>{{ pc.pc_last_update }}</pre></td>
+                <td><pre>{{ pc.pc_inv_number }}</pre></td>
+                <td><pre>{{ pc.pc_inv_update }}</pre></td>
+                <td><pre>{{ pc.pc_last_refresh }}</pre></td>
+                <td><pre>{{ pc.sw_port }}</pre></td>
+                <td><pre>{{ pc.clients_mac_amount }}</pre></td>
+                <td><pre>{{ pc.sw_hostname }}</pre></td>
+                <td><pre>{{ pc.sw_model }}</pre></td>
+                <td><pre>{{ pc.sw_serialNumber }}</pre></td>
+                <td><pre>{{ pc.sw_inventoryNumber }}</pre></td>
+                <td><pre>{{ pc.sw_ipAddress }}</pre></td>
+                <td><pre>{{ pc.sw_reg_center }}</pre></td>
+                <td><pre>{{ pc.sw_city }}</pre></td>
+                <td><pre>{{ pc.sw_office }}</pre></td>
+                <td><pre>{{ pc.phone_model }}</pre></td>
+                <td><pre>{{ pc.phone_dn }}</pre></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

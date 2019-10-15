@@ -29,6 +29,13 @@ return [
             'user' => '@cdrDb.user@',
             'password' => '@cdrDb.password@',
             'dbname' => '@cdrDb.name@'
+        ],
+        'pcData' => [
+            'driver' => 'pgsql',
+            'host' => '@pcData.host@',
+            'user' => '@pcData.user@',
+            'password' => '@pcData.password@',
+            'dbname' => '@pcData.name@'
         ]
     ],
     'axl' => [
