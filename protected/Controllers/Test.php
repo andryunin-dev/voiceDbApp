@@ -19,15 +19,33 @@ use T4\Core\Std;
 use App\ViewModels\DevModulePortGeo;
 use App\ViewModels\MappedLocations_View;
 use T4\Core\Collection;
+use T4\Dbal\Connection;
 use T4\Dbal\Query;
 use T4\Mvc\Controller;
 use T4\Mvc\Route;
 
 class Test extends Controller
 {
+
+    const SQL = [
+        'loc_and_rc' => '
+        SELECT loc.lotus_id lid, loc.title loc, loc.address addr, loc.region reg, COALESCE(map_loc.reg_center, loc.reg_center) rc
+FROM lotus.locations loc
+LEFT JOIN mapping."lotusLocations" map_loc USING (lotus_id)
+ORDER BY loc'
+    ];
     public function actionInfo()
     {
         phpinfo();
+    }
+
+    public function actionTestSql() {
+        /**
+         * @var Connection $conn
+         */
+        $conn = $this->app->db->default;
+        $res = $conn->query(self::SQL['loc_and_rc'])->fetchAll(\PDO::FETCH_ASSOC);
+        var_dump($res);die;
     }
     public function actionSnmp($name)
     {
