@@ -7,6 +7,7 @@ use App\MappingModels\LotusLocation;
 use App\Models\Appliance;
 use App\Models\Network;
 use App\Models\Vrf;
+use App\Storage1CModels\Rooms1C;
 use App\ViewModels\ApiView_Devices;
 use App\ViewModels\ApiView_DPorts;
 use App\ViewModels\ApiView_Employee;
@@ -18,6 +19,7 @@ use App\ViewModels\Geo_View;
 use App\ViewModels\LotusDbData;
 use T4\Core\Exception;
 use T4\Core\Std;
+use T4\Dbal\Connection;
 use T4\Dbal\Query;
 use T4\Mvc\Controller;
 
@@ -50,10 +52,43 @@ class Api extends Controller
         JOIN api_view.devices dev USING (dev_id)
         JOIN api_view.geo geo ON dev.location_id = geo.office_id
         WHERE dp.port_id = :port_id
+        ',
+        'getRegCenters' => 'SELECT loc.reg_center "value", loc.reg_center "label"
+            FROM lotus.locations loc
+            UNION
+            SELECT map_loc.reg_center "value", map_loc.reg_center "label" FROM mapping."lotusLocations" map_loc
+            ORDER BY label',
+        'loc_and_rc' => '
+            SELECT loc.lotus_id id, loc.title loc, loc.address addr, loc.region reg, COALESCE(map_loc.reg_center, loc.reg_center) rc
+            FROM lotus.locations loc
+            LEFT JOIN mapping."lotusLocations" map_loc USING (lotus_id)
+            ORDER BY loc.lotus_id
         '
     ];
 
-    public function actionGetRegCenters()
+    public function actionGetLocations() {
+        /**
+         * @var Connection $conn
+         */
+        $conn = $this->app->db->default;
+        try {
+            $this->data->result = $conn->query(self::SQL['loc_and_rc'])->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            $this->data->error = $e->getMessage();
+        }
+    }
+    public function actionGetRegCenters() {
+        /**
+         * @var Connection $conn
+         */
+        $conn = $this->app->db->default;
+        try {
+            $this->data->result = $conn->query(self::SQL['getRegCenters'])->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            $this->data->error = $e->getMessage();
+        }
+    }
+    public function actionGetRegCenters_old()
     {
         // respond to preflights
         if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
@@ -149,6 +184,17 @@ class Api extends Controller
             $output[] = ['value' => $item->city_id, 'label' => $item->city];
         }
         $this->data->cities = $output;
+    }
+
+    public function actionGetOneCRooms()
+    {
+        // respond to preflights
+        if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+            exit;
+        }
+        $res = Rooms1C::findAllByQuery(self::SQL['getRooms1C']);
+        $res = $res->toArrayRecursive();
+        $this->data->res = $res;
     }
 
     public function actionGetOffices()
