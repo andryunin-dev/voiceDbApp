@@ -49,8 +49,10 @@ class Api extends Controller
         JOIN api_view.vrfs vrf ON dp.port_vrf_id = vrf.vrf_id
         JOIN api_view.devices dev USING (dev_id)
         JOIN api_view.geo geo ON dev.location_id = geo.office_id
-        WHERE dp.port_id = :port_id
-        '
+        WHERE dp.port_id = :port_id',
+        'networks' => '
+            SELECT network, range AS prefix, host(broadcast(inet (host(network) || \'/\' || range))) AS broadcast, office
+            FROM view.net_report',
     ];
 
     public function actionGetRegCenters()
@@ -614,6 +616,15 @@ class Api extends Controller
             }
             $this->data->location = $data;
         }
+    }
+
+    public function actionNetworks()
+    {
+        $networks = [];
+        foreach (Network::allLocations() as $network) {
+            $networks[] = $network->toArray();
+        }
+        $this->data->networks = $networks;
     }
 
     private function methodGET() {

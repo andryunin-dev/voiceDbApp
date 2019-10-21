@@ -1,0 +1,75 @@
+{% extends 'SimpleBootstrap.html' %}
+{% block main %}
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>pc_mac</th>
+                <th>pc_os_name</th>
+                <th>pc_os_edition</th>
+                <th>pc_os_version</th>
+                <th>pc_os_spNumber</th>
+                <th>pc_os_bitsNumber</th>
+                <th>pc_kernel</th>
+                <th>pc_mstsc</th>
+                <th>pc_name</th>
+                <th>pc_ip</th>
+                <th>pc_drive_serial</th>
+                <th>pc_drive_size</th>
+                <th>pc_cpu</th>
+                <th>pc_memory</th>
+                <th>pc_last_update</th>
+                <th>pc_inv_number</th>
+                <th>pc_inv_update</th>
+                <th>pc_last_refresh</th>
+                <th>sw_port</th>
+                <th>clients_mac_amount</th>
+                <th>sw_hostname</th>
+                <th>sw_model</th>
+                <th>sw_serialNumber</th>
+                <th>sw_inventoryNumber</th>
+                <th>sw_ipAddress</th>
+                <th>sw_reg_center</th>
+                <th>sw_city</th>
+                <th>sw_office</th>
+                <th>phone_model</th>
+                <th>phone_d</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pc in pcData %}
+            <tr>
+                <td>{{ pc.pc_mac }}</td>
+                <td>{{ pc.pc_os_name }}</td>
+                <td>{{ pc.pc_os_edition }}</td>
+                <td>{{ pc.pc_os_version }}</td>
+                <td>{{ pc.pc_os_sp }}</td>
+                <td>{{ pc.pc_os_bits }}</td>
+                <td>{{ pc.pc_kernel }}</td>
+                <td>{{ pc.pc_mstsc }}</td>
+                <td>{{ pc.pc_name }}</td>
+                <td>{{ pc.pc_ip }}</td>
+                <td>{{ pc.pc_drive_serial }}</td>
+                <td>{{ pc.pc_drive_size }}</td>
+                <td>{{ pc.pc_cpu }}</td>
+                <td>{{ pc.pc_memory }}</td>
+                <td>{{ pc.pc_last_update }}</td>
+                <td>{{ pc.pc_inv_number }}</td>
+                <td>{{ pc.pc_inv_update }}</td>
+                <td>{{ pc.pc_last_refresh }}</td>
+                <td>{{ pc.sw_port }}</td>
+                <td>{{ pc.clients_mac_amount }}</td>
+                <td>{{ pc.sw_hostname }}</td>
+                <td>{{ pc.sw_model }}</td>
+                <td>{{ pc.sw_serialNumber }}</td>
+                <td>{{ pc.sw_inventoryNumber }}</td>
+                <td>{{ pc.sw_ipAddress }}</td>
+                <td>{{ pc.sw_reg_center }}</td>
+                <td>{{ pc.sw_city }}</td>
+                <td>{{ pc.sw_office }}</td>
+                <td>{{ pc.phone_model }}</td>
+                <td>{{ pc.phone_dn }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
