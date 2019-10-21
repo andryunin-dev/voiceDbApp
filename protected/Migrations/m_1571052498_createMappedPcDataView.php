@@ -128,7 +128,7 @@ class m_1571052498_createMappedPcDataView
 
     public function down()
     {
-        $sql['drop view mappedPcData'] = 'DROP VIEW IF EXISTS view.mappedPcData';
+        $sql['drop view mappedPcData'] = 'DROP VIEW IF EXISTS view."mappedPcData"';
 
         foreach ($sql as $key => $query) {
             if (true === $this->db->execute($query)) {
