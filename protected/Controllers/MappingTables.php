@@ -36,7 +36,6 @@ class MappingTables extends Controller
 
     public function actionPcData()
     {
-        (new MappedPcData())->refresh();
-        $this->data->pcData = MappedPcData::findAll();
+        $this->data->pcData = MappedPcData::findAllWithMappedDivision();
     }
 }

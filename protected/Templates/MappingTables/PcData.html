@@ -7,12 +7,11 @@
                 <th>pc_os_name</th>
                 <th>pc_os_edition</th>
                 <th>pc_os_version</th>
-                <th>pc_os_spNumber</th>
-                <th>pc_os_bitsNumber</th>
+                <th>pc_os_sp</th>
+                <th>pc_os_bits</th>
                 <th>pc_kernel</th>
                 <th>pc_mstsc</th>
                 <th>pc_name</th>
-                <th>pc_ip</th>
                 <th>pc_drive_serial</th>
                 <th>pc_drive_size</th>
                 <th>pc_cpu</th>
@@ -20,19 +19,30 @@
                 <th>pc_last_update</th>
                 <th>pc_inv_number</th>
                 <th>pc_inv_update</th>
-                <th>pc_last_refresh</th>
-                <th>sw_port</th>
-                <th>clients_mac_amount</th>
+                <th>pc_rn</th>
+                <th>pc_ip</th>
                 <th>sw_hostname</th>
+                <th>sw_ip</th>
                 <th>sw_model</th>
                 <th>sw_serialNumber</th>
                 <th>sw_inventoryNumber</th>
-                <th>sw_ipAddress</th>
+                <th>sw_interface</th>
+                <th>client_mac_amount</th>
+                <th>dhcp</th>
+                <th>vpn</th>
+                <th>sw_office</th>
                 <th>sw_reg_center</th>
                 <th>sw_city</th>
-                <th>sw_office</th>
+                <th>sw_address</th>
+                <th>pc_ses_login</th>
+                <th>pc_ses_domain</th>
+                <th>employee</th>
+                <th>position</th>
                 <th>phone_model</th>
-                <th>phone_d</th>
+                <th>phone_dn</th>
+                {% for i in range(0, 9) %}
+                    <th>division_part_{{ i }}</th>
+                {% endfor %}
             </tr>
         </thead>
         <tbody>
@@ -47,7 +57,6 @@
                 <td>{{ pc.pc_kernel }}</td>
                 <td>{{ pc.pc_mstsc }}</td>
                 <td>{{ pc.pc_name }}</td>
-                <td>{{ pc.pc_ip }}</td>
                 <td>{{ pc.pc_drive_serial }}</td>
                 <td>{{ pc.pc_drive_size }}</td>
                 <td>{{ pc.pc_cpu }}</td>
@@ -55,19 +64,30 @@
                 <td>{{ pc.pc_last_update }}</td>
                 <td>{{ pc.pc_inv_number }}</td>
                 <td>{{ pc.pc_inv_update }}</td>
-                <td>{{ pc.pc_last_refresh }}</td>
-                <td>{{ pc.sw_port }}</td>
-                <td>{{ pc.clients_mac_amount }}</td>
+                <td>{{ pc.pc_rn }}</td>
+                <td>{{ pc.pc_ip }}</td>
                 <td>{{ pc.sw_hostname }}</td>
+                <td>{{ pc.sw_ip }}</td>
                 <td>{{ pc.sw_model }}</td>
                 <td>{{ pc.sw_serialNumber }}</td>
                 <td>{{ pc.sw_inventoryNumber }}</td>
-                <td>{{ pc.sw_ipAddress }}</td>
+                <td>{{ pc.sw_interface }}</td>
+                <td>{{ pc.client_mac_amount }}</td>
+                <td>{{ pc.dhcp }}</td>
+                <td>{{ pc.vpn }}</td>
+                <td>{{ pc.sw_office }}</td>
                 <td>{{ pc.sw_reg_center }}</td>
                 <td>{{ pc.sw_city }}</td>
-                <td>{{ pc.sw_office }}</td>
+                <td>{{ pc.sw_address }}</td>
+                <td>{{ pc.pc_ses_login }}</td>
+                <td>{{ pc.pc_ses_domain }}</td>
+                <td>{{ pc.employee }}</td>
+                <td>{{ pc.position }}</td>
                 <td>{{ pc.phone_model }}</td>
                 <td>{{ pc.phone_dn }}</td>
+                {% for divisionPart in pc.divisionParts %}
+                    <td>{{ divisionPart }}</td>
+                {% endfor %}
             </tr>
             {% endfor %}
         </tbody>

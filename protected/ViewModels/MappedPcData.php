@@ -2,7 +2,7 @@
 
 namespace App\ViewModels;
 
-use T4\Mvc\Application;
+use T4\Core\Collection;
 use T4\Orm\Model;
 
 /**
@@ -18,25 +18,33 @@ use T4\Orm\Model;
  * @property string $pc_kernel
  * @property string $pc_mstsc
  * @property string $pc_name
- * @property string $pc_ip
  * @property string $pc_drive_serial
  * @property int $pc_drive_size
  * @property string $pc_cpu
  * @property string $pc_memory
- * @property string $pc_last_update
+ * @property datetime $pc_last_update
  * @property string $pc_inv_number
- * @property string $pc_inv_update
- * @property string $pc_last_refresh
- * @property string $sw_port
- * @property int $clients_mac_amount
+ * @property datetime $pc_inv_update
+ * @property string $pc_rn
+ * @property string $pc_ip
+ * @property string $pc_ses_login
+ * @property string $pc_ses_domain
  * @property string $sw_hostname
+ * @property string $sw_ip
+ * @property string $sw_interface
+ * @property int $client_mac_amount
+ * @property datetime $dhcp
+ * @property int $vpn
+ * @property string $employee
+ * @property string $position
+ * @property string $division
  * @property string $sw_model
  * @property string $sw_serialNumber
  * @property string $sw_inventoryNumber
- * @property string $sw_ipAddress
+ * @property string $sw_office
  * @property string $sw_reg_center
  * @property string $sw_city
- * @property string $sw_office
+ * @property string $sw_address
  * @property string $phone_model
  * @property string $phone_dn
  */
@@ -54,7 +62,6 @@ class MappedPcData extends Model
             'pc_kernel' => ['type' => 'string'],
             'pc_mstsc' => ['type' => 'string'],
             'pc_name' => ['type' => 'string'],
-            'pc_ip' => ['type' => 'string'],
             'pc_drive_serial' => ['type' => 'string'],
             'pc_drive_size' => ['type' => 'int'],
             'pc_cpu' => ['type' => 'string'],
@@ -62,17 +69,26 @@ class MappedPcData extends Model
             'pc_last_update' => ['type' => 'datetime'],
             'pc_inv_number' => ['type' => 'string'],
             'pc_inv_update' => ['type' => 'datetime'],
-            'pc_last_refresh' => ['type' => 'string'],
-            'sw_port' => ['type' => 'string'],
-            'clients_mac_amount' => ['type' => 'int'],
+            'pc_rn' => ['type' => 'string'],
+            'pc_ip' => ['type' => 'string'],
+            'pc_ses_login' => ['type' => 'string'],
+            'pc_ses_domain' => ['type' => 'string'],
             'sw_hostname' => ['type' => 'string'],
+            'sw_ip' => ['type' => 'string'],
+            'sw_interface' => ['type' => 'string'],
+            'client_mac_amount' => ['type' => 'int'],
+            'dhcp' => ['type' => 'datetime'],
+            'vpn' => ['type' => 'int'],
+            'employee' => ['type' => 'string'],
+            'position' => ['type' => 'string'],
+            'division' => ['type' => 'string'],
             'sw_model' => ['type' => 'string'],
             'sw_serialNumber' => ['type' => 'string'],
             'sw_inventoryNumber' => ['type' => 'string'],
-            'sw_ipAddress' => ['type' => 'string'],
+            'sw_office' => ['type' => 'string'],
             'sw_reg_center' => ['type' => 'string'],
             'sw_city' => ['type' => 'string'],
-            'sw_office' => ['type' => 'string'],
+            'sw_address' => ['type' => 'string'],
             'phone_model' => ['type' => 'string'],
             'phone_dn' => ['type' => 'string'],
         ]
@@ -83,14 +99,29 @@ class MappedPcData extends Model
         return false;
     }
 
-    public function refresh()
+    public static function findAllWithMappedDivision()
     {
-        $queries = [
-            'REFRESH MATERIALIZED VIEW view.pc__device',
-            'REFRESH MATERIALIZED VIEW view.pc__ip_mac'
-        ];
-        foreach ($queries as $sql) {
-            Application::instance()->db->default->execute($sql);
+        $pc = new Collection();
+        foreach (self::findAll() as $item) {
+            $divisionParts = [
+                0 => '',
+                1 => '',
+                2 => '',
+                3 => '',
+                4 => '',
+                5 => '',
+                6 => '',
+                7 => '',
+                8 => '',
+                9 => '',
+            ];
+            foreach (explode('\\', $item->division) as $key => $value) {
+                $divisionParts[$key] = $value;
+            }
+            $item->divisionParts = $divisionParts;
+            $pc->add($item);
         }
+        return $pc;
     }
+
 }
