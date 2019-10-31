@@ -17,6 +17,7 @@ use App\ViewModels\ApiView_Networks;
 use App\ViewModels\ApiView_Vrfs;
 use App\ViewModels\Geo_View;
 use App\ViewModels\LotusDbData;
+use T4\Core\Collection;
 use T4\Core\Exception;
 use T4\Core\Std;
 use T4\Dbal\Connection;
@@ -62,17 +63,28 @@ class Api extends Controller
             SELECT loc.lotus_id id, loc.title loc, loc.address addr, loc.region reg, COALESCE(map_loc.reg_center, loc.reg_center) rc
             FROM lotus.locations loc
             LEFT JOIN mapping."lotusLocations" map_loc USING (lotus_id)
-            ORDER BY loc.lotus_id
+            ORDER BY %s
+            LIMIT 20
         '
     ];
 
-    public function actionGetLocations() {
+    public function actionGetLocations($filter = [], $sorting = []) {
+        $sortClauses = [];
+        foreach ($sorting as $item) {
+            $sortItem = json_decode($item, true);
+            foreach ($sortItem as $key => $value) {
+                $sortClauses[] = $key . ' ' . $value;
+            }
+        }
+        $sortClause = implode(', ', $sortClauses);
+        $sortClause = empty($sortClause) ? 'loc.lotus_id' : $sortClause;
+        $sqlString = sprintf(self::SQL['loc_and_rc'], $sortClause);
         /**
          * @var Connection $conn
          */
         $conn = $this->app->db->default;
         try {
-            $this->data->result = $conn->query(self::SQL['loc_and_rc'])->fetchAll(\PDO::FETCH_ASSOC);
+            $this->data->result = $conn->query($sqlString)->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\Exception $e) {
             $this->data->error = $e->getMessage();
         }

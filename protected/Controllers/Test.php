@@ -32,7 +32,7 @@ class Test extends Controller
         SELECT loc.lotus_id lid, loc.title loc, loc.address addr, loc.region reg, COALESCE(map_loc.reg_center, loc.reg_center) rc
 FROM lotus.locations loc
 LEFT JOIN mapping."lotusLocations" map_loc USING (lotus_id)
-ORDER BY loc'
+ORDER BY %s'
     ];
     public function actionInfo()
     {
@@ -40,6 +40,7 @@ ORDER BY loc'
     }
 
     public function actionTestSql() {
+
         /**
          * @var Connection $conn
          */
