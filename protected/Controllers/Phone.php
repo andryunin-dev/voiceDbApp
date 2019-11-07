@@ -23,11 +23,15 @@ class Phone extends Controller
         'phone_inventoryNumber' => '
             SELECT inventory_number
             FROM storage_1c.foreign_1c
-            WHERE serial_number = :serial_number',
+            WHERE serial_number LIKE :serial_number',
     ];
 
     public function actionPhoneData($name = null)
     {
+        // respond to preflights
+        if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+            exit;
+        }
         // Find the phone's data in the cucms
         $cmd = 'php '.ROOT_PATH.DS.'protected'.DS.'t4.php cucmsPhones/getPhoneByName2 --name='. $name;
         exec($cmd, $output);
@@ -49,7 +53,7 @@ class Phone extends Controller
             $inventoryNumber = '';
             if (!empty($phoneData['serialNumber'])) {
                 $items = PhoneInfo::getDbConnection()
-                    ->query(self::SQL['phone_inventoryNumber'], [':serial_number' => $phoneData['serialNumber']])
+                    ->query(self::SQL['phone_inventoryNumber'], [':serial_number' => '%' . $phoneData['serialNumber']])
                     ->fetchAll(\PDO::FETCH_ASSOC);
                 if (count($items) > 0) {
                     $inventoryNumber = array_reduce($items,
@@ -60,7 +64,8 @@ class Phone extends Controller
                     );
                 }
             }
-            $phoneData['inventoryNumber'] = 'InvN: ' . $inventoryNumber . '; SN: ' . $phoneData['serialNumber'];
+//            $phoneData['inventoryNumber'] = 'InvN: ' . $inventoryNumber . '; SN: ' . $phoneData['serialNumber'];
+            $phoneData['inventoryNumber'] = $inventoryNumber;
         }
         $this->data->result = [
             'errors' => $errors,
