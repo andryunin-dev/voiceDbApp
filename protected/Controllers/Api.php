@@ -54,6 +54,9 @@ class Api extends Controller
         JOIN api_view.geo geo ON dev.location_id = geo.office_id
         WHERE dp.port_id = :port_id
         ',
+        'networks' => '
+            SELECT network, range AS prefix, host(broadcast(inet (host(network) || \'/\' || range))) AS broadcast, office
+            FROM view.net_report',
         'getRegCenters' => 'SELECT loc.reg_center "value", loc.reg_center "label"
             FROM lotus.locations loc
             UNION
@@ -89,7 +92,8 @@ class Api extends Controller
             $this->data->error = $e->getMessage();
         }
     }
-    public function actionGetRegCenters() {
+    public function actionGetRegCenters()
+    {
         /**
          * @var Connection $conn
          */
@@ -99,36 +103,6 @@ class Api extends Controller
         } catch (\Exception $e) {
             $this->data->error = $e->getMessage();
         }
-    }
-    public function actionGetRegCenters_old()
-    {
-        // respond to preflights
-        if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
-            exit;
-        }
-        $table = Geo_View::getTableName();
-        $filters = new Std(json_decode(file_get_contents('php://input')));
-        $condition = ['"regCenter" NOTNULL'];
-        $fields = ['"regCenter"'];
-        $orderBy = ['"regCenter"'];
-        if (!empty($filters->value)) {
-            $condition[] = $filters->accessor . $filters->statement . $filters->value;
-        }
-        $query = (new Query())
-            ->select(join(',',$fields))
-            ->from($table)
-            ->where(join(' AND ', $condition))
-            ->group(join(',',$fields))
-            ->order(join(',',$orderBy));
-        $res = Geo_View::findAllByQuery($query);
-        $output = [];
-        /**
-         * @var Geo_View $item
-         */
-        foreach ($res as $item) {
-            $output[] = ['value' => $item->regCenter, 'label' => $item->regCenter];
-        }
-        $this->data->regCenters = $output;
     }
 
     public function actionGetRegions()
@@ -672,6 +646,15 @@ class Api extends Controller
             }
             $this->data->location = $data;
         }
+    }
+
+    public function actionNetworks()
+    {
+        $networks = [];
+        foreach (Network::allLocations() as $network) {
+            $networks[] = $network->toArray();
+        }
+        $this->data->networks = $networks;
     }
 
     private function methodGET() {
