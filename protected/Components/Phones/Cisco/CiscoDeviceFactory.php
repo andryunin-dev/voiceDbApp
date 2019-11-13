@@ -12,6 +12,7 @@ class CiscoDeviceFactory
             case 'cisco7942':
             case 'cisco7945':
             case 'cisco7960':
+            case 'cisco7962':
             case 'cisco7965':
             case 'cisco7975':
             case 'cisco8831':
