@@ -33,7 +33,7 @@ class Cucm
     public function phones(): array
     {
         try {
-            $risPhonesData = $this->cucmRis->registeredPhonesWithNames($this->cucmAxl->phonesNames()); //todo - uncomment
+            $risPhonesData = $this->cucmRis->registeredPhonesWithNames($this->cucmAxl->phonesNames());
             $axlPhonesData = $this->cucmAxl->phones();
         } catch (\Throwable $e) {
             $this->logger->error('[message]=' . $e->getMessage() . ' [publisher]=' . $this->ip);
@@ -77,6 +77,15 @@ class Cucm
             $this->logger->error('[message]=' . $e->getMessage() . ' [name]=' . $name . ' [publisher]=' . $this->ip);
             throw new \Exception('Runtime error');
         }
+    }
+
+    /**
+     * @return array Rediracted Phones
+     * @throws \Exception
+     */
+    public function redirectedPhones()
+    {
+        return $this->cucmAxl->redirectedPhones();
     }
 
     /**
