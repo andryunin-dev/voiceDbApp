@@ -78,6 +78,8 @@ class MappedPcData extends Model
             'sw_interface' => ['type' => 'string'],
             'client_mac_amount' => ['type' => 'int'],
             'dhcp' => ['type' => 'datetime'],
+            'sysinfo_agent' => ['type' => 'int'],
+            'sccm_agent' => ['type' => 'datetime'],
             'vpn' => ['type' => 'int'],
             'employee' => ['type' => 'string'],
             'position' => ['type' => 'string'],
@@ -119,9 +121,30 @@ class MappedPcData extends Model
                 $divisionParts[$key] = $value;
             }
             $item->divisionParts = $divisionParts;
+            if (!is_null($item->sysinfo_agent)) {
+                $item->sysinfo_agent = self::stringConvertedSysinfo_agent($item->sysinfo_agent);
+            }
             $pc->add($item);
         }
         return $pc;
     }
 
+    private static function stringConvertedSysinfo_agent($val)
+    {
+        $BINARY_BASE = 2;
+        $DECIMAL_BASE = 10;
+        $BASE_YEAR = 2020;
+        $SIZE = 16;
+        $ZERO = '0';
+
+        $var = base_convert($val, $DECIMAL_BASE, $BINARY_BASE);
+        while (strlen($var) < $SIZE) {
+            $var = $ZERO.$var;
+        }
+        $buildNumber = base_convert(substr($var, -2, 2), $BINARY_BASE, $DECIMAL_BASE);
+        $day = base_convert(substr($var, -7, 5), $BINARY_BASE, $DECIMAL_BASE);
+        $month = base_convert(substr($var, -11, 4), $BINARY_BASE, $DECIMAL_BASE);
+        $year = base_convert(substr($var, -16, 5), $BINARY_BASE, $DECIMAL_BASE);
+        return $buildNumber . '_' . $day . '-' . $month . '-' . ($BASE_YEAR + $year);
+    }
 }
