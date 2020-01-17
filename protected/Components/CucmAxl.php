@@ -1,6 +1,8 @@
 <?php
 namespace App\Components;
 
+use App\Components\Cucm\Models\RedirectedPhone;
+
 class CucmAxl
 {
     private const SQL = [
@@ -9,7 +11,9 @@ class CucmAxl
         'phone_name' => 'SELECT name FROM device WHERE UPPER(name) LIKE UPPER(',
         'phones_names' => 'SELECT d.name FROM device d WHERE d.tkclass = 1 AND  d.tkmodel != 72',
         'redirectedPhones' => 'SELECT d.name as Device, d.description, css.name AS css, dp.name as devicepool, TRIM (TRAILING "." FROM (TRIM (TRAILING "X" FROM n2.dnorpattern))) as prefix, n.dnorpattern AS phonedn, n.alertingname as alertingName,cfd.cfadestination as ForwardAll, cfd.cfavoicemailenabled as Forward_All_Mail,n.cfbintdestination as ForwardBusyInternal ,n.cfbdestination as ForwardBusyExternal,n.cfnaintdestination as Forward_no_Answer_Internal,n.cfnadestination as Forward_no_Answer_External,n.cfurintdestination as Forward_Unregistred_internal,n.cfurdestination as Forward_Unregistred_External,n.cfnaduration,partition.name AS partition, tm.name AS model FROM device AS d INNER JOIN callingsearchspace AS css ON css.pkid = d.fkcallingsearchspace AND d.tkclass = 1 AND  d.tkmodel != 72 INNER JOIN devicenumplanmap AS dmap ON dmap.fkdevice = d.pkid left JOIN numplan AS n ON dmap.fknumplan = n.pkid inner join callforwarddynamic as cfd on cfd.fknumplan=n.pkid left JOIN routepartition AS partition ON partition.pkid = n.fkroutepartition left JOIN typemodel AS tm ON d.tkmodel = tm.enum left JOIN DevicePool AS dp ON dp.pkid = d.fkDevicePool left JOIN callingsearchspace AS css2 ON css2.clause LIKE "%" || partition.name || "%" left JOIN numplan AS n2 ON n2.fkcallingsearchspace_translation = css2.pkid WHERE n2.tkpatternusage = 3 AND n2.dnorpattern LIKE "5%" AND lessthan(LENGTH(substr( n2.dnorpattern,LENGTH(TRIM (TRAILING "X" FROM n2.dnorpattern))+1, LENGTH(n2.dnorpattern)-LENGTH(TRIM (TRAILING "X" FROM n2.dnorpattern)))),5) and dmap.numplanindex = 1 and (cfd.cfadestination !="" or n.cfbintdestination  !="" or n.cfbdestination  !="" or n.cfnaintdestination !="" or n.cfnadestination !="" or n.cfurintdestination  !="" or n.cfurdestination  !="")',
-        'redirectedPhonesWithPrefixes558and559' => 'SELECT d.name as Device, d.description, css.name AS css, dp.name as devicepool, n.dnorpattern AS phonedn, n.alertingname as alertingName,cfd.cfadestination as ForwardAll, cfd.cfavoicemailenabled as Forward_All_Mail,n.cfbintdestination as ForwardBusyInternal ,n.cfbdestination as ForwardBusyExternal,n.cfnaintdestination as Forward_no_Answer_Internal,n.cfnadestination as Forward_no_Answer_External,n.cfurintdestination as Forward_Unregistred_internal,n.cfurdestination as Forward_Unregistred_External,n.cfnaduration,tm.name AS model FROM device AS d INNER JOIN callingsearchspace AS css ON css.pkid = d.fkcallingsearchspace AND d.tkclass = 1 AND  d.tkmodel != 72 INNER JOIN devicenumplanmap AS dmap ON dmap.fkdevice = d.pkid left JOIN numplan AS n ON dmap.fknumplan = n.pkid inner join callforwarddynamic as cfd on cfd.fknumplan=n.pkid left JOIN typemodel AS tm ON d.tkmodel = tm.enum left JOIN DevicePool AS dp ON dp.pkid = d.fkDevicePool  WHERE dmap.numplanindex = 1 and (cfd.cfadestination !="" or n.cfbintdestination  !="" or n.cfbdestination  !="" or n.cfnaintdestination !="" or n.cfnadestination !="" or n.cfurintdestination  !="" or n.cfurdestination  !="")',
+        'redirectedPhonesWithPrefixes558or559' => 'SELECT d.name as Device, d.description, css.name AS css, dp.name as devicepool, n.dnorpattern AS phonedn, n.alertingname as alertingName,cfd.cfadestination as ForwardAll, cfd.cfavoicemailenabled as Forward_All_Mail,n.cfbintdestination as ForwardBusyInternal ,n.cfbdestination as ForwardBusyExternal,n.cfnaintdestination as Forward_no_Answer_Internal,n.cfnadestination as Forward_no_Answer_External,n.cfurintdestination as Forward_Unregistred_internal,n.cfurdestination as Forward_Unregistred_External,n.cfnaduration,tm.name AS model FROM device AS d INNER JOIN callingsearchspace AS css ON css.pkid = d.fkcallingsearchspace AND d.tkclass = 1 AND  d.tkmodel != 72 INNER JOIN devicenumplanmap AS dmap ON dmap.fkdevice = d.pkid left JOIN numplan AS n ON dmap.fknumplan = n.pkid inner join callforwarddynamic as cfd on cfd.fknumplan=n.pkid left JOIN typemodel AS tm ON d.tkmodel = tm.enum left JOIN DevicePool AS dp ON dp.pkid = d.fkDevicePool  WHERE dmap.numplanindex = 1 and (cfd.cfadestination !="" or n.cfbintdestination  !="" or n.cfbdestination  !="" or n.cfnaintdestination !="" or n.cfnadestination !="" or n.cfurintdestination  !="" or n.cfurdestination  !="")',
+        'redirectedPhonesWithCallForwardingNumber' => 'SELECT d.name as Device, d.description, css.name AS css, dp.name as devicepool, TRIM (TRAILING "." FROM (TRIM (TRAILING "X" FROM n2.dnorpattern))) as prefix, n.dnorpattern AS phonedn, n.alertingname as alertingName,cfd.cfadestination as ForwardAll, cfd.cfavoicemailenabled as Forward_All_Mail,n.cfbintdestination as ForwardBusyInternal ,n.cfbdestination as ForwardBusyExternal,n.cfnaintdestination as Forward_no_Answer_Internal,n.cfnadestination as Forward_no_Answer_External,n.cfurintdestination as Forward_Unregistred_internal,n.cfurdestination as Forward_Unregistred_External,n.cfnaduration,partition.name AS partition, tm.name AS model FROM device AS d INNER JOIN callingsearchspace AS css ON css.pkid = d.fkcallingsearchspace AND d.tkclass = 1 AND  d.tkmodel != 72 INNER JOIN devicenumplanmap AS dmap ON dmap.fkdevice = d.pkid left JOIN numplan AS n ON dmap.fknumplan = n.pkid inner join callforwarddynamic as cfd on cfd.fknumplan=n.pkid left JOIN routepartition AS partition ON partition.pkid = n.fkroutepartition left JOIN typemodel AS tm ON d.tkmodel = tm.enum left JOIN DevicePool AS dp ON dp.pkid = d.fkDevicePool left JOIN callingsearchspace AS css2 ON css2.clause LIKE "%" || partition.name || "%" left JOIN numplan AS n2 ON n2.fkcallingsearchspace_translation = css2.pkid WHERE n2.tkpatternusage = 3 AND n2.dnorpattern LIKE "5%" AND lessthan(LENGTH(substr( n2.dnorpattern,LENGTH(TRIM (TRAILING "X" FROM n2.dnorpattern))+1, LENGTH(n2.dnorpattern)-LENGTH(TRIM (TRAILING "X" FROM n2.dnorpattern)))),5) and dmap.numplanindex = 1 and ',
+        'redirectedPhonesWithCallForwardingNumberWithPrefixes558or559' => 'SELECT d.name as Device, d.description, css.name AS css, dp.name as devicepool, n.dnorpattern AS phonedn, n.alertingname as alertingName,cfd.cfadestination as ForwardAll, cfd.cfavoicemailenabled as Forward_All_Mail,n.cfbintdestination as ForwardBusyInternal ,n.cfbdestination as ForwardBusyExternal,n.cfnaintdestination as Forward_no_Answer_Internal,n.cfnadestination as Forward_no_Answer_External,n.cfurintdestination as Forward_Unregistred_internal,n.cfurdestination as Forward_Unregistred_External,n.cfnaduration,tm.name AS model FROM device AS d INNER JOIN callingsearchspace AS css ON css.pkid = d.fkcallingsearchspace AND d.tkclass = 1 AND  d.tkmodel != 72 INNER JOIN devicenumplanmap AS dmap ON dmap.fkdevice = d.pkid left JOIN numplan AS n ON dmap.fknumplan = n.pkid inner join callforwarddynamic as cfd on cfd.fknumplan=n.pkid left JOIN typemodel AS tm ON d.tkmodel = tm.enum left JOIN DevicePool AS dp ON dp.pkid = d.fkDevicePool  WHERE dmap.numplanindex = 1 and ',
     ];
 
     private const CUCM_PREFIX_MAP = [
@@ -56,7 +60,7 @@ class CucmAxl
      */
     public function phoneWithName(string $name)
     {
-        if (!$this->isPhoneExists($name)) {
+        if (!$this->isExistedPhone($name)) {
             return false;
         }
         $phone = $this->connection()->ExecuteSQLQuery(['sql' => self::SQL['phone'].'\''.$name.'\')'])->return->row;
@@ -88,6 +92,7 @@ class CucmAxl
     }
 
     /**
+     * Redirected Phones
      * @return array Redirected Phones
      * @throws \Exception
      */
@@ -97,15 +102,51 @@ class CucmAxl
             (array_key_exists($this->ip, self::CUCM_PREFIX_MAP)
                 && ("558" == self::CUCM_PREFIX_MAP[$this->ip] || "559" == self::CUCM_PREFIX_MAP[$this->ip])
             )
-                ? $this->connection()->ExecuteSQLQuery(['sql' => self::SQL['redirectedPhonesWithPrefixes558and559']])->return->row
+                ? $this->connection()->ExecuteSQLQuery(['sql' => self::SQL['redirectedPhonesWithPrefixes558or559']])->return->row
                 : $this->connection()->ExecuteSQLQuery(['sql' => self::SQL['redirectedPhones']])->return->row;
-        if (is_null($phones)) {
-            $phones = [];
-        }
+        return $this->castToRedirectedPhoneResult($phones);
+    }
+
+    /**
+     * Redirected Phones With Call Forwarding Number
+     * @param string $callForwardingNumber
+     * @return array Redirected Phones With Call Forwarding Number
+     * @throws \Exception
+     */
+    public function redirectedPhonesWithCallForwardingNumber(string $callForwardingNumber): array
+    {
+        $callForwardingNumberCondition = '(cfd.cfadestination ="'.$callForwardingNumber.'" or n.cfbintdestination  ="'.$callForwardingNumber.'" or n.cfbdestination  ="'.$callForwardingNumber.'" or n.cfnaintdestination ="'.$callForwardingNumber.'" or n.cfnadestination ="'.$callForwardingNumber.'" or n.cfurintdestination  ="'.$callForwardingNumber.'" or n.cfurdestination  ="'.$callForwardingNumber.'")';
+        $query =
+            (array_key_exists($this->ip, self::CUCM_PREFIX_MAP)
+                && ("558" == self::CUCM_PREFIX_MAP[$this->ip] || "559" == self::CUCM_PREFIX_MAP[$this->ip])
+            )
+                ? self::SQL['redirectedPhonesWithCallForwardingNumberWithPrefixes558or559'].$callForwardingNumberCondition
+                : self::SQL['redirectedPhonesWithCallForwardingNumber'].$callForwardingNumberCondition;
+        $phones = $this->connection()->ExecuteSQLQuery(['sql' => $query])->return->row;
+        return $this->castToRedirectedPhoneResult($phones);
+    }
+
+    /**
+     * @param $redirectedPhones
+     * @return array Redirected Phones
+     * @throws \T4\Core\MultiException
+     */
+    private function castToRedirectedPhoneResult($redirectedPhones): array
+    {
         $result = [];
-        foreach ($phones as $phone) {
-            $phone->cucm = $this->cucm();
-            $result[mb_strtoupper($phone->device)] = get_object_vars($phone);
+        if (!is_null($redirectedPhones)) {
+            if (!is_array($redirectedPhones)) {
+                $redirectedPhones = [$redirectedPhones];
+            }
+            foreach ($redirectedPhones as $phone) {
+                $phone = (new RedirectedPhone())->fill($phone);
+                $phone->cucm = $this->cucm();
+                $phone->lastUpdate =
+                    (new \DateTime('now',
+                        new \DateTimeZone('UTC')
+                    ))->format('Y-m-d H:i:s P');
+                $result[] = $phone;
+            }
         }
         return $result;
     }
@@ -124,7 +165,7 @@ class CucmAxl
      */
     private function validPrefix(string $prefix): string
     {
-        if ($this->isPrefixAssignManually()) {
+        if ($this->isManuallyAssignedPrefix()) {
             return self::CUCM_PREFIX_MAP[$this->ip];
         }
         return mb_ereg_replace('\..+', '', $prefix);
@@ -133,7 +174,7 @@ class CucmAxl
     /**
      * @return bool
      */
-    private function isPrefixAssignManually(): bool
+    private function isManuallyAssignedPrefix(): bool
     {
         return array_key_exists($this->ip, self::CUCM_PREFIX_MAP);
     }
@@ -143,7 +184,7 @@ class CucmAxl
      * @return bool
      * @throws \Exception
      */
-    private function isPhoneExists(string $name): bool
+    private function isExistedPhone(string $name): bool
     {
         $phoneName = $this->connection()->ExecuteSQLQuery(['sql' => self::SQL['phone_name'].'\''.$name.'\')'])->return->row;
         return is_null($phoneName) ? false : true;

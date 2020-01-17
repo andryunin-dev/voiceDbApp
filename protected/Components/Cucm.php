@@ -20,9 +20,27 @@ class Cucm
     {
         $this->ip = (new IpTools($ip))->address;
         $this->phones = [];
-        $axlConf = ('cli' == PHP_SAPI) ? (\T4\Console\Application::instance())->config->axl : (\T4\Mvc\Application::instance())->config->axl;
-        $this->cucmAxl = new CucmAxl($this->ip, new CucmAxlClient($this->ip, $axlConf->username, $axlConf->password));
-        $this->cucmRis = new CucmRis($this->ip, new CucmRisClient($this->ip, $axlConf->username, $axlConf->password));
+        $axlConf = ('cli' == PHP_SAPI)
+            ? (\T4\Console\Application::instance())->config->axl
+            : (\T4\Mvc\Application::instance())->config->axl;
+        $this->cucmAxl =
+            new CucmAxl(
+                $this->ip,
+                new CucmAxlClient(
+                    $this->ip,
+                    $axlConf->username,
+                    $axlConf->password
+                )
+            );
+        $this->cucmRis =
+            new CucmRis(
+                $this->ip,
+                new CucmRisClient(
+                    $this->ip,
+                    $axlConf->username,
+                    $axlConf->password
+                )
+            );
         $this->logger = StreamLogger::instanceWith('CUCM', ROOT_PATH.DS.'Logs'.DS.'cucm_'.$this->ip.'.log');
     }
 
@@ -47,7 +65,11 @@ class Cucm
                 }
                 $this->phones[] = $this->cucmPhoneWith($risData, $axlData);
             } catch (\Throwable $e) {
-                $this->logger->error('[message]=' . $e->getMessage() . ' [name]=' . $axlData['name'] . ' [publisher]=' . $this->ip);
+                $this->logger->error(
+                    '[message]=' . $e->getMessage()
+                    . ' [name]=' . $axlData['name']
+                    . ' [publisher]=' . $this->ip
+                );
             }
         }
         return $this->phones;
@@ -74,18 +96,51 @@ class Cucm
             }
             return $this->cucmPhoneWith($risData, $axlData);
         } catch (\Throwable $e) {
-            $this->logger->error('[message]=' . $e->getMessage() . ' [name]=' . $name . ' [publisher]=' . $this->ip);
+            $this->logger->error(
+                '[message]=' . $e->getMessage()
+                . ' [name]=' . $name .
+                ' [publisher]=' . $this->ip
+            );
             throw new \Exception('Runtime error');
         }
     }
 
     /**
+     * Rediracted Phones
      * @return array Rediracted Phones
      * @throws \Exception
      */
-    public function redirectedPhones()
+    public function redirectedPhones(): array
     {
-        return $this->cucmAxl->redirectedPhones();
+        try {
+            return $this->cucmAxl->redirectedPhones();
+        } catch (\Throwable $e) {
+            $this->logger->error(
+                '[message]=Redirected Phones: ' . $e->getMessage()
+                . ' [cucm]='. $this->ip
+            );
+            throw new \Exception('Runtime error');
+        }
+    }
+
+    /**
+     * Redirected Phones With Call Forwarding Number
+     * @param string $callForwardingNumber
+     * @return array Redirected Phones With Call Forwarding Number
+     * @throws \Exception
+     */
+    public function redirectedPhonesWithCallForwardingNumber(string $callForwardingNumber): array
+    {
+        try {
+            return $this->cucmAxl->redirectedPhonesWithCallForwardingNumber($callForwardingNumber);
+        } catch (\Throwable $e) {
+            $this->logger->error(
+                '[message]=Redirected Phones: ' . $e->getMessage()
+                . ' [callForwardingNumber]=' . $callForwardingNumber
+                . ' [cucm]='. $this->ip
+            );
+            throw new \Exception('Runtime error');
+        }
     }
 
     /**
@@ -107,9 +162,15 @@ class Cucm
                 throw new \Exception('Phone model does not known');
             }
         } catch (\Throwable $e) {
-            $this->logger->error('[message]=' . $e->getMessage() . ' [name]=' . $axlData['name'] . ' [publisher]=' . $this->ip);
+            $this->logger->error(
+                '[message]=' . $e->getMessage()
+                . ' [name]=' . $axlData['name']
+                . ' [publisher]=' . $this->ip
+            );
         }
         $publisherIp = ['publisherIp' => $this->ip];
-        return (new CucmDevice())->fill(array_merge($risData, $axlData, $realtimeData, $publisherIp));
+        return (new CucmDevice())->fill(
+            array_merge($risData, $axlData, $realtimeData, $publisherIp)
+        );
     }
 }
