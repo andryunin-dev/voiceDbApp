@@ -4,6 +4,7 @@ namespace App\Commands;
 
 use App\Components\Connection\SshConnection;
 use App\Components\Cucm;
+use App\Components\Cucm\Models\RedirectedPhone;
 use App\Components\DSPphones;
 use App\Components\RLogger;
 use App\Components\SshConnectableSwitch;
@@ -234,6 +235,53 @@ class CucmsPhones extends Command
             $logger->error('[message]=' . $e->getMessage() . ' [publisher]=' . $ip);
         }
         $this->writeLn('Phones cucm '. $ip .' updated');
+    }
+
+    /**
+     * Update redirected phones
+     * @throws \Exception
+     */
+    public function actionUpdateRedirectedPhones(): void
+    {
+        $logger = StreamLogger::instanceWith('PHONES_REDIRECTED_UPDATE');
+        $publishers = $this->publishers()->toArray();
+        array_walk(
+            $publishers,
+            function ($publisher) use ($logger) {
+                try {
+                    $redirectedPhones = (new Cucm($publisher->managementIp))->redirectedPhones();
+                    array_walk(
+                        $redirectedPhones,
+                        function ($redirectedPhone) use ($logger) {
+                            try {
+                                $redirectedPhone->persist();
+                            } catch (\Throwable $e) {
+                                $logger->error(
+                                    '[message]=' . $e->getMessage()
+                                    . ' [redirectedPhone]=' . $redirectedPhone->device
+                                    . ' [cucm]= ' . $redirectedPhone->cucm
+                                );
+                            }
+                        }
+                    );
+                } catch (\Throwable $e) {
+                    $logger->error(
+                        '[message]=' . $e->getMessage()
+                        . ' [cucm]= ' . $publisher->managementIp
+                    );
+                }
+            }
+        );
+        $redirectedPhones = RedirectedPhone::findAll()->toArray();
+        array_walk(
+            $redirectedPhones,
+            function ($redirectedPhone) {
+                if ($redirectedPhone->isOverdue()) {
+                    $redirectedPhone->delete();
+                }
+            }
+        );
+        $this->writeLn('Redirected phones updated');
     }
 
     /**
