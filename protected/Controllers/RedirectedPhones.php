@@ -2,9 +2,12 @@
 namespace App\Controllers;
 
 use App\Components\ContentFilter;
+use App\Components\Cucm;
 use App\Components\Cucm\Models\RedirectedPhone;
 use App\Components\Paginator;
 use App\Components\Sorter;
+use App\Models\Appliance;
+use App\Models\ApplianceType;
 use T4\Core\Std;
 use T4\Dbal\Query;
 use T4\Http\Request;
@@ -14,7 +17,7 @@ class RedirectedPhones extends Controller
 {
     public function actionDefault()
     {
-        $this->data->exportUrl = '/export/hardInvExcel';
+        $this->data->exportUrl = '/redirectedPhones/fromCucm';
     }
 
     public function actionRedirectedPhoneTable()
@@ -106,5 +109,31 @@ class RedirectedPhones extends Controller
                     break;
             }
         }
+    }
+
+    public function actionFromCucm()
+    {
+    }
+
+    /**
+     * Return Redirected Phones with given call forwarding number from Cucm:
+     * if exists then return Array of RedirectedPhone,
+     * else return []
+     * @throws \Exception
+     */
+    public function actionFromCucmWithCallForwardingNumber()
+    {
+        $result = ['error' => 'Bad parameters'];
+        $GETrequest = (new Request())->get;
+        if (0 < $GETrequest->count() && isset($GETrequest->cucmIp) && isset($GETrequest->callForwardingNumber)) {
+            $result = array_map(
+                function ($phone) {
+                    return $phone->toArray();
+                },
+                (new Cucm($GETrequest->cucmIp))->redirectedPhonesWithCallForwardingNumber($GETrequest->callForwardingNumber)
+            );
+        }
+        echo json_encode($result);
+        die;
     }
 }

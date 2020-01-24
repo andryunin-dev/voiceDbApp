@@ -111,8 +111,8 @@
         var APP = APP || {};
         if ("{{exportUrl}}") {
             $("#actions").removeClass("hidden");
-            $("#excelExport").removeClass("hidden");
-            APP.setLink("#excelExport", "{{ exportUrl }}");
+            $("#redirectedPhone").removeClass("hidden");
+            APP.setLink("#redirectedPhone", "{{ exportUrl }}");
         }
     </script>
 {% endblock %}
