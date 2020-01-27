@@ -4,6 +4,8 @@ namespace App\Controllers;
 
 use App\Components\Export\ApplianceToExcel;
 use App\Components\RLogger;
+use App\Models\Appliance;
+use App\Models\ApplianceType;
 use App\ViewModels\MappedLocations_View;
 use T4\Core\Exception;
 use T4\Dbal\Query;
@@ -178,6 +180,22 @@ class Export extends Controller
         header('Content-Type: application/csv');
         header('Content-Disposition: attachment; filename="'.$filename.'";');
         fpassthru($f);
+        die;
+    }
+
+    /**
+     * Return Cucm-Publisher's Ip Addresses
+     */
+    public function actionCucmPublishersIp()
+    {
+        echo json_encode(
+            array_map(
+                function ($cucm) {
+                    return $cucm->managementIp;
+                },
+                Appliance::findAllByType(ApplianceType::CUCM_PUBLISHER)->toArray()
+            )
+        );
         die;
     }
 }
