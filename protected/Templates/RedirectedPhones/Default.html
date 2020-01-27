@@ -1,0 +1,118 @@
+{% extends 'Index.html' %}
+
+{% block main %}
+    <div class="row">
+        <div class="col-xs-12">
+            <table id="dev_tab">
+                <thead>
+                <tr>
+                    <th></th>
+                </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+
+{% endblock %}
+
+
+
+{% block JS %}
+    <script>
+        tableSettings = {
+            dataUrl: "/redirectedPhones/redirectedPhoneTable.json",
+            width: '250',
+            header: {
+                tableClasses: "bg-primary table-bordered",
+                columns: {
+                    cucm: {id: 'cucm', name: 'Cucm', width: 3, sortable: true, filterable: true},
+                    phprefix: {id: 'phprefix', name: 'Prefix', width: 2, sortable: true, filterable: true},
+                    phonedn: {id: 'phonedn', name: 'DN', width: 2, sortable: true, filterable: true},
+                    forwardall: {id: 'forwardall', name: 'f_all', width: 4, sortable: true, filterable: true},
+                    forward_all_mail: {id: 'forward-all-mail', name: 'f_all_mail', width: 2, sortable: true, filterable: true},
+                    forwardbusyinternal: {id: 'forwardbusyinternal', name: 'f_busy_internal', width: 4, sortable: true, filterable: true},
+                    forwardbusyexternal: {id: 'forwardbusyexternal', name: 'f_busy_external', width: 4, sortable: true, filterable: true},
+                    forward_no_answer_internal: {id: 'forward-no-answer-internal', name: 'f_no_answer_internal', width: 4, sortable: true, filterable: true},
+                    forward_no_answer_external: {id: 'forward-no-answer-external', name: 'f_no_answer_external', width: 4, sortable: true, filterable: true},
+                    forward_unregistred_internal: {id: 'forward-unregistred-internal', name: 'f_unregistred_internal', width: 4, sortable: true, filterable: true},
+                    forward_unregistred_external: {id: 'forward-unregistred-external', name: 'f_unregistred_external', width: 4, sortable: true, filterable: true},
+                    device: {id: 'device', name: 'Device', width: 5, sortable: true, filterable: true},
+                    depiction: {id: 'depiction', name: 'Description', width: 6, sortable: true, filterable: true},
+                    css: {id: 'css', name: 'CSS', width: 8, sortable: true, filterable: true},
+                    devicepool: {id: 'devicepool', name: 'Device Pool', width: 8, sortable: true, filterable: true},
+                    alertingname: {id: 'alertingname', name: 'Alerting Name', width: 6, sortable: true, filterable: true},
+                    cfnaduration: {id: 'cfnaduration', name: 'CFNA Duration', width: 2, sortable: true, filterable: true},
+                    model: {id: 'model', name: 'Model', width: 5, sortable: true, filterable: true},
+                    partition: {id: 'partition', name: 'Partition', width: 7, sortable: true, filterable: true},
+                    lastUpdate: {id: 'last-update', name: 'Last Update', width: 9, sortable: false, filterable: false},
+                }
+            },
+            pager: {
+                rowsOnPage: 50,
+                rowList: [10,20,50,100,200,"все"]
+            },
+            styles: {
+                header: {
+                    table: {
+                        classes: ["bg-primary", "table-bordered"],
+                        css: {}
+                    }
+                },
+                body: {
+                    table: {
+                        classes: ["table", "cell-bordered", "cust-table-striped"],
+                        css: {}
+                    }
+                }
+            }
+        };
+
+        jQuery(function ($) {
+            var devTable = $("#dev_tab");
+            devTable.jqTable(tableSettings).jqTable('updateBodyContent', {}, window.location.href);
+            var toggleInnerTable = function (e) {
+                if ($(e.target).hasClass('toggler') || $(e.target).parents('.toggler').hasClass('toggler')) {
+                    $(e.target).closest("table").find("tbody tr td").slideToggle("fast");
+                    $(e.target).closest("table").find(".js-caret").toggleClass("caret-down");
+                }
+            };
+
+            devTable.jqTable('addBodyEventHandler', 'click', "", toggleInnerTable);
+            devTable.jqTable('addHeaderEventHandler', 'click', "", function (e) {
+                if ($(e.target).parent().hasClass('finder-icon') || $(e.target).hasClass('finder-icon')) {
+                    var ws = e.data;
+                    console.log('finder click');
+                    var $finder = $('<input/>', {type: 'text', class: 'finder-input'});
+                    ws.obj.$finder.blur(function (event) {
+                        console.log('focus out');
+                        ws.obj.$finder.remove();
+                    });
+                    ws.obj.$finder.css({position: 'absolute'});
+                    ws.obj.$finder.appendTo('.finder-icon').position({
+                        my: "right top",
+                        at: "center bottom+5",
+                        of: event.target
+                    }).focus()
+                }
+            })
+
+            const highlightRow = function (e) {
+                const ws = e.data;
+                ws.obj.$body.find(".js-table-row.ui-state-highlight").removeClass("ui-state-highlight");
+                $(e.target).closest(".js-table-row").addClass("ui-state-highlight");
+
+                console.log('click on row')
+            };
+            devTable.jqTable('addBodyEventHandler', 'click', "", highlightRow);
+
+        });
+    </script>
+    <script>
+        var APP = APP || {};
+        if ("{{exportUrl}}") {
+            $("#actions").removeClass("hidden");
+            $("#redirectedPhone").removeClass("hidden");
+            APP.setLink("#redirectedPhone", "{{ exportUrl }}");
+        }
+    </script>
+{% endblock %}

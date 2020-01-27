@@ -1,0 +1,28 @@
+{% spaceless %}
+        {% for dev in devices %}
+            <tr class="js-table-row ui-widget-content">
+                <td>{{ dev.cucm }}</td>
+                <td>{{ dev.phprefix }}</td>
+                <td>{{ dev.phonedn }}</td>
+                <td>{{ dev.forwardall }}</td>
+                <td>{{ dev.forward_all_mail }}</td>
+                <td>{{ dev.forwardbusyinternal }}</td>
+                <td>{{ dev.forwardbusyexternal }}</td>
+                <td>{{ dev.forward_no_answer_internal }}</td>
+                <td>{{ dev.forward_no_answer_external }}</td>
+                <td>{{ dev.forward_unregistred_internal }}</td>
+                <td>{{ dev.forward_unregistred_external }}</td>
+                <td>
+                    <a href="{{ basePhoneUrl }}?name={{ dev.device }}">{{ dev.device }}</a>
+                </td>
+                <td>{{ dev.depiction }}</td>
+                <td>{{ dev.css }}</td>
+                <td>{{ dev.devicepool }}</td>
+                <td>{{ dev.alertingname }}</td>
+                <td>{{ dev.cfnaduration }}</td>
+                <td>{{ dev.model }}</td>
+                <td>{{ dev.partition }}</td>
+                <td>{{ dev.lastUpdate }}</td>
+            </tr>
+        {% endfor %}
+{% endspaceless %}

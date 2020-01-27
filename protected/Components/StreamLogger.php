@@ -16,6 +16,7 @@ class StreamLogger
         'DS-DNSNAMES' => self::DIR.'DSdnsnames.log',
         'CDP_NEIGHBORS' => self::DIR.'phones_cdp_neighbors.log',
         'PHONES_UPDATE' => self::DIR.'phones_update.log',
+        'PHONES_REDIRECTED_UPDATE' => self::DIR.'phones_redirected_update.log',
         'CUCM' => self::DIR.'cucms.log',
     ];
 
