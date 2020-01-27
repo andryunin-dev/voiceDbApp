@@ -1,16 +1,24 @@
 {% extends 'IndexAgGrid.html' %}
 
 {% block main %}
-    <label for="cucmsIp">Cucm IP: </label>
-    <select id="cucmsIp"></select>
+    <div class="form-group">
+        <label for="cucmsIp" class="col-sm-2 col-form-label col-form-label-sm">Cucm IP: </label>
+        <div class="col-sm-10">
+            <select id="cucmsIp" class="form-control form-control-sm"></select>
+        </div>
+    </div>
 
-    <label for="callForwardingNumber">Call forwarding number: </label>
-    <input type="text" id="callForwardingNumber" value="">
+    <div class="form-group" style="margin-top: 40px">
+        <label for="callForwardingNumber" class="col-sm-2 col-form-label col-form-label-sm">Call forwarding number: </label>
+        <div class="col-sm-10">
+            <input type="text" id="callForwardingNumber" value="" class="form-control form-control-sm">
+        </div>
+    </div>
 
-    <button onclick="redirectedPhonesFromCucmWithCallForwardingNumber()">Get Phones</button>
+    <button onclick="redirectedPhonesFromCucmWithCallForwardingNumber()" class="btn btn-primary">Get Phones</button>
     <hr>
 
-    <div id="myGrid" style="height: 400px;width: 100%;" class="ag-theme-balham-dark"></div>
+    <div id="myGrid" style="height: 450px;width: 100%;" class="ag-theme-balham-dark"></div>
 {% endblock %}
 
 {% block JS %}
