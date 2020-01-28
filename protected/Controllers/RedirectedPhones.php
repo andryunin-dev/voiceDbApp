@@ -129,9 +129,13 @@ class RedirectedPhones extends Controller
         ob_start();
         $result = [];
         $GETrequest = (new Request())->get;
-        if (0 < $GETrequest->count() && !empty($GETrequest->cucmIp) && isset($GETrequest->callForwardingNumber)) {
+        if (0 < $GETrequest->count() && !empty($GETrequest->cucmIp)) {
             try {
-                $phones = (new Cucm($GETrequest->cucmIp))->redirectedPhonesWithCallForwardingNumber($GETrequest->callForwardingNumber);
+                $phones =
+                    (empty($GETrequest->callForwardingNumber))
+                        ? (new Cucm($GETrequest->cucmIp))->redirectedPhones()
+                        : (new Cucm($GETrequest->cucmIp))->redirectedPhonesWithCallForwardingNumber($GETrequest->callForwardingNumber)
+                ;
                 $result = array_map(
                     function ($phone) {
                         return $phone->toArray();
