@@ -113,6 +113,9 @@ class RedirectedPhones extends Controller
 
     public function actionFromCucm()
     {
+        $request = new Request();
+        $this->data->baseUrl = $request->referer;
+        $this->data->cucmsUrl = 'http://' . $request->host . '/export/cucmPublishersIp';
     }
 
     /**
@@ -123,16 +126,23 @@ class RedirectedPhones extends Controller
      */
     public function actionFromCucmWithCallForwardingNumber()
     {
-        $result = ['error' => 'Bad parameters'];
+        ob_start();
+        $result = [];
         $GETrequest = (new Request())->get;
-        if (0 < $GETrequest->count() && isset($GETrequest->cucmIp) && isset($GETrequest->callForwardingNumber)) {
-            $result = array_map(
-                function ($phone) {
-                    return $phone->toArray();
-                },
-                (new Cucm($GETrequest->cucmIp))->redirectedPhonesWithCallForwardingNumber($GETrequest->callForwardingNumber)
-            );
+        if (0 < $GETrequest->count() && !empty($GETrequest->cucmIp) && isset($GETrequest->callForwardingNumber)) {
+            try {
+                $phones = (new Cucm($GETrequest->cucmIp))->redirectedPhonesWithCallForwardingNumber($GETrequest->callForwardingNumber);
+                $result = array_map(
+                    function ($phone) {
+                        return $phone->toArray();
+                    },
+                    $phones
+                );
+            } catch (\Throwable $e) {
+                $result = ['error' => 'Runtime error'];
+            }
         }
+        ob_end_clean();
         echo json_encode($result);
         die;
     }
