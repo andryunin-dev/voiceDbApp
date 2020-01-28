@@ -16,8 +16,8 @@
     </div>
 
     <button onclick="redirectedPhonesFromCucmWithCallForwardingNumber()" class="btn btn-primary">Get Phones</button>
+    <div id="statusBar" style="text-align: center; font-weight: bold"></div>
     <hr>
-
     <div id="myGrid" style="height: 450px;width: 100%;" class="ag-theme-balham-dark"></div>
 {% endblock %}
 
@@ -56,7 +56,8 @@
         // let the grid know which columns and what data to use
         var gridOptions = {
             columnDefs: columnDefs,
-            rowData: rowData
+            enableCellTextSelection: true,
+            rowSelection: 'multiple'
         };
 
         // lookup the container we want the Grid to use
@@ -67,7 +68,7 @@
 
         function initCucmsIp() {
             agGrid
-                .simpleHttpRequest({url: 'http://netcmdb-loc.rs.ru/export/cucmPublishersIp'})
+                .simpleHttpRequest({url: "{{ cucmsUrl }}"})
                 .then(
                     function(cucmsIp) {
                         if (Array.isArray(cucmsIp)) {
@@ -88,13 +89,28 @@
         initCucmsIp();
 
         function redirectedPhonesFromCucmWithCallForwardingNumber() {
+            document.querySelector('#statusBar').innerHTML = "Запрос...";
+            gridOptions.api.setRowData([]);
+
             let callForwardingNumber = document.querySelector("#callForwardingNumber").value;
             let cucmIp = document.querySelector("#cucmsIp").value;
+            let reqUrl = "{{ baseUrl }}" + "/fromCucmWithCallForwardingNumber?cucmIp=" + cucmIp + "&callForwardingNumber=" + callForwardingNumber;
+            if (cucmIp === '') {
+                document.querySelector('#statusBar').innerHTML = "Выберите Cucm !!!";
+                return;
+            }
             agGrid
-                .simpleHttpRequest({url: 'http://netcmdb-loc.rs.ru/redirectedPhones/fromCucmWithCallForwardingNumber?cucmIp=' + cucmIp + '&callForwardingNumber=' + callForwardingNumber})
+                .simpleHttpRequest({url: reqUrl})
                 .then(
                     function(data) {
-                        gridOptions.api.setRowData(data);
+                        document.querySelector('#statusBar').innerHTML =
+                            (data.hasOwnProperty('error'))
+                                ? ("<span>" + data.error + "</span>")
+                                : ("<span>Кол-во телефонов с \"" + callForwardingNumber + "\" переадресацией - " + data.length + "</span>")
+                        ;
+                        gridOptions.api.setRowData(
+                            (data.hasOwnProperty('error')) ? [] : data
+                        );
                     }
                 );
         }
