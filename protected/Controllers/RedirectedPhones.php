@@ -115,7 +115,7 @@ class RedirectedPhones extends Controller
     {
         $request = new Request();
         $this->data->baseUrl = $request->referer;
-        $this->data->cucmsUrl = 'http://' . $request->host . '/export/cucmPublishersIp';
+        $this->data->cucmsUrl = 'http://' . $request->host . '/export/cucmPublishersReportName';
     }
 
     /**
@@ -134,7 +134,9 @@ class RedirectedPhones extends Controller
                 $phones =
                     (empty($GETrequest->callForwardingNumber))
                         ? (new Cucm($GETrequest->cucmIp))->redirectedPhones()
-                        : (new Cucm($GETrequest->cucmIp))->redirectedPhonesWithCallForwardingNumber($GETrequest->callForwardingNumber)
+                        : (((boolean) $GETrequest->containsSearchType)
+                            ? (new Cucm($GETrequest->cucmIp))->redirectedPhonesContainingCallForwardingNumberAsSubstring($GETrequest->callForwardingNumber)
+                            : (new Cucm($GETrequest->cucmIp))->redirectedPhonesWithCallForwardingNumber($GETrequest->callForwardingNumber))
                 ;
                 $result = array_map(
                     function ($phone) {

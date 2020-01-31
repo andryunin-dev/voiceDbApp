@@ -2,9 +2,9 @@
 
 {% block main %}
     <div class="form-group">
-        <label for="cucmsIp" class="col-sm-2 col-form-label col-form-label-sm">Cucm IP: </label>
+        <label for="cucm" class="col-sm-2 col-form-label col-form-label-sm">Cucm: </label>
         <div class="col-sm-10">
-            <select id="cucmsIp" class="form-control form-control-sm"></select>
+            <select id="cucm" class="form-control form-control-sm"></select>
         </div>
     </div>
 
@@ -12,6 +12,10 @@
         <label for="callForwardingNumber" class="col-sm-2 col-form-label col-form-label-sm">Call forwarding number: </label>
         <div class="col-sm-10">
             <input type="text" id="callForwardingNumber" value="" class="form-control form-control-sm">
+            <div style="margin-top: 2px">
+                <input type="checkbox" id="containsSearchTypeCheck" class="form-check-input" checked>
+                <label for="containsSearchTypeCheck" class="col-form-label col-form-label-lg">тип запроса (Contains): </label>
+            </div>
         </div>
     </div>
 
@@ -26,17 +30,16 @@
 
         // specify the columns
         var columnDefs = [
-            {headerName: "Cucm", field: "cucm", sortable: true, filter: true},
             {headerName: "Prefix", field: "phprefix", sortable: true, filter: true},
             {headerName: "DN", field: "phonedn", sortable: true, filter: true},
-            {headerName: "f_all", field: "forwardall", sortable: true, filter: false},
-            {headerName: "f_all_mail", field: "forward_all_mail", sortable: true, filter: false},
-            {headerName: "f_busy_internal", field: "forwardbusyinternal", sortable: true, filter: false},
-            {headerName: "f_busy_external", field: "forwardbusyexternal", sortable: true, filter: false},
-            {headerName: "f_no_answer_internal", field: "forward_no_answer_internal", sortable: true, filter: false},
-            {headerName: "f_no_answer_external", field: "forward_no_answer_external", sortable: true, filter: false},
-            {headerName: "f_unregistred_internal", field: "forward_unregistred_internal", sortable: true, filter: false},
-            {headerName: "f_unregistred_external", field: "forward_unregistred_external", sortable: true, filter: false},
+            {headerName: "f_all", field: "forwardall", sortable: true, filter: true},
+            {headerName: "f_all_mail", field: "forward_all_mail", sortable: true, filter: true},
+            {headerName: "f_busy_internal", field: "forwardbusyinternal", sortable: true, filter: true},
+            {headerName: "f_busy_external", field: "forwardbusyexternal", sortable: true, filter: true},
+            {headerName: "f_no_answer_internal", field: "forward_no_answer_internal", sortable: true, filter: true},
+            {headerName: "f_no_answer_external", field: "forward_no_answer_external", sortable: true, filter: true},
+            {headerName: "f_unregistred_internal", field: "forward_unregistred_internal", sortable: true, filter: true},
+            {headerName: "f_unregistred_external", field: "forward_unregistred_external", sortable: true, filter: true},
             {headerName: "Device", field: "device", sortable: true, filter: true},
             {headerName: "Description", field: "depiction", sortable: true, filter: true},
             {headerName: "CSS", field: "css", sortable: true, filter: true},
@@ -45,7 +48,7 @@
             {headerName: "CFNA Duration", field: "cfnaduration", sortable: true, filter: true},
             {headerName: "Model", field: "model", sortable: true, filter: true},
             {headerName: "Partition", field: "partition", sortable: true, filter: true},
-            {headerName: "Last Update", field: "lastUpdate", sortable: true, filter: false},
+            {headerName: "Last Update", field: "lastUpdate", sortable: true, filter: true},
         ];
 
         // specify the data
@@ -66,39 +69,43 @@
         // create the grid passing in the div to use together with the columns & data we want to use
         new agGrid.Grid(eGridDiv, gridOptions);
 
-        function initCucmsIp() {
+        var cucmsMap = {};
+        const cucmPrompt = "Выберите Cucm ...";
+
+        function initCucms() {
             agGrid
                 .simpleHttpRequest({url: "{{ cucmsUrl }}"})
                 .then(
-                    function(cucmsIp) {
-                        if (Array.isArray(cucmsIp)) {
-                            let cucmsIpOptions = document.querySelector("#cucmsIp").options;
-                            let defaultOption = document.createElement("option");
-                            cucmsIpOptions.add(defaultOption);
-                            cucmsIp.forEach(
-                                cucmIp => {
-                                    let option = document.createElement("option");
-                                    option.text = cucmIp;
-                                    cucmsIpOptions.add(option);
-                                }
-                            )
+                    function(cucmsData) {
+                        cucmsMap = cucmsData;
+                        let selectPrompt = document.createElement("option");
+                        selectPrompt.selected = true;
+                        selectPrompt.text = cucmPrompt;
+                        let cucms = document.querySelector("#cucm").options;
+                        cucms.add(selectPrompt);
+                        for (let key in cucmsData) {
+                            let cucm = document.createElement("option");
+                            cucm.text = key;
+                            cucms.add(cucm);
                         }
                     }
                 );
         }
-        initCucmsIp();
+        initCucms();
 
         function redirectedPhonesFromCucmWithCallForwardingNumber() {
-            document.querySelector('#statusBar').innerHTML = "Запрос...";
+            document.querySelector('#statusBar').innerHTML = "Запрос ...";
             gridOptions.api.setRowData([]);
 
-            let callForwardingNumber = document.querySelector("#callForwardingNumber").value;
-            let cucmIp = document.querySelector("#cucmsIp").value;
-            let reqUrl = "{{ baseUrl }}" + "/fromCucmWithCallForwardingNumber?cucmIp=" + cucmIp + "&callForwardingNumber=" + callForwardingNumber;
-            if (cucmIp === '') {
+            let cucm = document.querySelector("#cucm").value;
+            if (cucm === cucmPrompt) {
                 document.querySelector('#statusBar').innerHTML = "Выберите Cucm !!!";
                 return;
             }
+            let cucmIp = cucmsMap[cucm];
+            let callForwardingNumber = document.querySelector("#callForwardingNumber").value;
+            let containsSearchTypeCheck = document.querySelector("#containsSearchTypeCheck").checked;
+            let reqUrl = "{{ baseUrl }}" + "/fromCucmWithCallForwardingNumber?cucmIp=" + cucmIp + "&callForwardingNumber=" + callForwardingNumber + "&containsSearchType=" + (containsSearchTypeCheck ? 1 : 0);
             agGrid
                 .simpleHttpRequest({url: reqUrl})
                 .then(
