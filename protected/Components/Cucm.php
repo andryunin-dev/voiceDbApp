@@ -144,6 +144,26 @@ class Cucm
     }
 
     /**
+     * Redirected Phones containing Call Forwarding Number as substring
+     * @param string $callForwardingNumber
+     * @return array
+     * @throws \Exception
+     */
+    public function redirectedPhonesContainingCallForwardingNumberAsSubstring(string $callForwardingNumber): array
+    {
+        try {
+            return $this->cucmAxl->redirectedPhonesContainingCallForwardingNumberAsSubstring($callForwardingNumber);
+        } catch (\Throwable $e) {
+            $this->logger->error(
+                '[message]=Redirected Phones: ' . $e->getMessage()
+                . ' [callForwardingNumber]=' . $callForwardingNumber
+                . ' [cucm]='. $this->ip
+            );
+            throw new \Exception('Runtime error');
+        }
+    }
+
+    /**
      * @param array $risData
      * @param array $axlData
      * @return CucmDevice|bool

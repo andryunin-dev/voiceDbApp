@@ -188,14 +188,39 @@ class Export extends Controller
      */
     public function actionCucmPublishersIp()
     {
-        echo json_encode(
-            array_map(
-                function ($cucm) {
-                    return $cucm->managementIp;
-                },
-                Appliance::findAllByType(ApplianceType::CUCM_PUBLISHER)->toArray()
-            )
+        ob_start();
+        $publishersIp = array_map(
+            function ($cucm) {
+                return $cucm->managementIp;
+            },
+            Appliance::findAllByType(ApplianceType::CUCM_PUBLISHER)->toArray()
         );
+        ob_end_clean();
+        echo json_encode($publishersIp);
+        die;
+    }
+
+    /**
+     * Return Cucm-Publisher's report names
+     */
+    public function actionCucmPublishersReportName()
+    {
+        ob_start();
+        $reportNames = [];
+        $cucms = Appliance::findAllByType(ApplianceType::CUCM_PUBLISHER)->toArray();
+        array_walk(
+            $cucms,
+            function ($cucm) use (&$reportNames) {
+                if (!empty($cucm->details->reportName)) {
+                    $reportNames[$cucm->details->reportName] = $cucm->managementIp;
+                } else {
+                    $reportNames[$cucm->managementIp] = $cucm->managementIp;
+                }
+            }
+        );
+        ob_end_clean();
+        $result = json_encode($reportNames);
+        echo $result;
         die;
     }
 }

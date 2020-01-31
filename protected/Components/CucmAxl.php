@@ -135,6 +135,33 @@ class CucmAxl
     }
 
     /**
+     * Redirected Phones containing Call Forwarding Number as substring
+     * @param string $callForwardingNumber
+     * @return array
+     * @throws \T4\Core\MultiException
+     */
+    public function redirectedPhonesContainingCallForwardingNumberAsSubstring(string $callForwardingNumber): array
+    {
+        $callForwardingNumberCondition =
+            '(cfd.cfadestination LIKE "%' . $callForwardingNumber
+            . '%" or n.cfbintdestination  LIKE "%' . $callForwardingNumber
+            . '%" or n.cfbdestination  LIKE "%' . $callForwardingNumber
+            . '%" or n.cfnaintdestination LIKE "%' . $callForwardingNumber
+            . '%" or n.cfnadestination LIKE "%' . $callForwardingNumber
+            . '%" or n.cfurintdestination  LIKE "%' . $callForwardingNumber
+            . '%" or n.cfurdestination  LIKE "%' . $callForwardingNumber.'%")'
+        ;
+        $query =
+            (array_key_exists($this->ip, self::CUCM_PREFIX_MAP)
+                && ("558" == self::CUCM_PREFIX_MAP[$this->ip] || "559" == self::CUCM_PREFIX_MAP[$this->ip])
+            )
+                ? self::SQL['redirectedPhonesWithCallForwardingNumberWithPrefixes558or559'] . $callForwardingNumberCondition
+                : self::SQL['redirectedPhonesWithCallForwardingNumber'] . $callForwardingNumberCondition;
+        $phones = $this->connection()->ExecuteSQLQuery(['sql' => $query])->return->row ?? [];
+        return $this->castToRedirectedPhonesResult($phones);
+    }
+
+    /**
      * @param $redirectedPhones
      * @return array Redirected Phones
      * @throws \T4\Core\MultiException
@@ -147,7 +174,10 @@ class CucmAxl
         }
         foreach ($redirectedPhones as $phone) {
             $phone = (new RedirectedPhone())->fill($phone);
-            $phone->cucm = $this->cucm();
+            $phone->cucmIp = $this->cucm();
+            if ($this->isManuallyAssignedPrefix()) {
+                $phone->phprefix =  self::CUCM_PREFIX_MAP[$this->ip];
+            }
             $phone->lastUpdate =
                 (new \DateTime('now',
                     new \DateTimeZone('UTC')
