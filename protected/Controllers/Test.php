@@ -13,6 +13,7 @@ use App\Models\DPortType;
 use App\Models\Network;
 use App\Models\Network2;
 use App\Models\Vrf;
+use App\ViewModels\ApiView_Devices;
 use App\ViewModels\ApiView_Geo;
 use App\ViewModels\DevGeo_View;
 use T4\Core\Std;
@@ -20,6 +21,7 @@ use App\ViewModels\DevModulePortGeo;
 use App\ViewModels\MappedLocations_View;
 use T4\Core\Collection;
 use T4\Dbal\Query;
+use T4\Http\Request;
 use T4\Mvc\Controller;
 use T4\Mvc\Route;
 
@@ -28,6 +30,24 @@ class Test extends Controller
     public function actionInfo()
     {
         phpinfo();
+    }
+    public function actionTestBigData()
+    {
+        // respond to preflights
+        if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+            exit;
+        }
+        $request = (new Request());
+        $request = (0 == $request->get->count()) ? $request = $request->post : $request->get;
+//        $this->data->result = $request;
+//        $query = 'SELECT * FROM api_view.devices LIMIT 10000';
+        $query = 'SELECT * FROM view.dev_phone_info_geo_mat LIMIT 10000';
+        $params = [];
+        $con = ApiView_Devices::getDbConnection();
+        $stm = $con->query($query, $params);
+        $result = $stm->fetchAll(\PDO::FETCH_ASSOC);
+        $this->data->length = count($result);
+        $this->data->result = $result;
     }
     public function actionSnmp($name)
     {
@@ -181,7 +201,61 @@ class Test extends Controller
         
         $locationMap = $this->createLocationMapArray();
         $params = [':list_number' => 1];
-        $sql = 'SELECT * FROM view.consolidation_excel_table_src t1 WHERE t1."listNumber_1c" = :list_number OR t1."listNumber_voice" = :list_number ORDER BY "invNumber",  "lotusId_voice"';
+//        $sql = 'SELECT * FROM view.consolidation_excel_table_src t1 WHERE t1."listNumber_1c" = :list_number OR t1."listNumber_voice" = :list_number ORDER BY "invNumber",  "lotusId_voice"';
+        $sql = '
+        SELECT DISTINCT ON (
+    "invItem_id",
+    "roomCode_1c",
+    "invNumber",
+    "serialNumber_1c",
+    "registartionDate_1c",
+    "lastUpdate_1c",
+    category_1c,
+    nomenclature_1c,
+    "nomenclatureId",
+    "nomenclatureType_1c",
+    room_1c,
+    address_1c,
+    "molFio_1c",
+    "molTabNumber_1c",
+    "molEmail",
+    "listNumber_1c",
+    map_nomenclature,
+--     platform_1c,
+    "invUserFio",
+    "invUserTabNumber",
+    "userEmail",
+    "lotusId_1c",
+    comment,
+    "serialNumber",
+    platform_id,
+    vendor,
+    platform,
+    vendor_platform,
+    type,
+    type_id,
+    hostname,
+    "lotusId_voice",
+    dev_age,
+    "managementIP",
+    "listNumber_voice",
+--     platform_voice,
+    "dev_lasUpdate",
+    "alertingName",
+    "cdpPort",
+    "cdpNeighborDeviceId",
+    "cdpIp",
+    "fullDN",
+    gw_dev_id,
+    portip,
+    gw_platform,
+    "gw_invNumber",
+    status_1c,
+    comment_1c
+    )
+*
+FROM view.consolidation_excel_table_src t1 WHERE t1."listNumber_1c" = :list_number OR t1."listNumber_voice" = :list_number ORDER BY "invNumber",  "lotusId_voice"
+        ';
         $res = ConsolidationTable_1::getDbConnection()->query($sql, $params)->fetchAll(\PDO::FETCH_ASSOC);
         
         foreach ($res as $key => $item) {
