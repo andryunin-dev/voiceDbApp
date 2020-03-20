@@ -20,6 +20,7 @@ use T4\Core\Exception;
 use T4\Core\Std;
 use T4\Dbal\Query;
 use T4\Mvc\Controller;
+use T4\Http\Request;
 
 class Api extends Controller
 {
@@ -54,6 +55,158 @@ class Api extends Controller
             SELECT network, range AS prefix, host(broadcast(inet (host(network) || \'/\' || range))) AS broadcast, office
             FROM view.net_report',
     ];
+
+    protected function filtersToStatement($filters)
+    {
+        if (empty($filters)) {
+            return '';
+        }
+
+        $statements = [
+            'IN_LIST' => '%s IN (%s)',
+            'NOT_IN_LIST' => '%s NOT IN (%s)',
+            'EQ' => '%s = \'%s\'',
+            'NE' => '%s <> \'%s\'',
+            'LT' => '%s < %s',
+            'LE' => '%s <= %s',
+            'GT' => '%s > %s',
+            'GE' => '%s >= %s',
+            'STARTING' => '%s LIKE \'%s%%\'',
+            'ENDING' => '%s LIKE \'%%%s\'',
+            'INCLUDING' => '%s LIKE \'%%%s%%\''
+        ];
+        $emptyStatements = [
+            'ADD_EMPTY' => '%s IS NULL OR \'%s\' = \'\'',
+            'REMOVE_EMPTY' => '%s IS NOT NULL AND %s <> \'\'',
+        ];
+        $filters = json_decode($filters);
+        $filters = new Std($filters);
+        $resultStatements = [];
+        function wrapper($item)
+        {
+            return '\'' . $item .'\'';
+        }
+        function wrapper2($item)
+        {
+            return '(' . $item .')';
+        }
+        foreach ($filters as $accessor => $filter) {
+            $statementForAccessor = [];
+            $value = array_map(function($item) {return '\'' . $item .'\'';}, $filter->value->toArray());
+            switch ($filter->type) {
+                case 'IN_LIST':
+                    if (count($value) === 0) {
+                        array_push($resultStatements, 'false');
+                        break;
+                    }
+                    array_push($statementForAccessor, sprintf($statements[$filter->type], $filter->filterBy, implode(', ', $value)));
+                    if (true ===$filter->addEmpty) {
+                        array_push($statementForAccessor, sprintf($emptyStatements['ADD_EMPTY'], $filter->filterBy, $filter->filterBy));
+                    }
+                    array_push($resultStatements, implode(' OR ', $statementForAccessor));
+                    break;
+                case 'NOT_IN_LIST':
+                    array_push($statementForAccessor, sprintf($statements[$filter->type], $filter->filterBy, implode(', ', $value)));
+                    if (true ===$filter->removeEmpty) {
+                        array_push($statementForAccessor, sprintf($emptyStatements['REMOVE_EMPTY'], $filter->filterBy, $filter->filterBy));
+                    }
+                    array_push($resultStatements, implode(' AND ', $statementForAccessor));
+                    break;
+                default:
+                    $filterArray = $filter->value->toArray();
+                    $filterValue = array_pop($filterArray);
+                    array_push($resultStatements, sprintf($statements[$filter->type], $filter->filterBy, $filterValue));
+            }
+        }
+        if (count($resultStatements) === 0) {
+            return '';
+        } elseif (count($resultStatements) === 1) {
+            return array_pop($resultStatements);
+        } else {
+            $result = array_map(function($item) {return '(' . $item .')';}, $resultStatements);
+            $resSt = implode(' AND ', $result);
+            return $resSt;
+        }
+    }
+    protected function paginationToStatement($pagination)
+    {
+        if (empty($pagination)) {
+            return '';
+        }
+        $pagination = new Std(json_decode($pagination));
+        return is_int($pagination->offset) && is_int($pagination->limit)
+            ? 'OFFSET ' . $pagination->offset . ' LIMIT ' . $pagination->limit
+            : '';
+    }
+    protected function sortingToStatement($sorting)
+    {
+        if (empty($sorting) || !$sorting instanceof Std) {
+            return '';
+        }
+        $statement = [];
+        $sorting = $sorting->toArray();
+        foreach ($sorting as $key => $val) {
+            $val = json_decode($val, true);
+            $statement[] =  array_keys($val)[0] . ' ' . array_values($val)[0];
+        }
+        return count($statement) === 0 ? '' : 'ORDER BY ' . implode(', ', $statement);
+    }
+
+    public function actionTableData()
+    {
+        // respond to preflights
+        if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+            exit;
+        }
+        $this->data->time = microtime(true);
+        $request = (new Request());
+//        $request = (0 == $request->get->count()) ? $request = $request->post : $request->get;
+        $request = $request->get;
+
+        $conditions = $this->filtersToStatement($request->filters);
+        $conditions = empty($conditions) ? '' : 'WHERE ' . $conditions;
+        $pagination = $this->paginationToStatement($request->pagination);
+        $sorting = $this->sortingToStatement($request->sorting);
+
+        $dataQuery = 'SELECT office, city FROM api_view.geo ' .  $conditions . ' ' . $sorting  . ' ' . $pagination;
+        $counterQuery = 'SELECT count(1) FROM api_view.geo ' .  $conditions;
+        $params = [];
+        $con = ApiView_Geo::getDbConnection();
+
+        $counterStm = $con->query($counterQuery, $params);
+        $counterResult = $counterStm->fetchColumn();
+
+        $dataStm = $con->query($dataQuery, $params);
+        $dataResult = $dataStm->fetchAll(\PDO::FETCH_ASSOC);
+        $this->data->data = $dataResult;
+        $this->data->counter = $counterResult;
+        $this->data->time = microtime(true) - $this->data->time;
+    }
+    public function actionTableFilterList()
+    {
+        // respond to preflights
+        if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+            exit;
+        }
+        $request = (new Request());
+        $request = (0 == $request->get->count()) ? $request = $request->post : $request->get;
+        $conditions = $this->filtersToStatement($request->filters);
+        $conditions = empty($conditions) ? '' : 'WHERE ' . $conditions;
+        $accessor = $request->accessor;
+        $query = 'SELECT DISTINCT ' . $accessor . ' FROM api_view.geo ' . $conditions . ' ORDER BY ' . $accessor;
+        $params = [];
+
+        try {
+            $con = ApiView_Geo::getDbConnection();
+            $stm = $con->query($query, $params);
+            $result = $stm->fetchAll(\PDO::FETCH_COLUMN,0);
+            $this->data->result = $result;
+        } catch (Exception $e) {
+            $this->data->result = [];
+            $this->data->error = $e->getMessage();
+        }
+
+    }
 
     public function actionGetRegCenters()
     {
