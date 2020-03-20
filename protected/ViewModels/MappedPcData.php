@@ -25,10 +25,9 @@ use T4\Orm\Model;
  * @property datetime $pc_last_update
  * @property string $pc_inv_number
  * @property datetime $pc_inv_update
- * @property string $pc_rn
  * @property string $pc_ip
- * @property string $pc_ses_login
- * @property string $pc_ses_domain
+ * @property string $merged_login
+ * @property string $merged_domain
  * @property string $sw_hostname
  * @property string $sw_ip
  * @property string $sw_interface
@@ -69,10 +68,9 @@ class MappedPcData extends Model
             'pc_last_update' => ['type' => 'datetime'],
             'pc_inv_number' => ['type' => 'string'],
             'pc_inv_update' => ['type' => 'datetime'],
-            'pc_rn' => ['type' => 'string'],
             'pc_ip' => ['type' => 'string'],
-            'pc_ses_login' => ['type' => 'string'],
-            'pc_ses_domain' => ['type' => 'string'],
+            'merged_login' => ['type' => 'string'],
+            'merged_domain' => ['type' => 'string'],
             'sw_hostname' => ['type' => 'string'],
             'sw_ip' => ['type' => 'string'],
             'sw_interface' => ['type' => 'string'],
