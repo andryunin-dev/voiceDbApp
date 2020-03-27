@@ -4,6 +4,7 @@ namespace App\ViewModels;
 
 use T4\Core\Collection;
 use T4\Orm\Model;
+use T4\Validation\Validators\DateTime;
 
 /**
  * Class MappedPcData
@@ -22,9 +23,9 @@ use T4\Orm\Model;
  * @property int $pc_drive_size
  * @property string $pc_cpu
  * @property string $pc_memory
- * @property datetime $pc_last_update
+ * @property DateTime $pc_last_update
  * @property string $pc_inv_number
- * @property datetime $pc_inv_update
+ * @property DateTime $pc_inv_update
  * @property string $pc_ip
  * @property string $merged_login
  * @property string $merged_domain
@@ -32,7 +33,7 @@ use T4\Orm\Model;
  * @property string $sw_ip
  * @property string $sw_interface
  * @property int $client_mac_amount
- * @property datetime $dhcp
+ * @property DateTime $dhcp
  * @property int $vpn
  * @property string $employee
  * @property string $position
@@ -63,6 +64,7 @@ class MappedPcData extends Model
             'pc_name' => ['type' => 'string'],
             'pc_drive_serial' => ['type' => 'string'],
             'pc_drive_size' => ['type' => 'int'],
+            'pc_term' => ['type' => 'string'],
             'pc_cpu' => ['type' => 'string'],
             'pc_memory' => ['type' => 'string'],
             'pc_last_update' => ['type' => 'datetime'],
