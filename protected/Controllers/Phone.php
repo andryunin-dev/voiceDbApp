@@ -24,6 +24,7 @@ class Phone extends Controller
             SELECT inventory_number
             FROM storage_1c.foreign_1c
             WHERE serial_number LIKE :serial_number',
+        'phone_prefix' => 'SELECT name, prefix FROM equipment."phoneInfo"',
     ];
 
     public function actionPhoneData($name = null)
@@ -104,6 +105,14 @@ class Phone extends Controller
                     ->fetchAll(\PDO::FETCH_ASSOC)
             )
         ]);
+        die;
+    }
+
+    public function actionPrefix()
+    {
+        echo json_encode(PhoneInfo::getDbConnection()
+            ->query(self::SQL['phone_prefix'], [])
+            ->fetchAll(\PDO::FETCH_ASSOC));
         die;
     }
 }

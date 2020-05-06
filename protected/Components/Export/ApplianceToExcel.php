@@ -10,6 +10,7 @@ class ApplianceToExcel
 {
 
     const MEMORY_LIMIT = '256M';
+    const TIME_LIMIT = 60; // sec
     const PHONE = 'phone';
     const MAX_APP_AGE = 72;
     const SELL_STYLE_TYPE_DEFAULT = 3;
@@ -20,6 +21,7 @@ class ApplianceToExcel
     public function export()
     {
         ini_set('memory_limit', self::MEMORY_LIMIT);
+        ini_set('max_execution_time', self::TIME_LIMIT);
 
         // create excel file
         $excel = $this->createHardInventoryExcel();
