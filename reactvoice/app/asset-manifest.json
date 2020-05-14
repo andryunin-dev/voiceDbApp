@@ -1,0 +1,23 @@
+{
+  "files": {
+    "main.js": "./static/js/main.b8677b27.chunk.js",
+    "main.js.map": "./static/js/main.b8677b27.chunk.js.map",
+    "runtime-main.js": "./static/js/runtime-main.9433a753.js",
+    "runtime-main.js.map": "./static/js/runtime-main.9433a753.js.map",
+    "static/css/2.aed29b3b.chunk.css": "./static/css/2.aed29b3b.chunk.css",
+    "static/js/2.b0e112ed.chunk.js": "./static/js/2.b0e112ed.chunk.js",
+    "static/js/2.b0e112ed.chunk.js.map": "./static/js/2.b0e112ed.chunk.js.map",
+    "index.html": "./index.html",
+    "precache-manifest.1964824b06d61f69cf3e1655654f8524.js": "./precache-manifest.1964824b06d61f69cf3e1655654f8524.js",
+    "service-worker.js": "./service-worker.js",
+    "static/css/2.aed29b3b.chunk.css.map": "./static/css/2.aed29b3b.chunk.css.map",
+    "static/js/2.b0e112ed.chunk.js.LICENSE.txt": "./static/js/2.b0e112ed.chunk.js.LICENSE.txt",
+    "static/media/logo_brs_small.png": "./static/media/logo_brs_small.9f0fd020.png"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.9433a753.js",
+    "static/css/2.aed29b3b.chunk.css",
+    "static/js/2.b0e112ed.chunk.js",
+    "static/js/main.b8677b27.chunk.js"
+  ]
+}
