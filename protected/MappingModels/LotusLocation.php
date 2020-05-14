@@ -13,6 +13,7 @@ use T4\Orm\Model;
  */
 class LotusLocation extends Model
 {
+    const PK = 'lotus_id';
     protected static $schema = [
         'table' => 'mapping.lotusLocations',
         'columns' => [
@@ -23,6 +24,6 @@ class LotusLocation extends Model
     
     protected function beforeSave()
     {
-        return false;
+        return true;
     }
 }

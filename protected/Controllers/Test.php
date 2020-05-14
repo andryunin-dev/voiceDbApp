@@ -16,6 +16,7 @@ use App\Models\Vrf;
 use App\ViewModels\ApiView_Devices;
 use App\ViewModels\ApiView_Geo;
 use App\ViewModels\DevGeo_View;
+use T4\Core\Exception;
 use T4\Core\Std;
 use App\ViewModels\DevModulePortGeo;
 use App\ViewModels\MappedLocations_View;
@@ -30,6 +31,21 @@ class Test extends Controller
     public function actionInfo()
     {
         phpinfo();
+    }
+    public function actionAxios()
+    {
+        try {
+            throw new Exception('bad result');
+        } catch (Exception $e) {
+            $this->data->error = $e->getMessage();
+            http_response_code(201);
+        }
+//        http_response_code(201);
+//        throw new Exception('server error', 210);
+    }
+    public function actionMockingSaveChanges()
+    {
+
     }
     public function actionTestBigData()
     {

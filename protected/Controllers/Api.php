@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\ApiHelpers\DevInfo;
+use App\Components\SimpleTableHelpers;
 use App\MappingModels\LotusLocation;
 use App\Models\Appliance;
 use App\Models\Network;
@@ -19,6 +20,7 @@ use App\ViewModels\LotusDbData;
 use T4\Core\Exception;
 use T4\Core\Std;
 use T4\Dbal\Query;
+use T4\Http\Request;
 use T4\Mvc\Controller;
 
 class Api extends Controller
@@ -54,6 +56,75 @@ class Api extends Controller
             SELECT network, range AS prefix, host(broadcast(inet (host(network) || \'/\' || range))) AS broadcast, office
             FROM view.net_report',
     ];
+    public function actionTableData()
+    {
+        // respond to preflights
+        if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+            exit;
+        }
+        $this->data->time = microtime(true);
+        $request = (new Request());
+//        $request = (0 == $request->get->count()) ? $request = $request->post : $request->get;
+        $request = $request->get;
+
+
+        $where = SimpleTableHelpers::filtersToStatement($request->filters);
+        $offsetLimit = SimpleTableHelpers::paginationToOffsetLimitStatement($request->pagination);
+        $orderBy = SimpleTableHelpers::sortingToStatement($request->sorting);
+
+        $dataQuery = 'SELECT office, city FROM api_view.geo';
+        $counterQuery = 'SELECT count(1) FROM api_view.geo';
+        if ($where !== false) {
+            $dataQuery .= ' WHERE ' . $where;
+            $counterQuery .= ' WHERE ' . $where;
+        }
+        if ($orderBy !== false) {
+            $dataQuery .= ' ORDER BY ' . $orderBy;
+        }
+        if ($offsetLimit !== false) {
+            $dataQuery .= ' ' . $offsetLimit;
+        }
+        $params = [];
+        $con = ApiView_Geo::getDbConnection();
+
+        $counterStm = $con->query($counterQuery, $params);
+        $counterResult = $counterStm->fetchColumn();
+
+        $dataStm = $con->query($dataQuery, $params);
+        $dataResult = $dataStm->fetchAll(\PDO::FETCH_ASSOC);
+        $this->data->data = $dataResult;
+        $this->data->counter = $counterResult;
+        $this->data->time = microtime(true) - $this->data->time;
+    }
+    public function actionTableFilterList()
+    {
+        // respond to preflights
+        if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+            exit;
+        }
+        $request = (new Request());
+        $request = (0 == $request->get->count()) ? $request = $request->post : $request->get;
+        //input data
+        $accessor = $request->accessor;
+        $table = 'api_view.geo';
+        //
+        $conditions = SimpleTableHelpers::filtersToStatement($request->filters);
+        $conditions = empty($conditions) ? '' : 'WHERE ' . $conditions;
+        $query = 'SELECT DISTINCT ' . $accessor . ' FROM ' . $table . ' ' . $conditions . ' ORDER BY ' . $accessor;
+        $params = [];
+
+        try {
+            $con = ApiView_Geo::getDbConnection();
+            $stm = $con->query($query, $params);
+            $result = $stm->fetchAll(\PDO::FETCH_COLUMN,0);
+            $this->data->data = $result;
+//            sleep(20);
+        } catch (Exception $e) {
+            $this->data->data = [];
+            $this->data->error = $e->getMessage();
+        }
+
+    }
 
     public function actionGetRegCenters()
     {
