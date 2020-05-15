@@ -92,7 +92,7 @@ class SimpleTableHelpers
                 default:
                     $filterArray = $filter->value->toArray();
                     $filterValue = array_pop($filterArray);
-                    array_push($resultStatements, sprintf($statements[$filter->type], $filter->filterBy, $filterValue));
+                    array_push($resultStatements, sprintf($statements[$filter->type], $filterBy, $filterValue));
             }
         }
         if (count($resultStatements) === 0) {
