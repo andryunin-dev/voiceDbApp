@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Components\Cucm\UnRegisteredPhonesService;
 use App\Components\DSPphones;
 use App\Models\PhoneInfo;
 use T4\Core\Std;
@@ -113,6 +114,38 @@ class Phone extends Controller
         echo json_encode(PhoneInfo::getDbConnection()
             ->query(self::SQL['phone_prefix'], [])
             ->fetchAll(\PDO::FETCH_ASSOC));
+        die;
+    }
+
+    /**
+     * Data on the phones connected to the switch but not existing in the database
+     * @param int $switch_id
+     */
+    public function actionUnregisteredConnectedToSwitch(int $switch_id)
+    {
+        try {
+            echo json_encode(
+                (new UnRegisteredPhonesService())->dataOnUnregisteredPhonesConnectedToSwitch($switch_id)
+            );
+        } catch (\Throwable $e) {
+            echo json_encode(['error' => 'Runtime error']);
+        }
+        die;
+    }
+
+    /**
+     * Data on the phones connected in the office but not existing in the database
+     * @param int $office_id
+     */
+    public function actionUnregisteredInOffice(int $office_id)
+    {
+        try {
+            echo json_encode(
+                (new UnRegisteredPhonesService())->dataOnUnregisteredPhonesInOffice($office_id)
+            );
+        } catch (\Throwable $e) {
+            echo json_encode(['error' => 'Runtime error']);
+        }
         die;
     }
 }
