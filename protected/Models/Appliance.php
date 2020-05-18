@@ -34,6 +34,7 @@ use T4\Orm\Model;
  */
 class Appliance extends Model
 {
+    const LIFETIME = 73; // hours
     const SQL = [
         'findBy_Vendor_SerialNumber' => '
             SELECT appliance.*
