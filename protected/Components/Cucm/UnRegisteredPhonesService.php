@@ -16,16 +16,22 @@ class UnRegisteredPhonesService
      */
     public function dataOnUnregisteredPhonesConnectedToSwitch(int $id): array
     {
-        return [
-            'unregistered_phones' => array_merge(
+        $switch = new CiscoSwitch($id);
+        return array_values(
+            array_map(
+                function ($phone) use ($switch) {
+                    $phone['sw_name'] = $switch->hostname() ?? '';
+                    $phone['sw_ip'] = $switch->managementIp();
+                    return $phone;
+                },
                 array_filter(
-                    (new CiscoSwitch($id))->cdpPhoneNeighborsData(),
+                    $switch->cdpPhoneNeighborsData(),
                     function ($phone) {
-                        return false == PhoneInfo::findByColumn('name', $phone['phone_name']);
+                        return false == PhoneInfo::findByColumn('name', $phone['sep']);
                     }
                 )
             )
-        ];
+        );
     }
 
     /**
@@ -35,16 +41,18 @@ class UnRegisteredPhonesService
      */
     public function dataOnUnregisteredPhonesInOffice(int $id): array
     {
-        return array_map(
-            function ($switch) {
-                return [
-                    'switch_id' => $switch->getPk(),
-                    'unregistered_phones' => $this->dataOnUnregisteredPhonesConnectedToSwitch($switch->getPk())['unregistered_phones'],
-                ];
+        $dataOnUnregisteredPhones = [];
+        array_map(
+            function ($switch) use (&$dataOnUnregisteredPhones) {
+                $dataOnUnregisteredPhones = array_merge(
+                    $dataOnUnregisteredPhones,
+                    $this->dataOnUnregisteredPhonesConnectedToSwitch($switch->getPk())
+                );
             },
             (new SwitchService())->liveSwitchesInOffice(
-                    Office::findByPK($id)->lotusId
+                Office::findByPK($id)->lotusId
             )->toArray()
         );
+        return $dataOnUnregisteredPhones;
     }
 }

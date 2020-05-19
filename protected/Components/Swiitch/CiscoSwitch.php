@@ -44,9 +44,9 @@ class CiscoSwitch
                     mb_ereg_replace(' +', ' ', $phoneNeighbor)
                 );
                 $phone = [];
-                $phone['phone_name'] = trim($fields[0]);
+                $phone['sep'] = trim($fields[0]);
                 $phone['sw_port'] = trim($fields[1]) . ' ' . trim($fields[2]);
-                $phone['phone_port'] =
+                $phone['ph_port'] =
                     mb_eregi($CDP_PORT_PC_PATTERN, $phoneNeighbor, $portPc)
                         ? trim($portPc[0])
                         : ''
@@ -75,6 +75,15 @@ class CiscoSwitch
     public function managementIp()
     {
         return $this->appliance()->getManagementIp();
+    }
+
+    /**
+     * @return mixed
+     * @throws \Exception
+     */
+    public function hostname()
+    {
+        return $this->appliance()->details->hostname;
     }
 
     /**
