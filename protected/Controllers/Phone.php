@@ -124,13 +124,11 @@ class Phone extends Controller
     public function actionUnregisteredConnectedToSwitch(int $switch_id)
     {
         try {
-            echo json_encode(
-                (new UnRegisteredPhonesService())->dataOnUnregisteredPhonesConnectedToSwitch($switch_id)
-            );
+            $this->data->data = (new UnRegisteredPhonesService())->dataOnUnregisteredPhonesConnectedToSwitch($switch_id);
         } catch (\Throwable $e) {
-            echo json_encode(['error' => 'Runtime error']);
+            $this->data->data = [];
+            $this->data->error = 'Runtime error';
         }
-        die;
     }
 
     /**
@@ -140,12 +138,10 @@ class Phone extends Controller
     public function actionUnregisteredInOffice(int $office_id)
     {
         try {
-            echo json_encode(
-                (new UnRegisteredPhonesService())->dataOnUnregisteredPhonesInOffice($office_id)
-            );
+            $this->data->data = (new UnRegisteredPhonesService())->dataOnUnregisteredPhonesInOffice($office_id);
         } catch (\Throwable $e) {
-            echo json_encode(['error' => 'Runtime error']);
+            $this->data->data = [];
+            $this->data->error = 'Runtime error';
         }
-        die;
     }
 }
