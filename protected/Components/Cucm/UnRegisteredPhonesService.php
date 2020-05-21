@@ -50,7 +50,8 @@ class UnRegisteredPhonesService
                 );
             },
             (new SwitchService())->liveSwitchesInOffice(
-                Office::findByPK($id)->lotusId
+//                Office::findByPK($id)->lotusId
+                $id
             )->toArray()
         );
         return $dataOnUnregisteredPhones;
