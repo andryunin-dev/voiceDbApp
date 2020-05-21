@@ -4,7 +4,12 @@ namespace App\Controllers;
 
 use App\Components\Cucm\UnRegisteredPhonesService;
 use App\Components\DSPphones;
+use App\Components\SimpleTableHelpers;
+use App\Models\Office;
 use App\Models\PhoneInfo;
+use App\ViewModels\Geo_View;
+use App\ViewModels\MappedLocations_View;
+use T4\Core\Exception;
 use T4\Core\Std;
 use T4\Http\Request;
 use T4\Mvc\Controller;
@@ -135,13 +140,58 @@ class Phone extends Controller
      * Data on the phones connected in the office but not existing in the database
      * @param int $office_id
      */
-    public function actionUnregisteredInOffice(int $office_id)
+    public function actionUnregisteredInOffice($extFilters = null)
     {
+        if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+            exit;
+        }
         try {
-            $this->data->data = (new UnRegisteredPhonesService())->dataOnUnregisteredPhonesInOffice($office_id);
+            $lotusId = intval($extFilters);
+            if (empty($lotusId)) {
+                $this->data->data = [];
+                $this->data->counter = 0;
+                return;
+            }
+            $this->data->data = (new UnRegisteredPhonesService())->dataOnUnregisteredPhonesInOffice($lotusId);
+            $this->data->counter = count($this->data->data);
         } catch (\Throwable $e) {
-            $this->data->data = [];
             $this->data->error = 'Runtime error';
+            $this->data->data = [];
+            $this->data->counter = 0;
+            http_response_code(201);
         }
     }
+
+    public function actionOfficeList()
+    {
+        // respond to preflights
+        if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+            exit;
+        }
+//        $this->data->queryTime = microtime(true);
+        $request = (new Request())->get;
+        $table = 'view."geo"';
+        $accessor = '"' . $request->accessor . '"';
+
+        $query = 'SELECT DISTINCT "lotusId" val, office lab FROM view.geo';
+
+        $where = SimpleTableHelpers::filtersToStatement($request->filters);
+        $orderBy = SimpleTableHelpers::sortingToStatement($request->sorting);
+
+        if ($where !== false) {
+            $query .= ' WHERE ' . $where;
+        }
+        $query .= ' ORDER BY ' . $accessor;
+        try {
+            $con = Geo_View::getDbConnection();
+            $stm = $con->query($query, []);
+            $result = $stm->fetchAll(\PDO::FETCH_ASSOC);
+            $this->data->data = $result;
+//            $this->data->queryTime = microtime(true) - microtime(true);
+        } catch (Exception $e) {
+            $this->data->data = [];
+            $this->data->error = $e->getMessage();
+        }
+    }
+
 }
