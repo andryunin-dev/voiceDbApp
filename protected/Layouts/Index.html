@@ -116,6 +116,12 @@
                             <li><a href="/report/agentsPhonesStatsReport">По Agent Licenses</a></li>
                         </ul>
                     </li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle active" data-toggle="dropdown">Tools<b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="/vra/tools/unregisteredPhones">Поиск незарегистрированных телефонов</a></li>
+                        </ul>
+                    </li>
 
                 </ul>
                 {% block navBarInfo %}
@@ -133,7 +139,7 @@
                     <li class="dropdown {% if activeLink.dictionary == true %} active {% endif %}">
                         <a href="#" class="dropdown-toggle active" data-toggle="dropdown">Справочники <b class="caret"></b></a>
                         <ul class="dropdown-menu">
-                            <li><a href="/r/rc/mapping">Рег.центры(mapping)</a></li>
+                            <li><a href="/vra/rc/mapping">Рег.центры(mapping)</a></li>
                             <li><a href="/admin/regions">Регионы</a></li>
                             <li><a href="/admin/cities">Города</a></li>
                             <li><a href="/admin/officeStatuses">Статусы офисов</a></li>

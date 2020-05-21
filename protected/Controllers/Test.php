@@ -34,6 +34,9 @@ class Test extends Controller
     }
     public function actionAxios()
     {
+        if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+            exit;
+        }
         try {
             throw new Exception('bad result');
         } catch (Exception $e) {
