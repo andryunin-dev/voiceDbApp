@@ -273,4 +273,14 @@ class Appliance extends Model
             }
         }
     }
+
+    public function hostname(): string
+    {
+        return $this->details->hostname ?? '';
+    }
+
+    public function isPartOfCluster(): bool
+    {
+        return !is_null($this->cluster);
+    }
 }
