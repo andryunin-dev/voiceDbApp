@@ -1,9 +1,9 @@
 <?php
 namespace App\Components\Cucm;
 
+use App\Components\StreamLogger;
 use App\Components\Swiitch\CiscoSwitch;
 use App\Components\Swiitch\SwitchService;
-use App\Models\Office;
 use App\Models\PhoneInfo;
 
 class UnRegisteredPhonesService
@@ -36,23 +36,29 @@ class UnRegisteredPhonesService
 
     /**
      * Data on the phones connected in the office but not existing in the database
-     * @param int $id
+     * @param int $lotusId
      * @return array
+     * @throws \Exception
      */
-    public function dataOnUnregisteredPhonesInOffice(int $id): array
+    public function dataOnUnregisteredPhonesInOffice(int $lotusId): array
     {
+        $logger = StreamLogger::instanceWith('PHONES_CDP_NEIGHBORS');
         $dataOnUnregisteredPhones = [];
         array_map(
-            function ($switch) use (&$dataOnUnregisteredPhones) {
-                $dataOnUnregisteredPhones = array_merge(
-                    $dataOnUnregisteredPhones,
-                    $this->dataOnUnregisteredPhonesConnectedToSwitch($switch->getPk())
-                );
+            function ($switch) use (&$dataOnUnregisteredPhones, $logger) {
+                if ($switch->isPartOfCluster() && false === $switch->managementIp) {
+                    return;
+                }
+                try {
+                    $dataOnUnregisteredPhones = array_merge(
+                        $dataOnUnregisteredPhones,
+                        $this->dataOnUnregisteredPhonesConnectedToSwitch($switch->getPk())
+                    );
+                } catch (\Throwable $e) {
+                    $logger->error('[message]=' . $e->getMessage() . ' [sw_id]=' . $switch->getPk());
+                }
             },
-            (new SwitchService())->liveSwitchesInOffice(
-//                Office::findByPK($id)->lotusId
-                $id
-            )->toArray()
+            (new SwitchService())->liveSwitchesInOffice($lotusId)->toArray()
         );
         return $dataOnUnregisteredPhones;
     }

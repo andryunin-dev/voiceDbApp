@@ -107,7 +107,7 @@ class CucmsPhones extends Command
      */
     public function actionUpdateCdpNeighborsFromSwitchesBySsh()
     {
-        $logger = StreamLogger::instanceWith('CDP_NEIGHBORS');
+        $logger = StreamLogger::instanceWith('PHONES_CDP_NEIGHBORS');
         try {
             $switches = function () {
                 $query = new Query(self::SQL['live_switches']);

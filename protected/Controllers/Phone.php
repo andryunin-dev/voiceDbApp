@@ -138,7 +138,7 @@ class Phone extends Controller
 
     /**
      * Data on the phones connected in the office but not existing in the database
-     * @param int $office_id
+     * @param string $extFilters - Office's lotustID
      */
     public function actionUnregisteredInOffice($extFilters = null)
     {

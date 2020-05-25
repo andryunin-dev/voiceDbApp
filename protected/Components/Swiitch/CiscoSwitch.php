@@ -38,7 +38,7 @@ class CiscoSwitch
         $HEADER_OFFSET = 5;
         return array_map(
             function ($phoneNeighbor) {
-                $CDP_PORT_PC_PATTERN = 'Port.*';
+                $CDP_PHONE_PORT_PATTERN = 'Port.*';
                 $fields = mb_split(
                     ' ',
                     mb_ereg_replace(' +', ' ', $phoneNeighbor)
@@ -47,8 +47,8 @@ class CiscoSwitch
                 $phone['sep'] = trim($fields[0]);
                 $phone['sw_port'] = trim($fields[1]) . ' ' . trim($fields[2]);
                 $phone['ph_port'] =
-                    mb_eregi($CDP_PORT_PC_PATTERN, $phoneNeighbor, $portPc)
-                        ? trim($portPc[0])
+                    mb_eregi($CDP_PHONE_PORT_PATTERN, $phoneNeighbor, $regs)
+                        ? (mb_eregi("\d+", $regs[0], $ph_port) ? $ph_port[0] : '')
                         : ''
                 ;
                 return $phone;
