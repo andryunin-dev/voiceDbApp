@@ -123,20 +123,6 @@ class Phone extends Controller
     }
 
     /**
-     * Data on the phones connected to the switch but not existing in the database
-     * @param int $switch_id
-     */
-    public function actionUnregisteredConnectedToSwitch(int $switch_id)
-    {
-        try {
-            $this->data->data = (new UnRegisteredPhonesService())->dataOnUnregisteredPhonesConnectedToSwitch($switch_id);
-        } catch (\Throwable $e) {
-            $this->data->data = [];
-            $this->data->error = 'Runtime error';
-        }
-    }
-
-    /**
      * Data on the phones connected in the office but not existing in the database
      * @param string $extFilters - Office's lotustID
      */
@@ -152,7 +138,7 @@ class Phone extends Controller
                 $this->data->counter = 0;
                 return;
             }
-            $this->data->data = (new UnRegisteredPhonesService())->dataOnUnregisteredPhonesInOffice($lotusId);
+            $this->data->data = (new UnRegisteredPhonesService())->extendedDataOnUnregisteredPhonesInOffice($lotusId);
             $this->data->counter = count($this->data->data);
         } catch (\Throwable $e) {
             $this->data->error = 'Runtime error';
