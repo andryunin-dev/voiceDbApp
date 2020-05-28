@@ -49,7 +49,7 @@ class PhoneService
                             try {
                                 $phone = $this->phoneWithSEP($cdpPhoneNeighborData['sep']);
                                 if (false === $phone) {
-                                    throw new \Exception($phone->name . ' is unregistered phone');
+                                    throw new \Exception($cdpPhoneNeighborData['sep'] . ' is unregistered phone');
                                 }
                                 $phone
                                     ->updateCdpNeighborData(
