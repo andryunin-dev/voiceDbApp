@@ -1,6 +1,7 @@
 <?php
 namespace App\Models;
 
+use App\Components\DateTimeService;
 use T4\Core\Exception;
 use T4\Orm\Model;
 
@@ -36,11 +37,16 @@ use T4\Orm\Model;
  * @property string $cdpNeighborDeviceId
  * @property string $cdpNeighborIP
  * @property string $cdpNeighborPort
+ * @property string $cdpLastUpdate
  * @property string $publisherIp
  * @property boolean $unknownLocation
+ * @property Appliance $phone
  */
 class PhoneInfo extends Model
 {
+    const LIFETIME = 1; // days
+    private const CORRECT_CONNECTION_PORT = 1;
+
     protected static $schema = [
         'table' => 'equipment.phoneInfo',
         'columns' => [
@@ -72,6 +78,7 @@ class PhoneInfo extends Model
             'cdpNeighborDeviceId' => ['type' => 'string'],
             'cdpNeighborIP' => ['type' => 'string'],
             'cdpNeighborPort' => ['type' => 'string'],
+            'cdpLastUpdate' => ['type' => 'datetime'],
             'publisherIp' => ['type' => 'string'],
             'unknownLocation' => ['type' => 'boolean'],
         ],
@@ -106,5 +113,60 @@ class PhoneInfo extends Model
         }
 
         return true;
+    }
+
+
+    /**
+     * Updating data on neighbors under the CDP protocol
+     * @param string $deviceId
+     * @param string $ip
+     * @param string $port
+     * @return $this
+     * @throws \T4\Core\MultiException
+     */
+    public function updateCdpNeighborData(string $deviceId, string $ip, string $port)
+    {
+        $this
+            ->fill([
+                'cdpNeighborDeviceId' => $deviceId,
+                'cdpNeighborIP' => $ip,
+                'cdpNeighborPort' => $port,
+                'cdpLastUpdate' => (new DateTimeService())->now(),
+            ])
+            ->save()
+        ;
+        return $this;
+    }
+
+    /**
+     * Сhange the telephone office to the office of the switch to which it is connected
+     * @param Appliance $cdpNeighbor
+     * @return $this
+     * @throws \T4\Core\MultiException
+     */
+    public function updateLocationByCdpNeighbor(Appliance $cdpNeighbor)
+    {
+        $this->phone->fill(['location' => $cdpNeighbor->location])->save();
+        return $this;
+    }
+
+    /**
+     * Сhecking the phone’s network connection port
+     * @param int $connectionPort
+     * @return bool
+     */
+    public function isCorrectConnectionPort(int $connectionPort): bool
+    {
+        return $connectionPort == self::CORRECT_CONNECTION_PORT;
+    }
+
+    /**
+     * The amount of days since the last time the phone was available
+     * @return int|null the amount of days
+     * @throws \Exception
+     */
+    public function amountOfDaysSinceTheLastTimeThePhoneWasAvailable(): int
+    {
+        return (new DateTimeService())->timeDifference($this->phone->lastUpdate)->days;
     }
 }

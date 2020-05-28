@@ -31,6 +31,7 @@ use T4\Orm\Model;
  * @property Collection|ModuleItem[] $modules
  * @property PhoneInfo $phoneInfo
  * @property Appliance1C $appliance1C
+ * @property string $managementIp
  */
 class Appliance extends Model
 {
@@ -282,5 +283,13 @@ class Appliance extends Model
     public function isPartOfCluster(): bool
     {
         return !is_null($this->cluster);
+    }
+
+    public function inventoryNumber(): string
+    {
+        return !is_null($this->appliance1C)
+            ? $this->appliance1C->inventoryData->inventoryNumber
+            : ''
+        ;
     }
 }

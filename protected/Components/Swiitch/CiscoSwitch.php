@@ -78,12 +78,12 @@ class CiscoSwitch
     }
 
     /**
-     * @return mixed
+     * @return string
      * @throws \Exception
      */
-    public function hostname()
+    public function hostname(): string
     {
-        return $this->appliance()->details->hostname;
+        return $this->appliance()->hostname();
     }
 
     /**
