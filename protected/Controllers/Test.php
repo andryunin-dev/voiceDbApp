@@ -12,6 +12,7 @@ use App\Models\DataPort;
 use App\Models\DPortType;
 use App\Models\Network;
 use App\Models\Network2;
+use App\Models\PhoneInfo;
 use App\Models\Vrf;
 use App\ViewModels\ApiView_Devices;
 use App\ViewModels\ApiView_Geo;
@@ -31,6 +32,13 @@ class Test extends Controller
     public function actionInfo()
     {
         phpinfo();
+    }
+    public function actionPhoneInfo()
+    {
+        $sep = 'SEPFC99470FAC8E';
+        $res = PhoneInfo::findByColumn('name', $sep);
+        var_dump($res);
+        die;
     }
     public function actionAxios()
     {
