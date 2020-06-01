@@ -4,6 +4,8 @@ namespace App\Components\Cucm;
 use App\Components\StreamLogger;
 use App\Components\Swiitch\CiscoSwitch;
 use App\Components\Swiitch\SwitchService;
+use App\Models\Appliance;
+use App\Models\Office;
 use App\Models\PhoneInfo;
 
 class UnRegisteredPhonesService
@@ -24,16 +26,20 @@ class UnRegisteredPhonesService
      * Data on phones connected to the switch but not in the database,
      * or having the amount of time elapsed since the last time the phone was available
      * more than the LIFETIME
-     * @param int $id
+     * @param Appliance $switch
      * @return array
      * @throws \Exception
      */
-    public function dataOnUnregisteredPhonesConnectedToSwitch(int $id): array
+    public function dataOnUnregisteredPhonesConnectedToSwitch(Appliance $switch): array
     {
-        $switch = new CiscoSwitch($id);
+        $switch = new CiscoSwitch($switch);
         return array_values(
             array_map(
                 function ($phone) use ($switch) {
+                    try {
+                        (new CdpPhoneService())->updateDataOnPhoneCdpNeighborConnectedToSwitch($phone, $switch);
+                    } catch (\Throwable $e) {
+                    }
                     $phone['sw_name'] = $switch->hostname();
                     $phone['sw_ip'] = $switch->managementIp();
                     return $phone;
@@ -52,14 +58,14 @@ class UnRegisteredPhonesService
 
     /**
      * Data on unregistered phones connected in the office
-     * @param int $lotusId
+     * @param Office $office
      * @return array
      * @throws \Exception
      */
-    public function dataOnUnregisteredPhonesInOffice(int $lotusId): array
+    public function dataOnUnregisteredPhonesInOffice(Office $office): array
     {
         $dataOnUnregisteredPhones = [];
-        $switches = (new SwitchService())->liveSwitchesInOffice($lotusId)->toArray();
+        $switches = (new SwitchService())->liveSwitchesInOffice($office)->toArray();
         array_walk(
             $switches,
             function ($switch) use (&$dataOnUnregisteredPhones) {
@@ -69,7 +75,7 @@ class UnRegisteredPhonesService
                 try {
                     $dataOnUnregisteredPhones = array_merge(
                         $dataOnUnregisteredPhones,
-                        $this->dataOnUnregisteredPhonesConnectedToSwitch($switch->getPk())
+                        $this->dataOnUnregisteredPhonesConnectedToSwitch($switch)
                     );
                 } catch (\Throwable $e) {
                     $this->logger->error('[message]=' . $e->getMessage() . ' [sw_id]=' . $switch->getPk());
@@ -81,11 +87,11 @@ class UnRegisteredPhonesService
 
     /**
      * Extended data on unregistered phones connected in the office
-     * @param int $lotusId
+     * @param Office $office
      * @return array
      * @throws \Exception
      */
-    public function extendedDataOnUnregisteredPhonesInOffice(int $lotusId): array
+    public function extendedDataOnUnregisteredPhonesInOffice(Office $office): array
     {
         return array_map(
             function ($phone) {
@@ -103,7 +109,7 @@ class UnRegisteredPhonesService
                 }
                 return $phone;
             },
-            $this->dataOnUnregisteredPhonesInOffice($lotusId)
+            $this->dataOnUnregisteredPhonesInOffice($office)
         );
     }
 }
