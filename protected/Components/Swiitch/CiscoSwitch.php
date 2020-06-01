@@ -3,16 +3,17 @@ namespace App\Components\Swiitch;
 
 use App\Components\Ssh\SshClient;
 use App\Models\Appliance;
+use App\Models\ApplianceType;
 use function T4\app;
 
 class CiscoSwitch
 {
-    private $id;
+    private $appliance;
     private $sshClient;
 
-    public function __construct(int $id)
+    public function __construct(Appliance $appliance)
     {
-        $this->id = $id;
+        $this->appliance = $appliance;
         $this->sshClient = new SshClient(
             $this->managementIp(),
             $this->login(),
@@ -90,13 +91,12 @@ class CiscoSwitch
      * @return Appliance
      * @throws \Exception
      */
-    private function appliance(): Appliance
+    public function appliance(): Appliance
     {
-        $appliance = (new SwitchService())->switchWithPk($this->id);
-        if (false == $appliance) {
-            throw new \Exception("Switch (id=" . $this->id . ") has not exists");
+        if ($this->appliance->type->type != ApplianceType::SWITCH) {
+            throw new \Exception('Appliance (id=' . $this->appliance->getPk() . ') is not a switch');
         }
-        return $appliance;
+        return $this->appliance;
     }
 
     /**

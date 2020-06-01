@@ -3,9 +3,9 @@
 namespace App\Commands;
 
 use App\Components\Cucm;
+use App\Components\Cucm\CdpPhoneService;
 use App\Components\Cucm\Models\RedirectedPhone;
 use App\Components\DSPphones;
-use App\Components\Phones\PhoneService;
 use App\Components\RLogger;
 use App\Components\StreamLogger;
 use App\Models\Appliance;
@@ -89,13 +89,13 @@ class CucmsPhones extends Command
     }
 
     /**
-     * Updating data on phone neighbors under the CDP protocol
+     * Updating data on phone neighbors connected to the switches under the CDP protocol
      */
     public function actionUpdateDataOnPhoneCdpNeighbors()
     {
         $logger = StreamLogger::instanceWith('PHONES_CDP_NEIGHBORS');
         try {
-            (new PhoneService())->updateDataOnPhoneCdpNeighborsConnectedToSwitches();
+            (new CdpPhoneService())->updateDataOnPhoneCdpNeighborsConnectedToPollingSwitches();
         } catch (\Throwable $e) {
             $logger->error('[message]=Runtime error [error]=' . $e->getMessage());
             $this->writeLn('Runtime error');

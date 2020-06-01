@@ -8,7 +8,6 @@ use App\Components\SimpleTableHelpers;
 use App\Models\Office;
 use App\Models\PhoneInfo;
 use App\ViewModels\Geo_View;
-use App\ViewModels\MappedLocations_View;
 use T4\Core\Exception;
 use T4\Core\Std;
 use T4\Http\Request;
@@ -40,7 +39,7 @@ class Phone extends Controller
             exit;
         }
         // Find the phone's data in the cucms
-        $cmd = 'php '.ROOT_PATH.DS.'protected'.DS.'t4.php cucmsPhones/getPhoneByName2 --name='. $name;
+        $cmd = 'php ' . ROOT_PATH . DS . 'protected' . DS . 't4.php cucmsPhones/getPhoneByName2 --name=' . $name;
         exec($cmd, $output);
 
         // Separate error from data
@@ -138,7 +137,11 @@ class Phone extends Controller
                 $this->data->counter = 0;
                 return;
             }
-            $this->data->data = (new UnRegisteredPhonesService())->extendedDataOnUnregisteredPhonesInOffice($lotusId);
+            $office = Office::findByColumn('lotusId', $lotusId);
+            if (false === $office) {
+                throw new \Exception('Office (lotusId = ' . $lotusId . ') does not exist');
+            }
+            $this->data->data = (new UnRegisteredPhonesService())->extendedDataOnUnregisteredPhonesInOffice($office);
             $this->data->counter = count($this->data->data);
         } catch (\Throwable $e) {
             $this->data->error = 'Runtime error';
