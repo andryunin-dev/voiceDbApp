@@ -3,6 +3,7 @@ namespace App\Components\Swiitch;
 
 use App\Models\Appliance;
 use App\Models\ApplianceType;
+use App\Models\Office;
 use T4\Core\Collection;
 use T4\Dbal\Query;
 
@@ -61,17 +62,17 @@ class SwitchService
 
     /**
      * Valid lifetime switches in the office
-     * @param int $lotusId office ID
+     * @param Office $office
      * @return Collection of the Appliances
      */
-    public function liveSwitchesInOffice(int $lotusId): Collection
+    public function liveSwitchesInOffice(Office $office): Collection
     {
         return Appliance::findAllByQuery(
             new Query(self::SQL['liveSwitchesInOffice']),
             [
                 ':app_type' => ApplianceType::SWITCH,
                 ':app_lifetime' => Appliance::LIFETIME,
-                ':lotus_id' => $lotusId
+                ':lotus_id' => $office->lotusId
             ]
         );
     }
