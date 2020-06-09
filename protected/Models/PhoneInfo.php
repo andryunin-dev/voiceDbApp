@@ -3,6 +3,7 @@ namespace App\Models;
 
 use App\Components\DateTimeService;
 use T4\Core\Exception;
+use T4\Dbal\Query;
 use T4\Orm\Model;
 
 /**
@@ -44,6 +45,9 @@ use T4\Orm\Model;
  */
 class PhoneInfo extends Model
 {
+    private const SQL = [
+        'findByMac' => "SELECT * FROM equipment.\"phoneInfo\" WHERE name LIKE ('%",
+    ];
     const LIFETIME = 1; // days
     private const CORRECT_CONNECTION_PORT = 1;
 
@@ -168,5 +172,17 @@ class PhoneInfo extends Model
     public function amountOfDaysSinceTheLastTimeThePhoneWasAvailable(): int
     {
         return (new DateTimeService())->timeDifference($this->phone->lastUpdate)->days;
+    }
+
+    /**
+     * @param string $mac
+     * @return PhoneInfo|false
+     */
+    public static function findByMac(string $mac)
+    {
+        return PhoneInfo::findByQuery(
+            new Query(self::SQL['findByMac'] . $mac . "')"),
+            []
+        );
     }
 }

@@ -95,7 +95,7 @@ class CucmsPhones extends Command
     {
         $logger = StreamLogger::instanceWith('PHONES_CDP_NEIGHBORS');
         try {
-            (new CdpPhoneService())->updateDataOnPhoneCdpNeighborsConnectedToPollingSwitches();
+            (new CdpPhoneService())->updateDataOfPhonesConnectedToPollingSwitches();
         } catch (\Throwable $e) {
             $logger->error('[message]=Runtime error [error]=' . $e->getMessage());
             $this->writeLn('Runtime error');
