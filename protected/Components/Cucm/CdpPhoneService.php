@@ -27,7 +27,13 @@ class CdpPhoneService
      */
     public function phoneWithSEP(string $sep)
     {
-        return PhoneInfo::findByColumn('name', $sep);
+        $sepLength = 15;
+        if (mb_strlen($sep) != $sepLength) {
+            return PhoneInfo::findByColumn('name', $sep);
+        }
+        $macLength = 12;
+        $mac = mb_substr($sep, -$macLength);
+        return PhoneInfo::findByMac($mac);
     }
 
     /**
@@ -36,87 +42,79 @@ class CdpPhoneService
     public function updateDataOfPhonesConnectedToPollingSwitches(): void
     {
         $switches = (new SwitchService())->switchesAvailableForPollingCdpNeighbors()->toArray();
-        $dataOfPhonesConnectedToSwitches = $this->dataOfPhonesConnectedToSwitches($switches);
         array_walk(
-            $dataOfPhonesConnectedToSwitches,
-            function ($dataOfPhone) {
+            $switches,
+            function ($switch) {
                 try {
-                    $phone = $this->phoneWithSEP($dataOfPhone['sep']);
-                    if (false === $phone) {
-                        throw new \Exception($dataOfPhone['sep'] . ' is unregistered phone');
-                    }
-                    $phone
-                        ->updateCdpNeighborData(
-                            $dataOfPhone['sw_name'],
-                            $dataOfPhone['sw_ip'],
-                            $dataOfPhone['sw_port']
-                        )
-                        ->updateLocationByCdpNeighbor(Appliance::findByPK($dataOfPhone['sw_id']));
-                    if (!$phone->isCorrectConnectionPort($dataOfPhone['ph_port'])) {
-                        throw new \Exception($dataOfPhone['sep'] . ' is connected on Port 2');
-                    }
+                    $dataOfPhonesConnectedToSwitch = $this->dataOfPhonesConnectedToSwitch($switch);
                 } catch (\Throwable $e) {
-                    $this->logger->error(
-                        '[message]=' . $e->getMessage() .
-                        ' [sep]=' . $dataOfPhone['sep'] .
-                        ' [sw_id]=' . $dataOfPhone['sw_id']
-                    );
+                    $this->logger->error('[message]=' . $e->getMessage() . ' [sw_id]=' . $switch->getPk());
+                    return;
                 }
+                array_walk(
+                    $dataOfPhonesConnectedToSwitch,
+                    function ($dataOfPhone) use ($switch) {
+                        try {
+                            $phone = $this->phoneWithSEP($dataOfPhone['sep']);
+                            if (false === $phone) {
+                                throw new \Exception($dataOfPhone['sep'] . ' is unregistered phone');
+                            }
+                            $phone
+                                ->updateCdpNeighborData(
+                                    $dataOfPhone['sw_name'],
+                                    $dataOfPhone['sw_ip'],
+                                    $dataOfPhone['sw_port']
+                                )
+                                ->updateLocationByCdpNeighbor($switch);
+                            if (!$phone->isCorrectConnectionPort($dataOfPhone['ph_port'])) {
+                                throw new \Exception($dataOfPhone['sep'] . ' is connected on Port 2');
+                            }
+                        } catch (\Throwable $e) {
+                            $this->logger->error(
+                                '[message]=' . $e->getMessage() .
+                                ' [sep]=' . $dataOfPhone['sep'] .
+                                ' [sw_id]=' . $switch->getPk()
+                            );
+                        }
+                    }
+                );
             }
         );
     }
 
     /**
-     * Extended data of unregistered phones connected in the office
+     * Data of unregistered phones connected in the office
      * @param Office $office
      * @param int $age hours
-     * @return array
-     * @throws \Exception
-     */
-    public function extendedDataOfUnregisteredPhonesInOffice(Office $office, int $age): array
-    {
-        return array_map(
-            function ($phone) {
-                $phone['model'] = '';
-                $phone['inventory_number'] = '';
-                $phone['last_update'] = '';
-                $phone['cdp_last_update'] = '';
-                $phone['is_in_db'] = false;
-                if (false !== $phoneInfo = PhoneInfo::findByColumn('name', $phone['sep'])) {
-                    $phone['model'] = $phoneInfo->model ?? '';
-                    $phone['inventory_number'] = $phoneInfo->phone->inventoryNumber();
-                    $phone['last_update'] = $phoneInfo->phone->lastUpdate ?? '';
-                    $phone['cdp_last_update'] = $phoneInfo->cdpLastUpdate ?? '';
-                    $phone['is_in_db'] = true;
-                }
-                return $phone;
-            },
-            $this->dataOfUnregisteredPhonesConnectedInOffice($office, $age/24)
-        );
-    }
-
-    /**
-     * Data of phones connected in the office
-     * and which are not in the database or the date of the last survey expired by more than $age
-     * @param Office $office
-     * @param int $age days
      * @return array
      */
     public function dataOfUnregisteredPhonesConnectedInOffice(Office $office, int $age)
     {
-        return array_filter(
-            $this->dataOfPhonesConnectedInOffice($office),
-            function ($dataOfPhone) use ($age) {
-                $macLength = 12;
-                $mac = mb_substr($dataOfPhone['sep'], -$macLength);
-                if (mb_strlen($mac) != $macLength) {
-                    return false;
+        $dataOfUnregisteredPhones = [];
+        $dataOfPhonesConnectedInOffice = $this->dataOfPhonesConnectedInOffice($office);
+        array_walk(
+            $dataOfPhonesConnectedInOffice,
+            function ($dataOfPhone) use (&$dataOfUnregisteredPhones, $age) {
+                $phoneInfo = $this->phoneWithSEP($dataOfPhone['sep']);
+                if (false == $phoneInfo) {
+                    $dataOfPhone['model'] = '';
+                    $dataOfPhone['inventory_number'] = '';
+                    $dataOfPhone['last_update'] = '';
+                    $dataOfPhone['cdp_last_update'] = '';
+                    $dataOfPhone['is_in_db'] = false;
+                    $dataOfUnregisteredPhones[] = $dataOfPhone;
                 }
-                $phone = PhoneInfo::findByMac($mac);
-                return false == $phone
-                    || (false !== $phone && $phone->amountOfDaysSinceTheLastTimeThePhoneWasAvailable() > $age);
+                if (false !== $phoneInfo && $phoneInfo->hoursSinceLastUpdate() > $age) {
+                    $dataOfPhone['model'] = $phoneInfo->model ?? '';
+                    $dataOfPhone['inventory_number'] = $phoneInfo->phone->inventoryNumber();
+                    $dataOfPhone['last_update'] = $phoneInfo->phone->lastUpdate ?? '';
+                    $dataOfPhone['cdp_last_update'] = $phoneInfo->cdpLastUpdate ?? '';
+                    $dataOfPhone['is_in_db'] = true;
+                    $dataOfUnregisteredPhones[] = $dataOfPhone;
+                }
             }
         );
+        return $dataOfUnregisteredPhones;
     }
 
     /**
@@ -168,7 +166,6 @@ class CdpPhoneService
             function ($phone) use ($switch) {
                 $phone['sw_name'] = $switch->hostname();
                 $phone['sw_ip'] = $switch->managementIp();
-                $phone['sw_id'] = $switch->getPk();
                 return $phone;
             },
             $switch->cdpPhoneNeighborsData()

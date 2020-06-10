@@ -68,6 +68,9 @@ class Appliance extends Model
                JOIN equipment."applianceTypes" appliance_type ON appliance.__type_id = appliance_type.__id
                JOIN equipment."dataPorts" dataport ON appliance.__id = dataport.__appliance_id
             WHERE appliance_type.type = :app_type AND ((date_part(\'epoch\' :: TEXT, age(now(), dataport."lastUpdate")) / (3600) :: DOUBLE PRECISION)) :: INTEGER < 73 AND dataport.__network_id = :net_id',
+        'hoursSinceLastUpdate' => '
+            SELECT (((date_part(\'epoch\' :: TEXT, age(now(), appliance."lastUpdate")) / (3600) :: DOUBLE PRECISION)) :: INTEGER) AS "hoursSinceLastUpdate"
+            FROM equipment.appliances appliance WHERE appliance.__id = :id',
     ];
 
     protected static $schema = [
@@ -291,5 +294,16 @@ class Appliance extends Model
             ? $this->appliance1C->inventoryData->inventoryNumber
             : ''
         ;
+    }
+
+    /**
+     * @return int|null
+     */
+    public function hoursSinceLastUpdate()
+    {
+        return self::findByQuery(
+            new Query(self::SQL['hoursSinceLastUpdate']),
+            [':id' => $this->getPk()]
+        )->hoursSinceLastUpdate;
     }
 }

@@ -8,7 +8,6 @@ use Sunra\PhpSimple\HtmlDomParser;
 use T4\Core\Collection;
 use T4\Core\Exception;
 
-// todo - deprecated
 class Phone extends Appliance
 {
     const PHONE = 'phone';

@@ -143,7 +143,7 @@ class Phone extends Controller
             if (false === $office) {
                 throw new \Exception('Office (lotusId = ' . $lotusId . ') does not exist');
             }
-            $this->data->data = (new CdpPhoneService())->extendedDataOfUnregisteredPhonesInOffice($office, $age);
+            $this->data->data = (new CdpPhoneService())->dataOfUnregisteredPhonesConnectedInOffice($office, $age);
             $this->data->counter = count($this->data->data);
         } catch (\Throwable $e) {
             $this->data->error = 'Runtime error';
