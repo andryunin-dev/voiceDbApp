@@ -100,6 +100,15 @@ class CiscoSwitch
     }
 
     /**
+     * @return int
+     * @throws \Exception
+     */
+    public function getPk(): int
+    {
+        return $this->appliance()->getPk();
+    }
+
+    /**
      * @return string
      */
     private function login(): string

@@ -2,7 +2,7 @@
 
 namespace App\Controllers;
 
-use App\Components\Cucm\UnRegisteredPhonesService;
+use App\Components\Cucm\CdpPhoneService;
 use App\Components\DSPphones;
 use App\Components\SimpleTableHelpers;
 use App\Models\Office;
@@ -131,7 +131,9 @@ class Phone extends Controller
             exit;
         }
         try {
-            $lotusId = intval($extFilters);
+            $extFilters = new Std(json_decode($extFilters));
+            $age = intval($extFilters->age);
+            $lotusId = intval($extFilters->lotusId);
             if (empty($lotusId)) {
                 $this->data->data = [];
                 $this->data->counter = 0;
@@ -141,7 +143,7 @@ class Phone extends Controller
             if (false === $office) {
                 throw new \Exception('Office (lotusId = ' . $lotusId . ') does not exist');
             }
-            $this->data->data = (new UnRegisteredPhonesService())->extendedDataOnUnregisteredPhonesInOffice($office);
+            $this->data->data = (new CdpPhoneService())->dataOfUnregisteredPhonesConnectedInOffice($office, $age);
             $this->data->counter = count($this->data->data);
         } catch (\Throwable $e) {
             $this->data->error = 'Runtime error';
