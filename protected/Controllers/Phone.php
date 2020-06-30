@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Components\Cucm\CdpPhoneService;
+use App\Components\Cucm\CucmsService;
 use App\Components\DSPphones;
 use App\Components\SimpleTableHelpers;
 use App\Models\Office;
@@ -32,50 +33,33 @@ class Phone extends Controller
         'phone_prefix' => 'SELECT name, prefix FROM equipment."phoneInfo"',
     ];
 
-    public function actionPhoneData($name = null)
+    /**
+     * @param string $name
+     */
+    public function actionPhoneData(string $name)
     {
         // respond to preflights
         if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
             exit;
         }
-        // Find the phone's data in the cucms
-        $cmd = 'php ' . ROOT_PATH . DS . 'protected' . DS . 't4.php cucmsPhones/getPhoneByName2 --name=' . $name;
-        exec($cmd, $output);
-
-        // Separate error from data
-        $phoneData = [];
         $errors = [];
-        foreach ($output as $item) {
-            $item = json_decode($item, true);
-            if (!empty($item['error'])) {
-                $errors = array_merge($errors, $item['error']);
-            } else {
-                if ('Registered' == $item['status']) {
-                    $phoneData = $item;
+        $dataOfRegisteredPhone = [];
+        foreach ((new CucmsService())->cucms() as $cucm) {
+            try {
+                $registeredPhone = $cucm->registeredPhone($name);
+                if (false !== $registeredPhone) {
+                    $dataOfRegisteredPhone = $registeredPhone->toArray();
+                    $phoneInfo = PhoneInfo::findByColumn('name', $dataOfRegisteredPhone['name']);
+                    $dataOfRegisteredPhone['inventoryNumber'] = false !== $phoneInfo ? $phoneInfo->inventoryNumber() : '';
+                    break;
                 }
+            } catch (\Throwable $e) {
+                $errors[] = 'Runtime error';
             }
-        }
-        if (!empty($phoneData)) {
-            $inventoryNumber = '';
-            if (!empty($phoneData['serialNumber'])) {
-                $items = PhoneInfo::getDbConnection()
-                    ->query(self::SQL['phone_inventoryNumber'], [':serial_number' => '%' . $phoneData['serialNumber']])
-                    ->fetchAll(\PDO::FETCH_ASSOC);
-                if (count($items) > 0) {
-                    $inventoryNumber = array_reduce($items,
-                        function ($carry, $item) {
-                            $mark = $carry == '' ? '' : ', ';
-                            return $carry . $mark . $item['inventory_number'];
-                        }, ''
-                    );
-                }
-            }
-//            $phoneData['inventoryNumber'] = 'InvN: ' . $inventoryNumber . '; SN: ' . $phoneData['serialNumber'];
-            $phoneData['inventoryNumber'] = $inventoryNumber;
         }
         $this->data->result = [
             'errors' => $errors,
-            'data' => $phoneData,
+            'data' => $dataOfRegisteredPhone,
         ];
     }
 

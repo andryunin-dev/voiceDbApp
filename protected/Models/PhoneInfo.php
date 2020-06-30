@@ -193,4 +193,12 @@ class PhoneInfo extends Model
             [':mac' => '%' . $mac]
         );
     }
+
+    /**
+     * @return string
+     */
+    public function inventoryNumber(): string
+    {
+        return $this->phone->inventoryNumber();
+    }
 }

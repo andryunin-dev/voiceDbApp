@@ -42,6 +42,9 @@ return [
         'username' => '@axl.username@',
         'password' => '@axl.password@',
     ],
+    'snmp' => [
+        'community' => '@snmp.community@',
+    ],
     'ssh' => [
         'login' => '@ssh.login@',
         'password' => '@ssh.password@',

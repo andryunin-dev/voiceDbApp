@@ -27,7 +27,7 @@ use T4\Orm\Model;
  * @property string $cfnaduration
  * @property string $partition
  * @property string $model
- * @property string $cucmIp
+ * @property string $cucm
  * @property \DateTime $lastUpdate
  */
 class RedirectedPhone extends Model
@@ -74,7 +74,7 @@ class RedirectedPhone extends Model
 
     protected function validate()
     {
-        $objFromDb = self::findByDeviceAndCucm($this->device, $this->cucmIp);
+        $objFromDb = self::findByDeviceAndCucm($this->device, $this->cucm);
         if (true === $this->isNew && false !== $objFromDb) {
             throwException('Такой Redirected Phone уже существует');
         }
@@ -89,7 +89,7 @@ class RedirectedPhone extends Model
      */
     public function persist(): void
     {
-        $objFromDb = self::findByDeviceAndCucm($this->device, $this->cucmIp);
+        $objFromDb = self::findByDeviceAndCucm($this->device, $this->cucm);
         if (false === $objFromDb) {
             $this->save();
         } else {

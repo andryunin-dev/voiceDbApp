@@ -2,12 +2,10 @@
 namespace App\Controllers;
 
 use App\Components\ContentFilter;
-use App\Components\Cucm;
+use App\Components\Cucm\CucmsService;
 use App\Components\Cucm\Models\RedirectedPhone;
 use App\Components\Paginator;
 use App\Components\Sorter;
-use App\Models\Appliance;
-use App\Models\ApplianceType;
 use T4\Core\Std;
 use T4\Dbal\Query;
 use T4\Http\Request;
@@ -128,15 +126,16 @@ class RedirectedPhones extends Controller
     {
         ob_start();
         $result = [];
-        $GETrequest = (new Request())->get;
-        if (0 < $GETrequest->count() && !empty($GETrequest->cucmIp)) {
+        $request = (new Request())->get;
+        if (0 < $request->count() && !empty($request->cucmIp)) {
             try {
+                $cucm = (new CucmsService())->cucmWithIp($request->cucmIp);
                 $phones =
-                    (empty($GETrequest->callForwardingNumber))
-                        ? (new Cucm($GETrequest->cucmIp))->redirectedPhones()
-                        : (((boolean) $GETrequest->containsSearchType)
-                            ? (new Cucm($GETrequest->cucmIp))->redirectedPhonesContainingCallForwardingNumberAsSubstring($GETrequest->callForwardingNumber)
-                            : (new Cucm($GETrequest->cucmIp))->redirectedPhonesWithCallForwardingNumber($GETrequest->callForwardingNumber))
+                    (empty($request->callForwardingNumber))
+                        ? $cucm->redirectedPhones()
+                        : (((boolean) $request->containsSearchType)
+                            ? $cucm->redirectedPhonesContainingCallForwardingNumberAsSubstring($request->callForwardingNumber)
+                            : $cucm->redirectedPhonesWithCallForwardingNumber($request->callForwardingNumber))
                 ;
                 $result = array_map(
                     function ($phone) {

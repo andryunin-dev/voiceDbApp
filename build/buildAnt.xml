@@ -44,6 +44,8 @@
         <filter token="axl.username" value="${axl.username}" />
         <filter token="axl.password" value="${axl.password}" />
 
+        <filter token="snmp.community" value="${snmp.community}" />
+
         <filter token="ssh.login" value="${ssh.login}" />
         <filter token="ssh.password" value="${ssh.password}" />
 

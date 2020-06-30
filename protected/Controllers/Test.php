@@ -2,7 +2,7 @@
 
 namespace App\Controllers;
 
-use App\Components\Cucm;
+use App\Components\Cucm\CucmsService;
 use App\Components\IpTools;
 use App\ConsolidationTablesModels\ConsolidationTable_1;
 use App\MappingModels\LotusLocation;
@@ -81,15 +81,14 @@ class Test extends Controller
         $publishers = Appliance::findAllByType(ApplianceType::CUCM_PUBLISHER);
         $result = [];
         $errors = [];
-        foreach ($publishers as $publisher) {
+        foreach ((new CucmsService())->cucms() as $cucm) {
             try {
-                if (false !== $ip = $publisher->managementIp) {
-                    if (false !== $phone = (new Cucm($ip))->phoneWithName($name)) {
-                        $result[] = $phone->toJson();
-                    }
+                if (false !== $registeredPhone = $cucm->registeredPhone($name)) {
+                    $result[] = $registeredPhone->toJson();
+                    break;
                 }
             } catch (\Throwable $e) {
-                $errors[] = json_encode(['error' => [$ip => $e->getMessage()]]);
+                $errors[] = json_encode(['error' => [$cucm->ip() => $e->getMessage()]]);
             }
         }
         $this->data->results = $result;

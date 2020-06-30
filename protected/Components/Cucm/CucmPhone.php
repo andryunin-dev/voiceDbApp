@@ -1,7 +1,7 @@
 <?php
-namespace App\Components;
+namespace App\Components\Cucm;
 
-class CucmDevice
+class CucmPhone
 {
     private $name = '';
     private $model = '';
