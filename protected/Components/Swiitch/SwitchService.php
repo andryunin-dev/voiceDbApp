@@ -30,9 +30,11 @@ class SwitchService
                 LEFT JOIN equipment."applianceTypes" appliance_type ON appliance.__type_id = appliance_type.__id
                 LEFT JOIN equipment."platformItems" platform_item ON appliance.__platform_item_id = platform_item.__id
                 LEFT JOIN equipment.platforms platform ON platform_item.__platform_id = platform.__id
+                LEFT JOIN equipment."dataPorts" data_port ON appliance.__id = data_port.__appliance_id
             WHERE appliance_type.type = :app_type
-                AND ((date_part(\'epoch\' :: TEXT, age(now(), appliance."lastUpdate")) / (3600) :: DOUBLE PRECISION)) :: INTEGER < :app_lifetime
-                AND platform.title NOT IN (:pl_title1, :pl_title2, :pl_title3, :pl_title4, :pl_title5, :pl_title6, :pl_title7, :pl_title8)',
+                AND data_port."isManagement" IS TRUE
+                AND platform.title NOT IN (:pl_title1, :pl_title2, :pl_title3, :pl_title4, :pl_title5, :pl_title6, :pl_title7, :pl_title8)
+                AND ((date_part(\'epoch\' :: TEXT, age(now(), appliance."lastUpdate")) / (3600) :: DOUBLE PRECISION)) :: INTEGER < :app_lifetime',
     ];
 
     /**
