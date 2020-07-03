@@ -28,7 +28,10 @@ class Cucm
         $this->appliance = $appliance;
         $this->axlService = new CucmAxlService($this);
         $this->risPortService = new CucmRisPortService($this);
-        $this->logger = StreamLogger::instanceWith('CUCM');
+        $this->logger = StreamLogger::instanceWith(
+            'CUCM',
+            ROOT_PATH.DS.'Logs'.DS.'cucm_'.$this->ip().'.log'
+        );
     }
 
     /**
@@ -47,12 +50,15 @@ class Cucm
         if (false === $dataOfRisPortService) {
             return false;
         }
-        $ciscoPhone = CiscoDeviceFactory::model(
-            $dataOfAxlService->model,
-            $dataOfRisPortService->IpAddress
+        return $this->cucmPhone(
+            $dataOfAxlService,
+            $dataOfRisPortService,
+            $this->phoneRealtimeData(
+                $name,
+                $dataOfAxlService->model,
+                $dataOfRisPortService->IpAddress
+            )
         );
-        $dataOfPhone = (false !== $ciscoPhone) ? $ciscoPhone->realtimeData() : [];
-        return $this->cucmPhone($dataOfAxlService, $dataOfRisPortService, $dataOfPhone);
     }
 
     /**
@@ -83,12 +89,15 @@ class Cucm
                     );
                     return;
                 }
-                $ciscoPhone = CiscoDeviceFactory::model(
-                    $phoneDataOfAxlService->model,
-                    $phoneDataOfRisService->IpAddress
+                $registeredPhones[] = $this->cucmPhone(
+                    $phoneDataOfAxlService,
+                    $phoneDataOfRisService,
+                    $this->phoneRealtimeData(
+                        $phoneDataOfRisService->Name,
+                        $phoneDataOfAxlService->model,
+                        $phoneDataOfRisService->IpAddress
+                    )
                 );
-                $dataOfPhone = (false !== $ciscoPhone) ? $ciscoPhone->realtimeData() : [];
-                $registeredPhones[] = $this->cucmPhone($phoneDataOfAxlService, $phoneDataOfRisService, $dataOfPhone);
             }
         );
         return $registeredPhones;
@@ -227,5 +236,32 @@ class Cucm
             'cdpNeighborPort' => $dataOfPhone['cdpNeighborPort'] ?? '',
             'publisherIp' => $this->ip(),
         ]);
+    }
+
+    /**
+     * Data received from the phone
+     * @param string $name
+     * @param string $model
+     * @param string $ip
+     * @return array
+     */
+    private function phoneRealtimeData(string $name,string $model, string $ip): array
+    {
+        $dataOfPhone = [];
+        try {
+            $ciscoPhone = CiscoDeviceFactory::model($model, $ip);
+            if (false !== $ciscoPhone) {
+                $dataOfPhone = $ciscoPhone->realtimeData();
+            }
+        } catch (\Throwable $e) {
+            $this->logger->error(
+                '[message]=' . $e->getMessage() .
+                ' [sep]=' . $name .
+                ' [model]=' . $model .
+                ' [phoneIp]=' . $ip .
+                ' [cucmIp]=' . $this->ip()
+            );
+        }
+        return $dataOfPhone;
     }
 }

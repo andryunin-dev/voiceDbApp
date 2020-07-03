@@ -50,7 +50,7 @@ class CiscoPhone8945 extends CiscoPhone
                 continue;
             }
             $item = mb_strtolower(mb_ereg_replace('[ |\\n|\\r]+', '', $item));
-            if (!is_null($fieldsMap[$item])) {
+            if (isset($fieldsMap[$item])) {
                 $foundField = $fieldsMap[$item];
                 $skipOne = true;
             }

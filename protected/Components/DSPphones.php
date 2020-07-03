@@ -123,8 +123,8 @@ class DSPphones extends Std
                     $appliance->details = new Std();
                 }
                 $location = $appliance->location;
-                if (!empty($data->defaultRouter)) {
-                    $location = DataPort::findByIpVrf($data->defaultRouter, Vrf::instanceGlobalVrf())->appliance->location;
+                if (!empty($data->defaultRouter) && false !== $dp = DataPort::findByIpVrf($data->defaultRouter, Vrf::instanceGlobalVrf())) {
+                    $location = $dp->appliance->location;
                     $appliance->details->defaultRouterLocationLastUpdate = (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P');
                 } elseif ($appliance->isNew()) {
                     $location = Office::findByColumn('title', self::UNKNOWN_LOCATION);
