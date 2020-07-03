@@ -123,8 +123,8 @@ class DSPphones extends Std
                     $appliance->details = new Std();
                 }
                 $location = $appliance->location;
-                if (!empty($data->defaultRouter)) {
-                    $location = DataPort::findByIpVrf($data->defaultRouter, Vrf::instanceGlobalVrf())->appliance->location;
+                if (!empty($data->defaultRouter) && false !== $dp = DataPort::findByIpVrf($data->defaultRouter, Vrf::instanceGlobalVrf())) {
+                    $location = $dp->appliance->location;
                     $appliance->details->defaultRouterLocationLastUpdate = (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s P');
                 } elseif ($appliance->isNew()) {
                     $location = Office::findByColumn('title', self::UNKNOWN_LOCATION);
@@ -137,8 +137,10 @@ class DSPphones extends Std
 
             // Platform
             $model = (!empty($data->modelNumber)) ? $data->modelNumber : $data->model;
-            preg_match('~\d+~', $model, $numericModelCode);
-            switch ($numericModelCode[0]) {
+            if (false !== mb_ereg("\d+", $model, $numericModelCode)) {
+                $model = $numericModelCode[0];
+            }
+            switch ($model) {
                 case '6921';
                     $model = 'CP-6921';
                     break;
@@ -185,13 +187,12 @@ class DSPphones extends Std
                     $model = 'CP-8945';
                     break;
                 default:
-                    preg_match('~communicator~', mb_strtolower($model), $modelName);
-                    if ('communicator' == $modelName[0]) {
+                    if (false !== mb_eregi('communicator', $model)) {
                         $model = 'Communicator';
-                    } else {
-                        $model = trim(preg_replace('~Cisco|CISCO~', '', $model));
-                        $model = trim(preg_replace('~  +~', ' ', $model));
+                        break;
                     }
+                    $model = trim(mb_eregi_replace('cisco', '', $model));
+                    $model = mb_eregi_replace(' +', ' ', $model);
             }
             $platform = Platform::findByVendorTitle($vendor, $model);
             if (false === $platform) {

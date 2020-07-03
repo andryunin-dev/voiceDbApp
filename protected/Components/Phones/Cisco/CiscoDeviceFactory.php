@@ -1,6 +1,8 @@
 <?php
 namespace App\Components\Phones\Cisco;
 
+use App\Components\StreamLogger;
+
 class CiscoDeviceFactory
 {
     public static function model(string $model, string $ip = null)
@@ -47,6 +49,13 @@ class CiscoDeviceFactory
                 $ciscoPhone = new CiscoPhone7940($ip);
                 break;
             default:
+        }
+        if (false === $ciscoPhone) {
+            StreamLogger::instanceWith('DEFAULT')->error(
+                '[message]=Phone model does not known' .
+                ' [model]=' . $model .
+                ' [phone_ip]=' . $ip
+            );
         }
         return $ciscoPhone;
     }
