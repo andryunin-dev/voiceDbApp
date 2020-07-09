@@ -80,6 +80,22 @@ class SwitchService
     }
 
     /**
+     * Polling switches in the office
+     * @param Office $office
+     * @return array
+     */
+    public function pollingSwitchesInOffice(Office $office)
+    {
+        $switches = $this->liveSwitchesInOffice($office)->toArray();
+        return array_filter(
+            $switches,
+            function ($switch) {
+                return false !== $switch->managementIp;
+            }
+        );
+    }
+
+    /**
      * Valid lifetime switches available for polling CDP neighbors
      * @return Collection of Appliances
      */

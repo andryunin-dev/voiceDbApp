@@ -125,7 +125,7 @@ class CdpPhoneService
     public function dataOfPhonesConnectedInOffice(Office $office)
     {
         return $this->dataOfPhonesConnectedToSwitches(
-            (new SwitchService())->liveSwitchesInOffice($office)->toArray()
+            (new SwitchService())->pollingSwitchesInOffice($office)
         );
     }
 
