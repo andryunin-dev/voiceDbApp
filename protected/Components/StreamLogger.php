@@ -9,6 +9,7 @@ class StreamLogger
     private const DIR = ROOT_PATH . '/Logs/';
     private const LOG_FILE = [
         'DEFAULT' => self::DIR . 'errors.log',
+        'DS-INPUT' => self::DIR . 'DSinput.log',
         'DS-PREFIXES' => self::DIR . 'DSprefixes.log',
         'DS-ERRORS' => self::DIR . 'DSerrors.log',
         'DS-CLUSTER' => self::DIR . 'DScluster.log',

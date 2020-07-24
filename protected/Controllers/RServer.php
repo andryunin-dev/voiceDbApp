@@ -1,13 +1,9 @@
 <?php
 namespace App\Controllers;
 
-use App\Components\DSPerror;
-use App\Components\InventoryAppliance;
-use App\Components\InventoryCluster;
-use App\Components\Prefixes;
+use App\Components\Inventory\UpdateService;
 use App\Components\StreamLogger;
-use T4\Core\Collection;
-use T4\Core\Exception;
+use Monolog\Logger;
 use T4\Mvc\Controller;
 
 class RServer extends Controller
@@ -23,41 +19,24 @@ class RServer extends Controller
 
     public function actionDefault()
     {
+        $response = 'ok';
         try {
-            $logger = StreamLogger::instanceWith('DS-INPUT');
-            $rawInput = file_get_contents('php://input');
-            $actualData = json_decode($rawInput);
-            if (empty($actualData->dataSetType)) {
-                $logger->error('[message]=No field dataSetType or empty dataSetType; [dataset]='.json_encode($actualData));
-                throw new Exception('No field dataSetType or empty dataSetType');
-            }
-            switch ($actualData->dataSetType) {
-                case 'cluster':
-                    (new InventoryCluster($actualData))->update();
-                    break;
-                case 'appliance':
-                    (new InventoryAppliance($actualData))->update();
-                    break;
-                case 'prefixes':
-                    (new Prefixes($actualData))->upgrade();
-                    break;
-                case 'error':
-                    (new DSPerror($actualData))->log();
-                    break;
-                default:
-                    throw new \Exception('Not known dataSetType');
-            }
+            $data = json_decode(file_get_contents('php://input'), true);
+            (new UpdateService())->update($data);
         } catch (\Throwable $e) {
-            $err['errors'][] = $e->getMessage();
+            $this->logger()->error($e->getMessage());
+            $response = json_encode(['error' => 'Runtime error']);
         }
-
-        // Вернуть ответ
-        $httpStatusCode = (isset($err)) ? 400 : 202;
-        $response = (new Collection())
-            ->merge(['ip' => $actualData->ip])
-            ->merge(['httpStatusCode' => $httpStatusCode])
-            ->merge((400 == $httpStatusCode) ? $err : [] );
-        echo(json_encode($response->toArray()));
+        echo($response);
         die;
+    }
+
+    /**
+     * @return \Monolog\Logger
+     * @throws \Exception
+     */
+    private function logger(): Logger
+    {
+        return StreamLogger::instanceWith('DS-INPUT');
     }
 }
