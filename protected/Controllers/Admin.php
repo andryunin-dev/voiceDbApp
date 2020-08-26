@@ -473,13 +473,15 @@ class Admin extends Controller
                 ->save();
 
             //собираем офис с изменениями
+            $isCCO = !!$data->isCCO;
             $office
                 ->fill([
                     'title' =>$data->title,
                     'address' => $address,
                     'status' => $status,
                     'lotusId' => $data->lotusId,
-                    'comment' => $data->comment
+                    'comment' => $data->comment,
+                    'isCCO' => $isCCO
                 ])
                 ->save();
 

@@ -44,6 +44,8 @@ class GeoDevStat extends Model
             'people' => ['type' => 'int'],
             'officeStatus_id' => ['type' => 'int', 'length' => 'big'],
             'officeStatus' => ['type' => 'string'],
+            'isCCO' => ['type' => 'boolean'],
+            'isCCO_txt' => ['type' => 'string'],
             'address' => ['type' => 'string'],
             'city_id' => ['type' => 'int', 'length' => 'big'],
             'city' => ['type' => 'string'],

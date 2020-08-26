@@ -31,7 +31,8 @@ class Office extends Model
             'title' => ['type' => 'string'],
             'lotusId' => ['type' => 'integer'],
             'details' => ['type' => 'json'],
-            'comment' => ['type' => 'string']
+            'comment' => ['type' => 'string'],
+            'isCCO' => ['type' => 'boolean']
         ],
         'relations' => [
             'address' => ['type' => self::BELONGS_TO, 'model' => Address::class],
