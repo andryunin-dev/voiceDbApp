@@ -4,6 +4,7 @@ namespace App\Components\Inventory;
 use App\Components\IpTools;
 use App\Components\StreamLogger;
 use App\Models\Appliance;
+use App\Models\PhoneInfo;
 use Monolog\Logger;
 
 class UpdateService
@@ -37,6 +38,10 @@ class UpdateService
                     break;
                 case 'error':
                     (new ErrorLoggingService())->log($data);
+                    break;
+                case 'phone':
+                    $phoneInfo = $this->phoneInfo($data['name']);
+                    (new PhoneUpdateService())->update($phoneInfo, $data);
                     break;
                 default:
                     throw new \Exception('Unknown dataSetType [dataset]=' . json_encode($data));
@@ -92,5 +97,20 @@ class UpdateService
     private function logger(): Logger
     {
         return StreamLogger::instanceWith('DS-INPUT');
+    }
+
+    /**
+     * @param string $name
+     * @return PhoneInfo
+     */
+    private function phoneInfo(string $name): PhoneInfo
+    {
+        $phoneInfo = PhoneInfo::findByColumn('name', $name);
+        if (false == $phoneInfo) {
+            $phoneInfo = new PhoneInfo();
+            $phoneInfo->name = $name;
+            $phoneInfo->phone = new Appliance();
+        }
+        return $phoneInfo;
     }
 }

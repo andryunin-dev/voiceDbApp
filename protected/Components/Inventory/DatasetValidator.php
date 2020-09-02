@@ -28,6 +28,9 @@ class DatasetValidator
             case 'error':
                 $validate = $this->validateError($data);
                 break;
+            case 'phone':
+                $validate = $this->validatePhone($data);
+                break;
             default:
                 break;
         }
@@ -225,5 +228,55 @@ class DatasetValidator
     private function validateError(array $data): bool
     {
         return isset($data['dataSetType'], $data['ip'], $data['hostname'], $data['message']);
+    }
+
+    /**
+     * Validate "Phone" data structure
+     *
+     * @param array $data
+     * @return bool
+     */
+    private function validatePhone(array $data): bool
+    {
+        return isset(
+            $data['dataSetType'],
+            $data['name'],
+            $data['model'],
+            $data['status'],
+            $data['class'],
+            $data['prefix'],
+            $data['phonedn'],
+            $data['css'],
+            $data['devicepool'],
+            $data['alertingname'],
+            $data['partition'],
+            $data['description'],
+            $data['serialNumber'],
+            $data['modelNumber'],
+            $data['versionID'],
+            $data['appLoadID'],
+            $data['timezone'],
+            $data['macAddress'],
+            $data['ipAddress'],
+            $data['subNetMask'],
+            $data['vlanId'],
+            $data['dhcpEnabled'],
+            $data['dhcpServer'],
+            $data['domainName'],
+            $data['tftpServer1'],
+            $data['tftpServer2'],
+            $data['defaultRouter'],
+            $data['dnsServer1'],
+            $data['dnsServer2'],
+            $data['callManager1'],
+            $data['callManager2'],
+            $data['callManager3'],
+            $data['callManager4'],
+            $data['userLocale'],
+            $data['cdpNeighborDeviceId'],
+            $data['cdpNeighborIP'],
+            $data['cdpNeighborPort'],
+            $data['publisherIp']
+        );
     }
 }
