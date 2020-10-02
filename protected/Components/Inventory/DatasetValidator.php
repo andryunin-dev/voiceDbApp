@@ -79,18 +79,20 @@ class DatasetValidator
             $data['applianceModules']
         )) return false;
         if (!is_array($data['applianceModules'])) return false;
-        $validateModules = true;
-        array_walk(
-            $data['applianceModules'],
-            function ($module) use (&$validateModules) {
-                if (!is_array($module) || !isset($module['serial'], $module['product_number'], $module['description'])) {
-                    $validateModules = false;
-                }
-            }
-        );
-        if (!$validateModules) return false;
-        if (!array_key_exists('ip', $data) || !array_key_exists('vrf_name', $data)) return false;
-        if (!is_null($data['ip']) && is_null($data['vrf_name'])) return false;
+        foreach ($data['applianceModules'] as $module) {
+            if (!is_array($module)) return false;
+            if (!isset(
+                $module['serial'],
+                $module['product_number'],
+                $module['description']
+            )) return false;
+        }
+        if (!array_key_exists('ip', $data) ||
+            !array_key_exists('vrf_name', $data)
+        ) return false;
+        if (!is_null($data['ip']) &&
+            is_null($data['vrf_name'])
+        ) return false;
         return true;
     }
 
@@ -145,17 +147,11 @@ class DatasetValidator
             $data['clusterAppliances']
         )) return false;
         if (!is_array($data['clusterAppliances'])) return false;
-
-        $validateAppliances = true;
-        array_walk(
-            $data['clusterAppliances'],
-            function ($appliance) use (&$validateAppliances) {
-                if (!is_array($appliance) || !$this->validateAppliance($appliance)) {
-                    $validateAppliances = false;
-                }
-            }
-        );
-        return $validateAppliances;
+        foreach ($data['clusterAppliances'] as $appliance) {
+            if (!is_array($appliance)) return false;
+            if (!$this->validateAppliance($appliance)) return false;
+        }
+        return true;
     }
 
     /**
@@ -163,7 +159,7 @@ class DatasetValidator
      * {
      *   "dataSetType",
      *   "bgp_as",
-     *   "bgp_networks",
+     *   "bgp_networks" : [],
      *   "ip",
      *   "vrf_name",
      *   "networks": [
@@ -193,25 +189,19 @@ class DatasetValidator
         )) return false;
         if (!is_array($data['bgp_networks'])) return false;
         if (!is_array($data['networks'])) return false;
-
-        $validateNetworks = true;
-        array_walk(
-            $data['networks'],
-            function ($network) use (&$validateNetworks) {
-                if (!is_array($network) || !isset(
-                        $network['interface'],
-                        $network['ip_address'],
-                        $network['vrf_name'],
-                        $network['vrf_rd'],
-                        $network['vni'],
-                        $network['description'],
-                        $network['mac']
-                    )) {
-                    $validateNetworks = false;;
-                }
-            }
-        );
-        return $validateNetworks;
+        foreach ($data['networks'] as $network) {
+            if (!is_array($network)) return false;
+            if (!isset(
+                $network['interface'],
+                $network['ip_address'],
+                $network['vrf_name'],
+                $network['vrf_rd'],
+                $network['vni'],
+                $network['description'],
+                $network['mac']
+            )) return false;
+        }
+        return true;
     }
 
     /**
@@ -227,7 +217,12 @@ class DatasetValidator
      */
     private function validateError(array $data): bool
     {
-        return isset($data['dataSetType'], $data['ip'], $data['hostname'], $data['message']);
+        return isset(
+            $data['dataSetType'],
+            $data['ip'],
+            $data['hostname'],
+            $data['message']
+        );
     }
 
     /**
@@ -246,6 +241,7 @@ class DatasetValidator
             $data['class'],
             $data['prefix'],
             $data['phonedn'],
+            $data['e164mask'],
             $data['css'],
             $data['devicepool'],
             $data['alertingname'],

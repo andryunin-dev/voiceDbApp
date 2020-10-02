@@ -16,6 +16,8 @@ use T4\Orm\Model;
  */
 class Region extends Model
 {
+    private const UNKNOWN_REGION = 'Неизвестный';
+
     protected static $schema = [
         'table' => 'geolocation.regions',
         'columns' => [
@@ -41,12 +43,23 @@ class Region extends Model
 
     protected function validate()
     {
-        if (false === $this->isNew()) {
-            return true;
-        }
-        if (false !== Region::findByColumn('title', $this->title)) {
-            throw new Exception('Регион с таким именем существует');
+        $regionFromDb = Region::findByColumn('title', $this->title);
+        if (false != $regionFromDb && ($this->isNew() || $this->getPk() != $regionFromDb->getPk())) {
+            throw new Exception('Регион с таким именем уже существует');
         }
         return true;
+    }
+
+    /**
+     * @return Region
+     * @throws \T4\Core\MultiException
+     */
+    public static function unknownRegionInstance(): Region
+    {
+        $region = self::findByColumn('title', self::UNKNOWN_REGION);
+        if (false == $region) {
+            $region = (new Region())->fill(['title' => self::UNKNOWN_REGION])->save();
+        }
+        return $region;
     }
 }

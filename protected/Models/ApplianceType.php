@@ -21,6 +21,7 @@ class ApplianceType extends Model
     const PHONE = 'phone';
     const ROUTER = 'router';
     const SWITCH = 'switch';
+    const VG = 'vg';
 
     protected static $schema = [
         'table' => 'equipment.applianceTypes',

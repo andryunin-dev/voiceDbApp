@@ -89,8 +89,8 @@ class ApplianceUpdateService
                 'portType' => DPortType::getEmpty(),
                 'appliance' => $this->appliance,
                 'lastUpdate' => (new DateTimeService())->now(),
-            ])
-            ->save();
+            ]);
+        $port->save();
         if (count($port->errors) > 0) {
             $this->logger()->error('[message]=' . $port->errors[0] . ' [managementIp]=' . $ip);
         } else {

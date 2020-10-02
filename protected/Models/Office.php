@@ -25,6 +25,9 @@ use T4\Orm\Model;
  */
 class Office extends Model
 {
+    private const VIRTUAL_APPS_LOTUS_ID = 1998;
+    private const UNKNOWN_LOCATION_LOTUS_ID = 1999;
+
     protected static $schema = [
         'table' => 'company.offices',
         'columns' => [
@@ -73,30 +76,67 @@ class Office extends Model
 
     protected function validate()
     {
-        if (empty($this->address)) {
+        if (!($this->address instanceof Address)) {
             throw new Exception('Ошибка при записи адреса. Возможно не найден город');
         }
-        if (empty($this->status)) {
+        if (!($this->status instanceof OfficeStatus)) {
             throw new Exception('Статус не найден');
         }
-        //TODO: здесь нужно вставить проверку при изменении LotusId
-        if (false === $this->isNew()) {
-            return true;
+        $officeFromDb = Office::findByColumn('lotusId', $this->lotusId);
+        if ($officeFromDb !== false && ($this->isNew() || $this->getPk() != $officeFromDb->getPk())) {
+            throw new Exception('Офис с данным Lotus ID уже существует');
         }
-        //дальнейшие проверки только для новых офисов
-        //проверка существования офиса по lotusId (только для новых офисов)
-        if (false !== Office::findByColumn('lotusId', $this->lotusId)) {
-            throw new Exception('Офис с данным Lotus ID существует');
+        $officeFromDb = Office::findByColumn('title', $this->title);
+        if ($officeFromDb !== false && ($this->isNew() || $this->getPk() != $officeFromDb->getPk())) {
+            throw new Exception('Офис с таким названием уже существует');
         }
-        //проверка существования офиса по title
-        if (false !== Office::findByColumn('title', $this->title)) {
-            throw new Exception('Офис с таким названием существует');
-        }
-
         return true;
     }
+
     protected function getPeople()
     {
         return LotusLocation::employeesByLotusId($this->lotusId);
+    }
+
+    /**
+     * @return Office
+     * @throws MultiException
+     */
+    public static function unknownLocationInstance(): Office
+    {
+        $office = Office::findByColumn('lotusId', self::UNKNOWN_LOCATION_LOTUS_ID);
+        if (false == $office) {
+            $office = (new Office())
+                ->fill([
+                    'title' => 'Неизвестный',
+                    'lotusId' => self::UNKNOWN_LOCATION_LOTUS_ID,
+                    'isCCO' => false,
+                    'address' => Address::unknownAddressInstance(),
+                    'status' => OfficeStatus::openInstance()
+                ])
+                ->save();
+        }
+        return $office;
+    }
+
+    /**
+     * @return Office
+     * @throws MultiException
+     */
+    public static function virtualAppliancesInstance(): Office
+    {
+        $office = Office::findByColumn('lotusId', self::VIRTUAL_APPS_LOTUS_ID);
+        if (false == $office) {
+            $office = (new Office())
+                ->fill([
+                    'title' => 'Виртуальные устройства',
+                    'lotusId' => self::VIRTUAL_APPS_LOTUS_ID,
+                    'isCCO' => false,
+                    'address' => Address::unknownAddressInstance(),
+                    'status' => OfficeStatus::openInstance()
+                ])
+                ->save();
+        }
+        return $office;
     }
 }

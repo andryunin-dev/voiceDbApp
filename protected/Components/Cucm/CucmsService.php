@@ -8,6 +8,7 @@ class CucmsService
 {
     /**
      * @return array of Cucm
+     * @throws \Exception
      */
     public function cucms(): array
     {
