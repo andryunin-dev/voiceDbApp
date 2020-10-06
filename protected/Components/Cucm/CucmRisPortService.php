@@ -43,7 +43,7 @@ class CucmRisPortService
         }
         foreach (array_chunk($names, $this->maxDevicesPerQuery()) as $namesPerQuery) {
             $response = $this->selectCmDevice(
-                CucmRisPortParameters::DEVICE_CLASS_PHONE,
+                CucmRisPortParameters::DEVICE_CLASS_ANY,
                 CucmRisPortParameters::MODEL_ANY,
                 CucmRisPortParameters::STATUS_REGISTERED,
                 'Name',

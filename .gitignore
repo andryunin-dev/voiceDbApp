@@ -4,4 +4,4 @@ protected/Cache
 public/Assets
 /protected/config.php
 composer.lock
-react
+/react

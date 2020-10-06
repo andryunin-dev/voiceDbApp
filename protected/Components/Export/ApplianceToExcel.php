@@ -405,6 +405,7 @@ class ApplianceToExcel
             phone.css,
             phone.prefix,
             phone."phoneDN",
+            phone."e164mask",
             phone."platformSerial",
             phone."softwareTitle",
             phone."softwareVersion",
@@ -456,10 +457,10 @@ class ApplianceToExcel
         // Init worksheet data
         $sheet = 'sheet3';
         $currentRow = 1;
-        $columns = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AO', 'AP', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AV', 'AW', 'AX', 'AY', 'AZ', 'BA'];
+        $columns = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AO', 'AP', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AV', 'AW', 'AX', 'AY', 'AZ', 'BA', 'BB'];
 
         // Add Header to the worksheet
-        $header = ['№п/п', 'Рег. центр', 'Регион', 'Город', 'Офис', 'LotusId', 'Cluster', 'Hostname', 'Type', 'Device', 'Name', 'IP', 'Publisher', 'Publisher Description', 'Partion', 'CSS', 'Prefix', 'DN', 'Device ser', 'Inv. Number', 'Mol', 'Software', 'Software ver.', 'Last update', 'Last call', 'Calls (тек. день)', 'Calls (тек. месяц)', 'Calls (прошлый месяц)', 'Calls (позапрошлый месяц)', 'Comment', 'Description', 'Device Pool', 'Alerting Name', 'Timezone', 'DHCP enable', 'DHCP server', 'Domain name', 'TFTP server 1', 'TFTP server 2', 'Default Router', 'DNS server 1', 'DNS server 2', 'Call manager 1', 'Call manager 2', 'Call manager 3', 'Call manager 4', 'VLAN ID', 'User locale', 'CDP neighbor device ID', 'CDP neighbor IP', 'CDP neighbor Port', 'CDP neighbor Device Title', 'CDP neighbor Device Inventory Number'];
+        $header = ['№п/п', 'Рег. центр', 'Регион', 'Город', 'Офис', 'LotusId', 'Cluster', 'Hostname', 'Type', 'Device', 'Name', 'IP', 'Publisher', 'Publisher Description', 'Partion', 'CSS', 'Prefix', 'DN', 'Ext Phone Num Mask', 'Device ser', 'Inv. Number', 'Mol', 'Software', 'Software ver.', 'Last update', 'Last call', 'Calls (тек. день)', 'Calls (тек. месяц)', 'Calls (прошлый месяц)', 'Calls (позапрошлый месяц)', 'Comment', 'Description', 'Device Pool', 'Alerting Name', 'Timezone', 'DHCP enable', 'DHCP server', 'Domain name', 'TFTP server 1', 'TFTP server 2', 'Default Router', 'DNS server 1', 'DNS server 2', 'Call manager 1', 'Call manager 2', 'Call manager 3', 'Call manager 4', 'VLAN ID', 'User locale', 'CDP neighbor device ID', 'CDP neighbor IP', 'CDP neighbor Port', 'CDP neighbor Device Title', 'CDP neighbor Device Inventory Number'];
         $rows = '<row r="' . $currentRow . '" spans="1:' . count($columns) . '" x14ac:dyDescent="0.25">';
         for ($i = 0; $i < count($columns); $i++) {
             $sharedStringsSI .= '<si><t>' . $header[$i] . '</t></si>';
@@ -493,6 +494,7 @@ class ApplianceToExcel
                 $phone->css,
                 $phone->prefix,
                 $phone->phoneDN,
+                $phone->e164mask,
                 $phone->platformSerial,
                 $phone->inventoryNumber,
                 $phone->responsiblePerson,

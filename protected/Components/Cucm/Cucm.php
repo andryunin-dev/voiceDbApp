@@ -106,7 +106,7 @@ class Cucm
     /**
      * Redirected Phones
      * @return array of RedirectedPhone|[]
-     * @throws \SoapFault
+     * @throws \SoapFault|\T4\Core\MultiException
      */
     public function redirectedPhones(): array
     {
@@ -117,7 +117,7 @@ class Cucm
      * Redirected Phones with callForwardingNumber
      * @param string $callForwardingNumber
      * @return array of RedirectedPhone|[]
-     * @throws \SoapFault
+     * @throws \SoapFault|\T4\Core\MultiException
      */
     public function redirectedPhonesWithCallForwardingNumber(string $callForwardingNumber): array
     {
@@ -128,7 +128,7 @@ class Cucm
      * Redirected Phones containing callForwardingNumber as substring
      * @param string $callForwardingNumber
      * @return array of RedirectedPhone|[]
-     * @throws \SoapFault
+     * @throws \SoapFault|\T4\Core\MultiException
      */
     public function redirectedPhonesContainingCallForwardingNumberAsSubstring(string $callForwardingNumber): array
     {
@@ -204,6 +204,7 @@ class Cucm
             'class' => $dataOfRisPortService->Class,
             'prefix' => $dataOfAxlService->prefix,
             'phonedn' => $dataOfAxlService->phonedn,
+            'e164mask' => $dataOfAxlService->e164mask,
             'css' => $dataOfAxlService->css,
             'devicepool' => $dataOfAxlService->devicepool,
             'alertingname' => $dataOfAxlService->alertingname,

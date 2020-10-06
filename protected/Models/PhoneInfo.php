@@ -57,6 +57,7 @@ class PhoneInfo extends Model
             'name' => ['type' => 'string'],
             'prefix' => ['type' => 'int'],
             'phoneDN' => ['type' => 'int'],
+            'e164mask' => ['type' => 'string'],
             'status' => ['type' => 'string'],
             'description' => ['type' => 'string'],
             'css' => ['type' => 'string'],
@@ -96,25 +97,21 @@ class PhoneInfo extends Model
         if (empty(trim($this->name))) {
             throw new Exception('PhoneInfo: Пустое значение Name');
         }
-
         if (!($this->phone instanceof Appliance)) {
             throw new Exception('PhoneInfo: Неверный тип Appliance');
         }
-
         if (!is_bool($this->unknownLocation)) {
             throw new Exception('PhoneInfo: Неверный тип UnknownLocation');
         }
 
-        $phoneInfo = PhoneInfo::findByColumn('name', $this->name);
+        $phoneInfoFromDb = PhoneInfo::findByColumn('name', $this->name);
 
-        if (true === $this->isNew && ($phoneInfo instanceof PhoneInfo)) {
+        if (true === $this->isNew && ($phoneInfoFromDb instanceof PhoneInfo)) {
             throw new Exception('Такой PhoneInfo уже существует');
         }
-
-        if (true === $this->isUpdated && ($phoneInfo instanceof PhoneInfo) && ($phoneInfo->getPk() != $this->getPk())) {
+        if (true === $this->isUpdated && ($phoneInfoFromDb instanceof PhoneInfo) && ($phoneInfoFromDb->getPk() != $this->getPk())) {
             throw new Exception('Такой PlatformItem уже существует');
         }
-
         return true;
     }
 
