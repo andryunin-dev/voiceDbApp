@@ -17,6 +17,7 @@ class BasePhoneView extends Model
             'dn' => ['type' => 'string'],
             'dnDash' => ['type' => 'string'],
             'dnPrefix' => ['type' => 'string'],
+            'e164msk' => ['type' => 'string'],
             'alertingName' => ['type' => 'string'],
             'depiction' => ['type' => 'string'],
             'vlanId' => ['type' => 'string'],
