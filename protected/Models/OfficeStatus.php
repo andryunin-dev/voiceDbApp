@@ -23,6 +23,8 @@ use T4\Orm\Model;
  */
 class OfficeStatus extends Model
 {
+    private const OPEN = 'открыт';
+
     protected static $schema = [
         'table' => 'company.officeStatuses',
         'columns' => [
@@ -48,14 +50,23 @@ class OfficeStatus extends Model
 
     protected function validate()
     {
-        if (false === $this->isNew()) {
-            return true;
-        }
-
-        if (false !== OfficeStatus::findByColumn('title', $this->title)) {
-
-            throw new Exception('Такой статус уже существует');
+        $officeStatusFromDb = OfficeStatus::findByColumn('title', $this->title);
+        if (false !== $officeStatusFromDb && ($this->isNew() || $this->getPk() != $officeStatusFromDb->getPk())) {
+            throw new Exception('Такой статус офиса уже существует');
         }
         return true;
+    }
+
+    /**
+     * @return OfficeStatus
+     * @throws \T4\Core\MultiException
+     */
+    public static function openInstance(): OfficeStatus
+    {
+        $officeStatus = OfficeStatus::findByColumn('title', self::OPEN);
+        if (false === $officeStatus) {
+            $officeStatus = (new OfficeStatus())->fill(['title' => self::OPEN])->save();
+        }
+        return $officeStatus;
     }
 }

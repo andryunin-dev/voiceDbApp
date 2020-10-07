@@ -126,7 +126,6 @@ class Appliance extends Model
         if (true === $this->isUpdated && ($appliance instanceof Appliance) && ($appliance->getPk() != $this->getPk())) {
             throw new Exception('Такой Appliance уже существует');
         }
-
         return true;
     }
 

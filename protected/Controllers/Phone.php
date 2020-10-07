@@ -4,7 +4,8 @@ namespace App\Controllers;
 
 use App\Components\Cucm\CdpPhoneService;
 use App\Components\Cucm\CucmsService;
-use App\Components\DSPphones;
+use App\Components\Inventory\DataSetType;
+use App\Components\Inventory\UpdateService;
 use App\Components\SimpleTableHelpers;
 use App\Models\Office;
 use App\Models\PhoneInfo;
@@ -35,6 +36,7 @@ class Phone extends Controller
 
     /**
      * @param string $name
+     * @throws \Exception
      */
     public function actionPhoneData(string $name)
     {
@@ -70,7 +72,9 @@ class Phone extends Controller
             if (is_null($data = json_decode($phoneData, true))) {
                 throw new \Exception('Json can not be converted');
             }
-            $resultData['success'] = (new DSPphones())->persist(new Std($data));
+            $data['dataSetType'] = DataSetType::PHONE;
+            (new UpdateService())->update($data);
+            $resultData['success'] = true;
         } catch (\Throwable $e) {
             $resultData['error'] = $e->getMessage();
         }

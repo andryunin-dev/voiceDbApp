@@ -9,6 +9,7 @@ class CucmPhone
     private $class = '';
     private $prefix = '';
     private $phonedn = '';
+    private $e164mask = '';
     private $css = '';
     private $devicepool = '';
     private $alertingname = '';
@@ -67,6 +68,7 @@ class CucmPhone
             'class' => $this->class,
             'prefix' => $this->prefix,
             'phonedn' => $this->phonedn,
+            'e164mask' => $this->e164mask,
             'css' => $this->css,
             'devicepool' => $this->devicepool,
             'alertingname' => $this->alertingname,

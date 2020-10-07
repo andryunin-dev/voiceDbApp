@@ -18,6 +18,8 @@ use T4\Orm\Model;
  */
 class City extends Model
 {
+    private const UNKNOWN_CITY = 'Неизвестный';
+
     protected static $schema = [
         'table' => 'geolocation.cities',
         'columns' => [
@@ -45,15 +47,45 @@ class City extends Model
 
     protected function validate()
     {
-        if (false === $this->region) {
+        if (!($this->region instanceof Region)) {
             throw new Exception('Регион не найден');
         }
-        if (false === $this->isNew()) {
-            return true;
-        }
-        if (false !== City::findByColumn('title', $this->title)) {
-            throw new Exception('Город с таким именем существует');
+        $cityFromDb = self::findByCityTitleInRegion($this->title, $this->region);
+        if (false !== $cityFromDb && ($this->isNew() || $this->getPk() != $cityFromDb->getPk())) {
+            throw new Exception('Город с таким именем уже существует');
         }
         return true;
+    }
+
+    /**
+     * @param string $title
+     * @param Region $region
+     * @return mixed
+     */
+    public static function findByCityTitleInRegion(string $title, Region $region)
+    {
+        $cities = City::findAllByColumn('title', $title)
+            ->filter(function ($city) use ($region) {
+                return $city->region->title == $region->title;
+            });
+        return $cities->isEmpty() ? false : $cities->first();
+    }
+
+    /**
+     * @return City
+     * @throws \T4\Core\MultiException
+     */
+    public static function unknownCityInstance(): City
+    {
+        $city = self::findByColumn('title', self::UNKNOWN_CITY);
+        if (false == $city) {
+            $city = (new City())
+                ->fill([
+                    'title' => self::UNKNOWN_CITY,
+                    'region' => Region::unknownRegionInstance()
+                ])
+                ->save();
+        }
+        return $city;
     }
 }

@@ -6,11 +6,11 @@ use App\Components\Cucm\CdpPhoneService;
 use App\Components\Cucm\Cucm;
 use App\Components\Cucm\CucmsService;
 use App\Components\Cucm\Models\RedirectedPhone;
-use App\Components\DSPphones;
+use App\Components\Inventory\DataSetType;
+use App\Components\Inventory\UpdateService;
 use App\Components\StreamLogger;
 use Monolog\Logger;
 use T4\Console\Command;
-use T4\Core\Std;
 
 class CucmsPhones extends Command
 {
@@ -133,8 +133,9 @@ class CucmsPhones extends Command
             $registeredPhones,
             function ($registeredPhone) use ($logger) {
                 try {
-                    $dataOfPhone = new Std($registeredPhone->toArray());
-                    (new DSPphones())->process($dataOfPhone);
+                    $dataOfPhone = $registeredPhone->toArray();
+                    $dataOfPhone['dataSetType'] = DataSetType::PHONE;
+                    (new UpdateService())->update($dataOfPhone);
                 } catch (\Throwable $e) {
                     $logger->error(
                         '[message]=' . $e->getMessage() .
