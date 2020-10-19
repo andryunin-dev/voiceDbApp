@@ -54,6 +54,12 @@
         <filter token="pcData.password" value="${pcData.password}" />
         <filter token="pcData.name" value="${pcData.name}" />
 
+        <filter token="verint558.servername" value="${verint558.servername}" />
+        <filter token="verint558.port" value="${verint558.port}" />
+        <filter token="verint558.database" value="${verint558.database}" />
+        <filter token="verint558.username" value="${verint558.username}" />
+        <filter token="verint558.password" value="${verint558.password}" />
+
         <copy todir="${config.target.dir}" filtering="true" overwrite="true">
             <fileset file="${src.configTemplate}" />
         </copy>
