@@ -36,6 +36,13 @@ return [
             'user' => '@pcData.user@',
             'password' => '@pcData.password@',
             'dbname' => '@pcData.name@'
+        ],
+        'verint558' => [
+            'servername' => '@verint558.servername@',
+            'port' => '@verint558.port@',
+            'database' => '@verint558.database@',
+            'username' => '@verint558.username@',
+            'password' => '@verint558.password@',
         ]
     ],
     'axl' => [
