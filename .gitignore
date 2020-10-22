@@ -5,3 +5,4 @@ public/Assets
 /protected/config.php
 composer.lock
 /react
+/node_modules
