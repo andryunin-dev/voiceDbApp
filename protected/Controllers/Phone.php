@@ -10,6 +10,7 @@ use App\Components\SimpleTableHelpers;
 use App\Models\Office;
 use App\Models\PhoneInfo;
 use App\ViewModels\Geo_View;
+use App\ViewModels\PhoneRecorder_View;
 use T4\Core\Exception;
 use T4\Core\Std;
 use T4\Http\Request;
@@ -173,4 +174,22 @@ class Phone extends Controller
         }
     }
 
+    public function actionRecordable()
+    {
+        if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+            exit;
+        }
+        try {
+            $phones = PhoneRecorder_View::getDbConnection()
+                ->query('SELECT * FROM ' . PhoneRecorder_View::getTableName())
+                ->fetchAll(\PDO::FETCH_ASSOC);
+            $this->data->data = $phones;
+            $this->data->counter = count($this->data->data);
+        } catch (\Throwable $e) {
+            $this->data->error = 'Runtime error';
+            $this->data->data = [];
+            $this->data->counter = 0;
+            http_response_code(201);
+        }
+    }
 }
