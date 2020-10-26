@@ -1,16 +1,19 @@
 import {decode} from "js-base64"
 import axios from 'axios'
 import check from 'check-types'
-import {URL_AUTH_LOGIN, URL_AUTH_LOGOUT, URL_REFRESH_TOKEN} from "../constants/urls";
+import {
+  URL_AUTH_LOGIN, URL_AUTH_LOGOUT, URL_REFRESH_TOKEN,
+  LS_RAW_ACCESS_TOKEN, LS_USER_PROFILE
+} from "../constants";
 
 
-export const getToken = () => localStorage.getItem('token')
-export const setToken = (token) => localStorage.setItem('token', token)
-export const getTokenInfo = () => localStorage.getItem('user')
-export const setTokenInfo = (tokenInfo) => localStorage.setItem('user', tokenInfo)
+export const getToken = () => localStorage.getItem(LS_RAW_ACCESS_TOKEN)
+export const setToken = (token) => localStorage.setItem(LS_RAW_ACCESS_TOKEN, token)
+export const getTokenInfo = () => localStorage.getItem(LS_USER_PROFILE)
+export const setTokenInfo = (tokenInfo) => localStorage.setItem(LS_USER_PROFILE, tokenInfo)
 export const clearToken = () => {
-  localStorage.removeItem('user')
-  localStorage.removeItem('token')
+  localStorage.removeItem(LS_USER_PROFILE)
+  localStorage.removeItem(LS_RAW_ACCESS_TOKEN)
 }
 
 export const checkTokenTime = (token) => {

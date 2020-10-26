@@ -4,7 +4,7 @@ import {
   isLoggedIn, setToken, setTokenInfo, refreshToken, clearToken,
   getTokenInfo, getTokenTimeBeforeRefresh
 } from "./helpers";
-import {LOGIN_PAGE} from "./constants/urls";
+import {LOGIN_PAGE} from "./constants";
 
 const PrivateRoute = ({children, ...rest}) => {
   const {path, url} = useRouteMatch()
@@ -59,7 +59,7 @@ const App = () => {
   return (
     <Router>
       <PrivateRoute>
-        <div>Test</div>
+        <div/>
       </PrivateRoute>
     </Router>
   )
