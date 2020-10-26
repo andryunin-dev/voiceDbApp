@@ -52,11 +52,14 @@
     {#React injection=============================================#}
     <link href="/react/editDevModal/static/css/main.8b6cd09a.chunk.css" rel="stylesheet">
 
-{#======================================================#}
+    {#======================================================#}
     {% block headerScript %}
     {% endblock %}
 </head>
 <body>
+<div id="react-auth" />
+<script src="{{ asset('/ReactAddons/dist/react_bundle.js') }}"></script>
+
 <div class="container-fluid">
     <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
         <div class="container-fluid">
