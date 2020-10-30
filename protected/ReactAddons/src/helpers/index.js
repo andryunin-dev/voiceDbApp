@@ -16,17 +16,18 @@ export const clearToken = () => {
   localStorage.removeItem(LS_RAW_ACCESS_TOKEN)
 }
 
-export const checkTokenTime = (token) => {
+export const checkTokenTime = (tokenPayload) => {
   // return false if difference between current time and iat time less 1 minute
-  const iat = token && check.integer(token.iat) && token.iat
+  const iat = tokenPayload && check.integer(tokenPayload.iat) && tokenPayload.iat
   const timeDiff = (new Date()).getTime() - iat * 1000
   return  timeDiff >= 0 && timeDiff < 60 * 1000
 }
 
-export const getTokenTimeBeforeRefresh = (token) => {
-  // return false if difference between current time and iat time less 1 minute
-  const exp = token && check.integer(token.exp) && token.exp
-  return exp ? exp * 1000 - (new Date()).getTime() : 0
+export const getTokenTimeBeforeRefresh = (tokenPayload) => {
+  // return time in ms before refresh
+  const exp = tokenPayload && check.integer(tokenPayload.exp) && tokenPayload.exp
+  const time = exp ? exp * 1000 - (new Date()).getTime() : 0
+  return time >= 0 ? time : 0
 }
 
 const fetchToken = async ({username, password}) => {
@@ -82,5 +83,14 @@ export const logout = async () => {
     console.log('Error in logout: ', e)
     return false
   }
+}
+
+export const refreshTimeout_ms = (refreshAttempts) => {
+  const tokenPayload = JSON.parse(getTokenInfo())
+  if (!tokenPayload) return 0
+
+  const tokenTTL = getTokenTimeBeforeRefresh(tokenPayload)
+  const timeout = tokenTTL - refreshAttempts * 30 * 1000
+  return timeout > 0 ? timeout : 0
 }
 
