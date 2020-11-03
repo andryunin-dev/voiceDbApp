@@ -44,12 +44,10 @@ const App = () => {
         }
       }
     }
-    const scheduler = () => setTimeout(() => tokenRefreshHandler(), new Date((tokenExp - refreshAttempts * 30) * 1000) - new Date())
+    const scheduler = (timeout_ms) => setTimeout(() => tokenRefreshHandler(), timeout_ms)
 
     if (expTime === false) return
 
-    const tokenInfo = JSON.parse(getTokenInfo())
-    const tokenExp = tokenInfo && tokenInfo.exp ? tokenInfo.exp : null
     // refresh immediately if app has just started or time before expiration less than refreshAttempts * 30 seconds
     if (expTime === 0) {
       if (refreshAttempts > 0) {
@@ -63,7 +61,6 @@ const App = () => {
         setTokenState({expTime: false, resCode, refreshAttempts: MAX_REFRESH_ATTEMPTS})
       }
     } else if (refreshAttempts > 0) {
-      console.log('refreshTimeout', refreshTimeout_ms(refreshAttempts)/1000, refreshAttempts, expTime)
       timerId.current = scheduler(refreshTimeout_ms(refreshAttempts))
     } else {
       clearToken()
@@ -75,11 +72,12 @@ const App = () => {
     }
   }, [tokenState])
 
-  const setLoggedOutState = () => {
-    if (timerId.current) clearTimeout(timerId.current)
-    clearToken()
-    setTokenState({expTime: false, resCode: 200, refreshAttempts: MAX_REFRESH_ATTEMPTS})
-  }
+  // const setLoggedOutState = () => {
+  //   if (timerId.current) clearTimeout(timerId.current)
+  //   clearToken()
+  //   setTokenState({expTime: false, resCode: 200, refreshAttempts: MAX_REFRESH_ATTEMPTS})
+  // }
+
   return tokenState.expTime === 0 ? <div/> : (
     <Router>
       <PrivateRoute>
@@ -88,4 +86,6 @@ const App = () => {
     </Router>
     )
 }
+
+
 export default App
