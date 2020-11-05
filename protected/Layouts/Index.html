@@ -23,6 +23,7 @@
     <link rel="stylesheet" href="{{ asset('/Layouts/resources/css/bootstrapExt.css') }}">
     <link rel="stylesheet" href="{{ asset('/Layouts/resources/css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('/Layouts/resources/css/testStyle.css') }}">
+    <link rel="stylesheet" href="{{ asset('/Layouts/resources/font-awesome-4.7.0/css/font-awesome.min.css') }}">
 
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
@@ -52,11 +53,16 @@
     {#React injection=============================================#}
     <link href="/react/editDevModal/static/css/main.8b6cd09a.chunk.css" rel="stylesheet">
 
-{#======================================================#}
+    {#======================================================#}
     {% block headerScript %}
     {% endblock %}
 </head>
 <body>
+<div id="react-auth"/>
+<script src="{{ asset('/ReactAddons/dist/react_bundle.js') }}"></script>
+
+
+
 <div class="container-fluid">
     <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
         <div class="container-fluid">
@@ -157,6 +163,14 @@
                             <li><a href="/log/phone">Логи Phones</a></li>
                         </ul>
                     </li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle active" data-toggle="dropdown">
+                            <i class="fa fa-user-circle fa-2x" aria-hidden="true"></i>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a href="/vra/logout">Logout</a></li>
+                        </ul>
+                    </li>
                 </ul>
             </div><!-- /.navbar-collapse -->
         </div>
@@ -165,6 +179,7 @@
     {% block main %}
     {% endblock %}
     <noscript>You need to enable JavaScript to run this app.</noscript>
+
     <div id="injectReact"></div>
     <script>!function (f) {
             function e(e) {

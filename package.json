@@ -1,0 +1,47 @@
+{
+  "name": "netcmdb-loc.rs.ru",
+  "version": "1.0.0",
+  "description": "1) обработка кнопок:\r     кнопки оформлять как ссылки или как button\r     атрибуты:",
+  "main": "index.js",
+  "scripts": {
+    "start": "webpack --mode=development",
+    "build": "webpack --mode=production"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Maximus905/voiceDbApp.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Maximus905/voiceDbApp/issues"
+  },
+  "homepage": "https://github.com/Maximus905/voiceDbApp#readme",
+  "dependencies": {
+    "axios": "^0.20.0",
+    "check-types": "^11.1.2",
+    "js-base64": "^3.5.2",
+    "react": "^16.14.0",
+    "react-dom": "^16.14.0",
+    "react-router-dom": "^5.2.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.12.3",
+    "@babel/plugin-transform-runtime": "^7.12.1",
+    "@babel/preset-env": "^7.12.1",
+    "@babel/preset-react": "^7.12.1",
+    "@typescript-eslint/eslint-plugin": "^4.5.0",
+    "@typescript-eslint/parser": "^4.5.0",
+    "babel-loader": "^8.1.0",
+    "css-loader": "^5.0.0",
+    "eslint": "^7.11.0",
+    "eslint-plugin-react": "^7.21.4",
+    "node-sass": "^4.14.1",
+    "sass-loader": "^10.0.3",
+    "style-loader": "^2.0.0",
+    "typescript": "^4.0.3",
+    "webpack": "^5.1.3",
+    "webpack-cli": "^4.1.0"
+  }
+}

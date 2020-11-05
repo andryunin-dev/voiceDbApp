@@ -21,6 +21,11 @@ class Locations extends Controller
     {
         $this->data->activeLink->offices = true;
     }
+    public function actionOfficeTable2()
+    {
+        $res = GeoDevStat::findAll()->toArrayRecursive();
+        $this->data->res = $res;
+    }
     public function actionOfficesTable()
     {
         $url = new Url('/device/info');
