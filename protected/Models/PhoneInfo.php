@@ -198,4 +198,14 @@ class PhoneInfo extends Model
     {
         return $this->phone->inventoryNumber();
     }
+
+    public function delete()
+    {
+        if ($this->isNew()) {
+            return false;
+        }
+        $result = parent::delete();
+        $this->phone->delete();
+        return $result;
+    }
 }

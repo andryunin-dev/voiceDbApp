@@ -24,16 +24,44 @@ class PhoneUpdateService
     private $appliance;
 
     /**
-     * Update Phone data
-     *
      * @param PhoneInfo $phoneInfo
      * @param array $data
-     * @throws Exception|MultiException
+     * @throws \Throwable
      */
     public function update(PhoneInfo $phoneInfo, array $data): void
     {
         $this->phoneInfo = $phoneInfo;
         $this->appliance = $phoneInfo->phone;
+        if ($phoneInfo->isNew()) {
+            $this->createPhone($data);
+        } else {
+            $this->updatePhone($data);
+        }
+    }
+
+    /**
+     * @param array $data
+     * @throws \Throwable
+     */
+    private function createPhone(array $data)
+    {
+        try {
+            PhoneInfo::getDbConnection()->beginTransaction();
+            $this->updatePhone($data);
+            PhoneInfo::getDbConnection()->commitTransaction();
+        } catch (\Throwable $e) {
+            PhoneInfo::getDbConnection()->rollbackTransaction();
+            throw $e;
+        }
+    }
+
+    /**
+     * @param array $data
+     * @throws Exception
+     * @throws MultiException
+     */
+    private function updatePhone(array $data)
+    {
         $this->updateAppliance($data);
         $this->updatePhoneInfo($data);
     }
@@ -385,6 +413,6 @@ class PhoneUpdateService
         ];
         return  in_array($this->model($data), $virtualAppliances)
             ? null
-            : $this->sanitizeIp($data['ipAddress']);
+            : (new IpTools($data['ipAddress'], $data['subNetMask']))->cidrAddress;
     }
 }
