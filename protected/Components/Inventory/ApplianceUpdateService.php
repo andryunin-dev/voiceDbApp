@@ -18,6 +18,7 @@ use App\Models\SoftwareItem;
 use App\Models\Vendor;
 use App\Models\Vrf;
 use Monolog\Logger;
+use T4\Core\MultiException;
 use T4\Core\Std;
 
 class ApplianceUpdateService
@@ -27,7 +28,7 @@ class ApplianceUpdateService
     /**
      * @param Appliance $appliance
      * @param array $data
-     * @throws \T4\Core\MultiException
+     * @throws MultiException
      */
     public function update(Appliance $appliance, array $data): void
     {
@@ -59,7 +60,7 @@ class ApplianceUpdateService
     /**
      * @param string $ip
      * @param Vrf $vrf
-     * @throws \T4\Core\MultiException
+     * @throws MultiException
      */
     private function updateManagementDataPort(string $ip, Vrf $vrf): void
     {
@@ -74,7 +75,7 @@ class ApplianceUpdateService
     /**
      * @param string $ip
      * @param Vrf $vrf
-     * @throws \T4\Core\MultiException
+     * @throws MultiException
      */
     private function createManagementDataPort(string $ip, Vrf $vrf): void
     {
@@ -112,7 +113,7 @@ class ApplianceUpdateService
 
     /**
      * @param DataPort $port
-     * @throws \T4\Core\MultiException
+     * @throws MultiException
      */
     private function makeManageable(DataPort $port): void
     {
@@ -131,7 +132,7 @@ class ApplianceUpdateService
     /**
      * @param string $vrfName
      * @return Vrf
-     * @throws \T4\Core\MultiException
+     * @throws MultiException
      */
     private function vrf(string $vrfName): Vrf
     {
@@ -175,7 +176,7 @@ class ApplianceUpdateService
      * @param Vendor $vendor
      * @param string $description
      * @return Module
-     * @throws \T4\Core\MultiException
+     * @throws MultiException
      */
     private function module(string $productNumber, Vendor $vendor, string $description): Module
     {
@@ -190,11 +191,14 @@ class ApplianceUpdateService
      * @param string $softwareVersion
      * @param string $softwareTitle
      * @param Vendor $vendor
-     * @return \App\Models\SoftwareItem
-     * @throws \T4\Core\MultiException
+     * @return SoftwareItem
+     * @throws MultiException
      */
     private function softwareItem(string $softwareVersion, string $softwareTitle, Vendor $vendor): SoftwareItem
     {
+        if ($this->appliance->isNew()) {
+            $this->appliance->software = new SoftwareItem();
+        }
         return $this->appliance->software->fill([
             'version' => $softwareVersion,
             'software' => Software::instanceWithTitleVendor($softwareTitle, $vendor)
@@ -206,16 +210,22 @@ class ApplianceUpdateService
      * @param string $platformTitle
      * @param string $chassis
      * @param Vendor $vendor
-     * @return \App\Models\PlatformItem
-     * @throws \T4\Core\MultiException
+     * @return PlatformItem
+     * @throws MultiException
      */
     private function platformItem(string $serialNumber, string $platformTitle, string $chassis, Vendor $vendor): PlatformItem
     {
+        if ($this->appliance->isNew()) {
+            $this->appliance->platform = (new PlatformItem())->fill(['serialNumber' => $serialNumber]);
+        }
         if (!empty($this->appliance->platform->serialNumber) && $serialNumber != $this->appliance->platform->serialNumber) {
             throw new \Exception('Appliance is trying to change the serialNumber(' . $this->appliance->platform->serialNumber . ') to ' . $serialNumber);
         }
         return $this->appliance->platform->fill([
-            'platform' => $this->platform($this->platformTitle($platformTitle, $chassis), $vendor)
+            'platform' => $this->platform(
+                $this->platformTitle($platformTitle, $chassis),
+                $vendor
+            )
         ])->save();
     }
 
@@ -240,7 +250,7 @@ class ApplianceUpdateService
      * @param string $title
      * @param Vendor $vendor
      * @return Platform
-     * @throws \T4\Core\MultiException
+     * @throws MultiException
      */
     private function platform(string $title, Vendor $vendor): Platform
     {
@@ -264,7 +274,7 @@ class ApplianceUpdateService
     /**
      * @param string $type
      * @return ApplianceType
-     * @throws \T4\Core\MultiException
+     * @throws MultiException
      */
     private function applianceType(string $type): ApplianceType
     {
@@ -274,7 +284,7 @@ class ApplianceUpdateService
     /**
      * @param string $title
      * @return Vendor
-     * @throws \T4\Core\MultiException
+     * @throws MultiException
      */
     private function vendor(string $title): Vendor
     {
